@@ -1,0 +1,132 @@
+/* from */
+
+.peva-form{
+    position: relative;
+    padding-left: 0px;
+  }
+  .peva-label {
+    
+    width: 145px;
+    height: 21px;
+    
+
+    font-family: sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+
+
+    color: #000000;
+  }
+
+   .peva-input{
+    width: 100%;
+    height: 48px;
+    border-radius: 16px;
+    border: 0px;
+    color: #000000;
+    background: #ffffff !important;
+    appearance: none;
+    padding: 16px;
+    margin-top: 4px;
+  }
+  .peva-input-disabled{
+    color: #B5B5B5 !important;
+  }
+  
+  .peva-button
+  {
+    text-align: center;
+    position: absolute;
+    background: #463347 !important;
+    border-radius: 16px;
+    width: 208px;
+    height: 48px;
+    color: #FFFFFF  !important;
+    align-items: center;
+    border: none;
+    justify-content: center;
+    
+    left: 25%;
+  }
+
+  .peva-form .peva-button
+  {
+    display: flexbox;
+  }
+  .peva-button:hover
+  {
+    background: #F47647 !important;
+  }
+  .peva-input-Area
+  {
+    height: 336px;
+  }
+  
+
+.peva-label-header
+{
+    
+    font-style: normal;
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 21px;
+    margin-bottom: 32px;
+}
+
+.peva-input-icon
+{
+    position:relative;
+}
+.peva-icon-rigth
+{
+    position: absolute;
+    top:58%;
+    align-content: flex-end;
+    left:87%;
+    transform: translateY(-50%);
+    color: #F47647
+    ;
+}
+.peva-dialog .p-dialog-content
+{
+    
+    margin:24px;
+    width: 443px;
+    height: 473px;
+    border-radius: 16px !important;
+    
+}
+
+.p-dialog{box-shadow: 0 0px 0px rgb(0 0 0 / 30%)}
+
+.p-dialog-content .peva-label-header
+{
+    text-align: center;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 48px;
+}
+
+.p-dialog-content .peva-input
+{
+    background: #F5F5F5 !important;
+}
+
+.p-dialog-content .peva-button
+{
+    width: 100%;
+    left: 0;
+    //top: 20px;
+}
+.eva-slider-left{
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.peva-menu-overlay-active .eva-slider-left{
+  background-color:#FFFFFF !important  
+}

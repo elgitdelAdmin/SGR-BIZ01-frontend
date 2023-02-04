@@ -1,0 +1,19 @@
+*{
+  box-shadow: 1px #F47647  !important;
+  //font-family: "Poppins";
+  }
+  input{
+    caret-color: #F47647;
+}
+
+::placeholder { 
+  color: #000000;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+button{
+  border-color: transparent !important;
+}
