@@ -30,3 +30,4 @@ jobs:
       output_location: "build" # Built app content directory - optional
 ###### End of Repository/Build Configurations ######
 
+)
