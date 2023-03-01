@@ -1,0 +1,77 @@
+{
+	"data": [
+		{
+			"gerencia": "sistemas",
+            "users": [
+                {
+                  "id": 1,
+                  "nombre": "Usuario Prueba Cambiado",
+                  "codigoColaborador": "NP00001",
+                  "puesto": "Administrador",
+                  "fechaNacimiento": "1992-02-22T00:00:00",
+                  "idLogin": 1,
+                  "idRol": 1,
+                  "correo": "admin@inleaning.com",
+                  "foto": "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png",
+                  "celular": "9565751877",
+                  "genero": "M ",
+                  "idMarca": 1,
+                  "idGerencia": 1
+                },
+                {
+                  "id": 2,
+                  "nombre": "Kevyn",
+                  "codigoColaborador": "AD004",
+                  "puesto": "Administrador",
+                  "fechaNacimiento": "1993-05-06T00:00:00",
+                  "idLogin": 0,
+                  "idRol": 0,
+                  "correo": "prueba@prueba.com",
+                  "foto": "",
+                  "celular": null,
+                  "genero": null,
+                  "idMarca": 1,
+                  "idGerencia": 1
+                },
+                {
+                  "id": 3,
+                  "nombre": "Ronald Kevyn",
+                  "codigoColaborador": "BP0002",
+                  "puesto": "Administrador",
+                  "fechaNacimiento": "1993-05-06T00:00:00",
+                  "idLogin": 2,
+                  "idRol": 0,
+                  "correo": "prueba@prueba.com",
+                  "foto": "",
+                  "celular": "956575184",
+                  "genero": null,
+                  "idMarca": 1,
+                  "idGerencia": 1
+                }
+              ]
+		},
+
+        {
+            "gerencia":"Legal",
+            "users":[
+                {
+                    "id": 1,
+                    "nombre": "Usuario test1",
+                    "codigoColaborador": "NP00001",
+                    "puesto": "Administrador",
+                    "fechaNacimiento": "1992-02-22T00:00:00",
+                    "idLogin": 1,
+                    "idRol": 1,
+                    "correo": "legal@inleaning.com",
+                    "foto": "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png",
+                    "celular": "99999999",
+                    "genero": "M ",
+                    "idMarca": 1,
+                    "idGerencia": 2
+                  }
+            ]
+        }
+		
+		
+	]
+}

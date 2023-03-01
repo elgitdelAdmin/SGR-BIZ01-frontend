@@ -1,0 +1,180 @@
+import React, { useEffect, useState,useRef } from "react";
+import { Navigate, useLocation,useNavigate,useParams } from "react-router-dom";
+
+import DropdownDefault from "../../components/Dropdown/DropdownDefault";
+import * as Iconsax from "iconsax-react";
+import "./Leccion.scss"
+import { InputText } from "primereact/inputtext";
+import Boton from "../../components/Boton/Boton";
+
+import {BuscarLeccionID ,RegistrarLeccion,ActualizarLeccion} from "../../service/LeccionService";
+import { Field,FieldArray, Formik ,useFormik,FormikProvider} from "formik";
+import * as Yup from "yup";
+import { Toast } from 'primereact/toast';
+import { InputTextarea } from "primereact/inputtextarea";
+import { TabView, TabPanel } from 'primereact/tabview';
+import { DataTable } from 'primereact/datatable';
+import { Column } from "primereact/column";
+const EditarLeccion = () => {
+    const navigate = useNavigate();
+
+    const [leccion, setLeccion] = useState(null);    
+    const [modoEdicion, setModoEdicion] = useState(false);
+    const [tituloPagina, setTituloPagina] = useState("Crear lección");
+    let { IDCurso } = useParams();
+    let { IDUnidad } = useParams();
+    let { IDLeccion } = useParams();
+    const toast = useRef(null);
+
+    useEffect(()=>{
+        const GetLeccion= async()=>{
+            let jwt = window.localStorage.getItem("jwt");
+            let idLeccion = IDLeccion
+            await BuscarLeccionID({jwt,idLeccion}).then(data=>{
+                setLeccion(data)
+                setModoEdicion(true)
+                setTituloPagina("Datos de lección")
+            })
+           
+        }
+
+        if(IDLeccion)GetLeccion()
+    },[IDLeccion])
+    const Registrar =({jsonLeccion})=>{
+        let jwt = window.localStorage.getItem("jwt");
+        RegistrarLeccion({jsonLeccion,jwt}).then(data=>{
+            formik.setSubmitting(false)
+            toast.current.show({severity:'success', summary: 'Success', detail:"Lección registrada exitosamente.", life: 7000})
+
+
+            setTimeout(() => {
+                navigate(-1);
+            }, 3000)
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            formik.setSubmitting(false)
+        })
+    }
+
+    const Actualizar =({jsonLeccion})=>{
+        let jwt = window.localStorage.getItem("jwt");
+        ActualizarLeccion({jsonLeccion,jwt}).then(data=>{
+            formik.setSubmitting(false)
+            toast.current.show({severity:'success', summary: 'Success', detail:"Lección actualizada exitosamente.", life: 7000})
+
+
+            setTimeout(() => {
+                navigate(-1);
+            }, 3000)
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            formik.setSubmitting(false)
+        })
+    }
+
+    const formik = useFormik({
+        enableReinitialize:true,
+        initialValues: { 
+            idLeccion: leccion?leccion.idLeccion:0,
+            descripcion : leccion?leccion.descripcion:"",
+            descripcionSeo : leccion?leccion.descripcionSEO:"",
+            URLVideo: leccion?leccion.URLVideo:"",
+            secuencia: leccion?leccion.secuencia:"",
+            
+        },
+    //   validationSchema: schema,
+      onSubmit: values => {
+        let idUnidad = IDUnidad
+        let descripcion =values.descripcion
+        let descripcionSEO =values.descripcionSeo
+        let URLVideo = values.URLVideo
+        let secuencia = values.secuencia
+
+        let jsonLeccion = JSON.stringify({idUnidad,descripcion,descripcionSEO,URLVideo,secuencia},null,2)
+
+        if(!modoEdicion) Registrar({jsonLeccion}) 
+        else {Actualizar({jsonLeccion})}
+      },
+    });
+
+    return ( 
+        <form onSubmit={formik.handleSubmit}>
+            <div className="zv-editarLeccion" style={{paddingTop:16}}>
+                <Toast ref={toast} position="top-center"></Toast>
+                <div className="header" >
+                    <span style={{cursor:"pointer"}} onClick={()=>navigate(-1)}><Iconsax.ArrowCircleLeft size={30}></Iconsax.ArrowCircleLeft></span>
+                </div>
+                <div className="header-titulo"  style={{marginTop:16}}>{tituloPagina}</div>
+                <div className="zv-editarLeccion-body" style={{marginTop:16}}>
+                    <div className="p-fluid formgrid grid">
+                        <div className="field col-12 md:col-6">
+                            <label className="label-form">Titulo</label>
+                            <InputText type={"text"} 
+                                id="descripcion"
+                                name="descripcion"
+                                placeholder="Escribe aquí"
+                                value ={formik.values.descripcion} 
+                                onChange={formik.handleChange}
+                                onblur={formik.handleBlur}
+                                ></InputText>
+                        </div>
+                        <div className="field col-12 md:col-6">
+                            <label className="label-form">Descripción</label>
+                            <InputText type={"text"} 
+                                id="descripcion"
+                                name="descripcion"
+                                placeholder="Escribe aquí"
+                                value ={formik.values.descripcion} 
+                                onChange={formik.handleChange}
+                                onblur={formik.handleBlur}
+                                ></InputText>
+                        </div>
+                        <div className="field col-12 md:col-6">
+                            <label className="label-form">Descripción SEO</label>
+                            <InputText type={"text"} 
+                                id="descripcionSeo"
+                                name="descripcionSeo"
+                                placeholder="Escribe aquí"
+                                value ={formik.values.descripcionSeo} 
+                                onChange={formik.handleChange}
+                                onblur={formik.handleBlur}
+                                ></InputText>
+                        </div>
+                        <div className="field col-12 md:col-6">
+                            <label className="label-form">URL de video</label>
+                            <InputText type={"text"} 
+                                id="URLVideo"
+                                name="URLVideo"
+                                placeholder="Escribe aquí"
+                                value ={formik.values.URLVideo} 
+                                onChange={formik.handleChange}
+                                onblur={formik.handleBlur}
+                                ></InputText>
+                        </div>
+                        <div className="field col-12 md:col-6">
+                            <label className="label-form">Secuencia</label>
+                            <InputText type={"text"} 
+                                id="secuencia"
+                                name="secuencia"
+                                placeholder="Escribe aquí"
+                                value ={formik.values.secuencia} 
+                                onChange={formik.handleChange}
+                                onblur={formik.handleBlur}
+                                ></InputText>
+                        </div>
+                    </div>
+                    <div className="zv-editarLeccion-footer" style={{display:"flex",gap:8}}>
+                        <Boton label="Guardar cambios" style={{fontSize:12}} color="primary" type="submit" loading={formik.isSubmitting}></Boton>
+                        {modoEdicion && <Boton label="Agregar material" style={{fontSize:12}} color="secondary" type ="button"
+                        //onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+unidad.idUnidad+"/Leccion/Crear")}
+                        ></Boton>}
+                    </div>
+                </div>
+            </div>
+        </form>
+     );
+}
+ 
+export default EditarLeccion;

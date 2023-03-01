@@ -1,0 +1,204 @@
+{
+    "root": [
+        {
+            "key": "0",
+            "data": {
+                "name": "Inicio",
+                "description": "Módulo de inicio",
+                "id": "1"
+            },
+            "children": [
+                {
+                    "key": "0-0",
+                    "data": {
+                        "name": "Crear",
+                        "description": "Permiso para crear",
+                        "id": "1001"
+                    }
+                },
+                {
+                    "key": "0-1",
+                    "data": {
+                        "name": "Consultar",
+                        "description": "Permiso para consultar",
+                        "id": "1002"
+                    }
+                },
+                {
+                    "key": "0-2",
+                    "data": {
+                        "name": "Modificar",
+                        "description": "Permiso para modificar",
+                        "id": "1003"
+                    }
+                },
+                {
+                    "key": "0-3",
+                    "data": {
+                        "name": "Eliminar",
+                        "description": "Permiso para eliminar",
+                        "id": "1004"
+                    }
+                },
+                {
+                    "key": "0-4",
+                    "data": {
+                        "name": "Ejecutar",
+                        "description": "Permiso para ejecutar",
+                        "id": "1005"
+                    }
+                }
+            ]
+        },
+        {
+            "key": "1",
+            "data": {
+                "name": " Grupos",
+                "description": "Módulo de grupos",
+                "id": "1"
+            },
+            "children": [
+                {
+                    "key": "0-0",
+                    "data": {
+                        "name": "Crear",
+                        "description": "Permiso para crear",
+                        "id": "1001"
+                    }
+                },
+                {
+                    "key": "0-1",
+                    "data": {
+                        "name": "Consultar",
+                        "description": "Permiso para consultar",
+                        "id": "1002"
+                    }
+                },
+                {
+                    "key": "0-2",
+                    "data": {
+                        "name": "Modificar",
+                        "description": "Permiso para modificar",
+                        "id": "1003"
+                    }
+                },
+                {
+                    "key": "0-3",
+                    "data": {
+                        "name": "Eliminar",
+                        "description": "Permiso para eliminar",
+                        "id": "1004"
+                    }
+                },
+                {
+                    "key": "0-4",
+                    "data": {
+                        "name": "Ejecutar",
+                        "description": "Permiso para ejecutar",
+                        "id": "1005"
+                    }
+                }
+            ]
+        },
+        {
+            "key": "2",
+            "data": {
+                "name": "Usuarios",
+                "description": " Módulo de usuarios",
+                "id": "1"
+            },
+            "children": [
+                {
+                    "key": "0-0",
+                    "data": {
+                        "name": "Crear",
+                        "description": "Permiso para crear",
+                        "id": "1001"
+                    }
+                },
+                {
+                    "key": "0-1",
+                    "data": {
+                        "name": "Consultar",
+                        "description": "Permiso para consultar",
+                        "id": "1002"
+                    }
+                },
+                {
+                    "key": "0-2",
+                    "data": {
+                        "name": "Modificar",
+                        "description": "Permiso para modificar",
+                        "id": "1003"
+                    }
+                },
+                {
+                    "key": "0-3",
+                    "data": {
+                        "name": "Eliminar",
+                        "description": "Permiso para eliminar",
+                        "id": "1004"
+                    }
+                },
+                {
+                    "key": "0-4",
+                    "data": {
+                        "name": "Ejecutar",
+                        "description": "Permiso para ejecutar",
+                        "id": "1005"
+                    }
+                }
+            ]
+        },
+        {
+            "key": "3",
+            "data": {
+                "name": "Roles",
+                "description": "Módulo de roles",
+                "id": "1"
+            },
+            "children": [
+                {
+                    "key": "0-0",
+                    "data": {
+                        "name": "Crear",
+                        "description": "Permiso para crear",
+                        "id": "1001"
+                    }
+                },
+                {
+                    "key": "0-1",
+                    "data": {
+                        "name": "Consultar",
+                        "description": "Permiso para consultar",
+                        "id": "1002"
+                    }
+                },
+                {
+                    "key": "0-2",
+                    "data": {
+                        "name": "Modificar",
+                        "description": "Permiso para modificar",
+                        "id": "1003"
+                    }
+                },
+                {
+                    "key": "0-3",
+                    "data": {
+                        "name": "Eliminar",
+                        "description": "Permiso para eliminar",
+                        "id": "1004"
+                    }
+                },
+                {
+                    "key": "0-4",
+                    "data": {
+                        "name": "Ejecutar",
+                        "description": "Permiso para ejecutar",
+                        "id": "1005"
+                    }
+                }
+            ]
+        }
+    ]
+}

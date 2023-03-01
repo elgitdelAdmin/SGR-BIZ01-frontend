@@ -1,0 +1,193 @@
+{
+    "data": [
+        {
+            "id": "1",
+            "key": "1",
+            "code": "f230fh0g3",
+            "name": "Administrador",
+            "description": "Administrador del sistema",
+            "children": [
+                {
+                    "key": "1-0",
+                    "label": "Work",
+                    "data": "Work Folder",
+                    "icon": "pi pi-fw pi-cog",
+                    "children": [
+                        { "key": "0-0-0", "label": "Expenses.doc", "icon": "pi pi-fw pi-file", "data": "Expenses Document" },
+                        { "key": "0-0-1", "label": "Resume.doc", "icon": "pi pi-fw pi-file", "data": "Resume Document" }
+                    ]
+                },
+                {
+                    "key": "1-1",
+                    "label": "Home",
+                    "data": "Home Folder",
+                    "icon": "pi pi-fw pi-home",
+                    "children": [{ "key": "0-1-0", "label": "Invoices.txt", "icon": "pi pi-fw pi-file", "data": "Invoices for this month" }]
+                }
+            ],
+            "orders": [
+                {
+                    "id": "1000",
+                    "create": "✔",
+                    "edit": "✔",
+                    "consult": "✔",
+                    "delete": "✖",
+                    "modify": "✔",
+                    "execute": "✔",
+                    "module": "Inicio"
+                },
+                {
+                    "id": "1001",
+                    "create": "✔",
+                    "edit": "✔",
+                    "consult": "✔",
+                    "delete": "✖",
+                    "modify": "✔",
+                    "execute": "✔",
+                    "module": "Grupos"
+                },
+                {
+                    "id": "1002",
+                    "create": "✔",
+                    "edit": "✔",
+                    "delete": "✖",
+                    "consult": "✔",
+                    "modify": "✔",
+                    "execute": "✔",
+                    "module": "Usuarios"
+                },
+                {
+                    "id": "1003",
+                    "create": "✔",
+                    "edit": "✔",
+                    "consult": "✔",
+                    "delete": "✖",
+                    "modify": "✔",
+                    "execute": "✔",
+                    "module": "Roles"
+                }
+            ]
+        },
+        {
+            "id": "2",
+            "key": "2",
+            "code": "nvklal433",
+            "name": "Aprobar Publicidad",
+            "description": "Product Description",
+            "image": "black-watch.jpg",
+            "price": 72,
+            "category": "Accessories",
+            "quantity": 61,
+            "inventoryStatus": "INSTOCK",
+            "rating": 4,
+            "children": [
+                {
+                    "key": "2-0",
+                    "label": "Work",
+                    "data": "Work Folder",
+                    "icon": "pi pi-fw pi-cog",
+                    "children": [
+                        { "key": "0-0-0", "label": "Expenses.doc", "icon": "pi pi-fw pi-file", "data": "Expenses Document" },
+                        { "key": "0-0-1", "label": "Resume.doc", "icon": "pi pi-fw pi-file", "data": "Resume Document" }
+                    ]
+                },
+                {
+                    "key": "2-1",
+                    "label": "Home",
+                    "data": "Home Folder",
+                    "icon": "pi pi-fw pi-home",
+                    "children": [{ "key": "0-1-0", "label": "Invoices.txt", "icon": "pi pi-fw pi-file", "data": "Invoices for this month" }]
+                }
+            ],
+            "orders": [
+                {
+                    "id": "2000",
+                    "create": "✖",
+                    "edit": "✖",
+                    "consult": "✔",
+                    "delete": "✖",
+                    "modify": "✖",
+                    "execute": "✔",
+                    "module": "Home"
+                },
+                {
+                    "id": "2001",
+                    "create": "✔",
+                    "edit": "✔",
+                    "consult": "✔",
+                    "delete": "✖",
+                    "modify": "✔",
+                    "execute": "✔",
+                    "module": "Roles"
+                }
+            ]
+        },
+        {
+            "id": "3",
+            "key": "3",
+            "code": "zz21cz3c1",
+            "name": "Usuario",
+            "description": "Usuario general",
+            "image": "blue-band.jpg",
+            "price": 79,
+            "category": "Fitness",
+            "quantity": 2,
+            "inventoryStatus": "LOWSTOCK",
+            "rating": 3,
+            "children": [
+                {
+                    "key": "3-0",
+                    "label": "Work",
+                    "data": "Work Folder",
+                    "icon": "pi pi-fw pi-cog",
+                    "children": [
+                        { "key": "0-0-0", "label": "Expenses.doc", "icon": "pi pi-fw pi-file", "data": "Expenses Document" },
+                        { "key": "0-0-1", "label": "Resume.doc", "icon": "pi pi-fw pi-file", "data": "Resume Document" }
+                    ]
+                },
+                {
+                    "key": "3-1",
+                    "label": "Home",
+                    "data": "Home Folder",
+                    "icon": "pi pi-fw pi-home",
+                    "children": [{ "key": "0-1-0", "label": "Invoices.txt", "icon": "pi pi-fw pi-file", "data": "Invoices for this month" }]
+                }
+            ],
+            "orders": [
+                {
+                    "id": "300",
+                    "create": "✔",
+                    "edit": "✔",
+                    "consult": "✔",
+                    "delete": "✖",
+                    "modify": "✔",
+                    "execute": "✔",
+                    "module": "Roles"
+                },
+                {
+                    "id": "3001",
+                    "create": "✔",
+                    "edit": "✔",
+                    "consult": "✔",
+                    "delete": "✖",
+                    "modify": "✔",
+                    "execute": "✔",
+                    "module": "Roles"
+                }
+            ]
+        },
+        {
+            "id": "4",
+            "code": "244wgerg2",
+            "name": "Publicador",
+            "description": "Usuario que publica",
+            "image": "blue-t-shirt.jpg",
+            "price": 29,
+            "category": "Clothing",
+            "quantity": 25,
+            "inventoryStatus": "INSTOCK",
+            "rating": 5,
+            "orders": []
+        }
+    ]
+}

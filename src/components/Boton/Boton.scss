@@ -1,30 +1,30 @@
 .btnEd
 {
-    border-radius: 16px;
+    border-radius: 0;
     font-weight: 600;
 }
 
 .btnEd-color-primary
 {
-     background-color: #F47647;
+     background-color: #404BD9;
      cursor: pointer;
      color: #fff;
 }
 
 .btnEd-color-seconday
 {
-     background-color: #463347;
+     background-color: #222222;
      cursor: pointer;
      color: #fff;
 }
 
 
 .btnEd-color-primary:hover   {
-  background-color: #b6441b !important;
+  background-color: #232ec7 !important;
 
 }
 
 .btnEd-color-seconday:hover   {
-  background: #5c425e !important;
+  background: #000000 !important;
 
 }

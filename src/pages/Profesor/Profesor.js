@@ -1,0 +1,90 @@
+import React, { useEffect, useState } from "react";
+import { Navigate, useLocation,useNavigate } from "react-router-dom";
+
+import { DataTable } from 'primereact/datatable';
+import { Column } from "primereact/column";
+import * as Iconsax from "iconsax-react";
+import "./Profesor.scss"
+import { ListarProfesores } from "../../service/ProfesorService";
+
+
+const Profesor = () => {
+
+    const navigate = useNavigate();
+
+    const [listaProfesores, setListaProfesores] = useState(null);
+
+    useEffect(()=>{
+      const GetProfesores= async()=>{
+          let jwt = window.localStorage.getItem("jwt");
+          await ListarProfesores({jwt}).then(data=>setListaProfesores(data))
+      }
+      if(!listaProfesores) GetProfesores()
+    },[])
+
+
+    const tempDatatable = 
+    [{idProfesor:1,nombres:"Profesor 1",correo: "profesor1@prueba.com",dni:"11111111"},
+    {idProfesor:2,nombres:"Profesor 2",correo: "profesor2@prueba.com",dni:"22222222"},
+    {idProfesor:3,nombres:"Profesor 3",correo: "profesor3@prueba.com",dni:"33333333"},
+    {idProfesor:4,nombres:"Profesor 4",correo: "profesor4@prueba.com",dni:"33333333"},
+    {idProfesor:5,nombres:"Profesor 5",correo: "profesor5@prueba.com",dni:"33333333"},
+    {idProfesor:6,nombres:"Profesor 6",correo: "profesor6@prueba.com",dni:"33333333"},
+    {idProfesor:7,nombres:"Profesor 7",correo: "profesor7@prueba.com",dni:"33333333"},
+    {idProfesor:8,nombres:"Profesor 8",correo: "profesor8@prueba.com",dni:"33333333"}]
+
+    const accionEditar =(rowData)=>{
+        return <div className="profesor-datatable-accion">
+            <div className="profesor-accion-editar" onClick={()=>navigate("../EditarProfesor/"+rowData.idPersona)}>
+                <span><Iconsax.Edit color="#ffffff"/></span>
+            </div>
+            <div className="profesor-accion-eliminar" onClick={()=>navigate()}>
+                <span><Iconsax.Trash color="#ffffff"/></span>
+            </div>
+        </div>
+             
+       
+    }
+
+    const accionEliminar =(rowData) =>{
+        return <div className="datatable-accion-eliminar" onClick={()=>navigate()}>
+                <span><Iconsax.Trash color="#ffffff"/></span>
+            </div>
+    }
+    const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
+    const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;     
+
+    return (
+      <div className="zv-profesor" style={{ paddingTop: 16 }}>
+        <div className="header-titulo">Módulo de profesores</div>
+        <div className="zv-profesor-body" style={{ marginTop: 16 }}>
+          <div className="zv-profesor-body-listado" style={{ marginTop: 24 }}>
+            <DataTable
+              value={listaProfesores}
+              size="small"
+              paginator
+              responsiveLayout="scroll"
+              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              currentPageReportTemplate="Desde {first} a {last} of {totalRecords}"
+              rows={10}
+              paginatorLeft={paginatorLeft}
+              paginatorRight={paginatorRight}
+            >
+              <Column field="idPersona" header="ID" sortable></Column>
+              <Column field="nombres" header="Nombre" sortable></Column>
+              <Column field="correo" header="Email"sortable> </Column>
+              <Column field="dni" header="DNI" sortable></Column>
+              <Column
+                body={accionEditar}
+                style={{ display: "flex", justifyContent: "center" }}
+                header="Acciones"
+              ></Column>
+              
+            </DataTable>
+          </div>
+        </div>
+      </div>
+    );
+}
+ 
+export default Profesor;
