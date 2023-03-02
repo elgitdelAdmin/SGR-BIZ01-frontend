@@ -1,4 +1,21 @@
+@import "rsuite/dist/rsuite.css";
 .zv-curso-body-header{
     display: flex;
     gap:8px
 }
+.zv-fileUploader
+{
+    display: grid;
+    gap: 16px;
+    
+   
+}
+.rs-uploader-picture .rs-uploader-file-item {
+       
+    width: 200px !important;
+    height: 200px !important;
+     
+}
+.rs-uploader-picture .rs-uploader-file-item-preview {
+    height: 200px !important;
+}  

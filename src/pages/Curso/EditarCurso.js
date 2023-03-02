@@ -16,6 +16,9 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { TabView, TabPanel } from 'primereact/tabview';
 import { DataTable } from 'primereact/datatable';
 import { Column } from "primereact/column";
+import {Uploader} from "rsuite"
+import { getBase64 } from "../../helpers/helpers";
+import * as constantes from "../../constants/constantes.js";
 
 const EditarCurso = () => {
     const navigate = useNavigate();
@@ -26,7 +29,21 @@ const EditarCurso = () => {
     const [tituloPagina, setTituloPagina] = useState("Crear curso");
     let { id } = useParams();
     const toast = useRef(null);
+    // const [deshabilitarFoto, setDeshabilitarFoto] = useState(false);
+    const [fileList, setFileList] = useState([]);
+    const [defaultFile, setDefaultFile] = useState([]);
+    const [imageBase64, setImageBase64] = useState(null);
+    const [tipoDocumento, setTipoDocumento] = useState(null);
 
+
+    const fileListTest = [
+        {
+          name: 'grupoDefault.jpg',
+          fileKey: 1,
+          url: 'https://grplataformavirtual9128.blob.core.windows.net/adjuntos/Cursos/grupoDefault.jpg'
+        },
+       
+      ];
     const tempDatatable = [
         {idUnidad:1,descripcion:"Idea de planes de negocio",duracion:"2h",secuencia:1},
         {idUnidad:2,descripcion:"Modelo de negocios",duracion:"2.5h",secuencia:2},
@@ -52,13 +69,22 @@ const EditarCurso = () => {
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;     
 
     useEffect(()=>{
-        const GetCurso= async()=>{
+        const GetCurso=()=>{
             let jwt = window.localStorage.getItem("jwt");
             let idCurso = id
-            await BuscarCursoID({jwt,idCurso}).then(data=>{
+             BuscarCursoID({jwt,idCurso}).then(data=>{
+                if(data.fotoCurso)
+                {
+                    let temp = [{name: data.fotoCurso,
+                                fileKey: 1,
+                                    url: constantes.URLBLOB_CURSOS+"/"+data.fotoCurso}]
+                                    setDefaultFile(temp)
+                                    setFileList(temp)
+                }
                 setCurso(data)
                 setModoEdicion(true)
                 setTituloPagina("Editar Curso")
+                
             })
         }
 
@@ -76,7 +102,14 @@ const EditarCurso = () => {
 
         if(id)GetUnidades()
     },[id])
+    useEffect(()=>{
+        if(fileList.length >0) {
 
+            getBase64(fileList[0].blobFile).then((result) => {
+                setImageBase64(result)
+            });
+        }
+    },[fileList])
 
     const formik = useFormik({
         enableReinitialize:true,
@@ -97,12 +130,19 @@ const EditarCurso = () => {
             precio: curso?curso.precio:"",
             codigoProducto: curso?curso.codigoProducto:"",
             idEstado: curso?curso.idEstado:"",
+            fotoCurso: curso?curso.fotoCurso:null,
+            listaDefecto :curso&& curso.fotoCurso?[{name: curso.fotoCurso,
+                fileKey: 1,
+                    url: constantes.URLBLOB_CURSOS+"/"+curso.fotoCurso}] :[]
             
         },
     //   validationSchema: schema,
       onSubmit: values => {
-       let idCurso = values.idCurso
-        let idCategoria = values.idCategoria
+            let imagenBase64 = imageBase64;
+            let tipoDocumento = fileList.length >0 ? fileList[0].blobFile.type :null
+            let fotoCurso = fileList.length >0 ?fileList[0].name:null
+            let idCurso = values.idCurso
+            let idCategoria = values.idCategoria
             let nombre = values.nombre
             let descripcion =values.descripcion
             let logros = values.logros;
@@ -117,9 +157,10 @@ const EditarCurso = () => {
             let codigoProducto = values.codigoProducto
             let idEstado = 1
 
-            let jsonCurso = JSON.stringify({idCurso,idCategoria,nombre,descripcion,descripcionSEO,logros,duracion,color,videoIniciacion,videoIntroduccion,
+            let jsonCurso = JSON.stringify({fotoCurso,tipoDocumento,imagenBase64,idCurso,idCategoria,nombre,descripcion,descripcionSEO,logros,duracion,color,videoIniciacion,videoIntroduccion,
                 descripcionMeta,introduccionDuracion,precio,codigoProducto,idEstado},null,2)
-
+            // alert(jsonCurso)
+            // formik.setSubmitting(false)
             if(!modoEdicion) Registrar({jsonCurso}) 
             else {Actualizar({jsonCurso})}
       },
@@ -326,6 +367,21 @@ const EditarCurso = () => {
                                 onChange={formik.handleChange}
                                 onblur={formik.handleBlur}
                                 ></DropdownDefault>
+                        </div>
+                        <div className="field col-12 md:col-12">
+                        <Uploader  listType="picture" className="zv-fileUploader"
+                            fileList={defaultFile}
+                            disabled={fileList.length}
+                            onChange={setFileList} 
+                            autoUpload={false}
+                            
+                            >
+                            {/* <button type="button">
+                                <Iconsax.Camera></Iconsax.Camera>
+                            </button> */}
+                            <Boton label="Subir foto de curso" color="secondary" 
+                                    type ="button" style={{fontSize:12,width:160}}></Boton>
+                        </Uploader>
                         </div>
                     </div>
                 </div>
