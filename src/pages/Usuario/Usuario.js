@@ -6,7 +6,7 @@ import * as Iconsax from "iconsax-react";
 import "./Usuario.scss"
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
 import ObtenerListaEmpresas from "../../service/EmpresaService";
-import {ObtenerListaPersonas} from "../../service/UsuarioService";
+import {ObtenerListaPersonas,ObtenerPersonaPorEmpresa} from "../../service/UsuarioService";
 
 const Usuario = () => {
     const navigate = useNavigate();
@@ -14,6 +14,7 @@ const Usuario = () => {
     const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
     const [listaEmpresa, setListaEmpresa] = useState(null);
     const [listaPersonas, setListaPersonas] = useState(null);
+    const [listaPersonasTotal, setListaPersonasTotal] = useState(null);
     // const listaEmpresas =
     // [{value:1,name:"Zegel Virtual"}]
 
@@ -29,13 +30,28 @@ const Usuario = () => {
         if(!listaEmpresa)GetEmpresa();
         
     },[])
+    const GetPersonaPorEmpresa = async (id)=>
+    {
+        // let jwt = window.localStorage.getItem("jwt");
+        // let idEmpresa = id
+        // await ObtenerPersonaPorEmpresa({jwt,idEmpresa}).then(data=>{
+        //     setListaPersonas(data);
+        // })
+        if(listaPersonasTotal)
+        {
+            let personaTemp = listaPersonasTotal.filter(x=>x.idEmpresa == id)
+            setListaPersonas(personaTemp)
+        }
+        
+    }
+
 
     useEffect(()=>{
         const GetPersonas= async()=>{
             let jwt = window.localStorage.getItem("jwt");
-            await ObtenerListaPersonas({jwt}).then(data=>setListaPersonas(data))
+            await ObtenerListaPersonas({jwt}).then(data=>setListaPersonasTotal(data))
         }
-        if(!listaPersonas) GetPersonas()
+        if(!listaPersonasTotal) GetPersonas()
     },[])
 
     const tempDatatable = 
@@ -61,7 +77,12 @@ const Usuario = () => {
                         <>
                             <div className="label-form"><label>Sitio o Empresa</label></div>
                             <DropdownDefault value={empresaSeleccionada}
-                                onChange={(e)=>setEmpresaSeleccionada(e.value)}
+                                onChange={(e)=>
+                                    {
+                                        setEmpresaSeleccionada(e.value)
+                                        GetPersonaPorEmpresa(e.value)
+                                    }
+                                }
                                 options={listaEmpresa} optionLabel="razonSocial" optionValue ="idEmpresa"
                                 placeholder="Seleccione empresa"
                                 style={{width:"50%"}}

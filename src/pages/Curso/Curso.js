@@ -36,9 +36,9 @@ const Curso = () => {
             <div className="profesor-accion-editar" onClick={()=>navigate("../Curso/Editar/"+rowData.idCurso)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
-            <div className="profesor-accion-eliminar" onClick={()=>navigate()}>
+            {/* <div className="profesor-accion-eliminar" onClick={()=>navigate()}>
                 <span><Iconsax.Trash color="#ffffff"/></span>
-            </div>
+            </div> */}
         </div>
              
        
@@ -68,8 +68,8 @@ const Curso = () => {
                     >
                     <Column field="idCurso" header="ID" sortable></Column>
                     <Column field="nombre" header="Curso" sortable ></Column>
-                    <Column field="idCategoria" header="Categoría" sortable></Column>
-                    <Column field="idEstado" header="Estado" sortable></Column>
+                    <Column field="categoria.descripcionCategoria" header="Categoría" sortable></Column>
+                    <Column field="activo" header="Estado" sortable></Column>
                     <Column 
                         body={accionEditar}
                         style={{ display: "flex", justifyContent: "center" }}

@@ -38,9 +38,9 @@ const Profesor = () => {
             <div className="profesor-accion-editar" onClick={()=>navigate("../EditarProfesor/"+rowData.idPersona)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
-            <div className="profesor-accion-eliminar" onClick={()=>navigate()}>
+            {/* <div className="profesor-accion-eliminar" onClick={()=>navigate()}>
                 <span><Iconsax.Trash color="#ffffff"/></span>
-            </div>
+            </div> */}
         </div>
              
        

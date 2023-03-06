@@ -12,5 +12,7 @@ export const URL_TESTPROFESOR = "http://localhost:7178/api";
 export const URL_TESTCURSO = "http://localhost:7116/api";
 export const URL_TESTUNIDAD = "http://localhost:7139/api";
 export const URL_TESTLECCION = "http://localhost:7215/api";
+export const URL_GENERAL = "http://localhost:7198/api";
+
 
 // export const URL_NOTIFICACION = "http://localhost:7262/api"

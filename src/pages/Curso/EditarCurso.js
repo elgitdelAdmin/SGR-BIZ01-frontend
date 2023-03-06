@@ -19,6 +19,7 @@ import { Column } from "primereact/column";
 import {Uploader} from "rsuite"
 import { getBase64 } from "../../helpers/helpers";
 import * as constantes from "../../constants/constantes.js";
+import { ObtenerListaCategorias } from "../../service/EmpresaService";
 
 const EditarCurso = () => {
     const navigate = useNavigate();
@@ -34,6 +35,7 @@ const EditarCurso = () => {
     const [defaultFile, setDefaultFile] = useState([]);
     const [imageBase64, setImageBase64] = useState(null);
     const [tipoDocumento, setTipoDocumento] = useState(null);
+    const [listaCategorias, setListaCategorias] = useState(null);
 
 
     const fileListTest = [
@@ -44,6 +46,8 @@ const EditarCurso = () => {
         },
        
       ];
+
+    const comboEstado = [{label:"Activado",value :true},{label:"Desactivado",value :false}]
     const tempDatatable = [
         {idUnidad:1,descripcion:"Idea de planes de negocio",duracion:"2h",secuencia:1},
         {idUnidad:2,descripcion:"Modelo de negocios",duracion:"2.5h",secuencia:2},
@@ -52,14 +56,26 @@ const EditarCurso = () => {
 
     ]
 
+    useEffect(()=>{
+        const GetCategorias = async ()=>
+        {
+            let jwt = window.localStorage.getItem("jwt");
+
+            await ObtenerListaCategorias({jwt}).then(data=>{
+                setListaCategorias(data);
+            })
+        }
+        if(!listaCategorias)GetCategorias();
+        
+    },[])
     const accionEditar =(rowData)=>{
         return <div className="datatable-accion">
             <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Unidad/Editar/"+rowData.idUnidad)}>
                 <span><Iconsax.Eye color="#ffffff"/></span>
             </div>
-            <div className="accion-eliminar" onClick={()=>navigate()}>
+            {/* <div className="accion-eliminar" onClick={()=>navigate()}>
                 <span><Iconsax.Trash color="#ffffff"/></span>
-            </div>
+            </div> */}
         </div>
              
        
@@ -129,7 +145,7 @@ const EditarCurso = () => {
             introduccionDuracion: curso?curso.introduccionDuracion:"",
             precio: curso?curso.precio:"",
             codigoProducto: curso?curso.codigoProducto:"",
-            idEstado: curso?curso.idEstado:"",
+            idEstado: curso?curso.activo:"",
             fotoCurso: curso?curso.fotoCurso:null,
             listaDefecto :curso&& curso.fotoCurso?[{name: curso.fotoCurso,
                 fileKey: 1,
@@ -139,7 +155,7 @@ const EditarCurso = () => {
     //   validationSchema: schema,
       onSubmit: values => {
             let imagenBase64 = imageBase64;
-            let tipoDocumento = fileList.length >0 ? fileList[0].blobFile.type :null
+            let tipoDocumento = imagenBase64 ? fileList[0].blobFile.type :null
             let fotoCurso = fileList.length >0 ?fileList[0].name:null
             let idCurso = values.idCurso
             let idCategoria = values.idCategoria
@@ -155,7 +171,7 @@ const EditarCurso = () => {
             let introduccionDuracion =values.introduccionDuracion
             let precio =values.precio
             let codigoProducto = values.codigoProducto
-            let idEstado = 1
+            let idEstado = values.idEstado
 
             let jsonCurso = JSON.stringify({fotoCurso,tipoDocumento,imagenBase64,idCurso,idCategoria,nombre,descripcion,descripcionSEO,logros,duracion,color,videoIniciacion,videoIntroduccion,
                 descripcionMeta,introduccionDuracion,precio,codigoProducto,idEstado},null,2)
@@ -218,6 +234,7 @@ const EditarCurso = () => {
                                 value ={formik.values.idCategoria} 
                                 onChange={formik.handleChange}
                                 onblur={formik.handleBlur}
+                                options={listaCategorias} optionLabel="descripcionCategoria" optionValue ="idCategoria"
                                 ></DropdownDefault>
                         </div>
                         <div className="field col-12 md:col-6">
@@ -366,6 +383,7 @@ const EditarCurso = () => {
                                 value ={formik.values.idEstado} 
                                 onChange={formik.handleChange}
                                 onblur={formik.handleBlur}
+                                options={comboEstado} optionLabel="label" optionValue ="value"
                                 ></DropdownDefault>
                         </div>
                         <div className="field col-12 md:col-12">

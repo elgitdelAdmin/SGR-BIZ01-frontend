@@ -32,9 +32,9 @@ const EditarUnidad = () => {
             <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+rowData.idLeccion)}>
                 <span><Iconsax.Eye color="#ffffff"/></span>
             </div>
-            <div className="accion-eliminar" onClick={()=>navigate()}>
+            {/* <div className="accion-eliminar" onClick={()=>navigate()}>
                 <span><Iconsax.Trash color="#ffffff"/></span>
-            </div>
+            </div> */}
         </div>
              
        

@@ -87,3 +87,24 @@ export const ActualizarPersona= ({jsonPersona,jwt}) =>{
         return data
     })
 }
+
+export const ObtenerPersonaPorEmpresa = async ({jwt,idEmpresa}) =>{
+    return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerPersonaPorEmpresa/${idEmpresa}`,{
+    //return await fetch(`${ENDPOINTTEST}/ObtenerPersonaPorEmpresa/${idEmpresa}`,{
+        method: "GET",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            //'Content-Type': 'application/json'
+            "accept": "text/plain"
+        },
+        
+    }).then(res=>{
+        if(!res.ok) throw new Error("Response is Not Ok")
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+    
+}
