@@ -1,10 +1,10 @@
 import * as constantes from "../constants/constantes.js";
 const ENDPOINT = constantes.URLAPI;
-const ENDPOINTTEST = constantes.URL_TESTPROFESOR;
+const ENDPOINTTEST = constantes.URL_TESTPREGUNTA;
 
-export const ListarProfesores = async({jwt})=> {
-    return await fetch(`${ENDPOINT}/ZADProfesor/ListarProfesores`,{
-    //return await fetch(`${ENDPOINTTEST}/ListarProfesores`,{
+export const ListarPreguntasPorLeccion = async({jwt,idLeccion})=> {
+    return await fetch(`${ENDPOINT}/ZADPregunta/ListarPreguntasPorLeccion/${idLeccion}`,{
+    //return await fetch(`${ENDPOINTTEST}/ListarPreguntasPorLeccion/${idLeccion}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -23,9 +23,9 @@ export const ListarProfesores = async({jwt})=> {
     
 }
 
-export const BuscarProfesorID = async ({jwt,idPersona}) =>{
-    return await fetch(`${ENDPOINT}/ZADProfesor/BuscarProfesorID/${idPersona}`,{
-    //return await fetch(`${ENDPOINTTEST}/BuscarProfesorID/${idPersona}`,{
+export const BuscarPreguntaID = async ({jwt,id}) =>{
+    return await fetch(`${ENDPOINT}/ZADPregunta/BuscarPreguntaID/${id}`,{
+    //return await fetch(`${ENDPOINTTEST}/BuscarPreguntaID/${id}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -45,9 +45,9 @@ export const BuscarProfesorID = async ({jwt,idPersona}) =>{
 }
 
 
-export const ActualizarProfesor= ({jsonPersona,jwt}) =>{
-    //return fetch(`${ENDPOINTTEST}/ActualizarProfesor`,{
-    return fetch(`${ENDPOINT}/ZADProfesor/ActualizarProfesor`,{
+export const ActualizarPregunta= ({jsonPregunta,jwt}) =>{
+    //return fetch(`${ENDPOINTTEST}/ActualizarPregunta`,{
+    return fetch(`${ENDPOINT}/ZADPregunta/ActualizarPregunta`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -55,7 +55,7 @@ export const ActualizarProfesor= ({jsonPersona,jwt}) =>{
             "accept": "application/json"
         },
         
-        body: jsonPersona
+        body: jsonPregunta
     }).then(res=>{
         if(!res.ok) throw new Error("Response is Not Ok")
         return res.json()
@@ -66,9 +66,9 @@ export const ActualizarProfesor= ({jsonPersona,jwt}) =>{
     })
 }
 
-export const RegistrarProfesor= ({jsonPersona,jwt}) =>{
-    //return fetch(`${ENDPOINTTEST}/RegistrarProfesor`,{
-    return fetch(`${ENDPOINT}/ZADProfesor/RegistrarProfesor`,{
+export const RegistrarPregunta= ({jsonPregunta,jwt}) =>{
+    //return fetch(`${ENDPOINTTEST}/RegistrarPregunta`,{
+    return fetch(`${ENDPOINT}/ZADPregunta/RegistrarPregunta`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -76,7 +76,7 @@ export const RegistrarProfesor= ({jsonPersona,jwt}) =>{
             "accept": "application/json"
         },
         
-        body: jsonPersona
+        body: jsonPregunta
     }).then(res=>{
         if(!res.ok) throw new Error("Response is Not Ok")
         return res.json()

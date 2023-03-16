@@ -13,14 +13,17 @@ import * as Yup from "yup";
 import { Toast } from 'primereact/toast';
 import { InputTextarea } from "primereact/inputtextarea";
 import { TabView, TabPanel } from 'primereact/tabview';
-import { DataTable } from 'primereact/datatable';
+import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
+import { ListarPreguntasPorLeccion } from "../../service/PreguntaService";
+
 const EditarLeccion = () => {
     const navigate = useNavigate();
 
     const [leccion, setLeccion] = useState(null);    
     const [modoEdicion, setModoEdicion] = useState(false);
     const [tituloPagina, setTituloPagina] = useState("Crear lección");
+    const [preguntas, setPreguntas] = useState(null);
     let { IDCurso } = useParams();
     let { IDUnidad } = useParams();
     let { IDLeccion } = useParams();
@@ -40,6 +43,20 @@ const EditarLeccion = () => {
 
         if(IDLeccion)GetLeccion()
     },[IDLeccion])
+
+    useEffect(()=>{
+        const getPreguntas= async()=>{
+            let jwt = window.localStorage.getItem("jwt");
+            let idLeccion = IDLeccion
+            await ListarPreguntasPorLeccion({jwt,idLeccion}).then(data=>{
+                setPreguntas(data)
+            })
+           
+        }
+
+        if(IDLeccion)getPreguntas()
+    },[IDLeccion])
+
     const Registrar =({jsonLeccion})=>{
         let jwt = window.localStorage.getItem("jwt");
         RegistrarLeccion({jsonLeccion,jwt}).then(data=>{
@@ -98,6 +115,30 @@ const EditarLeccion = () => {
         else {Actualizar({jsonLeccion})}
       },
     });
+
+    const accionEditarMaterial =(rowData)=>{
+        return <div className="datatable-accion">
+            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Material/"+rowData.idMaterial)}>
+                <span><Iconsax.Eye color="#ffffff"/></span>
+            </div>
+            {/* <div className="accion-eliminar" onClick={()=>navigate()}>
+                <span><Iconsax.Trash color="#ffffff"/></span>
+            </div> */}
+        </div>
+     
+    }
+
+    const accionEditarPreguntas =(rowData)=>{
+        return <div className="datatable-accion">
+            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Pregunta/Editar/"+rowData.idPregunta)}>
+                <span><Iconsax.Eye color="#ffffff"/></span>
+            </div>
+            {/* <div className="accion-eliminar" onClick={()=>navigate()}>
+                <span><Iconsax.Trash color="#ffffff"/></span>
+            </div> */}
+        </div>
+     
+    }
 
     return ( 
         <form onSubmit={formik.handleSubmit}>
@@ -170,8 +211,50 @@ const EditarLeccion = () => {
                         {modoEdicion && <Boton label="Agregar material" style={{fontSize:12}} color="secondary" type ="button"
                         //onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+unidad.idUnidad+"/Leccion/Crear")}
                         ></Boton>}
+                        {modoEdicion && <Boton label="Agregar Pregunta" style={{fontSize:12}} color="secondary" type ="button"
+                        onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Pregunta/Crear")}
+                        ></Boton>}
                     </div>
                 </div>
+                <div className="zv-listado-leccion" style={{marginTop:16 }}>
+             
+                <TabView>
+                    
+                    <TabPanel header="Materiales">
+                        <div className="header-subTitulo">Materiales de lección</div>   
+                        <DatatableDefault
+                            value={[]}
+                            >
+                            <Column field="idMaterial" header="ID" sortable></Column>
+                            <Column field="titulo" header="Título" sortable ></Column>
+                            <Column field="descripcion" header="Descripción" sortable></Column>
+                            <Column field="idLeccion" header="Id leccion" sortable></Column>
+                            <Column 
+                                body={accionEditarMaterial}
+                                style={{ display: "flex", justifyContent: "center" }}
+                                header="Acciones"
+                            ></Column>
+                        
+                        </DatatableDefault>
+                    </TabPanel>
+                    <TabPanel header="Preguntas">
+                        <div className="header-subTitulo">Preguntas de lección</div>   
+                        <DatatableDefault
+                            value={preguntas}
+                            >
+                            <Column field="idPregunta" header="ID" sortable></Column>
+                            <Column field="titulo" header="Título" sortable ></Column>
+                            <Column field="idLeccion" header="Id Leccion" sortable></Column>
+                            <Column 
+                                body={accionEditarPreguntas}
+                                style={{ display: "flex", justifyContent: "center" }}
+                                header="Acciones"
+                            ></Column>
+                        
+                        </DatatableDefault>
+                    </TabPanel>
+                </TabView>
+            </div>
             </div>
         </form>
      );

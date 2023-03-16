@@ -14,13 +14,14 @@ import * as Yup from "yup";
 import { Toast } from 'primereact/toast';
 import { InputTextarea } from "primereact/inputtextarea";
 import { TabView, TabPanel } from 'primereact/tabview';
-import { DataTable } from 'primereact/datatable';
+import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import {Uploader} from "rsuite"
 import { getBase64 } from "../../helpers/helpers";
 import * as constantes from "../../constants/constantes.js";
 import { ObtenerListaCategorias } from "../../service/EmpresaService";
-
+import useUsuario from "../../hooks/useUsuario";
+import { Loader } from 'rsuite';
 const EditarCurso = () => {
     const navigate = useNavigate();
     const [curso, setCurso] = useState(null);    
@@ -36,8 +37,14 @@ const EditarCurso = () => {
     const [imageBase64, setImageBase64] = useState(null);
     const [tipoDocumento, setTipoDocumento] = useState(null);
     const [listaCategorias, setListaCategorias] = useState(null);
+    const {isLogged} = useUsuario()
+    useEffect(()=>{
+        !isLogged && navigate("/");
+    },[])
 
-
+    const [loadingUnidad, setLoadingUnidad] = useState(true);
+    const [loadingBiblioteca, setLoadingBiblioteca] = useState(true);
+    const [loadingDiseñador, setLoadingDiseñador] = useState(true);
     const fileListTest = [
         {
           name: 'grupoDefault.jpg',
@@ -54,6 +61,14 @@ const EditarCurso = () => {
         {idUnidad:3,descripcion:"Sostenibilidad de negocios",duracion:"2.5h",secuencia:3},
         {idUnidad:4,descripcion:"Alcance de negocio",duracion:"2.5",secuencia:4}
 
+    ]
+    const tempTableBiblioteca =[
+        {idBiblioteca:1,nombre:"Nobles, T. (2016). Contabilidad de Horngren. 10a ed. Bogotá: Pearson Educación.",tipo:"Pearson Educación",linkZegel:"9789586993067",linkIdat:""}
+        ,{idBiblioteca:2,nombre:"Celaya, R. (2013). Contabilidad básica. un enfoque basado en competencias. México, D.F.: Cengage Learning.",tipo:"Cengage Learning",linkZegel:"9786075190273",linkIdat:""}
+        ,{idBiblioteca:3,nombre:"Label, W. A., León, L. J. D., & Ramos, A. R. A. (2016). Contabilidad para no contadores : una forma rápida y sencilla de entender la contabilidad (2a. ed.). Bogotá: Ecoe Ediciones.",tipo:"Ebook Centra",linkZegel:"https://elibro.net/es/ereader/ipae/70462?collection=ELC004",linkIdat:""}
+        ,{idBiblioteca:4,nombre:"Ramírez, M. (2018). Cómo entender contabilidad sin ser contador. México, D.F.: Instituto Mexicano de Contadores Públicos.",tipo:"Ebook Central",linkZegel:"https://elibro.net/es/ereader/ipae/116943?collection=ELC004",linkIdat:""}
+        ,{idBiblioteca:5,nombre:"Guerrero, J. C. y Galindo, J. F. (2015). Contabilidad para administradores. México D.F, Mexico: Grupo Editorial Patria.",tipo:"Ebook Central",linkZegel:"https://elibro.net/es/ereader/ipae/39381?page=1",linkIdat:""}
+        ,{idBiblioteca:6,nombre:"León, J. D. y Ramos, R. A. (2016). Contabilidad para no contadores: una forma rápida y sencilla de entender la contabilidad (2a. ed.). Bogotá, Colombia: Ecoe Ediciones.",tipo:"Ebook Central",linkZegel:"https://elibro.net/es/ereader/ipae/70462?page=1",linkIdat:""}
     ]
 
     useEffect(()=>{
@@ -81,6 +96,19 @@ const EditarCurso = () => {
        
     }
 
+    const accionEditarBiblioteca =(rowData)=>{
+        return <div className="datatable-accion">
+            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Biblioteca/Editar/"+rowData.idBiblioteca)}>
+                <span><Iconsax.Eye color="#ffffff"/></span>
+            </div>
+            {/* <div className="accion-eliminar" onClick={()=>navigate()}>
+                <span><Iconsax.Trash color="#ffffff"/></span>
+            </div> */}
+        </div>
+             
+       
+    }
+
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;     
 
@@ -98,13 +126,16 @@ const EditarCurso = () => {
                                     setFileList(temp)
                 }
                 setCurso(data)
-                setModoEdicion(true)
+                
                 setTituloPagina("Editar Curso")
                 
             })
         }
 
-        if(id)GetCurso()
+        if(id){
+            setModoEdicion(true)
+            GetCurso()
+        }
     },[id])
 
     useEffect(()=>{
@@ -113,6 +144,7 @@ const EditarCurso = () => {
             let idCurso = id
             await ListarUnidadesPorCurso({jwt,idCurso}).then(data=>{
                 setListaUnidades(data)
+                setLoadingUnidad(false)
             })
         }
 
@@ -219,6 +251,7 @@ const EditarCurso = () => {
         <form onSubmit={formik.handleSubmit}>
             <div className="zv-editarCurso" style={{paddingTop:16}}>
                 <Toast ref={toast} position="top-center"></Toast>
+                {(modoEdicion && curso == null) && <Loader center size="lg" content="Cargando" />}
                 <div className="header" >
                     <span style={{cursor:"pointer"}} onClick={()=>navigate(-1)}><Iconsax.ArrowCircleLeft size={30}></Iconsax.ArrowCircleLeft></span>
                 </div>
@@ -282,6 +315,7 @@ const EditarCurso = () => {
                                 value ={formik.values.descripcion} 
                                 onChange={formik.handleChange}
                                 onblur={formik.handleBlur}
+                                autoResize 
                                 ></InputTextarea>
                         </div>
 
@@ -305,6 +339,7 @@ const EditarCurso = () => {
                                 value ={formik.values.logros} 
                                 onChange={formik.handleChange}
                                 onblur={formik.handleBlur}
+                                autoResize 
                                 ></InputTextarea>
                         </div>
                         <div className="field col-12 md:col-6">
@@ -316,6 +351,7 @@ const EditarCurso = () => {
                                 value ={formik.values.descripcionMeta} 
                                 onChange={formik.handleChange}
                                 onblur={formik.handleBlur}
+                                autoResize 
                                 ></InputTextarea>
                         </div>
                         <div className="field col-12 md:col-6">
@@ -411,20 +447,12 @@ const EditarCurso = () => {
                 
             </div>
             <div className="zv-listado-unidad" style={{marginTop:16 }}>
-             <div className="header-subTitulo">Listado de Unidades</div>   
                 <TabView>
-                    
                     <TabPanel header="Unidad">
-                        <DataTable
+                        <div className="header-subTitulo">Listado de Unidades</div>   
+                        <DatatableDefault
                             value={listaUnidades}
-                            size="small"
-                            paginator
-                            responsiveLayout="scroll"
-                            paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                            currentPageReportTemplate="Desde {first} a {last} of {totalRecords}"
-                            rows={10}
-                            paginatorLeft={paginatorLeft}
-                            paginatorRight={paginatorRight}
+                            loading={loadingUnidad}
                             >
                             <Column field="idUnidad" header="ID" sortable></Column>
                             <Column field="descripcion" header="Descripción" sortable ></Column>
@@ -436,7 +464,28 @@ const EditarCurso = () => {
                                 header="Acciones"
                             ></Column>
                         
-                        </DataTable>
+                        </DatatableDefault>
+                    </TabPanel>
+                    <TabPanel header="Biblioteca">
+                        <div className="header-subTitulo">Lista de Librerías</div>   
+                        <DatatableDefault
+                            value={tempTableBiblioteca}
+                            >
+                            <Column field="idBiblioteca" header="ID" ></Column>
+                            <Column field="nombre" header="Nombre"  ></Column>
+                            <Column field="tipo" header="Tipo"  ></Column>
+                            <Column field="linkZegel" header="Link Zegel" ></Column>
+                            <Column field="linkIdat" header="Link Idat" ></Column>
+                            <Column 
+                                body={accionEditarBiblioteca}
+                                style={{ display: "flex", justifyContent: "center" }}
+                                header="Acciones"
+                            ></Column>
+                        
+                        </DatatableDefault>
+                    </TabPanel>
+                    <TabPanel header="Diseñador">
+                        <div className="header-subTitulo">Lista de Diseñador</div>   
                     </TabPanel>
                 </TabView>
             </div>

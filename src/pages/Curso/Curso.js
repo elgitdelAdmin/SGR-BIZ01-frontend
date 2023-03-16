@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
-
-import { DataTable } from 'primereact/datatable';
+import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Curso.scss"
@@ -12,10 +11,12 @@ const Curso = () => {
     const navigate = useNavigate();
 
     const [listaCursos, setListaCursos] = useState(null);
+
+    const [loading, setLoading] = useState(true);
     useEffect(()=>{
         const GetCurso= async()=>{
             let jwt = window.localStorage.getItem("jwt");
-            await ListarCursos({jwt}).then(data=>setListaCursos(data))
+            await ListarCursos({jwt}).then(data=>{setListaCursos(data);setLoading(false)})
         }
         if(!listaCursos) GetCurso()
       },[])
@@ -33,7 +34,7 @@ const Curso = () => {
 
     const accionEditar =(rowData)=>{
         return <div className="profesor-datatable-accion">
-            <div className="profesor-accion-editar" onClick={()=>navigate("../Curso/Editar/"+rowData.idCurso)}>
+            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+rowData.idCurso)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
             {/* <div className="profesor-accion-eliminar" onClick={()=>navigate()}>
@@ -42,6 +43,11 @@ const Curso = () => {
         </div>
              
        
+    }
+    const booleanTemplate = (rowData)=>{
+        return(
+            <span>{rowData.activo ? "Activado":"Desactivado"}</span>
+        )
     }
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;     
@@ -55,28 +61,21 @@ const Curso = () => {
                     <Boton label="Cargar archivos" style={{fontSize:12}} color="secondary"></Boton>
                 </div>
                 <div className="zv-curso-body-listado" style={{ marginTop: 24 }}>
-                    <DataTable
+                    <DatatableDefault
                     value={listaCursos}
-                    size="small"
-                    paginator
-                    responsiveLayout="scroll"
-                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                    currentPageReportTemplate="Desde {first} a {last} of {totalRecords}"
-                    rows={10}
-                    paginatorLeft={paginatorLeft}
-                    paginatorRight={paginatorRight}
+                    loading={loading}
                     >
                     <Column field="idCurso" header="ID" sortable></Column>
                     <Column field="nombre" header="Curso" sortable ></Column>
                     <Column field="categoria.descripcionCategoria" header="Categoría" sortable></Column>
-                    <Column field="activo" header="Estado" sortable></Column>
+                    <Column field="activo" header="Estado" sortable body={booleanTemplate}></Column>
                     <Column 
                         body={accionEditar}
                         style={{ display: "flex", justifyContent: "center" }}
                         header="Acciones"
                     ></Column>
                     
-                    </DataTable>
+                    </DatatableDefault>
                 </div>
             </div>
         </div>

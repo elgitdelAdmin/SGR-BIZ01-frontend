@@ -25,6 +25,7 @@ import Curso from "./pages/Curso/Curso";
 import EditarCurso from "./pages/Curso/EditarCurso";
 import EditarUnidad from "./pages/Unidad/EditarUnidad";
 import EditarLeccion from "./pages/Leccion/EditarLeccion";
+import EditarPreguntas from "./pages/Preguntas/EditarPreguntas";
 
 function App() {
   const [layoutMode, setLayoutMode] = useState("static");
@@ -141,7 +142,8 @@ const onSidebarClick = () => {
             <div className="layout-main">
                 <Routes>
                     <Route path="Usuario" element={<Usuario/>}></Route>
-                    <Route path="EditarUsuario/:id" element={<EditarUsuario/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:id" element={<EditarUsuario/>}></Route>
+                    <Route path="Usuario/CrearUsuario/:IdEmpresa" element={<EditarUsuario/>}></Route>
                     <Route path="Profesor" element={<Profesor/>}></Route>
                     <Route path="EditarProfesor/:id" element={<EditarProfesor/>}></Route>
                     <Route path="Curso" element={<Curso/>}></Route>
@@ -151,6 +153,8 @@ const onSidebarClick = () => {
                     <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad" element={<EditarUnidad/>}></Route>
                     <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion" element={<EditarLeccion/>}></Route>
                     <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/Crear" element={<EditarLeccion/>}></Route>
+                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Pregunta/Crear" element={<EditarPreguntas/>}></Route>
+                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Pregunta/Editar/:IDPregunta" element={<EditarPreguntas/>}></Route>
 
 
 

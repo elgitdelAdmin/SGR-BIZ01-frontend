@@ -3,7 +3,7 @@ import { Link ,useNavigate} from "react-router-dom";
 
 import"./Topbar.scss"
 import useUsuario from "../../hooks/useUsuario";
-
+import * as Iconsax from "iconsax-react";
 const TopBar = (props) => {
     const navigate = useNavigate()
 
@@ -24,8 +24,9 @@ const TopBar = (props) => {
                 <button type="button" className="p-link  layout-menu-button layout-topbar-button" onClick={props.onToggleMenuClick}>
                     <i className="pi pi-bars" />
                 </button>
-                <div className="topbar-salir lg:flex origin-top" style={{color:"#ffffff"}}>
-                    <span style={{cursor:"pointer"}} onClick={cerrarSesion}>Salir</span>
+                <div className="topbar-salir lg:flex origin-top" style={{color:"#ffffff",display:"flex",alignItems:"center"}}>
+                    <span style={{cursor:"pointer",display:"flex",alignItems:"center"}} onClick={cerrarSesion}>Cerrar sesión</span>
+                    <span style={{display:"flex",alignItems:"center"}}><Iconsax.LogoutCurve/></span>
                 </div>
         </div>
      );

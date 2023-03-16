@@ -14,6 +14,7 @@ import InputDefault from "../../components/InputDefault/InputDefault"
 import InputIcon from "../../components/InputIcon/InputIcon"
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
+import { Password } from 'primereact/password';
 //const Login = () => {
 //const Login = () =>{
 export default function Login() {
@@ -28,7 +29,7 @@ export default function Login() {
         
         if (isLogged)
         {
-            navigate("/Dashboard/Home")
+            navigate("/Dashboard/Usuario")
         }
 
     }, [isLogged]);
@@ -126,19 +127,17 @@ export default function Login() {
                                                 Contraseña
                                             </label>
                                             <div className="peva-input-icon">
-                                                <InputText
+                                                <Password
                                                     id="Password"
-                                                    type={passwordType}
                                                     // className = "grey"
                                                     className={classNames({ 'p-invalid': touched.password && errors.password })}
                                                     placeholder="Escribe aquí"
                                                     name="password"
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
-                                                    icon={passwordType === "password"?<Iconsax.EyeSlash /> : <Iconsax.Eye />}
-                                                    onClickIcon={togglePassword}
                                                     width="100%"
                                                     height={48}
+                                                    toggleMask 
                                                 />
                                                 <small className="p-error">{errors.password && touched.password && errors.password}</small>
                                                 {/* <p className="error">{errors.password && touched.password && errors.password}</p> */}

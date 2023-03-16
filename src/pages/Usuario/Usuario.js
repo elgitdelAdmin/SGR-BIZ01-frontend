@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState ,useRef} from "react";
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
-import { DataTable } from 'primereact/datatable';
+import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Usuario.scss"
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
 import ObtenerListaEmpresas from "../../service/EmpresaService";
-import {ObtenerListaPersonas,ObtenerPersonaPorEmpresa} from "../../service/UsuarioService";
-
+import {ObtenerListaPersonas,ObtenerPersonaPorEmpresa,EliminarPersona} from "../../service/UsuarioService";
+import { Loader, Placeholder } from 'rsuite';
+import Boton from "../../components/Boton/Boton";
+import { Toast } from 'primereact/toast';
+import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 const Usuario = () => {
     const navigate = useNavigate();
 
@@ -15,9 +18,12 @@ const Usuario = () => {
     const [listaEmpresa, setListaEmpresa] = useState(null);
     const [listaPersonas, setListaPersonas] = useState(null);
     const [listaPersonasTotal, setListaPersonasTotal] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+    const [visible, setVisible] = useState(false);
     // const listaEmpresas =
     // [{value:1,name:"Zegel Virtual"}]
-
+    const toast = useRef(null);
     useEffect(()=>{
         const GetEmpresa = async ()=>
         {
@@ -49,7 +55,11 @@ const Usuario = () => {
     useEffect(()=>{
         const GetPersonas= async()=>{
             let jwt = window.localStorage.getItem("jwt");
-            await ObtenerListaPersonas({jwt}).then(data=>setListaPersonasTotal(data))
+            await ObtenerListaPersonas({jwt}).then(data=>
+                {
+                    setListaPersonasTotal(data)
+                    setLoading(false)
+                })
         }
         if(!listaPersonasTotal) GetPersonas()
     },[])
@@ -60,21 +70,69 @@ const Usuario = () => {
     {id:3,nombre:"Usuario 2",email: "usuario2@prueba.com",dni:"33333333",estado : true}]
 
     const accion =(rowData)=>{
-        return <div className="datatable-accion-editar" onClick={()=>navigate("../EditarUsuario/"+rowData.idPersona)}>
+        return  <div className="profesor-datatable-accion">
+            <div className="accion-editar" onClick={()=>navigate("EditarUsuario/"+rowData.idPersona)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
+             <div className="accion-eliminar" onClick={()=>{
+                setUsuarioSeleccionado(rowData.idPersona)
+                confirm2(rowData.idPersona)
+                
+             }}>
+                <span><Iconsax.Trash color="#ffffff"/></span>
+            </div> 
+        </div>
+        
     }
             
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;
+
+    const booleanTemplate = (rowData)=>{
+        return(
+            <span>{rowData.activo ? "Activo":"Inactivo"}</span>
+        )
+    }
+
+
+    const Eliminar =({id})=>{
+        let jwt = window.localStorage.getItem("jwt");
+        let idPersona = id
+        EliminarPersona({jwt,idPersona}).then(data=>{
+            //formik.setSubmitting(false)
+            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+  
+  
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000)
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            //formik.setSubmitting(false)
+        })
+    }
+
+    const confirm2 = (id) => {
+        confirmDialog({
+            message: 'Seguro de elimnar usuario?',
+            header: 'Eliminar',
+            icon: 'pi pi-info-circle',
+            acceptClassName: 'p-button-danger',
+            acceptLabel:"Aceptar",
+            accept:()=>Eliminar({id})
+        });
+    };
     return ( 
         <div className="zv-usuario" style={{paddingTop:16}}>
+            <ConfirmDialog />
+            <Toast ref={toast} position="top-center"></Toast>
             <div className="header-titulo">Módulo de Usuario</div>
             <div className="zv-usuario-body" style={{marginTop:16}}>
                 <div className="zv-usuario-body-filtro">
                     {
-                        listaEmpresa &&
-                        <>
+                        listaEmpresa ?
+                        <div style={{display:"flex",alignItems:"center",gap:10}}>
                             <div className="label-form"><label>Sitio o Empresa</label></div>
                             <DropdownDefault value={empresaSeleccionada}
                                 onChange={(e)=>
@@ -87,25 +145,34 @@ const Usuario = () => {
                                 placeholder="Seleccione empresa"
                                 style={{width:"50%"}}
                                 ></DropdownDefault>
-                        </>
+                            <Boton
+                                label="Agregar Usuario"
+                                style={{ fontSize: 12 }}
+                                color="primary"
+                                onClick = {()=>navigate("CrearUsuario/"+empresaSeleccionada)}
+                                disabled ={!empresaSeleccionada}
+                                ></Boton>
+                        </div>
+                        :<Loader center size="lg" content="Cargando" />
                     }
                     
                 </div>
                 {
-                    listaPersonas && 
+                    listaPersonas &&
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        <DataTable value={listaPersonas} size="small" paginator responsiveLayout="scroll" 
-                        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                        currentPageReportTemplate="Desde {first} a {last} of {totalRecords}" rows={10} 
-                        paginatorLeft={paginatorLeft} paginatorRight={paginatorRight}>
+                        <DatatableDefault value={listaPersonas} 
+                            globalFilterFields={['nombres', 'correo']}
+                            loading={loading}
+                        >
                             <Column field="idPersona" header="ID" sortable></Column>
                             <Column field="nombres" header="Nombre" sortable></Column>
                             <Column field="correo" header="Email"sortable> </Column>
                             <Column field="dni" header="DNI" sortable></Column>
-                            <Column field="activo" header="Estado"dataType="boolean" sortable></Column>
+                            <Column field="activo" header="Estado"dataType="boolean" sortable body={booleanTemplate}></Column>
                             <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column>
-                        </DataTable>
+                        </DatatableDefault>
                     </div>
+                    
                 }
                 
             </div>

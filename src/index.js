@@ -15,7 +15,7 @@ root.render(<BrowserRouter>
   {/* <App/> */}
   <UsuarioContextProvider>
      <Routes>
-     <Route path="/" element={Boolean(jwt)? <Navigate to="/Dashboard/Home"/>:<Navigate to="/Login"/>}>
+     <Route path="/" element={Boolean(jwt)? <Navigate to="/Dashboard/Usuario"/>:<Navigate to="/Login"/>}>
              
          </Route>
          <Route path='/Login' element={<Login/>}/>

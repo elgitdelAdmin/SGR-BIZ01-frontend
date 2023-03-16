@@ -130,7 +130,7 @@ export const AppMenu = (props) => {
                         permiso:"verHome"
                     },
                     {
-                        label: "Profesores",
+                        label: "Docentes",
                         // icon: <Iconly.Home set="light" />,
                         icon: <Iconsax.Teacher set="light" />,
                         to: "Profesor",

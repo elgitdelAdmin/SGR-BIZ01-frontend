@@ -4,7 +4,7 @@
   }
 
 ::placeholder { 
-  color: #000000;
+  color: #B5B5B5;
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
@@ -54,6 +54,7 @@ button{
   font-weight: bold;
   line-height: 32px;
   font-style: normal;
+  color: #000000;
 }
 
 .header-subTitulo{
@@ -61,6 +62,7 @@ button{
   font-weight: bold;
   line-height: 24px;
   font-style: normal;
+  color: #000000;
 }
 
 .label-form{
@@ -68,6 +70,7 @@ button{
   font-weight: bold;
   line-height: 21px;
   font-style: normal;
+  color: #000000;
 }
 .datatable-accion
 {
@@ -82,9 +85,12 @@ button{
     justify-content: center;
     background:#DD4B39;
     //width: 20%;
-    padding: 4px;
+    padding: 6px;
     cursor: pointer;
-    
+    span{
+      display: flex;
+      align-items: center;
+    }
 }
 
 .accion-editar
@@ -94,7 +100,11 @@ button{
     justify-content: center;
     background:#404BD9;
     //width: 20%;
-    padding: 4px;
+    padding: 6px;
     cursor: pointer;
+    span{
+      display: flex;
+      align-items: center;
+    }
     
 }

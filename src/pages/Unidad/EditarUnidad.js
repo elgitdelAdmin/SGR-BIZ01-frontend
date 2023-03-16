@@ -13,7 +13,7 @@ import * as Yup from "yup";
 import { Toast } from 'primereact/toast';
 import { InputTextarea } from "primereact/inputtextarea";
 import { TabView, TabPanel } from 'primereact/tabview';
-import { DataTable } from 'primereact/datatable';
+import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 const EditarUnidad = () => {
     const navigate = useNavigate();
@@ -39,9 +39,21 @@ const EditarUnidad = () => {
              
        
     }
+    
+    const accionEditarPreguntas =(rowData)=>{
+        return <div className="datatable-accion">
+            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Preguntas/"+rowData.idPregunta)}>
+                <span><Iconsax.Eye color="#ffffff"/></span>
+            </div>
+            {/* <div className="accion-eliminar" onClick={()=>navigate()}>
+                <span><Iconsax.Trash color="#ffffff"/></span>
+            </div> */}
+        </div>
+             
+       
+    }
 
-    const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
-    const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;     
+    
     useEffect(()=>{
         const GetUnidad= async()=>{
             let jwt = window.localStorage.getItem("jwt");
@@ -220,20 +232,13 @@ const EditarUnidad = () => {
                     </div>
             </div>
             <div className="zv-listado-leccion" style={{marginTop:16 }}>
-             <div className="header-subTitulo">Listado de lecciones</div>   
+             
                 <TabView>
                     
                     <TabPanel header="Lecciones">
-                        <DataTable
+                        <div className="header-subTitulo">Listado de lecciones</div>   
+                        <DatatableDefault
                             value={listaLecciones}
-                            size="small"
-                            paginator
-                            responsiveLayout="scroll"
-                            paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                            currentPageReportTemplate="Desde {first} a {last} of {totalRecords}"
-                            rows={10}
-                            paginatorLeft={paginatorLeft}
-                            paginatorRight={paginatorRight}
                             >
                             <Column field="idLeccion" header="ID" sortable></Column>
                             <Column field="titulo" header="Título" sortable ></Column>
@@ -245,7 +250,23 @@ const EditarUnidad = () => {
                                 header="Acciones"
                             ></Column>
                         
-                        </DataTable>
+                        </DatatableDefault>
+                    </TabPanel>
+                    <TabPanel header="Preguntas">
+                        <div className="header-subTitulo">Preguntas de lección</div>   
+                        <DatatableDefault
+                            value={[]}
+                            >
+                            <Column field="idPregunta" header="ID" sortable></Column>
+                            <Column field="titulo" header="Título" sortable ></Column>
+                            <Column field="idLeccion" header="Quiz" sortable></Column>
+                            <Column 
+                                body={accionEditarPreguntas}
+                                style={{ display: "flex", justifyContent: "center" }}
+                                header="Acciones"
+                            ></Column>
+                        
+                        </DatatableDefault>
                     </TabPanel>
                 </TabView>
             </div>

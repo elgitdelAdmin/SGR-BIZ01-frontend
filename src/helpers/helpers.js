@@ -16,3 +16,18 @@ export function getBase64 (file){
       console.log(fileInfo);
     });
   };
+
+  // export function isAuthenticated() {
+  //   const token = localStorage.getItem('token');
+  //   const refreshToken = localStorage.getItem('refreshToken');
+  //   try {
+  //     decode(token);
+  //     const { exp } = decode(refreshToken);
+  //     if (Date.now() >= exp * 1000) {
+  //       return false;
+  //     }
+  //   } catch (err) {
+  //     return false;
+  //   }
+  //   return true;
+  // }

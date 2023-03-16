@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
 
-import { DataTable } from 'primereact/datatable';
+import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Profesor.scss"
@@ -13,11 +13,11 @@ const Profesor = () => {
     const navigate = useNavigate();
 
     const [listaProfesores, setListaProfesores] = useState(null);
-
+    const [loading, setLoading] = useState(true);
     useEffect(()=>{
       const GetProfesores= async()=>{
           let jwt = window.localStorage.getItem("jwt");
-          await ListarProfesores({jwt}).then(data=>setListaProfesores(data))
+          await ListarProfesores({jwt}).then(data=>{setListaProfesores(data);setLoading(false)})
       }
       if(!listaProfesores) GetProfesores()
     },[])
@@ -35,7 +35,7 @@ const Profesor = () => {
 
     const accionEditar =(rowData)=>{
         return <div className="profesor-datatable-accion">
-            <div className="profesor-accion-editar" onClick={()=>navigate("../EditarProfesor/"+rowData.idPersona)}>
+            <div className="accion-editar" onClick={()=>navigate("../EditarProfesor/"+rowData.idPersona)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
             {/* <div className="profesor-accion-eliminar" onClick={()=>navigate()}>
@@ -56,19 +56,12 @@ const Profesor = () => {
 
     return (
       <div className="zv-profesor" style={{ paddingTop: 16 }}>
-        <div className="header-titulo">Módulo de profesores</div>
+        <div className="header-titulo">Módulo de Docentes</div>
         <div className="zv-profesor-body" style={{ marginTop: 16 }}>
           <div className="zv-profesor-body-listado" style={{ marginTop: 24 }}>
-            <DataTable
+            <DatatableDefault
               value={listaProfesores}
-              size="small"
-              paginator
-              responsiveLayout="scroll"
-              paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-              currentPageReportTemplate="Desde {first} a {last} of {totalRecords}"
-              rows={10}
-              paginatorLeft={paginatorLeft}
-              paginatorRight={paginatorRight}
+              loading={loading}
             >
               <Column field="idPersona" header="ID" sortable></Column>
               <Column field="nombres" header="Nombre" sortable></Column>
@@ -80,7 +73,7 @@ const Profesor = () => {
                 header="Acciones"
               ></Column>
               
-            </DataTable>
+            </DatatableDefault>
           </div>
         </div>
       </div>
