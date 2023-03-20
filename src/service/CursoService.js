@@ -13,7 +13,19 @@ export const ListarCursos = async({jwt})=> {
         },
         
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
@@ -34,7 +46,19 @@ export const BuscarCursoID = async ({jwt,idCurso}) =>{
         },
         
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
@@ -57,7 +81,19 @@ export const ActualizarCurso= ({jsonCurso,jwt}) =>{
         
         body: jsonCurso
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
@@ -78,7 +114,19 @@ export const RegistrarCurso= ({jsonCurso,jwt}) =>{
         
         body: jsonCurso
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])

@@ -13,7 +13,19 @@ export const ListarUnidadesPorCurso = async({jwt,idCurso})=> {
         },
         
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
@@ -34,7 +46,19 @@ export const BuscarUnidadID = async ({jwt,idUnidad}) =>{
         },
         
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
@@ -57,8 +81,20 @@ export const ActualizarUnidad= ({jsonUnidad,jwt}) =>{
         
         body: jsonUnidad
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
-        return res.json()
+       //if(!res.ok) throw new Error("Response is Not Ok")
+       if(!res.ok) 
+       {
+           if(res.status == 401)
+           {
+               window.localStorage.removeItem('jwt')
+               window.location.reload();
+           }
+           else
+           {
+               throw new Error("No se recibió respuesta del servidor")
+           }
+       }
+       return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
         const {data} = res
@@ -78,7 +114,19 @@ export const RegistrarUnidad= ({jsonUnidad,jwt}) =>{
         
         body: jsonUnidad
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])

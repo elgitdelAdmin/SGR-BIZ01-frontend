@@ -1,3 +1,4 @@
+import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
 const ENDPOINT = constantes.URLAPI;
 const ENDPOINTTEST = constantes.URL_TESTPROFESOR;
@@ -13,7 +14,19 @@ export const ListarProfesores = async({jwt})=> {
         },
         
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
@@ -34,7 +47,19 @@ export const BuscarProfesorID = async ({jwt,idPersona}) =>{
         },
         
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
@@ -57,8 +82,20 @@ export const ActualizarProfesor= ({jsonPersona,jwt}) =>{
         
         body: jsonPersona
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
-        return res.json()
+       //if(!res.ok) throw new Error("Response is Not Ok")
+       if(!res.ok) 
+       {
+           if(res.status == 401)
+           {
+               window.localStorage.removeItem('jwt')
+               window.location.reload();
+           }
+           else
+           {
+               throw new Error("No se recibió respuesta del servidor")
+           }
+       }
+       return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
         const {data} = res
@@ -78,7 +115,19 @@ export const RegistrarProfesor= ({jsonPersona,jwt}) =>{
         
         body: jsonPersona
     }).then(res=>{
-        if(!res.ok) throw new Error("Response is Not Ok")
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
         return res.json()
     }).then(res=>{
         if(res.errors) throw new Error(res.errors[0])
