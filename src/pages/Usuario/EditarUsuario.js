@@ -138,7 +138,7 @@ const EditarUsuario = () => {
           <div className="zv-editarUsuario-body" style={{ marginTop: 16 }}>
             <form onSubmit={formik.handleSubmit}>
               <div className="p-fluid formgrid grid">
-                <div className="field col-12 md:col-4">
+                <div className="field col-12 md:col-6">
                   <label className="label-form">Nombres</label>
                   <InputText
                     type={"text"}
@@ -153,7 +153,7 @@ const EditarUsuario = () => {
                   <div className="p-error">{ formik.touched.nombres && formik.errors.nombres }</div>
 
                 </div>
-                <div className="field col-12 md:col-4">
+                <div className="field col-12 md:col-6">
                   <label className="label-form">Primer apellido</label>
                   <InputText
                     type={"text"}
@@ -168,7 +168,7 @@ const EditarUsuario = () => {
                   <small className="p-error">{formik.touched.primerApellido && formik.errors.primerApellido}</small>
 
                 </div>
-                <div className="field col-12 md:col-4">
+                <div className="field col-12 md:col-6">
                   <label className="label-form">Segundo apellido</label>
                   <InputText
                     type={"text"}
@@ -182,20 +182,7 @@ const EditarUsuario = () => {
                   ></InputText>
                   <small className="p-error">{formik.touched.segundoApellido && formik.errors.segundoApellido}</small>
                 </div>
-                <div className="field col-12 md:col-3">
-                  <label className="label-form">Telefono</label>
-                  <InputNumber
-                    type={"text"}
-                    id="celular"
-                    name="celular"
-                    placeholder="Escribe aquí"
-                    value={formik.values.celular}
-                    onValueChange={formik.handleChange}
-                    onblur={formik.handleBlur}
-                    useGrouping={false}
-                  ></InputNumber>
-                </div>
-                <div className="field col-12 md:col-3">
+                <div className="field col-12 md:col-6">
                   <label className="label-form">DNI </label>
                   <InputText
                     type={"numeric"}
@@ -221,6 +208,21 @@ const EditarUsuario = () => {
                     
                   ></InputText>
                 </div>
+                <div className="field col-12 md:col-6">
+                  <label className="label-form">Telefono</label>
+                  <InputNumber
+                    type={"text"}
+                    id="celular"
+                    name="celular"
+                    placeholder="Escribe aquí"
+                    value={formik.values.celular}
+                    onValueChange={formik.handleChange}
+                    onblur={formik.handleBlur}
+                    useGrouping={false}
+                  ></InputNumber>
+                </div>
+                
+                
                 <div className="field col-12 md:col-3">
                   <label className="label-form">Contraseña</label>
                   {/* <InputText type={"password"}

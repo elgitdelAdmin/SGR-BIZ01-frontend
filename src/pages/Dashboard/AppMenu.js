@@ -6,7 +6,7 @@ import * as Iconsax from "iconsax-react";
 import { Badge } from 'primereact/badge';
 import {Ripple} from "primereact/ripple";
 import "./AppMenu.scss"
-
+import useUsuario from '../../hooks/useUsuario';
 const AppSubmenu = (props) => {
     const [activeIndex, setActiveIndex] = useState(null)
     
@@ -116,40 +116,45 @@ const AppSubmenu = (props) => {
 }
 export const AppMenu = (props) => {
     const [menuZegel, seMenuZegel] = useState([{label: "", items:  []}]);
+    const { permisos} = useUsuario();
     useEffect(()=>{
-        const menuitems = [
-            {
-                label: "",
-                items: [
-                    {
-                        label: "Usuarios",
-                        // icon: <Iconly.Home set="light" />,
-                        icon: <Iconsax.Personalcard set="light" />,
-                        to: "Usuario",
-                        visible: true,
-                        permiso:"verHome"
-                    },
-                    {
-                        label: "Docentes",
-                        // icon: <Iconly.Home set="light" />,
-                        icon: <Iconsax.Teacher set="light" />,
-                        to: "Profesor",
-                        visible: true,
-                    },
-
-                    {
-                        label: "Cursos",
-                        // icon: <Iconly.Home set="light" />,
-                        icon: <Iconsax.Book set="light" />,
-                        to: "Curso",
-                        visible: true,
-                    },
-                   
-                ],
-            },
-        ];
-        seMenuZegel(menuitems)
-    },[])
+        if(permisos.length >0)
+        {
+            const menuitems = [
+                {
+                    label: "",
+                    items: [
+                        {
+                            label: "Usuarios",
+                            // icon: <Iconly.Home set="light" />,
+                            icon: <Iconsax.Personalcard set="light" />,
+                            to: "Usuario",
+                            visible: permisos.indexOf("verUsuario") > -1 ? true:false,
+                            permiso:"verHome"
+                        },
+                        {
+                            label: "Docentes",
+                            // icon: <Iconly.Home set="light" />,
+                            icon: <Iconsax.Teacher set="light" />,
+                            to: "Profesor",
+                            visible: permisos.indexOf("editarUsuarioDocente") > -1 ? true:false,
+                        },
+    
+                        {
+                            label: "Cursos",
+                            // icon: <Iconly.Home set="light" />,
+                            icon: <Iconsax.Book set="light" />,
+                            to: "Curso",
+                            visible: true,
+                        },
+                       
+                    ],
+                },
+            ];
+            seMenuZegel(menuitems)
+        }
+        
+    },[permisos])
     return ( 
         <div className="layout-menu-container">
             <AppSubmenu items={menuZegel} className="layout-menu"  onMenuItemClick={props.onMenuItemClick} root={true} role="menu" />
