@@ -15,6 +15,7 @@ export const URL_TESTUNIDAD = "http://localhost:7139/api";
 export const URL_TESTLECCION = "http://localhost:7215/api";
 export const URL_TESTPREGUNTA = "http://localhost:7089/api";
 export const URL_GENERAL = "http://localhost:7198/api";
+export const URL_TESTMATERIAL = "http://localhost:7003/api";
 
 
 // export const URL_NOTIFICACION = "http://localhost:7262/api"

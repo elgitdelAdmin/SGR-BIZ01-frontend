@@ -36,6 +36,7 @@ const EditarUsuario = () => {
               setTituloPagina("Datos de usuario")
               setPersona(data)
               setModoEdicion(true)
+              data.idTipoPersona ==3 ? setChecked(true) : setChecked(false)
             })
         }
         if(id) getPersona()
@@ -45,6 +46,7 @@ const EditarUsuario = () => {
       nombres: Yup.string().required("Nombres es un campo obligatorio"),
       primerApellido: Yup.string().required("Primer apellido es un campo obligatorio"),
       segundoApellido: Yup.string().required("Segundo Apellido es un campo obligatorio"),
+      dni: Yup.string().required("Documento es un campo obligatorio"),
     });
 
     const formik = useFormik({
@@ -183,7 +185,7 @@ const EditarUsuario = () => {
                   <small className="p-error">{formik.touched.segundoApellido && formik.errors.segundoApellido}</small>
                 </div>
                 <div className="field col-12 md:col-6">
-                  <label className="label-form">DNI </label>
+                  <label className="label-form">Documento </label>
                   <InputText
                     type={"numeric"}
                     id="dni"
@@ -192,8 +194,10 @@ const EditarUsuario = () => {
                     value={formik.values.dni}
                     onChange={formik.handleChange}
                     onblur={formik.handleBlur}
-                    disabled={modoEdicion}
+                    //disabled={modoEdicion}
+                    maxLength ={8}
                   ></InputText>
+                  <small className="p-error">{formik.touched.dni && formik.errors.dni}</small>
                 </div>
                 <div className="field col-12 md:col-6">
                   <label className="label-form">Correo</label>
@@ -219,6 +223,7 @@ const EditarUsuario = () => {
                     onValueChange={formik.handleChange}
                     onblur={formik.handleBlur}
                     useGrouping={false}
+                    maxLength ={9}
                   ></InputNumber>
                 </div>
                 

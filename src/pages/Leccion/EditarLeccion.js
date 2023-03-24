@@ -16,6 +16,7 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import { ListarPreguntasPorLeccion } from "../../service/PreguntaService";
+import { ListarMaterialesPorLeccion } from "../../service/MaterialService";
 
 const EditarLeccion = () => {
     const navigate = useNavigate();
@@ -24,6 +25,11 @@ const EditarLeccion = () => {
     const [modoEdicion, setModoEdicion] = useState(false);
     const [tituloPagina, setTituloPagina] = useState("Crear lección");
     const [preguntas, setPreguntas] = useState(null);
+    const [material, setMaterial] = useState(null);
+
+    const [loadingMaterial, setLoadingMaterial] = useState(true);
+    const [loadingPreguntas, setLoadingPreguntas] = useState(true);
+
     let { IDCurso } = useParams();
     let { IDUnidad } = useParams();
     let { IDLeccion } = useParams();
@@ -49,12 +55,29 @@ const EditarLeccion = () => {
             let jwt = window.localStorage.getItem("jwt");
             let idLeccion = IDLeccion
             await ListarPreguntasPorLeccion({jwt,idLeccion}).then(data=>{
+
+                setLoadingPreguntas(false)
                 setPreguntas(data)
             })
            
         }
 
         if(IDLeccion)getPreguntas()
+    },[IDLeccion])
+    
+
+    useEffect(()=>{
+        const getMaterial= async()=>{
+            let jwt = window.localStorage.getItem("jwt");
+            let idLeccion = IDLeccion
+            await ListarMaterialesPorLeccion({jwt,idLeccion}).then(data=>{
+                setLoadingMaterial(false)
+                setMaterial(data)
+            })
+           
+        }
+
+        if(IDLeccion)getMaterial()
     },[IDLeccion])
 
     const Registrar =({jsonLeccion})=>{
@@ -118,7 +141,7 @@ const EditarLeccion = () => {
 
     const accionEditarMaterial =(rowData)=>{
         return <div className="datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Material/"+rowData.idMaterial)}>
+            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Material/Editar/"+rowData.idMaterial)}>
                 <span><Iconsax.Eye color="#ffffff"/></span>
             </div>
             {/* <div className="accion-eliminar" onClick={()=>navigate()}>
@@ -209,7 +232,7 @@ const EditarLeccion = () => {
                     <div className="zv-editarLeccion-footer" style={{display:"flex",gap:8}}>
                         <Boton label="Guardar cambios" style={{fontSize:12}} color="primary" type="submit" loading={formik.isSubmitting}></Boton>
                         {modoEdicion && <Boton label="Agregar material" style={{fontSize:12}} color="secondary" type ="button"
-                        //onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+unidad.idUnidad+"/Leccion/Crear")}
+                        onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Material/Crear")}
                         ></Boton>}
                         {modoEdicion && <Boton label="Agregar Pregunta" style={{fontSize:12}} color="secondary" type ="button"
                         onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Pregunta/Crear")}
@@ -223,7 +246,8 @@ const EditarLeccion = () => {
                     <TabPanel header="Materiales">
                         <div className="header-subTitulo">Materiales de lección</div>   
                         <DatatableDefault
-                            value={[]}
+                            value={material}
+                            loading={loadingMaterial}
                             >
                             <Column field="idMaterial" header="ID" sortable></Column>
                             <Column field="titulo" header="Título" sortable ></Column>
@@ -241,6 +265,7 @@ const EditarLeccion = () => {
                         <div className="header-subTitulo">Preguntas de lección</div>   
                         <DatatableDefault
                             value={preguntas}
+                            loading={loadingPreguntas}
                             >
                             <Column field="idPregunta" header="ID" sortable></Column>
                             <Column field="titulo" header="Título" sortable ></Column>
