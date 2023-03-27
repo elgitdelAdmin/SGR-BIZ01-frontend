@@ -115,7 +115,7 @@ const Usuario = () => {
 
     const confirm2 = (id) => {
         confirmDialog({
-            message: 'Seguro de elimnar usuario?',
+            message: 'Seguro de eliminar usuario?',
             header: 'Eliminar',
             icon: 'pi pi-info-circle',
             acceptClassName: 'p-button-danger',

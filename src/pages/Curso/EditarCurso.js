@@ -7,7 +7,8 @@ import "./Curso.scss"
 import { InputText } from "primereact/inputtext";
 import Boton from "../../components/Boton/Boton";
 import { BuscarCursoID,RegistrarCurso,ActualizarCurso } from "../../service/CursoService";
-import { ListarUnidadesPorCurso } from "../../service/UnidadService";
+import { ListarUnidadesPorCurso,EliminarUnidad } from "../../service/UnidadService";
+import { ListarBibliotecasPorCurso,EliminarBiblioteca } from "../../service/BlibliotecaService";
 
 import { Field,FieldArray, Formik ,useFormik,FormikProvider} from "formik";
 import * as Yup from "yup";
@@ -22,10 +23,13 @@ import * as constantes from "../../constants/constantes.js";
 import { ObtenerListaCategorias } from "../../service/EmpresaService";
 import useUsuario from "../../hooks/useUsuario";
 import { Loader } from 'rsuite';
+
+import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 const EditarCurso = () => {
     const navigate = useNavigate();
     const [curso, setCurso] = useState(null);    
     const [listaUnidades, setListaUnidades] = useState(null);
+    const [listaBiblioteca, setListaBiblioteca] = useState(null);
     const [modoEdicion, setModoEdicion] = useState(false);
     const [tituloTab, setTituloTab] = useState("");
     const [tituloPagina, setTituloPagina] = useState("Crear curso");
@@ -88,9 +92,13 @@ const EditarCurso = () => {
             <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Unidad/Editar/"+rowData.idUnidad)}>
                 <span><Iconsax.Eye color="#ffffff"/></span>
             </div>
-            {/* <div className="accion-eliminar" onClick={()=>navigate()}>
-                <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> */}
+            <div className="accion-eliminar" onClick={()=>{
+               
+               confirm2(rowData.idUnidad)
+               
+            }}>
+               <span><Iconsax.Trash color="#ffffff"/></span>
+           </div> 
         </div>
              
        
@@ -101,9 +109,13 @@ const EditarCurso = () => {
             <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Biblioteca/Editar/"+rowData.idBiblioteca)}>
                 <span><Iconsax.Eye color="#ffffff"/></span>
             </div>
-            {/* <div className="accion-eliminar" onClick={()=>navigate()}>
-                <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> */}
+            <div className="accion-eliminar" onClick={()=>{
+               
+               confirmLibro(rowData.idBiblioteca)
+               
+            }}>
+               <span><Iconsax.Trash color="#ffffff"/></span>
+           </div> 
         </div>
              
        
@@ -150,6 +162,20 @@ const EditarCurso = () => {
 
         if(id)GetUnidades()
     },[id])
+
+    useEffect(()=>{
+        const getBibliteca= async()=>{
+            let jwt = window.localStorage.getItem("jwt");
+            let idCurso = id
+            await ListarBibliotecasPorCurso({jwt,idCurso}).then(data=>{
+                setListaBiblioteca(data)
+                setLoadingBiblioteca(false)
+            })
+        }
+
+        if(id)getBibliteca()
+    },[id])
+
     useEffect(()=>{
         if(fileList.length >0) {
 
@@ -247,8 +273,68 @@ const EditarCurso = () => {
             formik.setSubmitting(false)
         })
     }
+
+    const Eliminar =({id})=>{
+        let jwt = window.localStorage.getItem("jwt");
+        let idUnidad = id
+        EliminarUnidad({jwt,idUnidad}).then(data=>{
+            //formik.setSubmitting(false)
+            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+  
+  
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000)
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            //formik.setSubmitting(false)
+        })
+    }
+
+    const EliminarLibro =(idBiblioteca)=>{
+        let jwt = window.localStorage.getItem("jwt");
+        let id = idBiblioteca
+        EliminarBiblioteca({jwt,id}).then(data=>{
+            //formik.setSubmitting(false)
+            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+  
+  
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000)
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            //formik.setSubmitting(false)
+        })
+    }
+
+    const confirm2 = (id) => {
+        confirmDialog({
+            message: 'Seguro de eliminar unidad?',
+            header: 'Eliminar',
+            icon: 'pi pi-info-circle',
+            acceptClassName: 'p-button-danger',
+            acceptLabel:"Aceptar",
+            accept:()=>Eliminar({id})
+        });
+    };
+
+    const confirmLibro = (id) => {
+        confirmDialog({
+            message: 'Seguro de eliminar libro?',
+            header: 'Eliminar',
+            icon: 'pi pi-info-circle',
+            acceptClassName: 'p-button-danger',
+            acceptLabel:"Aceptar",
+            accept:()=>EliminarLibro(id)
+        });
+    };
+
     return ( 
         <form onSubmit={formik.handleSubmit}>
+            <ConfirmDialog />
             <div className="zv-editarCurso" style={{paddingTop:16}}>
                 <Toast ref={toast} position="top-center"></Toast>
                 {(modoEdicion && curso == null) && <Loader center size="lg" content="Cargando" />}
@@ -441,8 +527,18 @@ const EditarCurso = () => {
                 </div>
                 <div className="zv-editarCurso-footer" style={{display:"flex",gap:8}}>
                         <Boton label="Guardar cambios" style={{fontSize:12}} color="primary" type="submit" loading={formik.isSubmitting}></Boton>
-                        {modoEdicion && <Boton label="Crear unidad" style={{fontSize:12}} color="secondary" type ="button"
-                        onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Unidad/Crear")}></Boton>}
+                        {modoEdicion && <>
+                            <Boton label="Crear unidad" style={{fontSize:12}} color="secondary" type ="button"
+                        onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Unidad/Crear")}></Boton>
+                        <Boton label="Crear biblioteca" style={{fontSize:12}} color="secondary" type ="button"
+                        onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Biblioteca/Crear")}></Boton>
+                        <Boton label="Crear requisito" style={{fontSize:12}} color="secondary" type ="button"
+                        onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Requisito/Crear")}></Boton>
+                        <Boton label="Crear beneficio" style={{fontSize:12}} color="secondary" type ="button"
+                        onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Beneficio/Crear")}></Boton>
+                        </>
+                        
+                        }
                     </div>
                 
             </div>
@@ -469,11 +565,12 @@ const EditarCurso = () => {
                     <TabPanel header="Biblioteca">
                         <div className="header-subTitulo">Lista de Librerías</div>   
                         <DatatableDefault
-                            value={tempTableBiblioteca}
+                            value={listaBiblioteca}
+                            loading={loadingBiblioteca}
                             >
                             <Column field="idBiblioteca" header="ID" ></Column>
                             <Column field="nombre" header="Nombre"  ></Column>
-                            <Column field="tipo" header="Tipo"  ></Column>
+                            <Column field="libroTipo.tipo" header="Tipo"  ></Column>
                             <Column field="linkZegel" header="Link Zegel" ></Column>
                             <Column field="linkIdat" header="Link Idat" ></Column>
                             <Column 

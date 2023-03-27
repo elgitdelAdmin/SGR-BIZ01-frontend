@@ -145,7 +145,7 @@ export const AppMenu = (props) => {
                             // icon: <Iconly.Home set="light" />,
                             icon: <Iconsax.Book set="light" />,
                             to: "Curso",
-                            visible: true,
+                            visible: permisos.indexOf("verCursos") > -1 ? true:false,
                         },
                        
                     ],

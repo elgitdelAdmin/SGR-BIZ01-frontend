@@ -16,7 +16,10 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import { ListarPreguntasPorLeccion } from "../../service/PreguntaService";
-import { ListarMaterialesPorLeccion } from "../../service/MaterialService";
+import { ListarMaterialesPorLeccion,EliminarMaterial } from "../../service/MaterialService";
+
+import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
+
 
 const EditarLeccion = () => {
     const navigate = useNavigate();
@@ -144,9 +147,13 @@ const EditarLeccion = () => {
             <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Material/Editar/"+rowData.idMaterial)}>
                 <span><Iconsax.Eye color="#ffffff"/></span>
             </div>
-            {/* <div className="accion-eliminar" onClick={()=>navigate()}>
+            <div className="accion-eliminar" onClick={()=>{
+               
+                confirm2(rowData.idMaterial)
+                
+             }}>
                 <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> */}
+            </div> 
         </div>
      
     }
@@ -163,8 +170,37 @@ const EditarLeccion = () => {
      
     }
 
+    const Eliminar =({id})=>{
+        let jwt = window.localStorage.getItem("jwt");
+        EliminarMaterial({jwt,id}).then(data=>{
+            //formik.setSubmitting(false)
+            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+  
+  
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000)
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            //formik.setSubmitting(false)
+        })
+    }
+
+    const confirm2 = (id) => {
+        confirmDialog({
+            message: 'Seguro de eliminar material?',
+            header: 'Eliminar',
+            icon: 'pi pi-info-circle',
+            acceptClassName: 'p-button-danger',
+            acceptLabel:"Aceptar",
+            accept:()=>Eliminar({id})
+        });
+    };
+
     return ( 
         <form onSubmit={formik.handleSubmit}>
+            <ConfirmDialog />
             <div className="zv-editarLeccion" style={{paddingTop:16}}>
                 <Toast ref={toast} position="top-center"></Toast>
                 <div className="header" >

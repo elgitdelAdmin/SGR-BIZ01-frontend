@@ -1,10 +1,10 @@
 import * as constantes from "../constants/constantes.js";
 const ENDPOINT = constantes.URLAPI;
-const ENDPOINTTEST = constantes.URL_TESTMATERIAL;
+const ENDPOINTTEST = constantes.URL_TESTBLIBLIOTECA;
 
-export const ListarMaterialesPorLeccion = async({jwt,idLeccion})=> {
-    return await fetch(`${ENDPOINT}/ZADMaterial/ListarMaterialesPorLeccion/${idLeccion}`,{
-    //return await fetch(`${ENDPOINTTEST}/ListarMaterialesPorLeccion/${idLeccion}`,{
+export const ListarBibliotecasPorCurso = async({jwt,idCurso})=> {
+    return await fetch(`${ENDPOINT}/ZADBiblioteca/ListarBibliotecasPorCurso/${idCurso}`,{
+    //return await fetch(`${ENDPOINTTEST}/ListarBibliotecasPorCurso/${idCurso}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -35,9 +35,9 @@ export const ListarMaterialesPorLeccion = async({jwt,idLeccion})=> {
     
 }
 
-export const BuscarMaterialID = async ({jwt,id}) =>{
-    return await fetch(`${ENDPOINT}/ZADMaterial/BuscarMaterialID/${id}`,{
-    //return await fetch(`${ENDPOINTTEST}/BuscarMaterialID/${id}`,{
+export const BuscarBibliotecaID = async ({jwt,id}) =>{
+    return await fetch(`${ENDPOINT}/ZADBiblioteca/BuscarBibliotecaID/${id}`,{
+    //return await fetch(`${ENDPOINTTEST}/BuscarBibliotecaID/${id}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -69,9 +69,9 @@ export const BuscarMaterialID = async ({jwt,id}) =>{
 }
 
 
-export const ActualizarMaterial= ({jasonMaterial,jwt}) =>{
-    //return fetch(`${ENDPOINTTEST}/ActualizarMaterial`,{
-    return fetch(`${ENDPOINT}/ZADMaterial/ActualizarMaterial`,{
+export const ActualizarBiblioteca= ({jsonBliblioteca,jwt}) =>{
+    //return fetch(`${ENDPOINTTEST}/ActualizarBiblioteca`,{
+    return fetch(`${ENDPOINT}/ZADBiblioteca/ActualizarBiblioteca`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -79,7 +79,40 @@ export const ActualizarMaterial= ({jasonMaterial,jwt}) =>{
             "accept": "application/json"
         },
         
-        body: jasonMaterial
+        body: jsonBliblioteca
+    }).then(res=>{
+       //if(!res.ok) throw new Error("Response is Not Ok")
+       if(!res.ok) 
+       {
+           if(res.status == 401)
+           {
+               window.localStorage.removeItem('jwt')
+               window.location.reload();
+           }
+           else
+           {
+               throw new Error("No se recibió respuesta del servidor")
+           }
+       }
+       return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+}
+
+export const RegistrarBiblioteca= ({jsonBliblioteca,jwt}) =>{
+    //return fetch(`${ENDPOINTTEST}/RegistrarBiblioteca`,{
+    return fetch(`${ENDPOINT}/ZADBiblioteca/RegistrarBiblioteca`,{
+        method: "POST",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            'Content-Type': 'application/json',
+            "accept": "application/json"
+        },
+        
+        body: jsonBliblioteca
     }).then(res=>{
         //if(!res.ok) throw new Error("Response is Not Ok")
         if(!res.ok) 
@@ -102,42 +135,9 @@ export const ActualizarMaterial= ({jasonMaterial,jwt}) =>{
     })
 }
 
-export const RegistrarMaterial= ({jasonMaterial,jwt}) =>{
-    //return fetch(`${ENDPOINTTEST}/RegistrarMaterial`,{
-    return fetch(`${ENDPOINT}/ZADMaterial/RegistrarMaterial`,{
-        method: "POST",
-        headers:{
-            "Authorization":"Bearer "+jwt,
-            'Content-Type': 'application/json',
-            "accept": "application/json"
-        },
-        
-        body: jasonMaterial
-    }).then(res=>{
-        //if(!res.ok) throw new Error("Response is Not Ok")
-        if(!res.ok) 
-        {
-            if(res.status == 401)
-            {
-                window.localStorage.removeItem('jwt')
-                window.location.reload();
-            }
-            else
-            {
-                throw new Error("No se recibió respuesta del servidor")
-            }
-        }
-        return res.json()
-    }).then(res=>{
-        if(res.errors) throw new Error(res.errors[0])
-        const {data} = res
-        return data
-    })
-}
-
-export const EliminarMaterial = async ({jwt,id}) =>{
-    return await fetch(`${ENDPOINT}/ZADMaterial/EliminarMaterial/${id}`,{
-    //return await fetch(`${ENDPOINTTEST}/EliminarMaterial/${id}`,{
+export const EliminarBiblioteca = async ({jwt,id}) =>{
+    return await fetch(`${ENDPOINT}/ZADBiblioteca/EliminarBiblioteca/${id}`,{
+    //return await fetch(`${ENDPOINTTEST}/EliminarBiblioteca/${id}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
