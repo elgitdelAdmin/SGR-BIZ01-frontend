@@ -11,6 +11,7 @@ import { Loader, Placeholder } from 'rsuite';
 import Boton from "../../components/Boton/Boton";
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
+import useUsuario from "../../hooks/useUsuario";
 const Usuario = () => {
     const navigate = useNavigate();
 
@@ -21,9 +22,21 @@ const Usuario = () => {
     const [loading, setLoading] = useState(true);
     const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
     const [visible, setVisible] = useState(false);
+    const {permisos} = useUsuario();
     // const listaEmpresas =
     // [{value:1,name:"Zegel Virtual"}]
     const toast = useRef(null);
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(()=>{
+       
+        if(permisos.length >0)
+        {
+            permisos.indexOf("editarUsuarioAdmin") > -1 && setIsAdmin(true)
+        }
+
+    },[permisos])
+
     useEffect(()=>{
         const GetEmpresa = async ()=>
         {
@@ -46,6 +59,11 @@ const Usuario = () => {
         if(listaPersonasTotal)
         {
             let personaTemp = listaPersonasTotal.filter(x=>x.idEmpresa == id)
+            if(!isAdmin && personaTemp.length > 0)
+            {
+                personaTemp = personaTemp.filter(x=>x.tipoPersona.descripcionTipo == "Alumno")
+            }
+            
             setListaPersonas(personaTemp)
         }
         
@@ -167,6 +185,7 @@ const Usuario = () => {
                             <Column field="idPersona" header="ID" sortable></Column>
                             <Column field="nombres" header="Nombre" sortable></Column>
                             <Column field="correo" header="Email"sortable> </Column>
+                            <Column field="tipoPersona.descripcionTipo" header="Tipo"sortable> </Column>
                             <Column field="dni" header="DNI" sortable></Column>
                             <Column field="activo" header="Estado"dataType="boolean" sortable body={booleanTemplate}></Column>
                             <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column>

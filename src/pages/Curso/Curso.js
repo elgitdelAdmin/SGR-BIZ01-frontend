@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef } from "react";
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Curso.scss"
 import Boton from "../../components/Boton/Boton";
-import { ListarCursos } from "../../service/CursoService";
-
+import { ListarCursos,EliminarCurso } from "../../service/CursoService";
+import { Toast } from 'primereact/toast';
+import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 const Curso = () => {
     const navigate = useNavigate();
 
     const [listaCursos, setListaCursos] = useState(null);
 
     const [loading, setLoading] = useState(true);
+    const toast = useRef(null);
     useEffect(()=>{
         const GetCurso= async()=>{
             let jwt = window.localStorage.getItem("jwt");
@@ -37,9 +39,13 @@ const Curso = () => {
             <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+rowData.idCurso)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
-            {/* <div className="profesor-accion-eliminar" onClick={()=>navigate()}>
-                <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> */}
+            <div className="accion-eliminar" onClick={()=>{
+               
+               confirmCurso(rowData.idCurso)
+               
+            }}>
+               <span><Iconsax.Trash color="#ffffff"/></span>
+           </div> 
         </div>
              
        
@@ -51,8 +57,40 @@ const Curso = () => {
     }
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;     
+
+    const Eliminar =({id})=>{
+        let jwt = window.localStorage.getItem("jwt");
+    
+        EliminarCurso({jwt,id}).then(data=>{
+            //formik.setSubmitting(false)
+            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+  
+  
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000)
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            //formik.setSubmitting(false)
+        })
+    }
+
+    const confirmCurso = (id) => {
+        confirmDialog({
+            message: 'Seguro de eliminar curso?',
+            header: 'Eliminar',
+            icon: 'pi pi-info-circle',
+            acceptClassName: 'p-button-danger',
+            acceptLabel:"Aceptar",
+            accept:()=>Eliminar({id})
+        });
+    };
+
     return ( 
         <div className="zv-curso" style={{ paddingTop: 16 }}>
+            <Toast ref={toast} position="top-center"></Toast>
+            <ConfirmDialog />
             <div className="header-titulo">Módulo de cursos</div>   
             <div className="zv-curso-body" style={{ marginTop: 16 }}>
                 <div className="zv-curso-body-header">

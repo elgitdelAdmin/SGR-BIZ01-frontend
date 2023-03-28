@@ -9,6 +9,7 @@ import Boton from "../../components/Boton/Boton";
 import { BuscarCursoID,RegistrarCurso,ActualizarCurso } from "../../service/CursoService";
 import { ListarUnidadesPorCurso,EliminarUnidad } from "../../service/UnidadService";
 import { ListarBibliotecasPorCurso,EliminarBiblioteca } from "../../service/BlibliotecaService";
+import { ListarDiseñadorPorCurso,EliminarDisenador } from "../../service/DisenadorService";
 
 import { Field,FieldArray, Formik ,useFormik,FormikProvider} from "formik";
 import * as Yup from "yup";
@@ -30,6 +31,7 @@ const EditarCurso = () => {
     const [curso, setCurso] = useState(null);    
     const [listaUnidades, setListaUnidades] = useState(null);
     const [listaBiblioteca, setListaBiblioteca] = useState(null);
+    const [listaDisenador, setListaDisenador] = useState(null);
     const [modoEdicion, setModoEdicion] = useState(false);
     const [tituloTab, setTituloTab] = useState("");
     const [tituloPagina, setTituloPagina] = useState("Crear curso");
@@ -121,6 +123,23 @@ const EditarCurso = () => {
        
     }
 
+    const accionEditarDisenador =(rowData)=>{
+        return <div className="datatable-accion">
+            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Disenador/Editar/"+rowData.idDisenador)}>
+                <span><Iconsax.Eye color="#ffffff"/></span>
+            </div>
+            <div className="accion-eliminar" onClick={()=>{
+               
+               confirmDisenador(rowData.idDisenador)
+               
+            }}>
+               <span><Iconsax.Trash color="#ffffff"/></span>
+           </div> 
+        </div>
+             
+       
+    }
+
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;     
 
@@ -177,11 +196,27 @@ const EditarCurso = () => {
     },[id])
 
     useEffect(()=>{
-        if(fileList.length >0) {
+        const getDisenador= async()=>{
+            let jwt = window.localStorage.getItem("jwt");
+            let idCurso = id
+            await ListarDiseñadorPorCurso({jwt,idCurso}).then(data=>{
+                setListaDisenador(data)
+                setLoadingDiseñador(false)
+            })
+        }
 
-            getBase64(fileList[0].blobFile).then((result) => {
-                setImageBase64(result)
-            });
+        if(id)getDisenador()
+    },[id])
+
+    useEffect(()=>{
+        if(fileList.length >0) {
+            if(fileList[0].blobFile)
+            {
+                getBase64(fileList[0].blobFile).then((result) => {
+                    setImageBase64(result)
+                });
+            }
+           
         }
     },[fileList])
 
@@ -214,7 +249,7 @@ const EditarCurso = () => {
       onSubmit: values => {
             let imagenBase64 = imageBase64;
             let tipoDocumento = imagenBase64 ? fileList[0].blobFile.type :null
-            let fotoCurso = fileList.length >0 ?fileList[0].name:null
+            let fotoCurso = imagenBase64 ?fileList[0].blobFile.name:values.fotoCurso
             let idCurso = values.idCurso
             let idCategoria = values.idCategoria
             let nombre = values.nombre
@@ -310,6 +345,24 @@ const EditarCurso = () => {
         })
     }
 
+    const EliminarDiseñador =(idDisenador)=>{
+        let jwt = window.localStorage.getItem("jwt");
+        let id = idDisenador
+        EliminarDisenador({jwt,id}).then(data=>{
+            //formik.setSubmitting(false)
+            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+  
+  
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000)
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            //formik.setSubmitting(false)
+        })
+    }
+
     const confirm2 = (id) => {
         confirmDialog({
             message: 'Seguro de eliminar unidad?',
@@ -329,6 +382,17 @@ const EditarCurso = () => {
             acceptClassName: 'p-button-danger',
             acceptLabel:"Aceptar",
             accept:()=>EliminarLibro(id)
+        });
+    };
+
+    const confirmDisenador = (id) => {
+        confirmDialog({
+            message: 'Seguro de eliminar diseñador?',
+            header: 'Eliminar',
+            icon: 'pi pi-info-circle',
+            acceptClassName: 'p-button-danger',
+            acceptLabel:"Aceptar",
+            accept:()=>EliminarDiseñador(id)
         });
     };
 
@@ -475,7 +539,7 @@ const EditarCurso = () => {
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Precio</label><small style={{color:"#B5B5B5"}} >{" (Solo cantidad)"}</small>
-                            <InputText type={"text"} 
+                            <InputText type={"number"} 
                                 id="precio"
                                 name="precio"
                                 placeholder="Escribe aquí"
@@ -536,13 +600,16 @@ const EditarCurso = () => {
                         onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Requisito/Crear")}></Boton>
                         <Boton label="Crear beneficio" style={{fontSize:12}} color="secondary" type ="button"
                         onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Beneficio/Crear")}></Boton>
+                        <Boton label="Crear diseñador" style={{fontSize:12}} color="secondary" type ="button"
+                        onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Disenador/Crear")}></Boton>
                         </>
                         
                         }
                     </div>
                 
             </div>
-            <div className="zv-listado-unidad" style={{marginTop:16 }}>
+            {modoEdicion &&
+                <div className="zv-listado-unidad" style={{marginTop:16 }}>
                 <TabView>
                     <TabPanel header="Unidad">
                         <div className="header-subTitulo">Listado de Unidades</div>   
@@ -583,9 +650,26 @@ const EditarCurso = () => {
                     </TabPanel>
                     <TabPanel header="Diseñador">
                         <div className="header-subTitulo">Lista de Diseñador</div>   
+                        <DatatableDefault
+                            value={listaDisenador}
+                            loading={loadingDiseñador}
+                            >
+                            <Column field="idDisenador" header="ID" ></Column>
+                            <Column field="nombre" header="Nombre" ></Column>
+                            <Column field="ocupacion" header="Ocupación"  ></Column>
+                            <Column field="descripcion" header="Descripción"  ></Column>
+                            <Column 
+                                body={accionEditarDisenador}
+                                style={{ display: "flex", justifyContent: "center" }}
+                                header="Acciones"
+                            ></Column>
+                        
+                        </DatatableDefault>
                     </TabPanel>
                 </TabView>
             </div>
+            }
+            
             
         </form>
      );

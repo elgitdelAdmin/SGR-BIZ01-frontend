@@ -7,6 +7,7 @@
 export const URLAVATARDEFAULT = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
 export const URLBLOB_CURSOS = URLBLOB_BASE+"/Cursos";
 export const URLBLOB_DOCENTES = URLBLOB_BASE+"/Docentes";
+export const URLBLOB_DISENADOR = URLBLOB_BASE+"/Disenador";
 
 export const URL_TESTLOGIN = "http://localhost:7110/api";
 export const URL_TESTPROFESOR = "http://localhost:7178/api";
@@ -19,6 +20,7 @@ export const URL_TESTMATERIAL = "http://localhost:7003/api";
 export const URL_TESTBLIBLIOTECA = "http://localhost:7093/api";
 export const URL_TESTREQUISITO = "http://localhost:7192/api";
 export const URL_TESTBENEFICIO = "http://localhost:7135/api";
+export const URL_TESTDISENADOR = "http://localhost:7257/api";
 
 
 // export const URL_NOTIFICACION = "http://localhost:7262/api"
