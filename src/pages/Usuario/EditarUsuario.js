@@ -15,6 +15,12 @@ import useUsuario from "../../hooks/useUsuario";
 import { InputNumber } from "primereact/inputnumber";
 import { Password } from "primereact/password";
 import { Checkbox } from 'primereact/checkbox';
+import { TabView, TabPanel } from 'primereact/tabview';
+import DatatableDefault from "../../components/Datatable/DatatableDefault";
+import { Column } from "primereact/column";
+
+import { ObtenerCursosPorUsuario,ObtenerProgramasPorUsuario } from "../../service/UsuarioService";
+
 const EditarUsuario = () => {
     const navigate = useNavigate();
     const {isLogged} = useUsuario()
@@ -22,6 +28,10 @@ const EditarUsuario = () => {
     const [persona, setPersona] = useState(null);
     const [tituloPagina, setTituloPagina] = useState("Crear Usuario");
     const [modoEdicion, setModoEdicion] = useState(false);
+    const [listaCursos, setListaCursos] = useState(null);
+    const [listaPrograma, setListaPrograma] = useState(null);
+    const [loadingCurso, setLoadingCurso] = useState(false);
+    const [loadingPrograma, setLoadingPrograma] = useState(false);
     let { id } = useParams();
     let { IdEmpresa } = useParams();
     const toast = useRef(null);
@@ -40,6 +50,28 @@ const EditarUsuario = () => {
             })
         }
         if(id) getPersona()
+    },[id])
+
+    useEffect(()=>{
+      const getCurso= async()=>{
+        let jwt = window.localStorage.getItem("jwt");
+        let idPersona = id
+        await ObtenerCursosPorUsuario({jwt,idPersona}).then(data=>{
+          setListaCursos(data)
+        })
+    }
+      if(id) getCurso()
+    },[id])
+
+    useEffect(()=>{
+      const getPrograma= async()=>{
+        let jwt = window.localStorage.getItem("jwt");
+        let idPersona = id
+        await ObtenerProgramasPorUsuario({jwt,idPersona}).then(data=>{
+          setListaPrograma(data)
+        })
+    }
+      if(id) getPrograma()
     },[id])
 
     const schema = Yup.object().shape({
@@ -123,7 +155,20 @@ const EditarUsuario = () => {
       })
   }
   
-
+  const accionEditar =(rowData)=>{
+    return <div className="datatable-accion">
+        <div className="accion-editar" onClick={()=>navigate("../Usuario/EditarUsuario/"+id+"/Curso/"+rowData.idCurso)}>
+            <span><Iconsax.Eye color="#ffffff"/></span>
+        </div>
+        <div className="accion-eliminar" 
+        // onClick={()=>{confirm2(rowData.idUnidad)}}
+        >
+           <span><Iconsax.Trash color="#ffffff"/></span>
+       </div> 
+    </div>
+         
+   
+}
 
     return (
      
@@ -266,13 +311,64 @@ const EditarUsuario = () => {
                   label="Agregar curso"
                   style={{ fontSize: 12 }}
                   color="secondary"
+                  type="button"
                 ></Boton>
                 <Boton
                   label="Agregar programa"
                   style={{ fontSize: 12 }}
                   color="secondary"
+                  type="button"
                 ></Boton>
               </div>
+              {
+                modoEdicion &&
+                <div className="zv-cursoPrograma" style={{marginTop:24}}>
+                  <TabView>
+                    <TabPanel header="Cursos">
+                      <div className="header-subTitulo">Listado de Cursos</div>   
+                      <DatatableDefault
+                            value={listaCursos}
+                            loading={loadingCurso}
+                            >
+                            <Column field="idCurso" header="ID" sortable></Column>
+                            <Column field="nombre" header="Nombre de curso" sortable ></Column>
+                            <Column field="duracion" header="Programa" sortable></Column>
+                            <Column field="secuencia" header="Activación" sortable></Column>
+                            <Column field="vigencia" header="Vigencia" sortable></Column>
+                            <Column field="diasFaltantes" header="Días faltantes" sortable></Column>
+                            <Column field="promedio" header="Promedio" sortable></Column>
+                            <Column field="condicion" header="Condición" sortable></Column>
+                            <Column 
+                                body={accionEditar}
+                                style={{ display: "flex", justifyContent: "center" }}
+                                header="Acciones"
+                            ></Column>
+                        
+                      </DatatableDefault>
+                    </TabPanel>
+                    <TabPanel header="Programas">
+                      <div className="header-subTitulo">Listado de Programas</div>   
+                      <DatatableDefault
+                            value={listaPrograma}
+                            loading={loadingPrograma}
+                            >
+                            <Column field="idPrograma" header="ID" sortable></Column>
+                            <Column field="nombre" header="Nombre de Programa" sortable ></Column>
+                            <Column field="promedio" header="Promedio" sortable></Column>
+                            <Column field="condicion" header="Condición" sortable></Column>
+                            <Column field="estado" header="Estado" sortable></Column>
+                            <Column 
+                                body={accionEditar}
+                                style={{ display: "flex", justifyContent: "center" }}
+                                header="Acciones"
+                            ></Column>
+                        
+                        </DatatableDefault>
+                    </TabPanel>
+                  </TabView>
+                </div>
+              }
+              
             </form>
           </div>
         </div>

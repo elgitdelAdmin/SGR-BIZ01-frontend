@@ -31,6 +31,8 @@ import EditarBiblioteca from "./pages/Biblioteca/EditarBiblioteca";
 import Requisito from "./pages/Requisito/EditarRequisito";
 import EditarBeneficio from "./pages/Beneficio/EditarBeneficio";
 import EditarDisenador from "./pages/Disenador/EditarDisenador";
+import Programa from "./pages/Programa/Programa";
+import EditarPrograma from "./pages/Programa/EditarPrograma";
 
 function App() {
   const [layoutMode, setLayoutMode] = useState("static");
@@ -168,6 +170,9 @@ const onSidebarClick = () => {
                     <Route path="Curso/Editar/:IDCurso/Beneficio/Crear" element={<EditarBeneficio/>}></Route>
                     <Route path="Curso/Editar/:IDCurso/Disenador/Crear" element={<EditarDisenador/>}></Route>
                     <Route path="Curso/Editar/:IDCurso/Disenador/Editar/:IDDisenador" element={<EditarDisenador/>}></Route>
+                    <Route path="Programa" element={<Programa/>}></Route>
+                    <Route path="Programa/Crear" element={<EditarPrograma/>}></Route>
+                    <Route path="Programa/Editar/:id" element={<EditarPrograma/>}></Route>
 
 
 

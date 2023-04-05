@@ -21,6 +21,7 @@ export const URL_TESTBLIBLIOTECA = "http://localhost:7093/api";
 export const URL_TESTREQUISITO = "http://localhost:7192/api";
 export const URL_TESTBENEFICIO = "http://localhost:7135/api";
 export const URL_TESTDISENADOR = "http://localhost:7257/api";
+export const URL_TESTPROGRAMA = "http://localhost:7247/api";
 
 
 // export const URL_NOTIFICACION = "http://localhost:7262/api"

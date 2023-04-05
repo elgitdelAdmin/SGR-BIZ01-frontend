@@ -200,3 +200,135 @@ export const EliminarPersona = async ({jwt,idPersona}) =>{
     })
     
 }
+
+export const AsignarCurso= ({jsonCurso,jwt}) =>{
+    //return fetch(`${ENDPOINTTEST}/RegistrarCurso`,{
+    return fetch(`${ENDPOINT}/ZADUsuario/RegistrarCurso`,{
+        method: "POST",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            'Content-Type': 'application/json',
+            "accept": "application/json"
+        },
+        
+        body: jsonCurso
+    }).then(res=>{
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+}
+
+export const AsignarPrograma= ({jsonPrograma,jwt}) =>{
+    //return fetch(`${ENDPOINTTEST}/RegistrarPrograma`,{
+    return fetch(`${ENDPOINT}/ZADUsuario/RegistrarPrograma`,{
+        method: "POST",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            'Content-Type': 'application/json',
+            "accept": "application/json"
+        },
+        
+        body: jsonPrograma
+    }).then(res=>{
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+}
+
+export const ObtenerCursosPorUsuario = async ({jwt,idPersona}) =>{
+    return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerCursosPorUsuario/${idPersona}`,{
+    //return await fetch(`${ENDPOINTTEST}/ObtenerCursosPorUsuario/${idPersona}`,{
+        method: "GET",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            //'Content-Type': 'application/json'
+            "accept": "text/plain"
+        },
+        
+    }).then(res=>{
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+    
+}
+
+export const ObtenerProgramasPorUsuario = async ({jwt,idPersona}) =>{
+    return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerProgramasPorUsuario/${idPersona}`,{
+    //return await fetch(`${ENDPOINTTEST}/ObtenerProgramasPorUsuario/${idPersona}`,{
+        method: "GET",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            //'Content-Type': 'application/json'
+            "accept": "text/plain"
+        },
+        
+    }).then(res=>{
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+    
+}
