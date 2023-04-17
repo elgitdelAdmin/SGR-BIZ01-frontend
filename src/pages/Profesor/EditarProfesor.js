@@ -251,7 +251,7 @@ const EditarProfesor = () => {
                     </div>
                     <div className="zv-editarUsuario-footer">
                         <Boton label="Guardar cambios" style={{fontSize:12}} color="primary" type="submit" loading={formik.isSubmitting}></Boton>
-                        <Boton label="Agregar curso" style={{fontSize:12}} color="secondary"></Boton>
+                        <Boton label="Agregar curso" style={{fontSize:12}} color="secondary" type="button"></Boton>
                     </div>
                 </div>
             </div>

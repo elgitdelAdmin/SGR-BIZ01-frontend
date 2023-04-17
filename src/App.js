@@ -33,7 +33,8 @@ import EditarBeneficio from "./pages/Beneficio/EditarBeneficio";
 import EditarDisenador from "./pages/Disenador/EditarDisenador";
 import Programa from "./pages/Programa/Programa";
 import EditarPrograma from "./pages/Programa/EditarPrograma";
-
+import AsignarCurso from "./pages/Usuario/AsignarCurso";
+import AsignarPrograma from "./pages/Usuario/AsignarPrograma";
 function App() {
   const [layoutMode, setLayoutMode] = useState("static");
     const [layoutColorMode, setLayoutColorMode] = useState("light");
@@ -153,6 +154,7 @@ const onSidebarClick = () => {
                     <Route path="Usuario/CrearUsuario/:IdEmpresa" element={<EditarUsuario/>}></Route>
                     <Route path="Profesor" element={<Profesor/>}></Route>
                     <Route path="EditarProfesor/:id" element={<EditarProfesor/>}></Route>
+                    <Route path="EditarProfesor/Crear" element={<EditarProfesor/>}></Route>
                     <Route path="Curso" element={<Curso/>}></Route>
                     <Route path="Curso/Crear" element={<EditarCurso/>}></Route>
                     <Route path="Curso/Editar/:id" element={<EditarCurso/>}></Route>
@@ -173,6 +175,10 @@ const onSidebarClick = () => {
                     <Route path="Programa" element={<Programa/>}></Route>
                     <Route path="Programa/Crear" element={<EditarPrograma/>}></Route>
                     <Route path="Programa/Editar/:id" element={<EditarPrograma/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarCurso/Crear" element={<AsignarCurso/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarCurso/:IdPersonaCurso" element={<AsignarCurso/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarPrograma/Crear" element={<AsignarPrograma/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarPrograma/:IdPersonaPrograma" element={<AsignarPrograma/>}></Route>
 
 
 

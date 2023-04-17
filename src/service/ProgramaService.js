@@ -3,8 +3,8 @@ const ENDPOINT = constantes.URLAPI;
 const ENDPOINTTEST = constantes.URL_TESTPROGRAMA;
 
 export const ListarProgramas = async({jwt})=> {
-    //return await fetch(`${ENDPOINT}/ZADPrograma/ListarProgramas`,{
-    return await fetch(`${ENDPOINTTEST}/ListarProgramas`,{
+    return await fetch(`${ENDPOINT}/ZADPrograma/ListarProgramas`,{
+    //return await fetch(`${ENDPOINTTEST}/ListarProgramas`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -36,8 +36,8 @@ export const ListarProgramas = async({jwt})=> {
 }
 
 export const BuscarProgramaID = async ({jwt,idPrograma}) =>{
-    //return await fetch(`${ENDPOINT}/ZADPrograma/BuscarProgramaID/${idPrograma}`,{
-    return await fetch(`${ENDPOINTTEST}/BuscarProgramaID/${idPrograma}`,{
+    return await fetch(`${ENDPOINT}/ZADPrograma/BuscarProgramaID/${idPrograma}`,{
+    //return await fetch(`${ENDPOINTTEST}/BuscarProgramaID/${idPrograma}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -70,8 +70,8 @@ export const BuscarProgramaID = async ({jwt,idPrograma}) =>{
 
 
 export const ActualizarPrograma= ({jsonPrograma,jwt}) =>{
-    return fetch(`${ENDPOINTTEST}/ActualizarPrograma`,{
-    //return fetch(`${ENDPOINT}/ZADPrograma/ActualizarPrograma`,{
+    //return fetch(`${ENDPOINTTEST}/ActualizarPrograma`,{
+    return fetch(`${ENDPOINT}/ZADPrograma/ActualizarPrograma`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -103,8 +103,8 @@ export const ActualizarPrograma= ({jsonPrograma,jwt}) =>{
 }
 
 export const RegistrarPrograma= ({jsonPrograma,jwt}) =>{
-    return fetch(`${ENDPOINTTEST}/RegistrarPrograma`,{
-    //return fetch(`${ENDPOINT}/ZADPrograma/RegistrarPrograma`,{
+    //return fetch(`${ENDPOINTTEST}/RegistrarPrograma`,{
+    return fetch(`${ENDPOINT}/ZADPrograma/RegistrarPrograma`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -136,8 +136,8 @@ export const RegistrarPrograma= ({jsonPrograma,jwt}) =>{
 }
 
 export const EliminarPrograma = async ({jwt,id}) =>{
-    //return await fetch(`${ENDPOINT}/ZADPrograma/EliminarPrograma/${id}`,{
-    return await fetch(`${ENDPOINTTEST}/EliminarPrograma/${id}`,{
+    return await fetch(`${ENDPOINT}/ZADPrograma/EliminarPrograma/${id}`,{
+    //return await fetch(`${ENDPOINTTEST}/EliminarPrograma/${id}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,

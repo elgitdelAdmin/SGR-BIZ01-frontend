@@ -6,7 +6,7 @@ import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Profesor.scss"
 import { ListarProfesores } from "../../service/ProfesorService";
-
+import Boton from "../../components/Boton/Boton";
 
 const Profesor = () => {
 
@@ -58,21 +58,25 @@ const Profesor = () => {
       <div className="zv-profesor" style={{ paddingTop: 16 }}>
         <div className="header-titulo">Módulo de Docentes</div>
         <div className="zv-profesor-body" style={{ marginTop: 16 }}>
+          <Boton
+            label="Crear profesor"
+            style={{ fontSize: 12 }}
+            color="primary"
+            onClick={() => navigate("../EditarProfesor/Crear")}
+          ></Boton>
           <div className="zv-profesor-body-listado" style={{ marginTop: 24 }}>
-            <DatatableDefault
-              value={listaProfesores}
-              loading={loading}
-            >
+            <DatatableDefault value={listaProfesores} loading={loading}>
               <Column field="idPersona" header="ID" sortable></Column>
               <Column field="nombres" header="Nombre" sortable></Column>
-              <Column field="correo" header="Email"sortable> </Column>
+              <Column field="correo" header="Email" sortable>
+                {" "}
+              </Column>
               <Column field="dni" header="DNI" sortable></Column>
               <Column
                 body={accionEditar}
                 style={{ display: "flex", justifyContent: "center" }}
                 header="Acciones"
               ></Column>
-              
             </DatatableDefault>
           </div>
         </div>

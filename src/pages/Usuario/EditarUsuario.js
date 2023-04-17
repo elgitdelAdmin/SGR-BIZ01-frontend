@@ -19,7 +19,8 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 
-import { ObtenerCursosPorUsuario,ObtenerProgramasPorUsuario } from "../../service/UsuarioService";
+import { ObtenerCursosPorUsuario,ObtenerProgramasPorUsuario ,EliminarPersonaCurso,EliminarPersonaPrograma} from "../../service/UsuarioService";
+import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 
 const EditarUsuario = () => {
     const navigate = useNavigate();
@@ -30,8 +31,8 @@ const EditarUsuario = () => {
     const [modoEdicion, setModoEdicion] = useState(false);
     const [listaCursos, setListaCursos] = useState(null);
     const [listaPrograma, setListaPrograma] = useState(null);
-    const [loadingCurso, setLoadingCurso] = useState(false);
-    const [loadingPrograma, setLoadingPrograma] = useState(false);
+    const [loadingCurso, setLoadingCurso] = useState(true);
+    const [loadingPrograma, setLoadingPrograma] = useState(true);
     let { id } = useParams();
     let { IdEmpresa } = useParams();
     const toast = useRef(null);
@@ -58,6 +59,7 @@ const EditarUsuario = () => {
         let idPersona = id
         await ObtenerCursosPorUsuario({jwt,idPersona}).then(data=>{
           setListaCursos(data)
+          setLoadingCurso(false)
         })
     }
       if(id) getCurso()
@@ -69,6 +71,7 @@ const EditarUsuario = () => {
         let idPersona = id
         await ObtenerProgramasPorUsuario({jwt,idPersona}).then(data=>{
           setListaPrograma(data)
+          setLoadingPrograma(false)
         })
     }
       if(id) getPrograma()
@@ -155,13 +158,13 @@ const EditarUsuario = () => {
       })
   }
   
-  const accionEditar =(rowData)=>{
+  const accionEditarCursos =(rowData)=>{
     return <div className="datatable-accion">
-        <div className="accion-editar" onClick={()=>navigate("../Usuario/EditarUsuario/"+id+"/Curso/"+rowData.idCurso)}>
+        <div className="accion-editar" onClick={()=>navigate("../Usuario/EditarUsuario/"+id+"/AsignarCurso/"+rowData.idPersonaCurso)}>
             <span><Iconsax.Eye color="#ffffff"/></span>
         </div>
         <div className="accion-eliminar" 
-        // onClick={()=>{confirm2(rowData.idUnidad)}}
+        onClick={()=>{confirmCurso(rowData.idPersonaCurso)}}
         >
            <span><Iconsax.Trash color="#ffffff"/></span>
        </div> 
@@ -170,9 +173,80 @@ const EditarUsuario = () => {
    
 }
 
+const accionEditarPrograma =(rowData)=>{
+  return <div className="datatable-accion">
+      <div className="accion-editar" onClick={()=>navigate("../Usuario/EditarUsuario/"+id+"/AsignarPrograma/"+rowData.idPersonaPrograma)}>
+          <span><Iconsax.Eye color="#ffffff"/></span>
+      </div>
+      <div className="accion-eliminar" 
+      onClick={()=>{confirmPrograma(rowData.idPersonaPrograma)}}
+      >
+         <span><Iconsax.Trash color="#ffffff"/></span>
+     </div> 
+  </div>
+       
+ 
+}
+
+const EliminarCurso =(id)=>{
+  let jwt = window.localStorage.getItem("jwt");
+  EliminarPersonaCurso({jwt,id}).then(data=>{
+      //formik.setSubmitting(false)
+      toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+
+
+      setTimeout(() => {
+          window.location.reload();
+      }, 3000)
+  })
+  .catch(errors => {
+      toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+      //formik.setSubmitting(false)
+  })
+}
+
+const EliminarPrograma =(id)=>{
+  let jwt = window.localStorage.getItem("jwt");
+  EliminarPersonaPrograma({jwt,id}).then(data=>{
+      //formik.setSubmitting(false)
+      toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+
+
+      setTimeout(() => {
+          window.location.reload();
+      }, 3000)
+  })
+  .catch(errors => {
+      toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+      //formik.setSubmitting(false)
+  })
+}
+
+const confirmCurso = (id) => {
+  confirmDialog({
+      message: 'Seguro de eliminar curso?',
+      header: 'Eliminar',
+      icon: 'pi pi-info-circle',
+      acceptClassName: 'p-button-danger',
+      acceptLabel:"Aceptar",
+      accept:()=>EliminarCurso(id)
+  });
+};
+const confirmPrograma = (id) => {
+  confirmDialog({
+      message: 'Seguro de eliminar programa?',
+      header: 'Eliminar',
+      icon: 'pi pi-info-circle',
+      acceptClassName: 'p-button-danger',
+      acceptLabel:"Aceptar",
+      accept:()=>EliminarPrograma(id)
+  });
+};
+
     return (
      
         <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
+          <ConfirmDialog />
           <Toast ref={toast} position="top-center"></Toast>
           <div className="header">
             <span style={{ cursor: "pointer" }} onClick={() => navigate(-1)}>
@@ -312,12 +386,14 @@ const EditarUsuario = () => {
                   style={{ fontSize: 12 }}
                   color="secondary"
                   type="button"
+                  onClick={()=>navigate("../Usuario/EditarUsuario/"+persona.idPersona+"/AsignarCurso/Crear")}
                 ></Boton>
                 <Boton
                   label="Agregar programa"
                   style={{ fontSize: 12 }}
                   color="secondary"
                   type="button"
+                  onClick={()=>navigate("../Usuario/EditarUsuario/"+persona.idPersona+"/AsignarPrograma/Crear")}
                 ></Boton>
               </div>
               {
@@ -330,16 +406,17 @@ const EditarUsuario = () => {
                             value={listaCursos}
                             loading={loadingCurso}
                             >
-                            <Column field="idCurso" header="ID" sortable></Column>
-                            <Column field="nombre" header="Nombre de curso" sortable ></Column>
+                            <Column field="idPersonaCurso" header="ID" sortable></Column>
+                            <Column field="curso.nombre" header="Nombre de curso" sortable ></Column>
                             <Column field="duracion" header="Programa" sortable></Column>
-                            <Column field="secuencia" header="Activación" sortable></Column>
-                            <Column field="vigencia" header="Vigencia" sortable></Column>
+                            <Column field="fechaActivacion" header="Activación" sortable></Column>
+                            <Column field="finCurso" header="Vigencia" sortable></Column>
                             <Column field="diasFaltantes" header="Días faltantes" sortable></Column>
                             <Column field="promedio" header="Promedio" sortable></Column>
-                            <Column field="condicion" header="Condición" sortable></Column>
+                            <Column field="CondicionCursoPrograma.nombre" header="Condición" sortable></Column>
+                            <Column field="estadoCursoPrograma.nombre" header="Estado" sortable></Column>
                             <Column 
-                                body={accionEditar}
+                                body={accionEditarCursos}
                                 style={{ display: "flex", justifyContent: "center" }}
                                 header="Acciones"
                             ></Column>
@@ -353,12 +430,12 @@ const EditarUsuario = () => {
                             loading={loadingPrograma}
                             >
                             <Column field="idPrograma" header="ID" sortable></Column>
-                            <Column field="nombre" header="Nombre de Programa" sortable ></Column>
+                            <Column field="programa.nombre" header="Nombre de Programa" sortable ></Column>
                             <Column field="promedio" header="Promedio" sortable></Column>
-                            <Column field="condicion" header="Condición" sortable></Column>
-                            <Column field="estado" header="Estado" sortable></Column>
+                            <Column field="condicionCursoPrograma.nombre" header="Condición" sortable></Column>
+                            <Column field="estadoCursoPrograma.nombre" header="Estado" sortable></Column>
                             <Column 
-                                body={accionEditar}
+                                body={accionEditarPrograma}
                                 style={{ display: "flex", justifyContent: "center" }}
                                 header="Acciones"
                             ></Column>
