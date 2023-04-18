@@ -81,7 +81,8 @@ const EditarUsuario = () => {
       nombres: Yup.string().required("Nombres es un campo obligatorio"),
       primerApellido: Yup.string().required("Primer apellido es un campo obligatorio"),
       segundoApellido: Yup.string().required("Segundo Apellido es un campo obligatorio"),
-      dni: Yup.string().required("Documento es un campo obligatorio"),
+      dni: Yup.string().required("Documento es un campo obligatorio").min(8,"Documento debe tener mínimo 8 números"),
+      correo: Yup.string().required("Correo es un campo obligatorio"),
     });
 
     const formik = useFormik({
@@ -148,9 +149,9 @@ const EditarUsuario = () => {
           toast.current.show({severity:'success', summary: 'Success', detail:"Registro exitoso.", life: 7000})
 
 
-          // setTimeout(() => {
-          //     navigate(-1);
-          // }, 3000)
+          setTimeout(() => {
+              navigate(-1);
+          }, 3000)
       })
       .catch(errors => {
           toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
@@ -242,7 +243,11 @@ const confirmPrograma = (id) => {
       accept:()=>EliminarPrograma(id)
   });
 };
-
+const programaTemplate = (rowData)=>{
+  return(
+      <span>{rowData.programa ? rowData.programa:"No"}</span>
+  )
+}
     return (
      
         <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
@@ -408,7 +413,7 @@ const confirmPrograma = (id) => {
                             >
                             <Column field="idPersonaCurso" header="ID" sortable></Column>
                             <Column field="curso.nombre" header="Nombre de curso" sortable ></Column>
-                            <Column field="duracion" header="Programa" sortable></Column>
+                            <Column field="programa" header="Programa" sortable body={programaTemplate}></Column>
                             <Column field="fechaActivacion" header="Activación" sortable></Column>
                             <Column field="finCurso" header="Vigencia" sortable></Column>
                             <Column field="diasFaltantes" header="Días faltantes" sortable></Column>

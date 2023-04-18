@@ -202,8 +202,8 @@ export const EliminarPersona = async ({jwt,idPersona}) =>{
 }
 
 export const RegistrarAsignarCurso= ({jsonCurso,jwt}) =>{
-    return fetch(`${ENDPOINTTEST}/RegistrarCurso`,{
-    //return fetch(`${ENDPOINT}/ZADUsuario/RegistrarCurso`,{
+    //return fetch(`${ENDPOINTTEST}/RegistrarCurso`,{
+    return fetch(`${ENDPOINT}/ZADUsuario/RegistrarCurso`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -234,8 +234,8 @@ export const RegistrarAsignarCurso= ({jsonCurso,jwt}) =>{
     })
 }
 export const ActualizarAsignarCurso= ({jsonCurso,jwt}) =>{
-    return fetch(`${ENDPOINTTEST}/ActualizarCurso`,{
-    //return fetch(`${ENDPOINT}/ZADUsuario/ActualizarCurso`,{
+    //return fetch(`${ENDPOINTTEST}/ActualizarCurso`,{
+    return fetch(`${ENDPOINT}/ZADUsuario/ActualizarCurso`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -267,8 +267,8 @@ export const ActualizarAsignarCurso= ({jsonCurso,jwt}) =>{
 }
 
 export const ObtenerCursoUsuarioPorId = async ({jwt,id}) =>{
-    //return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerCursoUsuarioPorId/${id}`,{
-    return await fetch(`${ENDPOINTTEST}/ObtenerCursoUsuarioPorId/${id}`,{
+    return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerCursoUsuarioPorId/${id}`,{
+    //return await fetch(`${ENDPOINTTEST}/ObtenerCursoUsuarioPorId/${id}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -300,8 +300,8 @@ export const ObtenerCursoUsuarioPorId = async ({jwt,id}) =>{
 }
 
 export const ObtenerCursosPorUsuario = async ({jwt,idPersona}) =>{
-    //return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerCursosPorUsuario/${idPersona}`,{
-    return await fetch(`${ENDPOINTTEST}/ObtenerCursosPorUsuario/${idPersona}`,{
+    return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerCursosPorUsuario/${idPersona}`,{
+    //return await fetch(`${ENDPOINTTEST}/ObtenerCursosPorUsuario/${idPersona}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -333,8 +333,8 @@ export const ObtenerCursosPorUsuario = async ({jwt,idPersona}) =>{
 }
 
 export const RegistrarAsignarPrograma= ({jsonPrograma,jwt}) =>{
-    return fetch(`${ENDPOINTTEST}/RegistrarPrograma`,{
-    //return fetch(`${ENDPOINT}/ZADUsuario/RegistrarPrograma`,{
+    //return fetch(`${ENDPOINTTEST}/RegistrarPrograma`,{
+    return fetch(`${ENDPOINT}/ZADUsuario/RegistrarPrograma`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -366,8 +366,8 @@ export const RegistrarAsignarPrograma= ({jsonPrograma,jwt}) =>{
 }
 
 export const ActualizarAsignarPrograma= ({jsonPrograma,jwt}) =>{
-    return fetch(`${ENDPOINTTEST}/ActualizarPrograma`,{
-    //return fetch(`${ENDPOINT}/ZADUsuario/ActualizarPrograma`,{
+    //return fetch(`${ENDPOINTTEST}/ActualizarPrograma`,{
+    return fetch(`${ENDPOINT}/ZADUsuario/ActualizarPrograma`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -399,8 +399,8 @@ export const ActualizarAsignarPrograma= ({jsonPrograma,jwt}) =>{
 }
 
 export const ObtenerProgramaUsuarioPorId = async ({jwt,id}) =>{
-    //return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerProgramaUsuarioPorId/${id}`,{
-    return await fetch(`${ENDPOINTTEST}/ObtenerProgramaUsuarioPorId/${id}`,{
+    return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerProgramaUsuarioPorId/${id}`,{
+    //return await fetch(`${ENDPOINTTEST}/ObtenerProgramaUsuarioPorId/${id}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -432,8 +432,8 @@ export const ObtenerProgramaUsuarioPorId = async ({jwt,id}) =>{
 }
 
 export const ObtenerProgramasPorUsuario = async ({jwt,idPersona}) =>{
-    //return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerProgramasPorUsuario/${idPersona}`,{
-    return await fetch(`${ENDPOINTTEST}/ObtenerProgramasPorUsuario/${idPersona}`,{
+    return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerProgramasPorUsuario/${idPersona}`,{
+    //return await fetch(`${ENDPOINTTEST}/ObtenerProgramasPorUsuario/${idPersona}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -465,8 +465,8 @@ export const ObtenerProgramasPorUsuario = async ({jwt,idPersona}) =>{
 }
 
 export const EliminarPersonaCurso = async ({jwt,id}) =>{
-    //return await fetch(`${ENDPOINT}/ZADUsuario/EliminarPersonaCurso/${id}`,{
-    return await fetch(`${ENDPOINTTEST}/EliminarPersonaCurso/${id}`,{
+    return await fetch(`${ENDPOINT}/ZADUsuario/EliminarPersonaCurso/${id}`,{
+    //return await fetch(`${ENDPOINTTEST}/EliminarPersonaCurso/${id}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
@@ -498,8 +498,8 @@ export const EliminarPersonaCurso = async ({jwt,id}) =>{
 }
 
 export const EliminarPersonaPrograma = async ({jwt,id}) =>{
-    //return await fetch(`${ENDPOINT}/ZADUsuario/EliminarPersonaPrograma/${id}`,{
-    return await fetch(`${ENDPOINTTEST}/EliminarPersonaPrograma/${id}`,{
+    return await fetch(`${ENDPOINT}/ZADUsuario/EliminarPersonaPrograma/${id}`,{
+    //return await fetch(`${ENDPOINTTEST}/EliminarPersonaPrograma/${id}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,

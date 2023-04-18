@@ -197,7 +197,7 @@ const EditarDisenador = () => {
                                 {/* <button type="button">
                                     <Iconsax.Camera></Iconsax.Camera>
                                 </button> */}
-                                <Boton label="Subir foto de curso" color="secondary" 
+                                <Boton label="Subir ávatar" color="secondary" 
                                         type ="button" style={{fontSize:12,width:160}}></Boton>
                             </Uploader>
                         </div>

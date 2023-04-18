@@ -15,6 +15,11 @@ import { Password } from "primereact/password";
 import {Uploader} from "rsuite"
 import * as constantes from "../../constants/constantes.js";
 import { getBase64 } from "../../helpers/helpers";
+import { ObtenerCursosPorUsuario } from "../../service/UsuarioService";
+import DatatableDefault from "../../components/Datatable/DatatableDefault";
+import { Column } from "primereact/column";
+import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
+import { EliminarPersonaCurso } from "../../service/UsuarioService";
 
 const EditarProfesor = () => {
     const navigate = useNavigate();
@@ -27,6 +32,9 @@ const EditarProfesor = () => {
     const [fileList, setFileList] = useState([]);
     const [defaultFile, setDefaultFile] = useState([]);
     const [imageBase64, setImageBase64] = useState(null);
+
+    const [listaCursos, setListaCursos] = useState(null);
+    const [loadingCurso, setLoadingCurso] = useState(true);
 
     useEffect(()=>{
         const getProfesor= async()=>{
@@ -49,6 +57,17 @@ const EditarProfesor = () => {
         if(id) getProfesor()
     },[id])
 
+    useEffect(()=>{
+        const getCurso= async()=>{
+          let jwt = window.localStorage.getItem("jwt");
+          let idPersona = id
+          await ObtenerCursosPorUsuario({jwt,idPersona}).then(data=>{
+            setListaCursos(data)
+            setLoadingCurso(false)
+          })
+      }
+        if(id) getCurso()
+      },[id])
 
     useEffect(()=>{
         if(fileList.length >0) {
@@ -139,10 +158,52 @@ const EditarProfesor = () => {
       })
   }
 
+  const EliminarCurso =(id)=>{
+    let jwt = window.localStorage.getItem("jwt");
+    EliminarPersonaCurso({jwt,id}).then(data=>{
+        //formik.setSubmitting(false)
+        toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+  
+  
+        setTimeout(() => {
+            window.location.reload();
+        }, 3000)
+    })
+    .catch(errors => {
+        toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+        //formik.setSubmitting(false)
+    })
+  }
+
+  const confirmCurso = (id) => {
+    confirmDialog({
+        message: 'Seguro de eliminar curso?',
+        header: 'Eliminar',
+        icon: 'pi pi-info-circle',
+        acceptClassName: 'p-button-danger',
+        acceptLabel:"Aceptar",
+        accept:()=>EliminarCurso(id)
+    });
+  };
+
+  const accionEditarCursos =(rowData)=>{
+    return <div className="datatable-accion">
+        <div className="accion-editar" onClick={()=>navigate("../Usuario/EditarUsuario/"+id+"/AsignarCurso/"+rowData.idPersonaCurso)}>
+            <span><Iconsax.Eye color="#ffffff"/></span>
+        </div>
+        <div className="accion-eliminar" 
+        onClick={()=>{confirmCurso(rowData.idPersonaCurso)}}
+        >
+           <span><Iconsax.Trash color="#ffffff"/></span>
+       </div> 
+    </div>
+  }
     return ( 
         <form onSubmit={formik.handleSubmit}>
             <div className="zv-editarProfesor" style={{paddingTop:16}}>
                 <Toast ref={toast} position="top-center"></Toast>
+                <ConfirmDialog />
+
                 <div className="header" >
                     <span style={{cursor:"pointer"}} onClick={()=>navigate(-1)}><Iconsax.ArrowCircleLeft size={30}></Iconsax.ArrowCircleLeft></span>
                 </div>
@@ -243,7 +304,7 @@ const EditarProfesor = () => {
                             {/* <button type="button">
                                 <Iconsax.Camera></Iconsax.Camera>
                             </button> */}
-                            <Boton label="Subir foto de curso" color="secondary" 
+                            <Boton label="Subir ávatar" color="secondary" 
                                     type ="button" style={{fontSize:12,width:160}}></Boton>
                         </Uploader>
                         </div>
@@ -251,8 +312,29 @@ const EditarProfesor = () => {
                     </div>
                     <div className="zv-editarUsuario-footer">
                         <Boton label="Guardar cambios" style={{fontSize:12}} color="primary" type="submit" loading={formik.isSubmitting}></Boton>
-                        <Boton label="Agregar curso" style={{fontSize:12}} color="secondary" type="button"></Boton>
+                        <Boton label="Agregar curso" style={{fontSize:12}} color="secondary" type="button"
+                         onClick={()=>navigate("../Usuario/EditarUsuario/"+id+"/AsignarCurso/Crear")}
+                        ></Boton>
                     </div>
+                </div>
+                <div className="zv-listadecursos-body" style={{marginTop:16}}>
+                    <div className="header-titulo" style={{ marginTop: 16 }}>
+                        Lista de Cursos
+                    </div>
+                    <DatatableDefault
+                            value={listaCursos}
+                            loading={loadingCurso}
+                            >
+                            <Column field="idPersonaCurso" header="ID" sortable></Column>
+                            <Column field="curso.nombre" header="Nombre de curso" sortable ></Column>
+                            <Column field="curso.descripcion" header="Dscripción" sortable></Column>
+                            <Column 
+                                body={accionEditarCursos}
+                                style={{ display: "flex", justifyContent: "center" }}
+                                header="Acciones"
+                            ></Column>
+                        
+                      </DatatableDefault>
                 </div>
             </div>
         </form>

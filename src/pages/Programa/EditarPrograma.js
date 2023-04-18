@@ -99,6 +99,8 @@ const EditarPrograma = () => {
     const schema = Yup.object().shape({
         codigoProducto: Yup.string().required("Codigo de producto es un campo obligatorio"),
         nombre: Yup.string().required("Nombre de programa es un campo obligatorio"),
+        precio: Yup.string().required("Precio es un campo obligatorio"),
+        descripcion: Yup.string().required("Descripción es un campo obligatorio"),
       });
     const formik = useFormik({
         enableReinitialize:true,
@@ -142,8 +144,16 @@ const EditarPrograma = () => {
                  precio,listaCursos},null,2)
             //console.log(jsonPrograma)
             //formik.setSubmitting(false)
-            if(!modoEdicion) Registrar({jsonPrograma}) 
-            else {Actualizar({jsonPrograma})}
+            if(listaCursos.length > 1)
+            {
+                if(!modoEdicion) Registrar({jsonPrograma}) 
+                else {Actualizar({jsonPrograma})}
+            }
+            else{
+                toast.current.show({severity:'error', summary: 'Error', detail:"Seleccione al menos 2 cursos", life: 7000})
+                formik.setSubmitting(false)
+            }
+           
       },
     });
     return ( 

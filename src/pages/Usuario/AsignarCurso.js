@@ -138,7 +138,7 @@ const AsignarCurso = () => {
                     <small className="p-error">{formik.touched.idCurso && formik.errors.idCurso}</small>
                 </div>
                 {
-                    modoEdicion && 
+                    modoEdicion && curso && curso.persona.idTipoPersona != 2 &&
                     <div className="field col-12 md:col-7" >
                         <label className="label-form">Fin del curso</label>
                         <Calendar
@@ -163,13 +163,17 @@ const AsignarCurso = () => {
                     type="submit"
                     loading={formik.isSubmitting}
                     ></Boton>
-                <Boton
+                {
+                    modoEdicion && curso && curso.persona.idTipoPersona != 2 &&
+                    <Boton
                     label="Ver Intentos"
                     style={{ fontSize: 12 }}
                     color="secondary"
                     type="button"
                     loading={formik.isSubmitting}
                     ></Boton>
+                }
+                
             </div>
         </form>
       </div>
