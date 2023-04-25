@@ -127,15 +127,22 @@ export const AppMenu = (props) => {
                         {
                             label: "Usuarios",
                             // icon: <Iconly.Home set="light" />,
-                            icon: <Iconsax.Personalcard set="light" />,
+                            icon: <Iconsax.User set="light"variant="Bold" />,
                             to: "Usuario",
                             visible: permisos.indexOf("verUsuario") > -1 ? true:false,
+                            permiso:"verHome"
+                        },{
+                            label: "Importar Usuarios",
+                            // icon: <Iconly.Home set="light" />,
+                            icon: <Iconsax.User set="light" variant="Bold"/>,
+                            to: "ImportarUsuario",
+                            visible: true,
                             permiso:"verHome"
                         },
                         {
                             label: "Docentes",
                             // icon: <Iconly.Home set="light" />,
-                            icon: <Iconsax.Teacher set="light" />,
+                            icon: <Iconsax.Teacher set="light" variant="Bold"/>,
                             to: "Profesor",
                             visible: permisos.indexOf("editarUsuarioDocente") > -1 ? true:false,
                         },
@@ -143,16 +150,31 @@ export const AppMenu = (props) => {
                         {
                             label: "Cursos",
                             // icon: <Iconly.Home set="light" />,
-                            icon: <Iconsax.Book set="light" />,
+                            icon: <Iconsax.Book set="light" variant="Bold"/>,
                             to: "Curso",
                             visible: permisos.indexOf("verCursos") > -1 ? true:false,
                         },
                         {
                             label: "Programas",
                             // icon: <Iconly.Home set="light" />,
-                            icon: <Iconsax.Book set="light" />,
+                            icon: <Iconsax.I3Dcube set="light" variant="Bold"/>,
                             to: "Programa",
                             visible: true
+                        },
+                        {
+                            label: "Marketing",
+                            // icon: <Iconly.Home set="light" />,
+                            icon: <Iconsax.ShoppingCart set="light" variant="Bold"/>,
+                            //to: "Programa",
+                            visible: true,
+                            items:[
+                                {
+                                    label:"Cupones",
+                                    to:"Marketing/Cupones",
+                                    visible:true,
+                                    icon:<Iconsax.Tag set="light" variant="Bold"/>
+                                }
+                            ]
                         },
                        
                     ],

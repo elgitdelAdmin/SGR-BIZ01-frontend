@@ -41,7 +41,7 @@ export default function Login() {
     const schema = Yup.object().shape({
         username: Yup.string().required("El código de colaborador es un campo obligatorio"),
         //.email("Invalid email format"),
-        password: Yup.string().required("Contraseña es un campo obligatorio").min(4, "La contraseña debe tener al menos 8 caracteres"),
+        password: Yup.string().required("Contraseña es un campo obligatorio").min(4, "La contraseña debe tener al menos 4 caracteres"),
     });
     const [passwordType, setpasswordType] = useState("password");
     const togglePassword = () => {
@@ -138,6 +138,7 @@ export default function Login() {
                                                     width="100%"
                                                     height={48}
                                                     toggleMask 
+                                                    feedback={false}
                                                 />
                                                 <small className="p-error">{errors.password && touched.password && errors.password}</small>
                                                 {/* <p className="error">{errors.password && touched.password && errors.password}</p> */}

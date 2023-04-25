@@ -24,8 +24,13 @@ import * as constantes from "../../constants/constantes.js";
 import { ObtenerListaCategorias } from "../../service/EmpresaService";
 import useUsuario from "../../hooks/useUsuario";
 import { Loader } from 'rsuite';
-
+import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css';
+import 'bootstrap-colorpicker';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
+import $ from 'jquery'; // Importar jQuery
+import { InputNumber } from "primereact/inputnumber";
+import { handleSoloNumeros } from "../../helpers/helpers";
+import { handleSoloLetrasNumeros } from "../../helpers/helpers";
 const EditarCurso = () => {
     const navigate = useNavigate();
     const [curso, setCurso] = useState(null);    
@@ -37,6 +42,7 @@ const EditarCurso = () => {
     const [tituloPagina, setTituloPagina] = useState("Crear curso");
     let { id } = useParams();
     const toast = useRef(null);
+    const inputColor = useRef();
     // const [deshabilitarFoto, setDeshabilitarFoto] = useState(false);
     const [fileList, setFileList] = useState([]);
     const [defaultFile, setDefaultFile] = useState([]);
@@ -76,6 +82,9 @@ const EditarCurso = () => {
         ,{idBiblioteca:5,nombre:"Guerrero, J. C. y Galindo, J. F. (2015). Contabilidad para administradores. México D.F, Mexico: Grupo Editorial Patria.",tipo:"Ebook Central",linkZegel:"https://elibro.net/es/ereader/ipae/39381?page=1",linkIdat:""}
         ,{idBiblioteca:6,nombre:"León, J. D. y Ramos, R. A. (2016). Contabilidad para no contadores: una forma rápida y sencilla de entender la contabilidad (2a. ed.). Bogotá, Colombia: Ecoe Ediciones.",tipo:"Ebook Central",linkZegel:"https://elibro.net/es/ereader/ipae/70462?page=1",linkIdat:""}
     ]
+
+    const [blockPickerColor, setBlockPickerColor] = useState("#37d67a");
+
 
     useEffect(()=>{
         const GetCategorias = async ()=>
@@ -395,7 +404,7 @@ const EditarCurso = () => {
             accept:()=>EliminarDiseñador(id)
         });
     };
-
+    
     return ( 
         <form onSubmit={formik.handleSubmit}>
             <ConfirmDialog />
@@ -416,31 +425,35 @@ const EditarCurso = () => {
                                 placeholder="Seleccione"
                                 value ={formik.values.idCategoria} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 options={listaCategorias} optionLabel="descripcionCategoria" optionValue ="idCategoria"
                                 ></DropdownDefault>
                         </div>
                         <div className="field col-12 md:col-6">
-                            <label className="label-form">Color </label><small style={{color:"#B5B5B5"}} >{"(Ejemeplo: #3e3e3 ó rgba(0,0,0,1))"}</small>
-                            <InputText type={"text"} 
+                            <label className="label-form">Color </label><small style={{color:"#B5B5B5"}} >{"(Ejemplo: #3e3e3 ó rgba(0,0,0,1))"}</small>
+                            <InputText 
+                                ref={inputColor}
+                                type={"text"} 
                                 id="color"
                                 name="color"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.color} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                         </div>
-
-                        <div className="field col-12 md:col-6">
+                        
+                        <div className="field col-12 md:col-6" >
                             <label className="label-form">Nombre</label>
                             <InputText type={"text"} 
+
                                 id="nombre"
                                 name="nombre"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.nombre} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
+                                
                                 ></InputText>
                         </div>
 
@@ -452,7 +465,7 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.videoIniciacion} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                         </div>
 
@@ -464,7 +477,7 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.descripcion} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 autoResize 
                                 ></InputTextarea>
                         </div>
@@ -477,7 +490,7 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.videoIntroduccion} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                         </div>
                         <div className="field col-12 md:col-6">
@@ -488,7 +501,7 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.logros} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 autoResize 
                                 ></InputTextarea>
                         </div>
@@ -500,7 +513,7 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.descripcionMeta} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 autoResize 
                                 ></InputTextarea>
                         </div>
@@ -512,7 +525,7 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.descripcionSEO} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                         </div>
                         <div className="field col-12 md:col-6">
@@ -523,7 +536,7 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.introduccionDuracion} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                         </div>
                         <div className="field col-12 md:col-6">
@@ -534,19 +547,21 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.duracion} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Precio</label><small style={{color:"#B5B5B5"}} >{" (Solo cantidad)"}</small>
-                            <InputText type={"number"} 
+                            <InputNumber 
                                 id="precio"
                                 name="precio"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.precio} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
-                                ></InputText>
+                                //onChange={(e)=>handleSoloNumeros(e,formik,"celular")}
+                                onBlur={formik.handleBlur}
+                                min={0}
+                                ></InputNumber>
                         </div>
 
                         <div className="field col-12 md:col-6">
@@ -556,8 +571,9 @@ const EditarCurso = () => {
                                 name="codigoProducto"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.codigoProducto} 
-                                onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                //onChange={formik.handleChange}
+                                onChange={(e)=>handleSoloLetrasNumeros(e,formik,"codigoProducto")}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                         </div>
                         <div className="field col-12 md:col-6">
@@ -568,7 +584,7 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.idEstado} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 options={comboEstado} optionLabel="label" optionValue ="value"
                                 ></DropdownDefault>
                         </div>

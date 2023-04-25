@@ -20,7 +20,8 @@ import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import { EliminarPersonaCurso } from "../../service/UsuarioService";
-
+import { handleSoloLetras } from "../../helpers/helpers";
+import { handleSoloNumeros } from "../../helpers/helpers";
 const EditarProfesor = () => {
     const navigate = useNavigate();
     const [profesor, setProfesor] = useState(null);
@@ -78,6 +79,15 @@ const EditarProfesor = () => {
         }
     },[fileList])
 
+    const schema = Yup.object().shape({
+        nombres: Yup.string().required("Nombres es un campo obligatorio"),
+        primerApellido: Yup.string().required("Primer apellido es un campo obligatorio"),
+        segundoApellido: Yup.string().required("Segundo Apellido es un campo obligatorio"),
+        dni: Yup.string().required("Documento es un campo obligatorio").min(8,"Documento debe tener mínimo 8 números"),
+        correo: Yup.string().nullable().required("Correo es un campo obligatorio").email("Formato de correo incorrecto."),
+        celular: Yup.number().nullable().required("Teléfono es un campo obligatorio"),
+      });
+
     const formik = useFormik({
         enableReinitialize:true,
         initialValues: { 
@@ -94,7 +104,7 @@ const EditarProfesor = () => {
                 fileKey: 1,
                     url: constantes.URLBLOB_DOCENTES+"/"+profesor.avatar}] :[]
         },
-    //   validationSchema: schema,
+    validationSchema: schema,
       onSubmit: values => {
         let imagenBase64 = imageBase64;
         let tipoDocumento = imagenBase64 ? fileList[0].blobFile.type :null
@@ -217,9 +227,11 @@ const EditarProfesor = () => {
                                 name="nombres"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.nombres} 
-                                onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                //onChange={formik.handleChange}
+                                onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
+                                <div className="p-error">{ formik.touched.nombres && formik.errors.nombres }</div>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Primer Apellido</label>
@@ -228,9 +240,11 @@ const EditarProfesor = () => {
                                 name="primerApellido"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.primerApellido} 
-                                onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                //onChange={formik.handleChange}
+                                onChange={(e)=>handleSoloLetras(e,formik,"primerApellido")}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
+                                <div className="p-error">{ formik.touched.primerApellido && formik.errors.primerApellido }</div>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Segundo Apellido</label>
@@ -239,9 +253,11 @@ const EditarProfesor = () => {
                                 name="segundoApellido"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.segundoApellido} 
-                                onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                //onChange={formik.handleChange}
+                                onChange={(e)=>handleSoloLetras(e,formik,"segundoApellido")}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
+                                <div className="p-error">{ formik.touched.segundoApellido && formik.errors.segundoApellido }</div>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">DNI </label>
@@ -252,8 +268,9 @@ const EditarProfesor = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.dni} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
-                                disabled={!modoEdicion}></InputText>
+                                onBlur={formik.handleBlur}
+                                disabled={modoEdicion}></InputText>
+                                <div className="p-error">{ formik.touched.dni && formik.errors.dni }</div>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Correo</label>
@@ -263,8 +280,9 @@ const EditarProfesor = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.correo} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
+                                <div className="p-error">{ formik.touched.correo && formik.errors.correo }</div>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Celular</label>
@@ -275,9 +293,10 @@ const EditarProfesor = () => {
                                 placeholder="Escribe aquí"
                                 value={formik.values.celular}
                                 onValueChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 useGrouping={false}
                             ></InputNumber>
+                            <div className="p-error">{ formik.touched.celular && formik.errors.celular }</div>
                             </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Contraseña</label>
@@ -317,7 +336,9 @@ const EditarProfesor = () => {
                         ></Boton>
                     </div>
                 </div>
-                <div className="zv-listadecursos-body" style={{marginTop:16}}>
+                {
+                    modoEdicion && 
+                    <div className="zv-listadecursos-body" style={{marginTop:16}}>
                     <div className="header-titulo" style={{ marginTop: 16 }}>
                         Lista de Cursos
                     </div>
@@ -336,6 +357,8 @@ const EditarProfesor = () => {
                         
                       </DatatableDefault>
                 </div>
+                }
+                
             </div>
         </form>
      );

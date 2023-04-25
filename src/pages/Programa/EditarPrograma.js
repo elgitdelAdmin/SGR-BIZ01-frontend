@@ -23,6 +23,9 @@ import { BuscarProgramaID ,RegistrarPrograma,ActualizarPrograma} from "../../ser
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 
 import { ListarCursos } from "../../service/CursoService";
+import { InputNumber } from "primereact/inputnumber";
+import { handleSoloLetrasNumeros } from "../../helpers/helpers";
+import { handleSoloLetras } from "../../helpers/helpers";
 const EditarPrograma = () => {
     const navigate = useNavigate();
     const [programa, setPrograma] = useState(null);
@@ -177,7 +180,7 @@ const EditarPrograma = () => {
                                 placeholder="Escribe código"
                                 value ={formik.values.codigoProducto} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                              <small className="p-error">
                                 {formik.touched.codigoProducto && formik.errors.codigoProducto}
@@ -191,7 +194,7 @@ const EditarPrograma = () => {
                                 placeholder="Escribe..."
                                 value ={formik.values.descripcionSEO} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                             <small className="p-error">
                                 {formik.touched.descripcionSEO && formik.errors.descripcionSEO}
@@ -204,8 +207,9 @@ const EditarPrograma = () => {
                                 name="nombre"
                                 placeholder="Escribe nombre..."
                                 value ={formik.values.nombre} 
-                                onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                //onChange={formik.handleChange}
+                                onChange={(e)=>handleSoloLetras(e,formik,"nombre")}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                             <small className="p-error">
                                 {formik.touched.nombre && formik.errors.nombre}
@@ -219,7 +223,7 @@ const EditarPrograma = () => {
                                 placeholder="Escribe nombre..."
                                 value ={formik.values.duracion} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                             <small className="p-error">
                                 {formik.touched.duracion && formik.errors.duracion}
@@ -233,7 +237,7 @@ const EditarPrograma = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.descripcion} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 autoResize 
                                 ></InputTextarea>
                             <small className="p-error">
@@ -248,7 +252,7 @@ const EditarPrograma = () => {
                                 placeholder="Escribe ..."
                                 value ={formik.values.videoIntroduccion} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                             <small className="p-error">
                                 {formik.touched.videoIntroduccion && formik.errors.videoIntroduccion}
@@ -262,7 +266,7 @@ const EditarPrograma = () => {
                                 placeholder="Escribe ..."
                                 value ={formik.values.logros} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
+                                onBlur={formik.handleBlur}
                                 ></InputText>
                             <small className="p-error">
                                 {formik.touched.logros && formik.errors.logros}
@@ -270,14 +274,24 @@ const EditarPrograma = () => {
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Precio</label><small style={{color:"#B5B5B5"}} >{" (Solo cantidad)"}</small>
-                            <InputText type={"number"} 
+                            {/* <InputText type={"number"} 
                                 id="precio"
                                 name="precio"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.precio} 
                                 onChange={formik.handleChange}
-                                onblur={formik.handleBlur}
-                                ></InputText>
+                                onBlur={formik.handleBlur}
+                                ></InputText> */}
+                                 <InputNumber 
+                                id="precio"
+                                name="precio"
+                                placeholder="Escribe aquí"
+                                value ={formik.values.precio} 
+                                onChange={formik.handleChange}
+                                //onChange={(e)=>handleSoloNumeros(e,formik,"celular")}
+                                onBlur={formik.handleBlur}
+                                min={0}
+                                ></InputNumber>
                             <small className="p-error">
                                 {formik.touched.precio && formik.errors.precio}
                             </small>

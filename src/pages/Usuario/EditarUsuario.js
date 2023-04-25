@@ -22,6 +22,9 @@ import { Column } from "primereact/column";
 import { ObtenerCursosPorUsuario,ObtenerProgramasPorUsuario ,EliminarPersonaCurso,EliminarPersonaPrograma} from "../../service/UsuarioService";
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 
+import { handleSoloLetras } from "../../helpers/helpers";
+import { handleSoloNumeros } from "../../helpers/helpers";
+import { formatDate } from "../../helpers/helpers";
 const EditarUsuario = () => {
     const navigate = useNavigate();
     const {isLogged} = useUsuario()
@@ -82,7 +85,8 @@ const EditarUsuario = () => {
       primerApellido: Yup.string().required("Primer apellido es un campo obligatorio"),
       segundoApellido: Yup.string().required("Segundo Apellido es un campo obligatorio"),
       dni: Yup.string().required("Documento es un campo obligatorio").min(8,"Documento debe tener mínimo 8 números"),
-      correo: Yup.string().required("Correo es un campo obligatorio"),
+      correo: Yup.string().nullable().required("Correo es un campo obligatorio"),
+      celular: Yup.number().nullable().required("Teléfono es un campo obligatorio"),
     });
 
     const formik = useFormik({
@@ -98,7 +102,7 @@ const EditarUsuario = () => {
             password:"",
             dni: persona?persona.dni:"",
             correo: persona?persona.correo:"",
-            celular: persona?persona.celular:"",
+            celular: persona?persona.celular:null,
         },
       validationSchema: schema,
       onSubmit: values => {
@@ -188,7 +192,9 @@ const accionEditarPrograma =(rowData)=>{
        
  
 }
-
+const dateBodyTemplate = (rowData) => {
+  return formatDate(new Date(rowData.finCurso));
+};
 const EliminarCurso =(id)=>{
   let jwt = window.localStorage.getItem("jwt");
   EliminarPersonaCurso({jwt,id}).then(data=>{
@@ -272,9 +278,9 @@ const programaTemplate = (rowData)=>{
                     name="nombres"
                     placeholder="Escribe aquí"
                     value={formik.values.nombres}
-                    onChange={formik.handleChange}
-                    onblur={formik.handleBlur}
-                    
+                    //onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
                   ></InputText>
                   <div className="p-error">{ formik.touched.nombres && formik.errors.nombres }</div>
 
@@ -287,8 +293,9 @@ const programaTemplate = (rowData)=>{
                     name="primerApellido"
                     placeholder="Escribe aquí"
                     value={formik.values.primerApellido}
-                    onChange={formik.handleChange}
-                    onblur={formik.handleBlur}
+                    //onChange={formik.handleChange}
+                    onChange={(e)=>handleSoloLetras(e,formik,"primerApellido")}
+                    onBlur={formik.handleBlur}
                     
                   ></InputText>
                   <small className="p-error">{formik.touched.primerApellido && formik.errors.primerApellido}</small>
@@ -302,8 +309,9 @@ const programaTemplate = (rowData)=>{
                     name="segundoApellido"
                     placeholder="Escribe aquí"
                     value={formik.values.segundoApellido}
-                    onChange={formik.handleChange}
-                    onblur={formik.handleBlur}
+                    //onChange={formik.handleChange}
+                    onChange={(e)=>handleSoloLetras(e,formik,"segundoApellido")}
+                    onBlur={formik.handleBlur}
                     
                   ></InputText>
                   <small className="p-error">{formik.touched.segundoApellido && formik.errors.segundoApellido}</small>
@@ -317,9 +325,10 @@ const programaTemplate = (rowData)=>{
                     placeholder="Escribe aquí"
                     value={formik.values.dni}
                     onChange={formik.handleChange}
-                    onblur={formik.handleBlur}
+                    onBlur={formik.handleBlur}
                     //disabled={modoEdicion}
                     maxLength ={8}
+                    pattern="[0-9]*"
                   ></InputText>
                   <small className="p-error">{formik.touched.dni && formik.errors.dni}</small>
                 </div>
@@ -332,9 +341,10 @@ const programaTemplate = (rowData)=>{
                     placeholder="Escribe aquí"
                     value={formik.values.correo}
                     onChange={formik.handleChange}
-                    onblur={formik.handleBlur}
+                    onBlur={formik.handleBlur}
                     
                   ></InputText>
+                  <small className="p-error">{formik.touched.correo && formik.errors.correo}</small>
                 </div>
                 <div className="field col-12 md:col-6">
                   <label className="label-form">Telefono</label>
@@ -344,11 +354,13 @@ const programaTemplate = (rowData)=>{
                     name="celular"
                     placeholder="Escribe aquí"
                     value={formik.values.celular}
-                    onValueChange={formik.handleChange}
-                    onblur={formik.handleBlur}
+                    //onValueChange={formik.handleChange}
+                    onValueChange={(e)=>handleSoloNumeros(e,formik,"celular")}
+                    onBlur={formik.handleBlur}
                     useGrouping={false}
                     maxLength ={9}
                   ></InputNumber>
+                  <small className="p-error">{formik.touched.celular && formik.errors.celular}</small>
                 </div>
                 
                 
@@ -415,8 +427,8 @@ const programaTemplate = (rowData)=>{
                             <Column field="curso.nombre" header="Nombre de curso" sortable ></Column>
                             <Column field="programa" header="Programa" sortable body={programaTemplate}></Column>
                             <Column field="fechaActivacion" header="Activación" sortable></Column>
-                            <Column field="finCurso" header="Vigencia" sortable></Column>
-                            <Column field="diasFaltantes" header="Días faltantes" sortable></Column>
+                            <Column field="finCurso" header="Vigencia" dataType="date" body={dateBodyTemplate}  sortable></Column>
+                            <Column field="diasFaltantes" header="Días faltantes" style={{textAlign:"center"}} sortable></Column>
                             <Column field="promedio" header="Promedio" sortable></Column>
                             <Column field="CondicionCursoPrograma.nombre" header="Condición" sortable></Column>
                             <Column field="estadoCursoPrograma.nombre" header="Estado" sortable></Column>
