@@ -10,6 +10,7 @@ import ObtenerListaEmpresas from "../../service/EmpresaService";
 import { excelFileToJSON } from "../../helpers/helpers";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
+import { CargaUsuarios } from "../../service/UsuarioService";
 
 
 const ImportarUsuarios = () => {
@@ -43,6 +44,51 @@ const ImportarUsuarios = () => {
       // var json = excelFileToJSON(e.files[0])
       // console.log(json)
     }
+    
+    const handleCargar = ()=>{
+      if(empresaSeleccionada)
+      {
+        let json = [];
+        listaUsuario.map((item,i)=>{
+          json.push({Nombres:item.Nombres?item.Nombres:""
+                    ,PrimerApellido:item.Primer_apellido?item.Primer_apellido:""
+                    ,SegundoApellido:item.Segundo_apellido?item.Segundo_apellido:""
+                    ,Correo:item.Correo?item.Correo:""
+                    ,DNI:item.DNI?item.DNI:""
+                    ,IDCurso:item.Curso_ID
+            ,IdEmpresa:empresaSeleccionada})
+        });
+        console.log(JSON.stringify(json));
+        let jsonCarga= JSON.stringify(json,null,2);
+        Cargar({jsonCarga})
+      }
+      else{
+        toast.current.show({severity:'error', summary: 'Error', detail:"Seleccione Empresa", life: 7000})
+        //formik.setSubmitting(false)
+      }
+           
+
+      
+    }
+
+    const Cargar =({jsonCarga})=>{
+      let jwt = window.localStorage.getItem("jwt");
+
+      CargaUsuarios({jsonCarga,jwt}).then(data=>{
+        //formik.setSubmitting(false)
+        toast.current.show({severity:'success', summary: 'Success', detail:"Registro exitoso.", life: 7000})
+
+
+        setTimeout(() => {
+            navigate("../Usuario");
+        }, 3000)
+      })
+      .catch(errors => {
+          toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+          //formik.setSubmitting(false)
+      })
+    }
+
     return (
       <div className="zv-importarUsuario" style={{ paddingTop: 16 }}>
         <Toast ref={toast} position="top-center"></Toast>
@@ -71,7 +117,7 @@ const ImportarUsuarios = () => {
                   chooseLabel="Seleccionar"
                   uploadLabel="Cargar"
                   customUpload={true}
-                  // uploadHandler={(e)=>handleUpload(e)}
+                  uploadHandler={()=>handleCargar()}
                   onSelect={(e)=>handleUpload(e)}
                   onRemove={()=>setListaUsuario(false)}
                   onClear={()=>setListaUsuario(false)}
@@ -83,10 +129,11 @@ const ImportarUsuarios = () => {
               >
                   <Column field="idPersona" header="ID" sortable></Column>
                   <Column field="Nombres" header="Nombres" sortable></Column>
-                  <Column field="Apellidos" header="Apellidos"sortable> </Column>
+                  <Column field="Primer_apellido" header="Primer apellido"sortable> </Column>
+                  <Column field="Segundo_apellido" header="Segundo apellido"sortable> </Column>
                   <Column field="Correo" header="Correo"sortable> </Column>
                   <Column field="DNI" header="DNI" sortable></Column>
-                  <Column field="Curso ID" header="Curso ID" sortable></Column>
+                  <Column field="Curso_ID" header="Curso ID" sortable></Column>
                   
               </DatatableDefault>
             }

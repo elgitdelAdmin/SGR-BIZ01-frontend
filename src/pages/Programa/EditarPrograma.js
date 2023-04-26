@@ -179,7 +179,8 @@ const EditarPrograma = () => {
                                 name="codigoProducto"
                                 placeholder="Escribe código"
                                 value ={formik.values.codigoProducto} 
-                                onChange={formik.handleChange}
+                                //onChange={formik.handleChange}
+                                onChange={(e)=>handleSoloLetrasNumeros(e,formik,"codigoProducto")} 
                                 onBlur={formik.handleBlur}
                                 ></InputText>
                              <small className="p-error">
@@ -222,7 +223,8 @@ const EditarPrograma = () => {
                                 name="duracion"
                                 placeholder="Escribe nombre..."
                                 value ={formik.values.duracion} 
-                                onChange={formik.handleChange}
+                                //onChange={formik.handleChange}
+                                onChange={(e)=>handleSoloLetrasNumeros(e,formik,"duracion")} 
                                 onBlur={formik.handleBlur}
                                 ></InputText>
                             <small className="p-error">
@@ -287,7 +289,7 @@ const EditarPrograma = () => {
                                 name="precio"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.precio} 
-                                onChange={formik.handleChange}
+                                onValueChange={formik.handleChange}
                                 //onChange={(e)=>handleSoloNumeros(e,formik,"celular")}
                                 onBlur={formik.handleBlur}
                                 min={0}
@@ -309,7 +311,8 @@ const EditarPrograma = () => {
                             {
                                 formik.values.listaCursos &&
                                     formik.values.listaCursos.map((doumento,index)=>(
-                                        <div className="field col-12 md:col-7" key={index}>
+                                        <>
+                                            <div className="field col-12 md:col-7" key={index}>
                                             <DropdownDefault 
                                                 id={`listaCursos[${index}].idCurso`}
                                                 name={`listaCursos[${index}].idCurso`}
@@ -319,10 +322,15 @@ const EditarPrograma = () => {
                                                 options={cursos} optionLabel="nombre" optionValue ="idCurso"
                                                 placeholder="Seleccione curso"
                                                 ></DropdownDefault>
-                                        </div>
+                                            </div>
+                                            <div className="field col-12 md:col-1">
+                                                <Boton icon="pi pi-minus" onClick={() => arrayHelpers.remove(index)} type="button"></Boton>
+                                            </div> 
+                                        </>
+                                        
                                     ))
                             }
-                            <div className="field col-12 md:col-2">
+                            <div className="field col-12 md:col-1">
                                 <Boton icon="pi pi-plus" onClick={() => arrayHelpers.push({idPrograma:0,idCurso:0})} type="button"></Boton>
                             </div>    
                             </>

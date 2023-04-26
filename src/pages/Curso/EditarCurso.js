@@ -535,7 +535,8 @@ const EditarCurso = () => {
                                 name="introduccionDuracion"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.introduccionDuracion} 
-                                onChange={formik.handleChange}
+                                //onChange={formik.handleChange}
+                                onChange={(e)=>handleSoloLetrasNumeros(e,formik,"introduccionDuracion")}
                                 onBlur={formik.handleBlur}
                                 ></InputText>
                         </div>
@@ -546,8 +547,9 @@ const EditarCurso = () => {
                                 name="duracion"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.duracion} 
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
+                               //onChange={formik.handleChange}
+                               onChange={(e)=>handleSoloLetrasNumeros(e,formik,"duracion")} 
+                               onBlur={formik.handleBlur}
                                 ></InputText>
                         </div>
                         <div className="field col-12 md:col-6">

@@ -76,7 +76,7 @@ export const handleSoloLetras = (event,formik,label) => {
 export const handleSoloLetrasNumeros = (event,formik,label) => {
   if(event.target.value != null && event.target.value != undefined)
   {
-    const result = event.target.value.replace(/[^0-9a-zA-Z]+$/gi, '');
+    const result = event.target.value.replace(/[^0-9a-zA-Z||.]+$/gi, '');
 
     formik.setFieldValue(label,result)
   }
