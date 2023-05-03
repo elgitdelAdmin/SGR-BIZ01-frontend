@@ -124,7 +124,10 @@ const ImportarUsuarios = () => {
             style={{ width: "50%" }}
           ></DropdownDefault>
           <div style={{marginTop:16,cursor:"pointer"}}>
-          <a href="#" onClick={()=>handleClickDownload("https://grplataformavirtual9128.blob.core.windows.net/adjuntos/PlantillasZegel/plantilla_carga_usuarios.xlsx","plantilla_carga_usuarios")}>Descargar plantilla</a>
+          {/* <a href="#" onClick={()=>handleClickDownload("https://grplataformavirtual9128.blob.core.windows.net/adjuntos/PlantillasZegel/plantilla_carga_usuarios.xlsx","plantilla_carga_usuarios")}>Descargar plantilla</a> */}
+          <a href="https://grplataformavirtual9128.blob.core.windows.net/adjuntos/PlantillasZegel/plantilla_carga_usuarios.xlsx">
+            Descargar plantilla
+          </a>
           </div>
           
             <div style={{ marginTop: 16 }}>
