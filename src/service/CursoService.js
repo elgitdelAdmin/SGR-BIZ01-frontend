@@ -167,3 +167,36 @@ export const EliminarCurso = async ({jwt,id}) =>{
     })
     
 }
+
+export const ListarTrazabilidadCurso = async ({jwt,id}) =>{
+    return await fetch(`${ENDPOINT}/ZADCurso/ListarTrazabilidadCurso/${id}`,{
+    //return await fetch(`${ENDPOINTTEST}/ListarTrazabilidadCurso/${id}`,{
+        method: "GET",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            //'Content-Type': 'application/json'
+            "accept": "text/plain"
+        },
+        
+    }).then(res=>{
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+    
+}

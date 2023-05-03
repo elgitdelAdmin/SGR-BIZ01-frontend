@@ -530,8 +530,8 @@ export const EliminarPersonaPrograma = async ({jwt,id}) =>{
     
 }
 export const CargaUsuarios= ({jsonCarga,jwt}) =>{
-    return fetch(`${ENDPOINTTEST}/CargaUsuarios`,{
-    //return fetch(`${ENDPOINT}/ZADUsuario/CargaUsuarios`,{
+    //return fetch(`${ENDPOINTTEST}/CargaUsuarios`,{
+    return fetch(`${ENDPOINT}/ZADUsuario/CargaUsuarios`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,

@@ -31,6 +31,9 @@ import $ from 'jquery'; // Importar jQuery
 import { InputNumber } from "primereact/inputnumber";
 import { handleSoloNumeros } from "../../helpers/helpers";
 import { handleSoloLetrasNumeros } from "../../helpers/helpers";
+import { ObtenerEstadoCurso } from "../../service/EmpresaService";
+import { ListarTrazabilidadCurso } from "../../service/CursoService";
+import { formatDate } from "../../helpers/helpers";
 const EditarCurso = () => {
     const navigate = useNavigate();
     const [curso, setCurso] = useState(null);    
@@ -49,6 +52,9 @@ const EditarCurso = () => {
     const [imageBase64, setImageBase64] = useState(null);
     const [tipoDocumento, setTipoDocumento] = useState(null);
     const [listaCategorias, setListaCategorias] = useState(null);
+
+    const [listaEstadoCurso, setListaEstadoCurso] = useState(null);
+
     const {isLogged} = useUsuario()
     useEffect(()=>{
         !isLogged && navigate("/");
@@ -57,6 +63,9 @@ const EditarCurso = () => {
     const [loadingUnidad, setLoadingUnidad] = useState(true);
     const [loadingBiblioteca, setLoadingBiblioteca] = useState(true);
     const [loadingDiseñador, setLoadingDiseñador] = useState(true);
+    const [loadingTrazabilidad, setLoadingTrazabilidad] = useState(true);
+
+    const [listaTrazabilidad, setListaTrazabilidad] = useState(null);
     const fileListTest = [
         {
           name: 'grupoDefault.jpg',
@@ -85,7 +94,22 @@ const EditarCurso = () => {
 
     const [blockPickerColor, setBlockPickerColor] = useState("#37d67a");
 
+    useEffect(() => {
+        if(!listaEstadoCurso)
+        {
+            let jwt = window.localStorage.getItem("jwt");
+            ObtenerEstadoCurso({jwt}).then(data=>{
+                
+                if(!id){
+                    setListaEstadoCurso(data.filter(x=>x.id==1));
+                }
+                else{
 
+                    setListaEstadoCurso(data);
+                }
+            })
+        }
+    }, []);
     useEffect(()=>{
         const GetCategorias = async ()=>
         {
@@ -152,6 +176,18 @@ const EditarCurso = () => {
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;     
 
+    useEffect(() => {
+      if (curso) {
+        if (curso.idEstado == 1 ||curso.idEstado == 2) {
+            let temp = listaEstadoCurso.filter(x=>x.id == 1 || x.id ==2)
+            setListaEstadoCurso(temp)
+        } else if (curso.idEstado == 3 || curso.idEstado == 4) {
+            let temp = listaEstadoCurso.filter(x=>x.id == 3 || x.id ==4)
+            setListaEstadoCurso(temp)
+        }
+      }
+    }, [curso]);
+
     useEffect(()=>{
         const GetCurso=()=>{
             let jwt = window.localStorage.getItem("jwt");
@@ -172,11 +208,11 @@ const EditarCurso = () => {
             })
         }
 
-        if(id){
+        if(id && !curso && listaEstadoCurso){
             setModoEdicion(true)
             GetCurso()
         }
-    },[id])
+    },[id,listaEstadoCurso])
 
     useEffect(()=>{
         const GetUnidades= async()=>{
@@ -217,6 +253,19 @@ const EditarCurso = () => {
         if(id)getDisenador()
     },[id])
 
+    useEffect(() => {
+        const getTrazabilidad= async()=>{
+            let jwt = window.localStorage.getItem("jwt");
+            
+            await ListarTrazabilidadCurso({jwt,id}).then(data=>{
+                setListaTrazabilidad(data)
+                setLoadingTrazabilidad(false)
+            })
+        }
+        if(id)getTrazabilidad()
+    }, [id]);
+
+
     useEffect(()=>{
         if(fileList.length >0) {
             if(fileList[0].blobFile)
@@ -228,13 +277,29 @@ const EditarCurso = () => {
            
         }
     },[fileList])
-
+    const schema = Yup.object().shape({
+        idCategoria: Yup.string().required("Categoría es un campo obligatorio"),
+        nombre: Yup.string().required("Nombre es un campo obligatorio"),
+        descripcion: Yup.string().required("Descripción es un campo obligatorio"),
+        logros: Yup.string().required("Logros es un campo obligatorio"),
+        descripcionSEO: Yup.string().nullable().required("Descripcion SEO es un campo obligatorio"),
+        duracion: Yup.string().nullable().required("Duración es un campo obligatorio"),
+        color: Yup.string().nullable().required("Color es un campo obligatorio"),
+        videoIniciacion: Yup.string().nullable().required("Video iniciación es un campo obligatorio"),
+        videoIntroduccion: Yup.string().nullable().required("Video de introducción es un campo obligatorio"),
+        descripcionMeta: Yup.string().nullable().required("Descripción Meta es un campo obligatorio"),
+        introduccionDuracion: Yup.string().nullable().required("Duración introducción un campo obligatorio"),
+        precio: Yup.number().nullable().required("Precio es un campo obligatorio"),
+        codigoProducto: Yup.string().nullable().required("Código producto es un campo obligatorio"),
+        idEstado: Yup.string().nullable().required("Estado es un campo obligatorio"),
+       
+      });
     const formik = useFormik({
         enableReinitialize:true,
         initialValues: { 
             
             idCurso: curso?curso.idCurso:0,
-            idCategoria: curso?curso.idCategoria:0,
+            idCategoria: curso?curso.idCategoria:"",
             nombre: curso?curso.nombre:"",
             descripcion : curso?curso.descripcion:"",
             logros:  curso?curso.logros:"",
@@ -245,16 +310,16 @@ const EditarCurso = () => {
             videoIntroduccion: curso?curso.videoIntroduccion:"",
             descripcionMeta: curso?curso.descripcionMeta:"",
             introduccionDuracion: curso?curso.introduccionDuracion:"",
-            precio: curso?curso.precio:"",
+            precio: curso?curso.precio:0,
             codigoProducto: curso?curso.codigoProducto:"",
-            idEstado: curso?curso.activo:"",
+            idEstado: curso?curso.idEstado:1,
             fotoCurso: curso?curso.fotoCurso:null,
             listaDefecto :curso&& curso.fotoCurso?[{name: curso.fotoCurso,
                 fileKey: 1,
                     url: constantes.URLBLOB_CURSOS+"/"+curso.fotoCurso}] :[]
             
         },
-    //   validationSchema: schema,
+        validationSchema: schema,
       onSubmit: values => {
             let imagenBase64 = imageBase64;
             let tipoDocumento = imagenBase64 ? fileList[0].blobFile.type :null
@@ -404,7 +469,55 @@ const EditarCurso = () => {
             accept:()=>EliminarDiseñador(id)
         });
     };
-    
+    const estadoOptionTemplate = (option) => {
+        let seleccionado = formik.values.idEstado;
+        if(seleccionado == 1)
+        {
+            if(option.id == 1 || option.id == 2)
+            {
+                return (
+                    <option value={option.id} selected>{option.nombre}</option>
+                );
+            }
+            // else{
+            //     return (
+            //         <option value={option.id} style={{color:"blue"}}>{option.nombre}</option>
+            //     );
+            // }
+            
+        }
+        else if(seleccionado == 2){
+            if(option.id == 2)
+            {
+                return (
+                    <option value={option.id} >{option.nombre}</option>
+                );
+            }
+            // else
+            // {
+            //     return (
+            //         <option value={option.id} style={{color:"blue"}}>{option.nombre}</option>
+            //     );
+            // }
+            
+        }else if(seleccionado == 3 || seleccionado ==4){
+            if(option.id == 3 || option.id == 4)
+            {
+                return (
+                    <option value={option.id} selected>{option.nombre}</option>
+                );
+            }
+            // else{
+            //     return (
+            //         <option value={option.id} style={{color:"blue"}}>{option.nombre}</option>
+            //     );
+            // }
+        }
+        
+    };
+    const dateBodyTemplate = (rowData) => {
+        return formatDate(new Date(rowData.fechaRegistro));
+      };
     return ( 
         <form onSubmit={formik.handleSubmit}>
             <ConfirmDialog />
@@ -428,6 +541,7 @@ const EditarCurso = () => {
                                 onBlur={formik.handleBlur}
                                 options={listaCategorias} optionLabel="descripcionCategoria" optionValue ="idCategoria"
                                 ></DropdownDefault>
+                             <small className="p-error">{formik.touched.idCategoria && formik.errors.idCategoria}</small>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Color </label><small style={{color:"#B5B5B5"}} >{"(Ejemplo: #3e3e3 ó rgba(0,0,0,1))"}</small>
@@ -441,6 +555,7 @@ const EditarCurso = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 ></InputText>
+                            <small className="p-error">{formik.touched.color && formik.errors.color}</small>
                         </div>
                         
                         <div className="field col-12 md:col-6" >
@@ -455,6 +570,7 @@ const EditarCurso = () => {
                                 onBlur={formik.handleBlur}
                                 
                                 ></InputText>
+                            <small className="p-error">{formik.touched.nombre && formik.errors.nombre}</small>
                         </div>
 
                         <div className="field col-12 md:col-6">
@@ -467,6 +583,7 @@ const EditarCurso = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 ></InputText>
+                            <small className="p-error">{formik.touched.videoIniciacion && formik.errors.videoIniciacion}</small>
                         </div>
 
                         <div className="field col-12 md:col-6">
@@ -480,6 +597,7 @@ const EditarCurso = () => {
                                 onBlur={formik.handleBlur}
                                 autoResize 
                                 ></InputTextarea>
+                            <small className="p-error">{formik.touched.descripcion && formik.errors.descripcion}</small>
                         </div>
 
                         <div className="field col-12 md:col-6">
@@ -492,6 +610,7 @@ const EditarCurso = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 ></InputText>
+                            <small className="p-error">{formik.touched.videoIntroduccion && formik.errors.videoIntroduccion}</small>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Logros</label>
@@ -504,6 +623,7 @@ const EditarCurso = () => {
                                 onBlur={formik.handleBlur}
                                 autoResize 
                                 ></InputTextarea>
+                            <small className="p-error">{formik.touched.logros && formik.errors.logros}</small>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Descripción Meta</label>
@@ -516,6 +636,7 @@ const EditarCurso = () => {
                                 onBlur={formik.handleBlur}
                                 autoResize 
                                 ></InputTextarea>
+                            <small className="p-error">{formik.touched.descripcionMeta && formik.errors.descripcionMeta}</small>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Descripción SEO</label><small style={{color:"#B5B5B5"}} >{" (Ejemplo: Lorem-Ipsum)"}</small>
@@ -527,6 +648,7 @@ const EditarCurso = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 ></InputText>
+                            <small className="p-error">{formik.touched.descripcionSEO && formik.errors.descripcionSEO}</small>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Introducción duración</label><small style={{color:"#B5B5B5"}} >{" (Tiempo de duración)"}</small>
@@ -539,6 +661,7 @@ const EditarCurso = () => {
                                 onChange={(e)=>handleSoloLetrasNumeros(e,formik,"introduccionDuracion")}
                                 onBlur={formik.handleBlur}
                                 ></InputText>
+                            <small className="p-error">{formik.touched.introduccionDuracion && formik.errors.introduccionDuracion}</small>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Duración</label><small style={{color:"#B5B5B5"}} >{" (Ejemplo: 1.7h)"}</small>
@@ -551,6 +674,7 @@ const EditarCurso = () => {
                                onChange={(e)=>handleSoloLetrasNumeros(e,formik,"duracion")} 
                                onBlur={formik.handleBlur}
                                 ></InputText>
+                            <small className="p-error">{formik.touched.duracion && formik.errors.duracion}</small>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Precio</label><small style={{color:"#B5B5B5"}} >{" (Solo cantidad)"}</small>
@@ -559,11 +683,12 @@ const EditarCurso = () => {
                                 name="precio"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.precio} 
-                                onChange={formik.handleChange}
+                                onValueChange={formik.handleChange}
                                 //onChange={(e)=>handleSoloNumeros(e,formik,"celular")}
                                 onBlur={formik.handleBlur}
                                 min={0}
                                 ></InputNumber>
+                            <small className="p-error">{formik.touched.precio && formik.errors.precio}</small>
                         </div>
 
                         <div className="field col-12 md:col-6">
@@ -577,18 +702,22 @@ const EditarCurso = () => {
                                 onChange={(e)=>handleSoloLetrasNumeros(e,formik,"codigoProducto")}
                                 onBlur={formik.handleBlur}
                                 ></InputText>
+                            <small className="p-error">{formik.touched.codigoProducto && formik.errors.codigoProducto}</small>
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Estado</label>
                             <DropdownDefault type={"text"} 
                                 id="idEstado"
                                 name="idEstado"
-                                placeholder="Escribe aquí"
+                                placeholder="Seleccione"
                                 value ={formik.values.idEstado} 
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                                options={comboEstado} optionLabel="label" optionValue ="value"
+                                options={listaEstadoCurso} optionLabel="nombre" optionValue ="id"
+                                disabled = {!modoEdicion}
+                                //itemTemplate={estadoOptionTemplate}
                                 ></DropdownDefault>
+                            <small className="p-error">{formik.touched.idEstado && formik.errors.idEstado}</small>
                         </div>
                         <div className="field col-12 md:col-12">
                         <Uploader  listType="picture" className="zv-fileUploader"
@@ -623,7 +752,24 @@ const EditarCurso = () => {
                         </>
                         
                         }
+                </div>
+                {
+                    modoEdicion &&
+                    <div className="zv-trazabilidad" style={{marginTop:16}}>
+                        <div className="header-subTitulo">Trazabilidad</div>
+                        <DatatableDefault
+                                value={listaTrazabilidad}
+                                loading={loadingTrazabilidad}
+                                >
+                                <Column field="id" header="ID" sortable></Column>
+                                <Column field="estadoCurso.nombre" header="Estado" sortable ></Column>
+                                <Column field="persona.nombres" header="Usuario" sortable></Column>
+                                <Column field="fechaRegistro" header="Fecha" dataType="date" body={dateBodyTemplate} sortable></Column>
+                            
+                            </DatatableDefault>   
                     </div>
+                }
+                
                 
             </div>
             {modoEdicion &&

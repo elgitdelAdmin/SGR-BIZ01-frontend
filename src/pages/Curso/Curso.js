@@ -106,7 +106,7 @@ const Curso = () => {
                     <Column field="idCurso" header="ID" sortable></Column>
                     <Column field="nombre" header="Curso" sortable ></Column>
                     <Column field="categoria.descripcionCategoria" header="Categoría" sortable></Column>
-                    <Column field="activo" header="Estado" sortable body={booleanTemplate}></Column>
+                    <Column field="estadoCurso.nombre" header="Estado" sortable ></Column>
                     <Column 
                         body={accionEditar}
                         style={{ display: "flex", justifyContent: "center" }}

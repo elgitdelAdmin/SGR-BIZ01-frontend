@@ -63,7 +63,7 @@ const ImportarUsuarios = () => {
         Cargar({jsonCarga})
       }
       else{
-        toast.current.show({severity:'error', summary: 'Error', detail:"Seleccione Empresa", life: 7000})
+        toast.current.show({severity:'error', summary: 'Error', detail:"Seleccione Empresa", life: 17000})
         //formik.setSubmitting(false)
       }
            
@@ -85,9 +85,25 @@ const ImportarUsuarios = () => {
       })
       .catch(errors => {
           toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+          //alert(errors.message)
           //formik.setSubmitting(false)
       })
     }
+
+    const handleClickDownload =(url,nombreArchivo)=>{
+
+      fetch(url).then(response => {
+          response.blob().then(blob => {
+              // Creating new object of PDF file
+              const fileURL = window.URL.createObjectURL(blob);
+              // Setting various property values
+              let alink = document.createElement('a');
+              alink.href = fileURL;
+              alink.download = nombreArchivo;
+              alink.click();
+          })
+      })
+  }
 
     return (
       <div className="zv-importarUsuario" style={{ paddingTop: 16 }}>
@@ -107,6 +123,10 @@ const ImportarUsuarios = () => {
             placeholder="Seleccione empresa"
             style={{ width: "50%" }}
           ></DropdownDefault>
+          <div style={{marginTop:16,cursor:"pointer"}}>
+          <a href="#" onClick={()=>handleClickDownload("https://grplataformavirtual9128.blob.core.windows.net/adjuntos/PlantillasZegel/plantilla_carga_usuarios.xlsx","plantilla_carga_usuarios")}>Descargar plantilla</a>
+          </div>
+          
             <div style={{ marginTop: 16 }}>
               <FileUpload name="excelUsuario" 
                   
@@ -127,7 +147,7 @@ const ImportarUsuarios = () => {
               listaUsuario && 
               <DatatableDefault value={listaUsuario} 
               >
-                  <Column field="idPersona" header="ID" sortable></Column>
+                  {/* <Column field="idPersona" header="ID" sortable></Column> */}
                   <Column field="Nombres" header="Nombres" sortable></Column>
                   <Column field="Primer_apellido" header="Primer apellido"sortable> </Column>
                   <Column field="Segundo_apellido" header="Segundo apellido"sortable> </Column>
