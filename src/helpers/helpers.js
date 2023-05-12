@@ -67,10 +67,20 @@ export const handleSoloLetras = (event,formik,label) => {
   if(event.target.value != null && event.target.value != undefined)
   {
     const result = event.target.value.replace(/[^a-z]/gi, '');
+    // const result = event.target.value.replace(/^[a-zA-Z\u00C0-\u017F\s]+$/gi, '');
+    
 
     formik.setFieldValue(label,result)
   }
   
+};
+export const regex = new RegExp("^[a-zA-Z\u00C0-\u017F][a-zA-Z\u00C0-\u017F\\s]*$");
+export const handleSoloLetrastest = (e) => {
+  let key = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+  if (!regex.test(key)) {
+    e.preventDefault();
+    return false;
+  }
 };
 
 export const handleSoloLetrasNumeros = (event,formik,label) => {
@@ -84,9 +94,9 @@ export const handleSoloLetrasNumeros = (event,formik,label) => {
 };
 
 export const handleSoloNumeros = (event,formik,label) => {
-  if(event.value)
+  if(event.target.value != null && event.target.value != undefined)
   {
-    const result = event.value.toString().replace( /^\d*$/g, '');
+    const result = event.value.toString().replace( /[^0-9]$/g, '');
 
     formik.setFieldValue(label,result)
   }

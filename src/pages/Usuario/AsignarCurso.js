@@ -91,7 +91,7 @@ const AsignarCurso = () => {
         initialValues: { 
             idPersonaCurso: curso?curso.idPersonaCurso:0,
             idCurso: curso?curso.idCurso:"",
-            finCurso: curso?curso.finCurso:null
+            finCurso: curso?new Date(curso.finCurso):null
         },
       validationSchema: schema,
       onSubmit: values => {

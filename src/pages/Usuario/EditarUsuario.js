@@ -22,9 +22,11 @@ import { Column } from "primereact/column";
 import { ObtenerCursosPorUsuario,ObtenerProgramasPorUsuario ,EliminarPersonaCurso,EliminarPersonaPrograma} from "../../service/UsuarioService";
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 
-import { handleSoloLetras } from "../../helpers/helpers";
+import { handleSoloLetras, handleSoloLetrastest } from "../../helpers/helpers";
 import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
+import { Divider } from 'primereact/divider';
+
 const EditarUsuario = () => {
     const navigate = useNavigate();
     const {isLogged} = useUsuario()
@@ -193,7 +195,7 @@ const accionEditarPrograma =(rowData)=>{
  
 }
 const dateBodyTemplate = (rowData) => {
-  return formatDate(new Date(rowData.finCurso));
+  return rowData.finCurso ? formatDate(new Date(rowData.finCurso)):"";
 };
 const EliminarCurso =(id)=>{
   let jwt = window.localStorage.getItem("jwt");
@@ -254,6 +256,21 @@ const programaTemplate = (rowData)=>{
       <span>{rowData.programa ? rowData.programa:"No"}</span>
   )
 }
+
+const headerPass = <div className="font-bold mb-3">Ingrese password</div>;
+    const footerPass = (
+        <>
+            <Divider />
+            <p className="mt-2">Sugerencias</p>
+            <ul className="pl-2 ml-2 mt-0 line-height-3">
+                <li>Al menos una minúscula</li>
+                <li>Al menos una mayúscula</li>
+                <li>Al menos un número</li>
+                <li>Mínimo 8 caracteres</li>
+            </ul>
+        </>
+    );
+
     return (
      
         <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
@@ -280,7 +297,9 @@ const programaTemplate = (rowData)=>{
                     value={formik.values.nombres}
                     //onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
+                    // onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
+                    onChange={formik.handleChange}
+                    onKeyPress={(e=>handleSoloLetrastest(e))}
                   ></InputText>
                   <div className="p-error">{ formik.touched.nombres && formik.errors.nombres }</div>
 
@@ -383,6 +402,12 @@ const programaTemplate = (rowData)=>{
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     toggleMask
+                    //header={headerPass} 
+                    footer={footerPass}
+                    promptLabel="Choose a password" 
+                    weakLabel="Débil" 
+                    mediumLabel="Fuerte" 
+                    strongLabel="Complejidad"
                   />
                 </div>
                 <div className="field col-12 md:col-3" style={{display:"flex", alignItems :"end",paddingBottom:20,gap:20}}>
