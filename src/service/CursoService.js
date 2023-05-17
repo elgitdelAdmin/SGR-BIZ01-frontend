@@ -200,3 +200,36 @@ export const ListarTrazabilidadCurso = async ({jwt,id}) =>{
     })
     
 }
+
+export const ImportarCursos= ({jsonImportar,jwt}) =>{
+    //return fetch(`${ENDPOINTTEST}/ImportarCurso`,{
+    return fetch(`${ENDPOINT}/ZADCurso/ImportarCurso`,{
+        method: "POST",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            'Content-Type': 'application/json',
+            "accept": "application/json"
+        },
+        
+        body: jsonImportar
+    }).then(res=>{
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+}

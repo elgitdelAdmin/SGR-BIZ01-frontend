@@ -36,6 +36,7 @@ import EditarPrograma from "./pages/Programa/EditarPrograma";
 import AsignarCurso from "./pages/Usuario/AsignarCurso";
 import AsignarPrograma from "./pages/Usuario/AsignarPrograma";
 import ImportarUsuarios from "./pages/Usuario/ImportarUsuarios";
+import ImportarCurso from "./pages/Curso/ImportarCurso";
 function App() {
   const [layoutMode, setLayoutMode] = useState("static");
     const [layoutColorMode, setLayoutColorMode] = useState("light");
@@ -181,6 +182,7 @@ const onSidebarClick = () => {
                     <Route path="Usuario/EditarUsuario/:IDPersona/AsignarPrograma/Crear" element={<AsignarPrograma/>}></Route>
                     <Route path="Usuario/EditarUsuario/:IDPersona/AsignarPrograma/:IdPersonaPrograma" element={<AsignarPrograma/>}></Route>
                     <Route path="ImportarUsuario" element={<ImportarUsuarios/>}></Route>
+                    <Route path="ImportarCurso" element={<ImportarCurso/>}></Route>
 
 
 

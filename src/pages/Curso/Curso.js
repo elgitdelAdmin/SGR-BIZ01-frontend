@@ -95,7 +95,7 @@ const Curso = () => {
             <div className="zv-curso-body" style={{ marginTop: 16 }}>
                 <div className="zv-curso-body-header">
                     <Boton label="Crear curso" style={{fontSize:12}} color="primary" type="submit" onClick={()=>navigate("Crear")} ></Boton>
-                    <Boton label="Importar curso" style={{fontSize:12}} color="secondary"></Boton>
+                    <Boton label="Importar curso" style={{fontSize:12}} color="secondary" onClick={()=>navigate("../ImportarCurso")}></Boton>
                     <Boton label="Cargar archivos" style={{fontSize:12}} color="secondary"></Boton>
                 </div>
                 <div className="zv-curso-body-listado" style={{ marginTop: 24 }}>

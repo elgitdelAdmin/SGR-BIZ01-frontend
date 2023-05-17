@@ -34,6 +34,37 @@ export function getBase64 (file){
   //   return true;
   // }
 
+  export function excelFileToJSONSheet(file,numSheet,setField){
+    return new Promise(resolve => {
+      try {
+        var reader = new FileReader();
+        reader.readAsBinaryString(file);
+        reader.onload = function(e) {
+  
+            var data = e.target.result;
+            var workbook = read(data, {
+                type : 'binary'
+            });
+            var result = {};
+            var firstSheetName = workbook.SheetNames[numSheet];
+            //reading only first sheet data
+            var jsonData = utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+            setField(jsonData)
+            console.log(firstSheetName,jsonData)
+            resolve(jsonData)
+           
+            //alert(JSON.stringify(jsonData));
+            //displaying the json result into HTML table
+            
+            }
+        }catch(e){
+            console.error(e);
+        }
+    })
+    
+}
+
+
   export function excelFileToJSON(file){
     return new Promise(resolve => {
       try {
@@ -121,3 +152,12 @@ export const formatDate = (value) => {
   }
   
 };
+
+export const  convertirTiempoDecimal=(decimal)=> {
+  const horas = Math.floor(decimal * 24);
+  const minutos = Math.floor((decimal * 24 * 60) % 60);
+  const segundos = Math.floor((decimal * 24 * 60 * 60) % 60);
+
+  return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+
+}
