@@ -165,6 +165,17 @@ const ImportarCurso = () => {
 const DuracionTotalTemplate = (rowData) => {
     return rowData.DURACION_TOTAL_LECCION ? convertirTiempoDecimal(rowData.DURACION_TOTAL_LECCION):"";
   };
+
+const handleLimpiar =()=>{
+    setListaCurso(null);
+    setListaDiseñador(null);
+    setListaBibliografia(null);
+    setListaUnidad(null);
+    setListaLeccion(null);
+    setListaMaterial(null);
+    setListaEvaluacion(null);
+
+}
   return (
     <div className="zv-importarCursos" style={{ paddingTop: 16 }}>
       <Toast ref={toast} position="top-center"></Toast>
@@ -172,6 +183,12 @@ const DuracionTotalTemplate = (rowData) => {
         {tituloPagina}
       </div>
       <div className="zv-importarCursos-body" style={{ marginTop: 16 }}>
+      <div style={{marginTop:16,cursor:"pointer"}}>
+          {/* <a href="#" onClick={()=>handleClickDownload("https://grplataformavirtual9128.blob.core.windows.net/adjuntos/PlantillasZegel/plantilla_carga_usuarios.xlsx","plantilla_carga_usuarios")}>Descargar plantilla</a> */}
+          <a href="https://grplataformavirtual9128.blob.core.windows.net/adjuntos/PlantillasZegel/FORMATO_IMPORTAR_CURSOS.xlsx">
+            Descargar plantilla
+          </a>
+          </div>
         <div style={{ marginTop: 16 }}>
           <FileUpload
             name="excelCurso"
@@ -186,8 +203,8 @@ const DuracionTotalTemplate = (rowData) => {
             customUpload={true}
             uploadHandler={()=>handleCargar()}
             onSelect={(e) => handleUpload(e)}
-            // onRemove={()=>setListaUsuario(false)}
-            // onClear={()=>setListaUsuario(false)}
+            onRemove={handleLimpiar}
+            onClear={handleLimpiar}
           />
         </div>
         <div style={{ marginTop: 16 }}>
