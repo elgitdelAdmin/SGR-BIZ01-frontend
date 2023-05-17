@@ -14,6 +14,7 @@ import { Column } from "primereact/column";
 import { TabPanel, TabView } from "primereact/tabview";
 import ImportarUsuarios from "../Usuario/ImportarUsuarios";
 import { ImportarCursos } from "../../service/CursoService";
+import { Loader } from "rsuite";
 
 const ImportarCurso = () => {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ const ImportarCurso = () => {
   const [listaMaterial, setListaMaterial] = useState();
   const [listaEvaluacion, setListaEvaluacion] = useState();
 
+  const [loading, setLoading] = useState(false);
+
   const handleUpload = (e) => {
     excelFileToJSONSheet(e.files[0], 0, setListaCurso);
     excelFileToJSONSheet(e.files[0], 1, setListaDiseñador);
@@ -41,19 +44,21 @@ const ImportarCurso = () => {
   const Importar=({jsonImportar})=>{
         let jwt = window.localStorage.getItem("jwt");
         ImportarCursos({jsonImportar,jwt}).then(data=>{
+            setLoading(false)
             toast.current.show({severity:'success', summary: 'Success', detail:"Curso importado exitosamente.", life: 7000})
             setTimeout(() => {
                 navigate(-1);
             }, 3000)
         })
         .catch(errors => {
+            setLoading(false)
             toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
         })
 
   }
 
   const handleCargar =()=>{
-
+    setLoading(true)
     try {
         let ListaCurso = [];
         let ListaBibliografia = [];
@@ -153,6 +158,7 @@ const ImportarCurso = () => {
             ListaUnidad,ListaLeccion,ListaMaterial,ListaEvaluacion},null,2)
             Importar({jsonImportar})
     } catch (errors) {
+        setLoading(false)
         toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
     }
 
@@ -178,7 +184,9 @@ const handleLimpiar =()=>{
 }
   return (
     <div className="zv-importarCursos" style={{ paddingTop: 16 }}>
+         {loading  && <Loader center size="lg" content="Cargando" />}
       <Toast ref={toast} position="top-center"></Toast>
+     
       <div className="header-titulo" style={{ marginTop: 16 }}>
         {tituloPagina}
       </div>
