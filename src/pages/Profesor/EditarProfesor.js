@@ -14,7 +14,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { Password } from "primereact/password";
 import {Uploader} from "rsuite"
 import * as constantes from "../../constants/constantes.js";
-import { getBase64 } from "../../helpers/helpers";
+import { getBase64, handleSoloLetrastest } from "../../helpers/helpers";
 import { ObtenerCursosPorUsuario } from "../../service/UsuarioService";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
@@ -120,13 +120,14 @@ const EditarProfesor = () => {
         let dni = values.dni
         let correo = values.correo
         let celular = values.celular
+        let idEmpresa = 2
         
  
         //let idEmpresa = IdEmpresa
         let idTipoPersona = 2
          
        let jsonPersona = JSON.stringify({activo,password,idPersona,nombres,primerApellido,segundoApellido,
-           ocupacion,descripcion,dni,correo,celular,idTipoPersona,imagenBase64,tipoDocumento,avatar},null,2)
+           ocupacion,descripcion,dni,correo,celular,idTipoPersona,imagenBase64,tipoDocumento,avatar,idEmpresa},null,2)
 
         if(modoEdicion) Actualizar({jsonPersona}) ;else{Registrar({jsonPersona})} 
         
@@ -158,9 +159,9 @@ const EditarProfesor = () => {
           toast.current.show({severity:'success', summary: 'Success', detail:"Registro exitoso.", life: 7000})
 
 
-          // setTimeout(() => {
-          //     navigate(-1);
-          // }, 3000)
+          setTimeout(() => {
+              navigate(-1);
+          }, 3000)
       })
       .catch(errors => {
           toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
@@ -227,9 +228,10 @@ const EditarProfesor = () => {
                                 name="nombres"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.nombres} 
-                                //onChange={formik.handleChange}
-                                onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
+                                onChange={formik.handleChange}
+                                //onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
                                 onBlur={formik.handleBlur}
+                                onKeyPress={(e=>handleSoloLetrastest(e))}
                                 ></InputText>
                                 <div className="p-error">{ formik.touched.nombres && formik.errors.nombres }</div>
                         </div>
@@ -240,9 +242,10 @@ const EditarProfesor = () => {
                                 name="primerApellido"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.primerApellido} 
-                                //onChange={formik.handleChange}
-                                onChange={(e)=>handleSoloLetras(e,formik,"primerApellido")}
+                                onChange={formik.handleChange}
+                                //onChange={(e)=>handleSoloLetras(e,formik,"primerApellido")}
                                 onBlur={formik.handleBlur}
+                                onKeyPress={(e=>handleSoloLetrastest(e))}
                                 ></InputText>
                                 <div className="p-error">{ formik.touched.primerApellido && formik.errors.primerApellido }</div>
                         </div>
@@ -253,9 +256,10 @@ const EditarProfesor = () => {
                                 name="segundoApellido"
                                 placeholder="Escribe aquí"
                                 value ={formik.values.segundoApellido} 
-                                //onChange={formik.handleChange}
-                                onChange={(e)=>handleSoloLetras(e,formik,"segundoApellido")}
+                                onChange={formik.handleChange}
+                                //onChange={(e)=>handleSoloLetras(e,formik,"segundoApellido")}
                                 onBlur={formik.handleBlur}
+                                onKeyPress={(e=>handleSoloLetrastest(e))}
                                 ></InputText>
                                 <div className="p-error">{ formik.touched.segundoApellido && formik.errors.segundoApellido }</div>
                         </div>

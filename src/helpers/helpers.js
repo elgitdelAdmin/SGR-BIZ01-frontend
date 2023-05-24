@@ -105,7 +105,7 @@ export const handleSoloLetras = (event,formik,label) => {
   }
   
 };
-export const regex = new RegExp("^[a-zA-Z\u00C0-\u017F][a-zA-Z\u00C0-\u017F\\s]*$");
+export const regex = new RegExp("^[a-zA-Z\u00C0-\u017F\\s]*$");
 export const handleSoloLetrastest = (e) => {
   let key = String.fromCharCode(!e.charCode ? e.which : e.charCode);
   if (!regex.test(key)) {
