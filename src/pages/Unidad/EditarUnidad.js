@@ -15,6 +15,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { TabView, TabPanel } from 'primereact/tabview';
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
+import { ListarPreguntasPorUnidad } from "../../service/PreguntaService";
 const EditarUnidad = () => {
     const navigate = useNavigate();
 
@@ -22,6 +23,7 @@ const EditarUnidad = () => {
     const [modoEdicion, setModoEdicion] = useState(false);
     const [tituloPagina, setTituloPagina] = useState("Crear unidad");
     const [listaLecciones, setListaLecciones] = useState(null);
+    const [listaPreguntas, setListaPreguntas] = useState(null);
     let { IDCurso } = useParams();
     let { IDUnidad } = useParams();
     const toast = useRef(null);
@@ -42,7 +44,7 @@ const EditarUnidad = () => {
     
     const accionEditarPreguntas =(rowData)=>{
         return <div className="datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Preguntas/"+rowData.idPregunta)}>
+            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Pregunta/Editar/"+rowData.idPregunta)}>
                 <span><Iconsax.Eye color="#ffffff"/></span>
             </div>
             {/* <div className="accion-eliminar" onClick={()=>navigate()}>
@@ -81,6 +83,16 @@ const EditarUnidad = () => {
         if(IDUnidad)GetLecciones()
     },[IDUnidad])
 
+    useEffect(() => {
+        const GetPreguntas= async()=>{
+            let jwt = window.localStorage.getItem("jwt");
+            let idUnidad = IDUnidad
+            await ListarPreguntasPorUnidad({jwt,idUnidad}).then(data=>{
+                setListaPreguntas(data)
+            })
+        }
+        if(IDUnidad)GetPreguntas()
+    }, [IDUnidad]);
 
     // useEffect(()=>{
     //     const GetCurso= async()=>{
@@ -229,6 +241,9 @@ const EditarUnidad = () => {
                         {modoEdicion && <Boton label="Agregar lección" style={{fontSize:12}} color="secondary" type ="button"
                         onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+unidad.idUnidad+"/Leccion/Crear")}
                         ></Boton>}
+                        {modoEdicion && <Boton label="Agregar Pregunta" style={{fontSize:12}} color="secondary" type ="button"
+                        onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Pregunta/Crear")}
+                        ></Boton>}
                     </div>
             </div>
             <div className="zv-listado-leccion" style={{marginTop:16 }}>
@@ -253,13 +268,13 @@ const EditarUnidad = () => {
                         </DatatableDefault>
                     </TabPanel>
                     <TabPanel header="Preguntas">
-                        <div className="header-subTitulo">Preguntas de lección</div>   
+                        <div className="header-subTitulo">Preguntas</div>   
                         <DatatableDefault
-                            value={[]}
+                            value={listaPreguntas}
                             >
                             <Column field="idPregunta" header="ID" sortable></Column>
                             <Column field="titulo" header="Título" sortable ></Column>
-                            <Column field="idLeccion" header="Quiz" sortable></Column>
+                            <Column field="idUnidad" header="Quiz" sortable></Column>
                             <Column 
                                 body={accionEditarPreguntas}
                                 style={{ display: "flex", justifyContent: "center" }}

@@ -164,8 +164,8 @@ const onSidebarClick = () => {
                     <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad" element={<EditarUnidad/>}></Route>
                     <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion" element={<EditarLeccion/>}></Route>
                     <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/Crear" element={<EditarLeccion/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Pregunta/Crear" element={<EditarPreguntas/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Pregunta/Editar/:IDPregunta" element={<EditarPreguntas/>}></Route>
+                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Pregunta/Crear" element={<EditarPreguntas/>}></Route>
+                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Pregunta/Editar/:IDPregunta" element={<EditarPreguntas/>}></Route>
                     <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Material/Crear" element={<EditarMaterial/>}></Route>
                     <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Material/Editar/:IDMaterial" element={<EditarMaterial/>}></Route>
                     <Route path="Curso/Editar/:IDCurso/Biblioteca/Crear" element={<EditarBiblioteca/>}></Route>

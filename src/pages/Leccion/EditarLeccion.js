@@ -270,9 +270,9 @@ const EditarLeccion = () => {
                         {modoEdicion && <Boton label="Agregar material" style={{fontSize:12}} color="secondary" type ="button"
                         onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Material/Crear")}
                         ></Boton>}
-                        {modoEdicion && <Boton label="Agregar Pregunta" style={{fontSize:12}} color="secondary" type ="button"
+                        {/* {modoEdicion && <Boton label="Agregar Pregunta" style={{fontSize:12}} color="secondary" type ="button"
                         onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Pregunta/Crear")}
-                        ></Boton>}
+                        ></Boton>} */}
                     </div>
                 </div>
                 <div className="zv-listado-leccion" style={{marginTop:16 }}>
@@ -297,7 +297,7 @@ const EditarLeccion = () => {
                         
                         </DatatableDefault>
                     </TabPanel>
-                    <TabPanel header="Preguntas">
+                    {/* <TabPanel header="Preguntas">
                         <div className="header-subTitulo">Preguntas de lección</div>   
                         <DatatableDefault
                             value={preguntas}
@@ -313,7 +313,7 @@ const EditarLeccion = () => {
                             ></Column>
                         
                         </DatatableDefault>
-                    </TabPanel>
+                    </TabPanel> */}
                 </TabView>
             </div>
             </div>

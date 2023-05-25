@@ -63,7 +63,35 @@ export function getBase64 (file){
     })
     
 }
+export function excelFileToJSONSheetName(file,nameSheet,setField){
+  return new Promise(resolve => {
+    try {
+      var reader = new FileReader();
+      reader.readAsBinaryString(file);
+      reader.onload = function(e) {
 
+          var data = e.target.result;
+          var workbook = read(data, {
+              type : 'binary'
+          });
+          var result = {};
+          //var firstSheetName = workbook.SheetNames[numSheet];
+          //reading only first sheet data
+          var jsonData = utils.sheet_to_json(workbook.Sheets[nameSheet]);
+          setField(jsonData)
+          console.log(nameSheet,jsonData)
+          resolve(jsonData)
+         
+          //alert(JSON.stringify(jsonData));
+          //displaying the json result into HTML table
+          
+          }
+      }catch(e){
+          console.error(e);
+      }
+  })
+  
+}
 
   export function excelFileToJSON(file){
     return new Promise(resolve => {

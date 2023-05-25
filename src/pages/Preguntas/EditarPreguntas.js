@@ -53,7 +53,7 @@ const EditarPreguntas = () => {
 
     const accionEditarRespuesta =(rowData)=>{
         return <div className="datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Leccion/"+IDLeccion+"/Pregunta/"+IDPregunta+"/Respuesta/"+rowData.idRespuesta)}>
+            <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+IDCurso+"/Unidad/Editar/"+IDUnidad+"/Pregunta/"+IDPregunta+"/Respuesta/"+rowData.idRespuesta)}>
                 <span><Iconsax.Eye color="#ffffff"/></span>
             </div>
             {/* <div className="accion-eliminar" onClick={()=>navigate()}>
@@ -106,9 +106,9 @@ const EditarPreguntas = () => {
         enableReinitialize:true,
         initialValues: { 
             idPregunta: pregunta?pregunta.idPregunta:0,
-            idLeccion: IDLeccion,
+            idUnidad: IDUnidad,
             idPreguntaTipo: pregunta?pregunta.idPreguntaTipo:"",
-            iDTipoRecurso: pregunta?pregunta.iDTipoRecurso:0,
+            idTipoRecurso: pregunta?pregunta.idTipoRecurso:0,
             titulo:pregunta?pregunta.titulo:"",
             respuesta : pregunta?pregunta.respuesta:"",
             recurso : pregunta?pregunta.recurso:"",
@@ -119,11 +119,16 @@ const EditarPreguntas = () => {
       validationSchema: schema,
       onSubmit: values => {
         let idPregunta = values.idPregunta
-        let idLeccion = values.idLeccion
+        let idUnidad = values.idUnidad
         let idPreguntaTipo =values.idPreguntaTipo
         let titulo = values.titulo
+        let idTipoRecurso = values.idTipoRecurso
+        let respuesta = values.respuesta
+        let fuente = values.fuente
+        let linkMaterial = values.linkMaterial
         
-        let jsonPregunta = JSON.stringify({idPregunta,idLeccion,idPreguntaTipo,titulo},null,2)
+        let jsonPregunta = JSON.stringify({idPregunta,idUnidad,idPreguntaTipo,titulo,idTipoRecurso
+            ,respuesta,fuente,linkMaterial},null,2)
 
         if(!modoEdicion) Registrar({jsonPregunta}) 
         else {Actualizar({jsonPregunta})}
