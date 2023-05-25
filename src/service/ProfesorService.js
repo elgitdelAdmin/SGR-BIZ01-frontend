@@ -104,8 +104,8 @@ export const ActualizarProfesor= ({jsonPersona,jwt}) =>{
 }
 
 export const RegistrarProfesor= ({jsonPersona,jwt}) =>{
-    return fetch(`${ENDPOINTTEST}/RegistrarProfesor`,{
-    //return fetch(`${ENDPOINT}/ZADProfesor/RegistrarProfesor`,{
+    //return fetch(`${ENDPOINTTEST}/RegistrarProfesor`,{
+    return fetch(`${ENDPOINT}/ZADProfesor/RegistrarProfesor`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
