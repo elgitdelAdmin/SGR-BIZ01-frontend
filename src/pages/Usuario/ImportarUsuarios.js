@@ -54,8 +54,10 @@ const ImportarUsuarios = () => {
                     ,PrimerApellido:item.Primer_apellido?item.Primer_apellido:""
                     ,SegundoApellido:item.Segundo_apellido?item.Segundo_apellido:""
                     ,Correo:item.Correo?item.Correo:""
-                    ,DNI:item.DNI?item.DNI:""
-                    ,IDCurso:item.Curso_ID
+                    ,TipoDocumento: item.Tipo_documento?item.Tipo_documento:null
+                    ,Documento:item.Documento?item.Documento:""
+                    ,IDCurso:item.Curso_ID,
+                    Telefono: item.Telefono?item.Telefono:""
             ,IdEmpresa:empresaSeleccionada})
         });
         console.log(JSON.stringify(json));
@@ -155,7 +157,9 @@ const ImportarUsuarios = () => {
                   <Column field="Primer_apellido" header="Primer apellido"sortable> </Column>
                   <Column field="Segundo_apellido" header="Segundo apellido"sortable> </Column>
                   <Column field="Correo" header="Correo"sortable> </Column>
-                  <Column field="DNI" header="DNI" sortable></Column>
+                  <Column field="Tipo_documento" header="Tipo documento"sortable> </Column>
+                  <Column field="Documento" header="Documento" sortable></Column>
+                  <Column field="Telefono" header="Telefono" sortable></Column>
                   <Column field="Curso_ID" header="Curso ID" sortable></Column>
                   
               </DatatableDefault>
