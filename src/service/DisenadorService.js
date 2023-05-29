@@ -3,8 +3,8 @@ const ENDPOINT = constantes.URLAPI;
 const ENDPOINTTEST = constantes.URL_TESTDISENADOR;
 
 export const ListarDiseñadorPorCurso = async({jwt,idCurso})=> {
-    return await fetch(`${ENDPOINT}/ZADDisenador/ListarDiseñadorPorCurso/${idCurso}`,{
-    //return await fetch(`${ENDPOINTTEST}/ListarDiseñadorPorCurso/${idCurso}`,{
+    return await fetch(`${ENDPOINT}/ZADDisenador/ListarDisenadorPorCurso/${idCurso}`,{
+    //return await fetch(`${ENDPOINTTEST}/ListarDisenadorPorCurso/${idCurso}`,{
         method: "GET",
         headers:{
             "Authorization":"Bearer "+jwt,
