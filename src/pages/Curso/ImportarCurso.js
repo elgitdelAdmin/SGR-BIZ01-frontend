@@ -110,6 +110,10 @@ const ImportarCurso = () => {
         return;
       }
       listaCurso.map((item, index) => {
+        if (isNaN(item.DURACION)) throw new Error(`Linea ${index}: Valor "${item.DURACION}" incorrecto, solo se admite valores númericos.`);
+        if (isNaN(item.VIDEO_INTRODUCCION)) throw new Error(`Linea ${index}: Valor "${item.VIDEO_INTRODUCCION}" incorrecto, solo se admite valores númericos.`);
+        if (isNaN(item.DURACION_INTRODUCCION)) throw new Error(`Linea ${index}: Valor "${item.DURACION_INTRODUCCION}" incorrecto, solo se admite valores númericos.`);
+        
         ListaCurso.push({
           Tipo: item.TIPO_CURSO,
           Nombre: item.NOMBRE,
@@ -131,6 +135,8 @@ const ImportarCurso = () => {
       });
 
       listaBibliografia.map((item, index) => {
+        if (isNaN(item.CATEGORIA)) throw new Error(`Linea ${index}: Valor "${item.CATEGORIA}" incorrecto, solo se admite valores númericos.`);
+
         ListaBibliografia.push({
           Categoria: item.CATEGORIA,
           Nombre: item.NOMBRE,
@@ -139,6 +145,8 @@ const ImportarCurso = () => {
       });
 
       listaUnidad.map((item, index) => {
+        if (isNaN(item.NUMERO)) throw new Error(`Linea ${index}: Valor "${item.NUMERO}" incorrecto, solo se admite valores númericos.`);
+
         ListaUnidad.push({
           Numero: item.NUMERO,
           Nombre: item.NOMBRE,
@@ -149,6 +157,9 @@ const ImportarCurso = () => {
       });
 
       listaLeccion.map((item, index) => {
+        if (isNaN(item.NUMERO_UNIDAD)) throw new Error(`Linea ${index}: Valor "${item.NUMERO_UNIDAD}" incorrecto, solo se admite valores númericos.`);
+        if (isNaN(item.NUMERO_LECCION)) throw new Error(`Linea ${index}: Valor "${item.NUMERO_LECCION}" incorrecto, solo se admite valores númericos.`);
+
         ListaLeccion.push({
           NroUnidad: item.NUMERO_UNIDAD,
           NroLeccion: item.NUMERO_LECCION,
@@ -158,6 +169,9 @@ const ImportarCurso = () => {
         });
       });
       listaMaterial.map((item, index) => {
+        if (isNaN(item.NUMERO_UNIDAD)) throw new Error(`Linea ${index}: Valor "${item.NUMERO_UNIDAD}" incorrecto, solo se admite valores númericos.`);
+        if (isNaN(item.NUMERO_LECCION)) throw new Error(`Linea ${index}: Valor "${item.NUMERO_LECCION}" incorrecto, solo se admite valores númericos.`);
+
         ListaMaterial.push({
           NroUnidad: item.NUMERO_UNIDAD,
           NroLeccion: item.NUMERO_LECCION,
@@ -166,6 +180,10 @@ const ImportarCurso = () => {
         });
       });
       listaEvaluacion.map((item, index) => {
+        if (isNaN(item.NUMERO_UNIDAD)) throw new Error(`Linea ${index}: Valor "${item.NUMERO_UNIDAD}" incorrecto, solo se admite valores númericos.`);
+        if (isNaN(item.NUMERO_PREGUNTA)) throw new Error(`Linea ${index}: Valor "${item.NUMERO_PREGUNTA}" incorrecto, solo se admite valores númericos.`);
+        if (isNaN(item.OPCION_CORRECTA)) throw new Error(`Linea ${index}: Valor "${item.OPCION_CORRECTA}" incorrecto, solo se admite valores númericos.`);
+
         ListaEvaluacion.push({
           NroUnidad: item.NUMERO_UNIDAD,
           NroPregunta: item.NUMERO_PREGUNTA,
