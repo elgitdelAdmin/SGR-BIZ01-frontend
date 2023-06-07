@@ -23,5 +23,10 @@ export const URL_TESTBENEFICIO = "http://localhost:7135/api";
 export const URL_TESTDISENADOR = "http://localhost:7257/api";
 export const URL_TESTPROGRAMA = "http://localhost:7247/api";
 
+export const accessKeyId = "DO00QKV4CKN9X3LVBW2C";
+export const secretAccessKey = "bq6cVk/A5Mtdm0K3ULCCsY8CZYEncEU55ACT4SxuaBg";
+export const endpoint = "https://nyc3.digitaloceanspaces.com"
+export const bucketZegel = "zegelvirtual"
+export const cdnDigitalOcean = "https://zegelvirtual.nyc3.cdn.digitaloceanspaces.com"
 
 // export const URL_NOTIFICACION = "http://localhost:7262/api"
