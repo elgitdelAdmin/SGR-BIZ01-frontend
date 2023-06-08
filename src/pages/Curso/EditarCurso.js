@@ -19,7 +19,7 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import {Uploader} from "rsuite"
-import { getBase64 } from "../../helpers/helpers";
+import { getBase64, validateRegex } from "../../helpers/helpers";
 import * as constantes from "../../constants/constantes.js";
 import { ObtenerListaCategorias } from "../../service/EmpresaService";
 import useUsuario from "../../hooks/useUsuario";
@@ -34,6 +34,7 @@ import { handleSoloLetrasNumeros } from "../../helpers/helpers";
 import { ObtenerEstadoCurso } from "../../service/EmpresaService";
 import { ListarTrazabilidadCurso } from "../../service/CursoService";
 import { formatDate } from "../../helpers/helpers";
+import { ChromePicker } from 'react-color';
 const EditarCurso = () => {
     const navigate = useNavigate();
     const [curso, setCurso] = useState(null);    
@@ -54,6 +55,9 @@ const EditarCurso = () => {
     const [listaCategorias, setListaCategorias] = useState(null);
 
     const [listaEstadoCurso, setListaEstadoCurso] = useState(null);
+
+    const [showPicker, setShowPicker] = useState(false);
+
 
     const {isLogged} = useUsuario()
     useEffect(()=>{
@@ -518,6 +522,13 @@ const EditarCurso = () => {
     const dateBodyTemplate = (rowData) => {
         return formatDate(new Date(rowData.fechaRegistro));
       };
+
+      const handleChangeComplete = (selectedColor) => {
+        formik.setFieldValue("color",selectedColor.hex)
+      };
+      const togglePicker = () => {
+        setShowPicker(!showPicker);
+      };
     return ( 
         <form onSubmit={formik.handleSubmit}>
             <ConfirmDialog />
@@ -553,9 +564,18 @@ const EditarCurso = () => {
                                 placeholder="Escribe aquí"
                                 value ={formik.values.color} 
                                 onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
+                                onBlur={(e)=>validateRegex(e,/^#([0-9A-Fa-f]{3}){1,2}$/i,formik,"color")}
+                                //onBlur={formik.handleBlur}
+                                onClick={togglePicker}
+                                style={{ zIndex: 1 }}
+                               
                                 ></InputText>
-                            <small className="p-error">{formik.touched.color && formik.errors.color}</small>
+                                {showPicker && (
+                                    <div style={{ position: 'absolute', zIndex: 2 ,right:30}}>
+                                        <ChromePicker color={formik.values.color} onChangeComplete={handleChangeComplete} />
+                                    </div>
+                                )}
+                                <small className="p-error">{formik.touched.color && formik.errors.color}</small>
                         </div>
                         
                         <div className="field col-12 md:col-6" >

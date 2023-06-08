@@ -166,6 +166,21 @@ export const handleSoloNumeros = (event,formik,label) => {
   
 };
 
+export const validateRegex = (e,regex,formik,label) => {
+  console.log("validateRegex",e.target.value)
+  const inputValue = e.target.value;
+  // const isValidColor = /^#([0-9A-Fa-f]{3}){1,2}$/i.test(inputValue);
+  const isValidColor = regex.test(inputValue);
+  
+  if (isValidColor || inputValue === '') {
+    formik.setFieldValue(label,inputValue)
+    //setColor(inputValue);
+  }
+  else{
+    formik.setFieldValue(label,"")
+  }
+};
+
 export const formatDate = (value) => {
   if(value)
   {

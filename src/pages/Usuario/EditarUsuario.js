@@ -116,7 +116,7 @@ const EditarUsuario = () => {
     segundoApellido: Yup.string().required(
       "Segundo Apellido es un campo obligatorio"
     ),
-    dni: Yup.string()
+    documento: Yup.string()
       .required("Documento es un campo obligatorio")
       .min(8, "Documento debe tener mínimo 8 números"),
     correo: Yup.string().nullable().required("Correo es un campo obligatorio"),
@@ -560,7 +560,7 @@ const EditarUsuario = () => {
                 toggleMask
                 //header={headerPass}
                 footer={footerPass}
-                promptLabel="Choose a password"
+                promptLabel="Ingrese contraseña"
                 weakLabel="Débil"
                 mediumLabel="Fuerte"
                 strongLabel="Complejidad"
