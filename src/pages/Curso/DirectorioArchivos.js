@@ -15,13 +15,23 @@ import {
 } from "../../constants/constantes";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
-import { fetchDirectoriesAll } from "../../service/DigitalOceansService";
+import { CreateDirectory, fetchDirectoriesAll } from "../../service/DigitalOceansService";
+import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
+import { Toast } from "primereact/toast";
 const DirectorioArchivos = () => {
+  const toast = useRef(null);
     const navigate = useNavigate();
     const [listairectorios, setListairectorios] = useState(null);
+    const [visibleDialogCrearCarpeta, setVisibleDialogCrearCarpeta] = useState(false);
+    const [nombreCarpetaNueva, setNombreCarpetaNueva] = useState(null);
   
-  useEffect(() => {
+  const listarDirectoriosPrincipales = ()=>{
     fetchDirectoriesAll("/",setListairectorios);
+  }
+
+  useEffect(() => {
+    listarDirectoriosPrincipales()
   }, []);
  
   const acciones = (rowData) => {
@@ -59,9 +69,39 @@ const DirectorioArchivos = () => {
         </div>
     )
   }
-
+  const handleCrearDirectorio=()=>{
+    if(nombreCarpetaNueva)
+    {
+      CreateDirectory("",nombreCarpetaNueva).then(data =>{
+        toast.current.show({
+          severity: "success",
+          summary: "Success",
+          detail:`Carpeta ${nombreCarpetaNueva} creada exitosamente.`,
+          life: 7000,
+        });
+        setVisibleDialogCrearCarpeta(false)
+        setNombreCarpetaNueva(null)
+        listarDirectoriosPrincipales();
+      }).catch(res=>{
+        toast.current.show({
+          severity: "error",
+          summary: "Error",
+          detail: res,
+          life: 7000,
+        });
+      })
+    }
+    
+  }
+  const footerContentCrear = (
+    <div>
+        <Boton label="cancelar" color="secondary" onClick={() => setVisibleDialogCrearCarpeta(false)}/>
+        <Boton label="Crear"  color="primary"  onClick={handleCrearDirectorio}/>
+    </div>
+  );
   return (
     <div className="zv-carga_archivos" style={{ paddingTop: 16 }}>
+  <Toast ref={toast} position="top-center"></Toast>
       <div className="header-titulo">Directorios</div>
       <div className="zv-carga-archivos-body">
         <div style={{ display: "flex", justifyContent: "end" }}>
@@ -70,6 +110,7 @@ const DirectorioArchivos = () => {
             style={{ fontSize: 12 }}
             color="primary"
             type="submit"
+            onClick={()=>setVisibleDialogCrearCarpeta(true)}
           ></Boton>
         </div>
         <div>
@@ -87,6 +128,13 @@ const DirectorioArchivos = () => {
           </DatatableDefault>
         </div>
       </div>
+      <Dialog header="Crear directorio" footer={footerContentCrear} visible={visibleDialogCrearCarpeta} style={{ width: '40vw',height:'40vh' }} onHide={() => setVisibleDialogCrearCarpeta(false)}>
+        <div className="flex flex-column gap-2">
+        <label htmlFor="nombreCarpeta">Nombre</label>
+        <InputText id="nombreCarpeta"value={nombreCarpetaNueva} onChange={(e)=>setNombreCarpetaNueva(e.target.value)}></InputText>
+        </div>
+        
+      </Dialog>
     </div>
   );
 };

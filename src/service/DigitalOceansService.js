@@ -104,6 +104,23 @@ export const fetchDirectoriesName = async (nombreDirectorio,delimitador,setField
       console.log("response upload:",response)
       
     } catch (error) {
+      new Error(error)
+    }
+  }
+
+  export const CreateDirectory = async (ruta, Nombre) => {
+
+    try {
+      const params = {
+        Bucket: bucketZegel,
+        Key: ruta+ Nombre+"/",
+        
+      };
+      const response = await s3.putObject(params).promise();
+
+      console.log("response upload:",response)
       
+    } catch (error) {
+      new Error(error)
     }
   }

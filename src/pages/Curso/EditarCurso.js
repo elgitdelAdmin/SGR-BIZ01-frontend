@@ -123,7 +123,7 @@ const EditarCurso = () => {
         
     },[])
     const accionEditar =(rowData)=>{
-        return <div className="datatable-accion">
+        return <div className="datatable-accion" style={{justifyContent:"end"}}>
             <div className="accion-editar" onClick={()=>navigate("../Curso/Editar/"+curso.idCurso+"/Unidad/Editar/"+rowData.idUnidad)}>
                 <span><Iconsax.Eye color="#ffffff"/></span>
             </div>
