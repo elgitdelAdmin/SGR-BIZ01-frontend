@@ -120,11 +120,11 @@ const DirectorioArchivos = () => {
           >
             <Column field="nombre" header="Nombre" body={bodyNombre} sortable></Column>
 
-            <Column
+            {/* <Column
               body={acciones}
               style={{ display: "flex", justifyContent: "center" }}
               header="Acciones"
-            ></Column>
+            ></Column> */}
           </DatatableDefault>
         </div>
       </div>

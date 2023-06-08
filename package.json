@@ -17,6 +17,7 @@
     "bootstrap-colorpicker": "^3.4.0",
     "classnames": "^2.2.6",
     "dropzone": "^6.0.0-beta.2",
+    "file-saver": "^2.0.5",
     "formik": "^2.2.9",
     "iconsax-react": "^0.0.8",
     "primeflex": "^3.1.0",

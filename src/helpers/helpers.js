@@ -1,5 +1,5 @@
-import { read, utils } from 'xlsx';
-
+import { read, utils,write} from 'xlsx';
+import { saveAs } from 'file-saver';
 export function getBase64 (file){
     return new Promise(resolve => {
       let fileInfo;
@@ -121,7 +121,49 @@ export function excelFileToJSONSheetName(file,nameSheet,setField){
     })
     
 }
+export const generateExcel = (dtRef) => {
+ 
+  const worksheet = utils.json_to_sheet(dtRef.current.props.value);
+  const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+  const excelBuffer = write(workbook, {
+      bookType: 'xlsx',
+      type: 'array'
+  });
 
+  // Descarga el archivo Excel
+  const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  saveAs(blob, 'data.xlsx');
+}
+
+
+export const handleCopyToClipboard = (dtRef) => {
+  if (dtRef.current) {
+    const tableData = dtRef.current.props.value; // Obtener los datos de la tabla
+    const formattedData = formatTableData(tableData); // Formatear los datos de la tabla
+
+    copyToClipboard(formattedData); // Copiar los datos al portapapeles
+    console.log('Contenido copiado al portapapeles');
+  }
+};
+const formatTableData = (data) => {
+  // Formatear los datos de la tabla según tu necesidad
+  // Puedes convertirlos a una cadena de texto en formato CSV, por ejemplo
+  // Aquí tienes un ejemplo de cómo convertirlos en una cadena separada por comas:
+  return data.map((item) => Object.values(item).join(',')).join('\n');
+};
+const copyToClipboard = (content) => {
+  // Crear un elemento de texto oculto para copiar el contenido al portapapeles
+  const textarea = document.createElement('textarea');
+  textarea.value = content;
+  document.body.appendChild(textarea);
+
+  // Seleccionar y copiar el contenido al portapapeles
+  textarea.select();
+  document.execCommand('copy');
+
+  // Remover el elemento de texto oculto
+  document.body.removeChild(textarea);
+};
 export const handleSoloLetras = (event,formik,label) => {
   if(event.target.value != null && event.target.value != undefined)
   {

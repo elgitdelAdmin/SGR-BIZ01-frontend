@@ -3,6 +3,8 @@ import { DataTable } from 'primereact/datatable';
 import { FilterMatchMode, FilterOperator } from 'primereact/api';
 import classNames from "classnames";
 import { InputText } from 'primereact/inputtext';
+import { Button } from 'primereact/button';
+import { generateExcel, handleCopyToClipboard } from '../../helpers/helpers';
 const DatatableDefault = (props) => {
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;    
@@ -10,6 +12,7 @@ const DatatableDefault = (props) => {
     const [filters, setFilters] = useState({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     });
+    const dt = useRef(null);
     const onGlobalFilterChange = (e) => {
         const value = e.target.value;
         let _filters = { ...filters };
@@ -22,18 +25,38 @@ const DatatableDefault = (props) => {
 
     const renderHeader = () => {
         return (
+        <div className='flex justify-content-between flex-wrap'>
+            {
+                props.export && 
+                props.export == true && 
+                <div  className='flex  flex-wrapjustify-content-center' style={{gap:8}}>
+                    <div className="flex">
+                        <Button type="button" icon="pi pi-copy" severity="success" onClick={()=>handleCopyToClipboard(dt)}/>
+                    </div>
+                    <div className="flex ">
+                        <Button type="button" icon="pi pi-file-excel"  severity="success" onClick={()=>generateExcel(dt)} data-pr-tooltip="XLS" />
+                    </div>
+                </div>
+            }
+           
+             
             <div className="flex justify-content-end">
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Buscar..." />
                 </span>
             </div>
+        </div>
+           
+        
+            
         );
     };
     const header = renderHeader();
 
     return ( 
         <DataTable
+        ref={dt}
             {...props}
             filters={filters}
             header={header}

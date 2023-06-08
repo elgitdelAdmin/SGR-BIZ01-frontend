@@ -124,3 +124,26 @@ export const fetchDirectoriesName = async (nombreDirectorio,delimitador,setField
       new Error(error)
     }
   }
+
+  export const ChangeNameFile = async (rutaAnterior, nombreNuevo) => {
+
+    try {
+      const params = {
+        Bucket: bucketZegel,
+        CopySource:bucketZegel + '/' + rutaAnterior,
+        Key: nombreNuevo,
+        ACL: 'public-read'
+      };
+      const response = await s3.copyObject(params).promise();
+      // Elimina el archivo original
+      const deleteParams = {
+        Bucket: bucketZegel,
+        Key: rutaAnterior,
+      };
+      await s3.deleteObject(deleteParams).promise();
+      console.log("response change:",response)
+      
+    } catch (error) {
+      new Error(error)
+    }
+  }
