@@ -31,10 +31,10 @@ const DatatableDefault = (props) => {
                 props.export == true && 
                 <div  className='flex  flex-wrapjustify-content-center' style={{gap:8}}>
                     <div className="flex">
-                        <Button type="button" icon="pi pi-copy" severity="success" onClick={()=>handleCopyToClipboard(dt)}/>
+                        <Button type="button" label='Copiar' icon="pi pi-copy" severity="success" onClick={()=>handleCopyToClipboard(dt)}/>
                     </div>
                     <div className="flex ">
-                        <Button type="button" icon="pi pi-file-excel"  severity="success" onClick={()=>generateExcel(dt)} data-pr-tooltip="XLS" />
+                        <Button type="button" label='Descargar'icon="pi pi-file-excel"  severity="success" onClick={()=>generateExcel(dt)} data-pr-tooltip="XLS" />
                     </div>
                 </div>
             }
