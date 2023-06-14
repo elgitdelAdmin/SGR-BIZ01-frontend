@@ -147,3 +147,20 @@ export const fetchDirectoriesName = async (nombreDirectorio,delimitador,setField
       new Error(error)
     }
   }
+
+  export const DeleteFile = async (path) => {
+
+    try {
+      const params = {
+        Bucket: bucketZegel,
+        Key: path,
+        
+      };
+      const response = await s3.deleteObject(params).promise();
+
+      console.log("response delete:",response)
+      
+    } catch (error) {
+      new Error(error)
+    }
+  }
