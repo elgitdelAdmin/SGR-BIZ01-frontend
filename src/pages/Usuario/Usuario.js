@@ -186,7 +186,7 @@ const Usuario = () => {
                             <Column field="nombres" header="Nombre" sortable></Column>
                             <Column field="correo" header="Email"sortable> </Column>
                             <Column field="tipoPersona.descripcionTipo" header="Tipo"sortable> </Column>
-                            <Column field="dni" header="DNI" sortable></Column>
+                            <Column field="documento" header="Documento" sortable></Column>
                             <Column field="activo" header="Estado"dataType="boolean" sortable body={booleanTemplate}></Column>
                             <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column>
                         </DatatableDefault>

@@ -72,9 +72,21 @@ const ImportarUsuarios = () => {
     if (empresaSeleccionada) {
       let json = [];
       try {
-        if (listaUsuario) {
+        if (listaUsuario && listaUsuario.length >0) {
           listaUsuario.forEach((obj, index) => {
+           
+            if (!obj.Tipo_documento) throw new Error(`Linea ${index +1}: Tipo_documento, cabecera incorrecta.`);
+            if (!obj.Documento) throw new Error(`Linea ${index +1}: Documento, cabecera incorrecta.`);
+            if (!obj.Nombres) throw new Error(`Linea ${index +1}: Nombres, cabecera incorrecta.`);
+            if (!obj.Primer_apellido) throw new Error(`Linea ${index +1}: Primer_apellido, cabecera incorrecta.`);
+            if (!obj.Segundo_apellido) throw new Error(`Linea ${index +1}: Segundo_apellido, cabecera incorrecta.`);
+            if (!obj.Correo) throw new Error(`Linea ${index +1}: Correo, cabecera incorrecta.`);
+            if (!obj.Curso_ID) throw new Error(`Linea ${index +1}: Curso_ID, cabecera incorrecta.`);
+            if (!obj.Telefono) throw new Error(`Linea ${index +1}: Telefono, cabecera incorrecta.`);
             validateDocumento(obj.Tipo_documento, obj.Documento);
+            if (isNaN(obj.Tipo_documento)) throw new Error(`Linea ${obj.Tipo_documento}: incorrecto, solo admite valores enteros.`);
+            if (isNaN(obj.Curso_ID)) throw new Error(`Linea ${obj.Curso_ID}: incorrecto, solo admite valores enteros.`);
+
           });
           listaUsuario.map((item, i) => {
             json.push({

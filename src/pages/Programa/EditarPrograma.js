@@ -12,7 +12,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { Field,FieldArray, Formik ,useFormik,FormikProvider} from "formik";
 import * as Yup from "yup";
 
-import { getBase64 } from "../../helpers/helpers";
+import { getBase64, handleSoloLetrastest } from "../../helpers/helpers";
 import * as constantes from "../../constants/constantes.js";
 
 import useUsuario from "../../hooks/useUsuario";
@@ -208,8 +208,9 @@ const EditarPrograma = () => {
                                 name="nombre"
                                 placeholder="Escribe nombre..."
                                 value ={formik.values.nombre} 
-                                //onChange={formik.handleChange}
-                                onChange={(e)=>handleSoloLetras(e,formik,"nombre")}
+                                onChange={formik.handleChange}
+                                //onChange={(e)=>handleSoloLetrastest(e,formik,"nombre")}
+                                onKeyPress={(e) => handleSoloLetrastest(e)}
                                 onBlur={formik.handleBlur}
                                 ></InputText>
                             <small className="p-error">
