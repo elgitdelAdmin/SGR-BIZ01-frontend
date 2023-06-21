@@ -53,7 +53,7 @@ const ImportarCurso = () => {
         setLoading(false);
         toast.current.show({
           severity: "success",
-          summary: "Success",
+          summary: "Éxito",
           detail: "Curso importado exitosamente.",
           life: 7000,
         });

@@ -70,7 +70,7 @@ const EditarDisenador = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarDisenador({jsonDisenador,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Diseñador registrado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Diseñador registrado exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -87,7 +87,7 @@ const EditarDisenador = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarDisenador({jsonDisenador,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Diseñador actualizado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Diseñador actualizado exitosamente.", life: 7000})
 
 
             setTimeout(() => {

@@ -104,8 +104,8 @@ export const RegistrarPersona= ({jsonPersona,jwt}) =>{
 }
 
 export const ActualizarPersona= ({jsonPersona,jwt}) =>{
-    //return fetch(`${ENDPOINTTEST}/ActualizarPersona`,{
-    return fetch(`${ENDPOINT}/ZADUsuario/ActualizarPersona`,{
+    return fetch(`${ENDPOINTTEST}/ActualizarPersona`,{
+    //return fetch(`${ENDPOINT}/ZADUsuario/ActualizarPersona`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,

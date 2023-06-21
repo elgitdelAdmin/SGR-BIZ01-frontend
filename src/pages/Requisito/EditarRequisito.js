@@ -25,7 +25,7 @@ const Requisito = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarRequisito({jsonRequisito,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Requisito registrada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Requisito registrada exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -42,7 +42,7 @@ const Requisito = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarRequisito({jsonRequisito,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Requisito actualizada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Requisito actualizada exitosamente.", life: 7000})
 
 
             setTimeout(() => {

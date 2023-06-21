@@ -69,7 +69,7 @@ const EditarPrograma = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarPrograma({jsonPrograma,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Programa registrado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Programa registrado exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -86,7 +86,7 @@ const EditarPrograma = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarPrograma({jsonPrograma,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Programa actualizado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Programa actualizado exitosamente.", life: 7000})
 
 
             setTimeout(() => {

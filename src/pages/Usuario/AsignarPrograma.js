@@ -20,7 +20,7 @@ const AsignarPrograma = () => {
     const navigate = useNavigate();
     const {isLogged} = useUsuario()
 
-    let { IDPersona } = useParams();
+    let { IDUsuario } = useParams();
     let { IdPersonaPrograma } = useParams();
     const toast = useRef(null);
 
@@ -58,15 +58,17 @@ const AsignarPrograma = () => {
             })
         }
         if(IdPersonaPrograma){
-            setModoEdicion(true)
+            
             GetPrograma()
         }
     },[IdPersonaPrograma])
 
+    
     const getProgramaCurso=(id)=>{
         let jwt = window.localStorage.getItem("jwt");
         let idPrograma  = id
         BuscarProgramaID({jwt,idPrograma}).then(data=>{
+            setModoEdicion(true)
             setCursosPrograma(data)
         })
     }
@@ -89,7 +91,7 @@ const AsignarPrograma = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarAsignarPrograma({jsonPrograma,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro actualizado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro actualizado exitosamente.", life: 7000})
             setTimeout(() => {
                 navigate(-1);
             }, 3000)
@@ -104,7 +106,7 @@ const AsignarPrograma = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarAsignarPrograma({jsonPrograma,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro exitoso.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro exitoso.", life: 7000})
             setTimeout(() => {
                 navigate(-1);
             }, 3000)
@@ -120,19 +122,19 @@ const AsignarPrograma = () => {
        
       });
     const formik = useFormik({
-        enableReinitialize:true,
+        enableReinitialize:modoEdicion?true:false,
         initialValues: { 
-            idPersonaPrograma: programa?programa.idPersonaPrograma:0,
-            idPrograma: programa?programa.idPrograma:"",
-            listaCursos: cursosPrograma?cursosPrograma.listaCursos:[]
+            idPersonaPrograma: modoEdicion?programa.idPersonaPrograma:0,
+            idPrograma: modoEdicion?programa.idPrograma:"",
+            listaCursos: modoEdicion?cursosPrograma.listaCursos:[]
         },
       validationSchema: schema,
       onSubmit: values => {
         let idPersonaPrograma = values.idPersonaCurso
         let idPrograma = values.idPrograma
-        let idPersona = IDPersona
+        let idUsuario = IDUsuario
         
-        let jsonPrograma = JSON.stringify({idPersonaPrograma,idPersona,idPrograma},null,2)
+        let jsonPrograma = JSON.stringify({idPersonaPrograma,idUsuario,idPrograma},null,2)
     //     //alert(jsonPersona);
     //     //console.log(jsonPersona)
        if(modoEdicion) Actualizar({jsonPrograma}) ;else{Registrar({jsonPrograma})} 

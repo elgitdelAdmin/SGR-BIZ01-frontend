@@ -63,7 +63,7 @@ const Curso = () => {
     
         EliminarCurso({jwt,id}).then(data=>{
             //formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
   
   
             setTimeout(() => {

@@ -67,7 +67,7 @@ const EditarPreguntas = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarPregunta({jsonPregunta,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Pregunta actualizada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Pregunta actualizada exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -84,7 +84,7 @@ const EditarPreguntas = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarPregunta({jsonPregunta,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Pregunta registrada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Pregunta registrada exitosamente.", life: 7000})
 
 
             setTimeout(() => {

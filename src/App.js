@@ -177,10 +177,10 @@ const onSidebarClick = () => {
                     <Route path="Programa" element={<Programa/>}></Route>
                     <Route path="Programa/Crear" element={<EditarPrograma/>}></Route>
                     <Route path="Programa/Editar/:id" element={<EditarPrograma/>}></Route>
-                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarCurso/Crear" element={<AsignarCurso/>}></Route>
-                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarCurso/:IdPersonaCurso" element={<AsignarCurso/>}></Route>
-                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarPrograma/Crear" element={<AsignarPrograma/>}></Route>
-                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarPrograma/:IdPersonaPrograma" element={<AsignarPrograma/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:IDUsuario/AsignarCurso/Crear" element={<AsignarCurso/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:IDUsuario/AsignarCurso/:IdPersonaCurso" element={<AsignarCurso/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:IDUsuario/AsignarPrograma/Crear" element={<AsignarPrograma/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:IDUsuario/AsignarPrograma/:IdPersonaPrograma" element={<AsignarPrograma/>}></Route>
                     <Route path="ImportarUsuario" element={<ImportarUsuarios/>}></Route>
                     <Route path="ImportarCurso" element={<ImportarCurso/>}></Route>
 

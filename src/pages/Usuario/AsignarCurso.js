@@ -18,18 +18,22 @@ const AsignarCurso = () => {
     const navigate = useNavigate();
     const {isLogged} = useUsuario()
 
-    let { IDPersona } = useParams();
+    let { IDUsuario } = useParams();
     let { IdPersonaCurso } = useParams();
     const toast = useRef(null);
 
     const [tituloPagina, setTituloPagina] = useState("Agregar curso");
     const [modoEdicion, setModoEdicion] = useState(false);
-    const [curso, setCurso] = useState(null);
+    const [curso, setCurso] = useState();
     const [listaCursos, setListaCursos] = useState(null);
     useEffect(()=>{
         const GetCurso= async()=>{
             let jwt = window.localStorage.getItem("jwt");
-            await ListarCursos({jwt}).then(data=>{setListaCursos(data)})
+            await ListarCursos({jwt}).then(data=>{
+                let temp = data.filter(x=>x.idEstado==3)
+
+                setListaCursos(temp)
+            })
         }
         if(!listaCursos) GetCurso()
       },[])
@@ -47,16 +51,21 @@ const AsignarCurso = () => {
         }
 
         if(IdPersonaCurso){
-            setModoEdicion(true)
+            
             GetCurso()
         }
     },[IdPersonaCurso])
+
+
+    useEffect(() => {
+        if(curso)setModoEdicion(true)
+    }, [curso]);
 
     const Actualizar =({jsonCurso})=>{
         let jwt = window.localStorage.getItem("jwt");
         ActualizarAsignarCurso({jsonCurso,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro actualizado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro actualizado exitosamente.", life: 7000})
             setTimeout(() => {
                 navigate(-1);
             }, 3000)
@@ -71,7 +80,7 @@ const AsignarCurso = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarAsignarCurso({jsonCurso,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro exitoso.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro exitoso.", life: 7000})
             setTimeout(() => {
                 navigate(-1);
             }, 3000)
@@ -87,20 +96,22 @@ const AsignarCurso = () => {
        
       });
     const formik = useFormik({
-        enableReinitialize:true,
+        enableReinitialize:modoEdicion ? true:false,
         initialValues: { 
-            idPersonaCurso: curso?curso.idPersonaCurso:0,
-            idCurso: curso?curso.idCurso:"",
-            finCurso: curso?(curso.finCurso ? new Date(curso.finCurso) : null):new Date()
+            idPersonaCurso: modoEdicion?curso.idPersonaCurso:0,
+            idCurso: modoEdicion?curso.idCurso:"",
+            finCurso: modoEdicion?(curso.finCurso ? new Date(curso.finCurso) : null):new Date()
+        
+            
         },
       validationSchema: schema,
       onSubmit: values => {
         let idPersonaCurso = values.idPersonaCurso
         let idCurso = values.idCurso
         let finCurso = values.finCurso
-        let idPersona = IDPersona
+        let idUsuario = IDUsuario
         
-        let jsonCurso = JSON.stringify({idPersonaCurso,idPersona,idCurso,finCurso},null,2)
+        let jsonCurso = JSON.stringify({idPersonaCurso,idUsuario,idCurso,finCurso},null,2)
     //     //alert(jsonPersona);
     //     //console.log(jsonPersona)
        if(modoEdicion) Actualizar({jsonCurso}) ;else{Registrar({jsonCurso})} 
@@ -138,7 +149,7 @@ const AsignarCurso = () => {
                     <small className="p-error">{formik.touched.idCurso && formik.errors.idCurso}</small>
                 </div>
                 {
-                    modoEdicion && curso && curso.persona.idTipoPersona != 2 &&
+                    modoEdicion && curso && curso.usuario.idTipoPersona != 2 &&
                     <div className="field col-12 md:col-7" >
                         <label className="label-form">Fin del curso</label>
                         <Calendar
@@ -164,7 +175,7 @@ const AsignarCurso = () => {
                     loading={formik.isSubmitting}
                     ></Boton>
                 {
-                    modoEdicion && curso && curso.persona.idTipoPersona != 2 &&
+                    modoEdicion && curso && curso.usuario.idTipoPersona != 2 &&
                     <Boton
                     label="Ver Intentos"
                     style={{ fontSize: 12 }}

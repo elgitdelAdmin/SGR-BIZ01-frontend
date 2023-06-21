@@ -39,7 +39,7 @@ const EditarMaterial = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarMaterial({jasonMaterial,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Material registrado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Material registrado exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -56,7 +56,7 @@ const EditarMaterial = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarMaterial({jasonMaterial,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Material actualizado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Material actualizado exitosamente.", life: 7000})
 
 
             setTimeout(() => {

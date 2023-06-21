@@ -87,7 +87,7 @@ const EditarLeccion = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarLeccion({jsonLeccion,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Lección registrada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Lección registrada exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -104,7 +104,7 @@ const EditarLeccion = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarLeccion({jsonLeccion,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Lección actualizada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Lección actualizada exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -174,7 +174,7 @@ const EditarLeccion = () => {
         let jwt = window.localStorage.getItem("jwt");
         EliminarMaterial({jwt,id}).then(data=>{
             //formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
   
   
             setTimeout(() => {

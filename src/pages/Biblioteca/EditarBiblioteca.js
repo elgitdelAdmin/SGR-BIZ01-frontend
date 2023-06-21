@@ -57,7 +57,7 @@ const EditarBiblioteca = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarBiblioteca({jsonBliblioteca,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Biblioteca registrada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Biblioteca registrada exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -74,7 +74,7 @@ const EditarBiblioteca = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarBiblioteca({jsonBliblioteca,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Biblioteca actualizada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Biblioteca actualizada exitosamente.", life: 7000})
 
 
             setTimeout(() => {

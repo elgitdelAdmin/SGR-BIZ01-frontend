@@ -89,12 +89,12 @@ const Usuario = () => {
 
     const accion =(rowData)=>{
         return  <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("EditarUsuario/"+rowData.idPersona)}>
+            <div className="accion-editar" onClick={()=>navigate("EditarUsuario/"+rowData.idUsuario)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
              <div className="accion-eliminar" onClick={()=>{
-                setUsuarioSeleccionado(rowData.idPersona)
-                confirm2(rowData.idPersona)
+                setUsuarioSeleccionado(rowData.idUsuario)
+                confirm2(rowData.idUsuario)
                 
              }}>
                 <span><Iconsax.Trash color="#ffffff"/></span>
@@ -118,7 +118,7 @@ const Usuario = () => {
         let idPersona = id
         EliminarPersona({jwt,idPersona}).then(data=>{
             //formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
   
   
             setTimeout(() => {

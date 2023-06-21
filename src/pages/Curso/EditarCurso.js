@@ -357,7 +357,7 @@ const EditarCurso = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarCurso({jsonCurso,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Curso registrado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Curso registrado exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -374,7 +374,7 @@ const EditarCurso = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarCurso({jsonCurso,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Curso actualizado exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Curso actualizado exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -392,7 +392,7 @@ const EditarCurso = () => {
         let idUnidad = id
         EliminarUnidad({jwt,idUnidad}).then(data=>{
             //formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
   
   
             setTimeout(() => {
@@ -410,7 +410,7 @@ const EditarCurso = () => {
         let id = idBiblioteca
         EliminarBiblioteca({jwt,id}).then(data=>{
             //formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
   
   
             setTimeout(() => {
@@ -428,7 +428,7 @@ const EditarCurso = () => {
         let id = idDisenador
         EliminarDisenador({jwt,id}).then(data=>{
             //formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Registro eliminado.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
   
   
             setTimeout(() => {

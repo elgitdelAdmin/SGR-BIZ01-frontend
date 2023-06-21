@@ -42,7 +42,7 @@ const EditarBeneficio = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarBeneficio({jsonBeneficio,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Beneficio registrada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Beneficio registrada exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -59,7 +59,7 @@ const EditarBeneficio = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarBeneficio({jsonBeneficio,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Beneficio actualizada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Beneficio actualizada exitosamente.", life: 7000})
 
 
             setTimeout(() => {

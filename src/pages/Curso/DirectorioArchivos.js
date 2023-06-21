@@ -75,7 +75,7 @@ const DirectorioArchivos = () => {
       CreateDirectory("",nombreCarpetaNueva).then(data =>{
         toast.current.show({
           severity: "success",
-          summary: "Success",
+          summary: "Éxito",
           detail:`Carpeta ${nombreCarpetaNueva} creada exitosamente.`,
           life: 7000,
         });

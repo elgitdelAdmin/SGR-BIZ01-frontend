@@ -141,7 +141,7 @@ const ImportarUsuarios = () => {
         //formik.setSubmitting(false)
         toast.current.show({
           severity: "success",
-          summary: "Success",
+          summary: "Éxito",
           detail: "Registro exitoso.",
           life: 7000,
         });

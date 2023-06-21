@@ -141,6 +141,7 @@ const EditarUsuario = () => {
       documento: persona ? persona.documento : "",
       correo: persona ? persona.correo : "",
       celular: persona ? persona.celular : null,
+      idUsuario : persona? persona.idUsuario : null
     },
     validationSchema: schema,
     onSubmit: (values) => {
@@ -158,6 +159,7 @@ const EditarUsuario = () => {
 
       let idEmpresa = IdEmpresa;
       let idTipoPersona = checked ? 3 : 1;
+      let idUsuario = values.idUsuario;
 
       let jsonPersona = JSON.stringify(
         {
@@ -174,6 +176,7 @@ const EditarUsuario = () => {
           celular,
           idEmpresa,
           idTipoPersona,
+          idUsuario
         },
         null,
         2
@@ -193,7 +196,7 @@ const EditarUsuario = () => {
         formik.setSubmitting(false);
         toast.current.show({
           severity: "success",
-          summary: "Success",
+          summary: "Éxito",
           detail: "Registro actualizado exitosamente.",
           life: 7000,
         });
@@ -220,7 +223,7 @@ const EditarUsuario = () => {
         formik.setSubmitting(false);
         toast.current.show({
           severity: "success",
-          summary: "Success",
+          summary: "Éxito",
           detail: "Registro exitoso.",
           life: 7000,
         });
@@ -313,7 +316,7 @@ const EditarUsuario = () => {
         //formik.setSubmitting(false)
         toast.current.show({
           severity: "success",
-          summary: "Success",
+          summary: "Éxito",
           detail: "Registro eliminado.",
           life: 7000,
         });
@@ -340,7 +343,7 @@ const EditarUsuario = () => {
         //formik.setSubmitting(false)
         toast.current.show({
           severity: "success",
-          summary: "Success",
+          summary: "Éxito",
           detail: "Registro eliminado.",
           life: 7000,
         });
@@ -523,7 +526,7 @@ const EditarUsuario = () => {
             <div className="field col-12 md:col-6">
               <label className="label-form">Telefono</label>
               <InputNumber
-                type={"text"}
+                
                 id="celular"
                 name="celular"
                 placeholder="Escribe aquí"
@@ -552,7 +555,7 @@ const EditarUsuario = () => {
               <Password
                 id="Password"
                 // className = "grey"
-
+                autoComplete = "false"
                 placeholder="Escribe aquí"
                 name="password"
                 onChange={formik.handleChange}
@@ -584,41 +587,44 @@ const EditarUsuario = () => {
               ></Checkbox>
             </div>
           </div>
+          {persona &&
           <div className="zv-editarUsuario-footer">
-            <Boton
-              label="Guardar cambios"
-              style={{ fontSize: 12 }}
-              color="primary"
-              type="submit"
-              loading={formik.isSubmitting}
-            ></Boton>
-            <Boton
-              label="Agregar curso"
-              style={{ fontSize: 12 }}
-              color="secondary"
-              type="button"
-              onClick={() =>
-                navigate(
-                  "../Usuario/EditarUsuario/" +
-                    persona.idPersona +
-                    "/AsignarCurso/Crear"
-                )
-              }
-            ></Boton>
-            <Boton
-              label="Agregar programa"
-              style={{ fontSize: 12 }}
-              color="secondary"
-              type="button"
-              onClick={() =>
-                navigate(
-                  "../Usuario/EditarUsuario/" +
-                    persona.idPersona +
-                    "/AsignarPrograma/Crear"
-                )
-              }
-            ></Boton>
-          </div>
+          <Boton
+            label="Guardar cambios"
+            style={{ fontSize: 12 }}
+            color="primary"
+            type="submit"
+            loading={formik.isSubmitting}
+          ></Boton>
+          <Boton
+            label="Agregar curso"
+            style={{ fontSize: 12 }}
+            color="secondary"
+            type="button"
+            onClick={() =>
+              navigate(
+                "../Usuario/EditarUsuario/" +
+                  persona.idUsuario +
+                  "/AsignarCurso/Crear"
+              )
+            }
+          ></Boton>
+          <Boton
+            label="Agregar programa"
+            style={{ fontSize: 12 }}
+            color="secondary"
+            type="button"
+            onClick={() =>
+              navigate(
+                "../Usuario/EditarUsuario/" +
+                  persona.idUsuario +
+                  "/AsignarPrograma/Crear"
+              )
+            }
+          ></Boton>
+        </div>
+          }
+          
           {modoEdicion && (
             <div className="zv-cursoPrograma" style={{ marginTop: 24 }}>
               <TabView>

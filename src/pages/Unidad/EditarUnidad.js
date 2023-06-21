@@ -111,7 +111,7 @@ const EditarUnidad = () => {
         let jwt = window.localStorage.getItem("jwt");
         RegistrarUnidad({jsonUnidad,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Unidad registrada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Unidad registrada exitosamente.", life: 7000})
 
 
             setTimeout(() => {
@@ -128,7 +128,7 @@ const EditarUnidad = () => {
         let jwt = window.localStorage.getItem("jwt");
         ActualizarUnidad({jsonUnidad,jwt}).then(data=>{
             formik.setSubmitting(false)
-            toast.current.show({severity:'success', summary: 'Success', detail:"Unidad actualizada exitosamente.", life: 7000})
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Unidad actualizada exitosamente.", life: 7000})
 
 
             setTimeout(() => {
