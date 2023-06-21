@@ -9,7 +9,7 @@ import Boton from "../../components/Boton/Boton";
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 
-import { ListarProgramas } from "../../service/ProgramaService";
+import { EliminarPrograma, ListarProgramas } from "../../service/ProgramaService";
 const Programa = () => {
     const navigate = useNavigate();
 
@@ -25,6 +25,24 @@ const Programa = () => {
         if(!listaProgramas) getPrograma()
     },[])
 
+
+    const Eliminar =({id})=>{
+        let jwt = window.localStorage.getItem("jwt");
+    
+        EliminarPrograma({jwt,id}).then(data=>{
+            //formik.setSubmitting(false)
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
+  
+  
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000)
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            //formik.setSubmitting(false)
+        })
+    }
     const accionEditar =(rowData)=>{
         return <div className="profesor-datatable-accion">
             <div className="accion-editar" onClick={()=>navigate("../Programa/Editar/"+rowData.idPrograma)}>
@@ -50,7 +68,7 @@ const Programa = () => {
             icon: 'pi pi-info-circle',
             acceptClassName: 'p-button-danger',
             acceptLabel:"Aceptar",
-            //accept:()=>Eliminar({id})
+            accept:()=>Eliminar({id})
         });
     };
 

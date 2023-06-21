@@ -43,7 +43,10 @@ const EditarPrograma = () => {
     useEffect(()=>{
         const getCursos= async()=>{
             let jwt = window.localStorage.getItem("jwt");
-            await ListarCursos({jwt}).then(data=>{setCursos(data)})
+            await ListarCursos({jwt}).then(data=>{
+                let temp = data.filter(x=>x.idEstado==3)
+                setCursos(temp)
+            })
         }
         if(!cursos) getCursos()
     },[])
@@ -132,30 +135,47 @@ const EditarPrograma = () => {
             // let imagenBase64 = imageBase64;
             // let tipoDocumento = imagenBase64 ? fileList[0].blobFile.type :null
             // let fotoCurso = imagenBase64 ?fileList[0].blobFile.name:values.fotoCurso
-            let idPrograma = values.idPrograma
-            let nombre = values.nombre
-            let codigoProducto = values.codigoProducto
-            let descripcion =values.descripcion
-            let logros = values.logros;
-            let descripcionSEO = values.descripcionSEO;
-            let duracion = values.duracion
-            let videoIntroduccion = values.videoIntroduccion
-            let precio =values.precio
-            let listaCursos = values.listaCursos
+            try {
+                let idPrograma = values.idPrograma
+                let nombre = values.nombre
+                let codigoProducto = values.codigoProducto
+                let descripcion =values.descripcion
+                let logros = values.logros;
+                let descripcionSEO = values.descripcionSEO;
+                let duracion = values.duracion
+                let videoIntroduccion = values.videoIntroduccion
+                let precio =values.precio
+                let listaCursos = values.listaCursos
+                
+                const idCursosSet = new Set();
+                listaCursos.forEach((curso) => {
+                    if (idCursosSet.has(curso.idCurso)) {
+                        throw new Error("No se pueden asignar cursos iguales a programa.");
+                    }
+                    idCursosSet.add(curso.idCurso);
+                });
 
-            let jsonPrograma = JSON.stringify({idPrograma,nombre,codigoProducto,descripcion,descripcionSEO,logros,duracion,videoIntroduccion,
-                 precio,listaCursos},null,2)
-            //console.log(jsonPrograma)
-            //formik.setSubmitting(false)
-            if(listaCursos.length > 1)
-            {
-                if(!modoEdicion) Registrar({jsonPrograma}) 
-                else {Actualizar({jsonPrograma})}
-            }
-            else{
-                toast.current.show({severity:'error', summary: 'Error', detail:"Seleccione al menos 2 cursos", life: 7000})
+                let jsonPrograma = JSON.stringify({idPrograma,nombre,codigoProducto,descripcion,descripcionSEO,logros,duracion,videoIntroduccion,
+                    precio,listaCursos},null,2)
+                console.log("guardar programa",jsonPrograma)
+                formik.setSubmitting(false)
+                // if(listaCursos.length > 1)
+                // {
+                //     if(!modoEdicion) Registrar({jsonPrograma}) 
+                //     else {Actualizar({jsonPrograma})}
+                // }
+                // else{
+                //     toast.current.show({severity:'error', summary: 'Error', detail:"Seleccione al menos 2 cursos", life: 7000})
+                //     formik.setSubmitting(false)
+                // }
+                
+                
+            } catch (error) {
+                toast.current.show({severity:'error', summary: 'Error',detail: error.message, life: 7000})
                 formik.setSubmitting(false)
             }
+
+            
            
       },
     });
