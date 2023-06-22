@@ -587,7 +587,7 @@ const EditarUsuario = () => {
               ></Checkbox>
             </div>
           </div>
-          {persona &&
+          
           <div className="zv-editarUsuario-footer">
           <Boton
             label="Guardar cambios"
@@ -596,7 +596,9 @@ const EditarUsuario = () => {
             type="submit"
             loading={formik.isSubmitting}
           ></Boton>
-          <Boton
+          {persona && 
+          <>
+            <Boton
             label="Agregar curso"
             style={{ fontSize: 12 }}
             color="secondary"
@@ -622,8 +624,11 @@ const EditarUsuario = () => {
               )
             }
           ></Boton>
+          </>
+          
+        }
         </div>
-          }
+          
           
           {modoEdicion && (
             <div className="zv-cursoPrograma" style={{ marginTop: 24 }}>
