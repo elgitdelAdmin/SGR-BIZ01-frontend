@@ -147,7 +147,7 @@ const EditarUsuario = () => {
     onSubmit: (values) => {
       let activo = values.activo;
       let password = values.password;
-      let idPersona = id;
+      let idPersona = values.idPersona;
       let nombres = values.nombres;
       let primerApellido = values.primerApellido;
       let segundoApellido = values.segundoApellido;
