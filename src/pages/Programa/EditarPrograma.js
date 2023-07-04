@@ -159,15 +159,15 @@ const EditarPrograma = () => {
                     precio,listaCursos},null,2)
                 console.log("guardar programa",jsonPrograma)
                 formik.setSubmitting(false)
-                // if(listaCursos.length > 1)
-                // {
-                //     if(!modoEdicion) Registrar({jsonPrograma}) 
-                //     else {Actualizar({jsonPrograma})}
-                // }
-                // else{
-                //     toast.current.show({severity:'error', summary: 'Error', detail:"Seleccione al menos 2 cursos", life: 7000})
-                //     formik.setSubmitting(false)
-                // }
+                if(listaCursos.length > 1)
+                {
+                    if(!modoEdicion) Registrar({jsonPrograma}) 
+                    else {Actualizar({jsonPrograma})}
+                }
+                else{
+                    toast.current.show({severity:'error', summary: 'Error', detail:"Seleccione al menos 2 cursos", life: 7000})
+                    formik.setSubmitting(false)
+                }
                 
                 
             } catch (error) {

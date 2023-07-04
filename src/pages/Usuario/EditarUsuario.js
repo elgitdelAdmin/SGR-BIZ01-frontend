@@ -123,7 +123,9 @@ const EditarUsuario = () => {
     celular: Yup.number()
       .nullable()
       .required("Teléfono es un campo obligatorio"),
-    tipoDocumento: Yup.string().nullable().required("Tipo documento es un campo obligatorio")
+    tipoDocumento: Yup.string()
+      .nullable()
+      .required("Tipo documento es un campo obligatorio"),
   });
 
   const formik = useFormik({
@@ -137,11 +139,11 @@ const EditarUsuario = () => {
       descripcion: persona ? persona.descripcion : "",
       activo: persona ? persona.activo : false,
       password: "",
-      tipoDocumento: persona ? persona.idTipoDocumento:null,
+      tipoDocumento: persona ? persona.idTipoDocumento : null,
       documento: persona ? persona.documento : "",
       correo: persona ? persona.correo : "",
       celular: persona ? persona.celular : null,
-      idUsuario : persona? persona.idUsuario : null
+      idUsuario: persona ? persona.idUsuario : null,
     },
     validationSchema: schema,
     onSubmit: (values) => {
@@ -176,7 +178,7 @@ const EditarUsuario = () => {
           celular,
           idEmpresa,
           idTipoPersona,
-          idUsuario
+          idUsuario,
         },
         null,
         2
@@ -442,9 +444,10 @@ const EditarUsuario = () => {
                 name="primerApellido"
                 placeholder="Escribe aquí"
                 value={formik.values.primerApellido}
-                //onChange={formik.handleChange}
-                onChange={(e) => handleSoloLetras(e, formik, "primerApellido")}
+                onChange={formik.handleChange}
+                //onChange={(e) => handleSoloLetras(e, formik, "primerApellido")}
                 onBlur={formik.handleBlur}
+                onKeyPress={(e) => handleSoloLetrastest(e)}
               ></InputText>
               <small className="p-error">
                 {formik.touched.primerApellido && formik.errors.primerApellido}
@@ -458,9 +461,10 @@ const EditarUsuario = () => {
                 name="segundoApellido"
                 placeholder="Escribe aquí"
                 value={formik.values.segundoApellido}
-                //onChange={formik.handleChange}
-                onChange={(e) => handleSoloLetras(e, formik, "segundoApellido")}
+                onChange={formik.handleChange}
+                //onChange={(e) => handleSoloLetras(e, formik, "segundoApellido")}
                 onBlur={formik.handleBlur}
+                onKeyPress={(e) => handleSoloLetrastest(e)}
               ></InputText>
               <small className="p-error">
                 {formik.touched.segundoApellido &&
@@ -475,9 +479,9 @@ const EditarUsuario = () => {
                 name="tipoDocumento"
                 placeholder="Seleccione"
                 value={formik.values.tipoDocumento}
-                onChange={(e)=>{
-                  formik.setFieldValue('documento',"");
-                  formik.handleChange(e)
+                onChange={(e) => {
+                  formik.setFieldValue("documento", "");
+                  formik.handleChange(e);
                 }}
                 onBlur={formik.handleBlur}
                 options={tipoDocumento}
@@ -499,9 +503,19 @@ const EditarUsuario = () => {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 //disabled={modoEdicion}
-                maxLength={formik.values.tipoDocumento&& formik.values.tipoDocumento == 1 ? 8 :12}
+                maxLength={
+                  formik.values.tipoDocumento &&
+                  formik.values.tipoDocumento == 1
+                    ? 8
+                    : 12
+                }
                 //pattern="[0-9]*"
-                keyfilter={formik.values.tipoDocumento&& formik.values.tipoDocumento == 1 ? /^\d+$/ : /^[0-9a-zA-Z||-]+$/gi}
+                keyfilter={
+                  formik.values.tipoDocumento &&
+                  formik.values.tipoDocumento == 1
+                    ? /^\d+$/
+                    : /^[0-9a-zA-Z||-]+$/gi
+                }
                 disabled={formik.values.tipoDocumento != null ? false : true}
               ></InputText>
               <small className="p-error">
@@ -526,7 +540,6 @@ const EditarUsuario = () => {
             <div className="field col-12 md:col-6">
               <label className="label-form">Telefono</label>
               <InputNumber
-                
                 id="celular"
                 name="celular"
                 placeholder="Escribe aquí"
@@ -555,7 +568,7 @@ const EditarUsuario = () => {
               <Password
                 id="Password"
                 // className = "grey"
-                autoComplete = "false"
+                autoComplete="false"
                 placeholder="Escribe aquí"
                 name="password"
                 onChange={formik.handleChange}
@@ -569,7 +582,9 @@ const EditarUsuario = () => {
                 strongLabel="Complejidad"
               />
             </div>
-            <div
+            {
+              !modoEdicion && 
+              <div
               className="field col-12 md:col-3"
               style={{
                 display: "flex",
@@ -586,50 +601,50 @@ const EditarUsuario = () => {
                 checked={checked}
               ></Checkbox>
             </div>
+            }
+            
           </div>
-          
+
           <div className="zv-editarUsuario-footer">
-          <Boton
-            label="Guardar cambios"
-            style={{ fontSize: 12 }}
-            color="primary"
-            type="submit"
-            loading={formik.isSubmitting}
-          ></Boton>
-          {persona && 
-          <>
             <Boton
-            label="Agregar curso"
-            style={{ fontSize: 12 }}
-            color="secondary"
-            type="button"
-            onClick={() =>
-              navigate(
-                "../Usuario/EditarUsuario/" +
-                  persona.idUsuario +
-                  "/AsignarCurso/Crear"
-              )
-            }
-          ></Boton>
-          <Boton
-            label="Agregar programa"
-            style={{ fontSize: 12 }}
-            color="secondary"
-            type="button"
-            onClick={() =>
-              navigate(
-                "../Usuario/EditarUsuario/" +
-                  persona.idUsuario +
-                  "/AsignarPrograma/Crear"
-              )
-            }
-          ></Boton>
-          </>
-          
-        }
-        </div>
-          
-          
+              label="Guardar cambios"
+              style={{ fontSize: 12 }}
+              color="primary"
+              type="submit"
+              loading={formik.isSubmitting}
+            ></Boton>
+            {persona && (
+              <>
+                <Boton
+                  label="Agregar curso"
+                  style={{ fontSize: 12 }}
+                  color="secondary"
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      "../Usuario/EditarUsuario/" +
+                        persona.idUsuario +
+                        "/AsignarCurso/Crear"
+                    )
+                  }
+                ></Boton>
+                <Boton
+                  label="Agregar programa"
+                  style={{ fontSize: 12 }}
+                  color="secondary"
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      "../Usuario/EditarUsuario/" +
+                        persona.idUsuario +
+                        "/AsignarPrograma/Crear"
+                    )
+                  }
+                ></Boton>
+              </>
+            )}
+          </div>
+
           {modoEdicion && (
             <div className="zv-cursoPrograma" style={{ marginTop: 24 }}>
               <TabView>

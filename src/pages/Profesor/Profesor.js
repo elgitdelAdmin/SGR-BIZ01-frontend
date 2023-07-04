@@ -35,7 +35,7 @@ const Profesor = () => {
 
     const accionEditar =(rowData)=>{
         return <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("../EditarProfesor/"+rowData.idPersona)}>
+            <div className="accion-editar" onClick={()=>navigate("../EditarProfesor/"+rowData.idUsuario)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
             {/* <div className="profesor-accion-eliminar" onClick={()=>navigate()}>
