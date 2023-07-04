@@ -2,6 +2,7 @@
  export const URLAPI = "https://qazegelapi.azure-api.net"
  export const URLBLOB_BASE = "https://grplataformavirtual9128.blob.core.windows.net/adjuntos"
 
+ export const URLCARPETACURSOS = 'assets/cursos/img'
 
 
 export const URLAVATARDEFAULT = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"

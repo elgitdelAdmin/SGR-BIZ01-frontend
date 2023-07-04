@@ -35,6 +35,13 @@ import { ObtenerEstadoCurso } from "../../service/EmpresaService";
 import { ListarTrazabilidadCurso } from "../../service/CursoService";
 import { formatDate } from "../../helpers/helpers";
 import { ChromePicker } from 'react-color';
+import {
+    ChangeNameFile,
+    CreateDirectory,
+    DeleteFile,
+    fetchDirectoriesName,
+    uploadFiles,
+  } from "../../service/DigitalOceansService";
 const EditarCurso = () => {
     const navigate = useNavigate();
     const [curso, setCurso] = useState(null);    
@@ -201,7 +208,8 @@ const EditarCurso = () => {
                 {
                     let temp = [{name: data.fotoCurso,
                                 fileKey: 1,
-                                    url: constantes.URLBLOB_CURSOS+"/"+data.fotoCurso}]
+                                    //url: constantes.URLBLOB_CURSOS+"/"+data.fotoCurso}]
+                                    url: data.fotoCurso}]
                                     setDefaultFile(temp)
                                     setFileList(temp)
                 }
@@ -320,14 +328,24 @@ const EditarCurso = () => {
             fotoCurso: curso?curso.fotoCurso:null,
             listaDefecto :curso&& curso.fotoCurso?[{name: curso.fotoCurso,
                 fileKey: 1,
-                    url: constantes.URLBLOB_CURSOS+"/"+curso.fotoCurso}] :[]
+                    url: curso.fotoCurso}] :[]
             
         },
         validationSchema: schema,
-      onSubmit: values => {
+      onSubmit: async values => {
             let imagenBase64 = imageBase64;
+            let fotoCurso = imagenBase64 == undefined ? "":values.fotoCurso
+            if(fileList[0] != undefined){
+                await uploadFiles(constantes.URLCARPETACURSOS, fileList[0].blobFile).then(data=>{
+                    fotoCurso = constantes.cdnDigitalOcean + "/" + constantes.URLCARPETACURSOS + "/" + fileList[0].blobFile.name;
+                });
+            }
+            else{
+                fotoCurso =imagenBase64 == undefined ?"":values.fotoCurso
+            }
+            
             let tipoDocumento = imagenBase64 ? fileList[0].blobFile.type :null
-            let fotoCurso = imagenBase64 ?fileList[0].blobFile.name:values.fotoCurso
+            
             let idCurso = values.idCurso
             let idCategoria = values.idCategoria
             let nombre = values.nombre
@@ -348,6 +366,7 @@ const EditarCurso = () => {
                 descripcionMeta,introduccionDuracion,precio,codigoProducto,idEstado},null,2)
             // alert(jsonCurso)
             // formik.setSubmitting(false)
+            
             if(!modoEdicion) Registrar({jsonCurso}) 
             else {Actualizar({jsonCurso})}
       },
