@@ -26,6 +26,10 @@ import { ListarCursos } from "../../service/CursoService";
 import { InputNumber } from "primereact/inputnumber";
 import { handleSoloLetrasNumeros } from "../../helpers/helpers";
 import { handleSoloLetras } from "../../helpers/helpers";
+
+import {Uploader} from "rsuite"
+import {uploadFiles} from "../../service/DigitalOceansService";
+
 const EditarPrograma = () => {
     const navigate = useNavigate();
     const [programa, setPrograma] = useState(null);
@@ -35,6 +39,12 @@ const EditarPrograma = () => {
     let { id } = useParams();
     const toast = useRef(null);
     const {isLogged} = useUsuario()
+
+    const [fileList, setFileList] = useState([]);
+    const [defaultFile, setDefaultFile] = useState([]);
+
+    const [fileListBanner, setFileListBanner] = useState([]);
+    const [defaultFileBanner, setDefaultFileBanner] = useState([]);
 
     useEffect(()=>{
         !isLogged && navigate("/");
@@ -56,6 +66,26 @@ const EditarPrograma = () => {
             let jwt = window.localStorage.getItem("jwt");
             let idPrograma = id
              BuscarProgramaID({jwt,idPrograma}).then(data=>{
+                if(data.imagenProducto)
+                {
+                    let temp = [{
+                        name: data.imagenProducto,
+                        fileKey: 1,
+                        url: data.imagenProducto
+                    }]
+                    setDefaultFile(temp)
+                    setFileList(temp)
+                };
+                if(data.imagenBanner)
+                {
+                    let temp = [{
+                        name: data.imagenBanner,
+                        fileKey: 1,
+                        url: data.imagenBanner
+                    }]
+                    setDefaultFileBanner(temp)
+                    setFileListBanner(temp)
+                };
                 setPrograma(data)
                 setTituloPagina("Editar Programa")
                 
@@ -102,6 +132,7 @@ const EditarPrograma = () => {
         })
     }
 
+    
     const schema = Yup.object().shape({
         codigoProducto: Yup.string().required("Codigo de producto es un campo obligatorio"),
         nombre: Yup.string().required("Nombre de programa es un campo obligatorio"),
@@ -131,11 +162,41 @@ const EditarPrograma = () => {
             
         },
     validationSchema: schema,
-      onSubmit: values => {
+      onSubmit: async values => {
             // let imagenBase64 = imageBase64;
             // let tipoDocumento = imagenBase64 ? fileList[0].blobFile.type :null
             // let fotoCurso = imagenBase64 ?fileList[0].blobFile.name:values.fotoCurso
             try {
+                let imagenProducto="";
+                if (fileList[0] != undefined) {
+                    if (fileList[0].blobFile != undefined) {
+                        await uploadFiles(constantes.URLCARPETACURSOS, fileList[0].blobFile).then(data => {
+                            imagenProducto = constantes.cdnDigitalOcean + "/" + constantes.URLCARPETACURSOS + "/" + fileList[0].blobFile.name;
+                        });
+                    }
+                    else{
+                        imagenProducto = fileList[0].url
+                    }
+                }
+                else{
+                    imagenProducto  ="";
+                }
+
+                let imagenBanner="";
+                if (fileListBanner[0] != undefined) {
+                    if (fileListBanner[0].blobFile != undefined) {
+                        await uploadFiles(constantes.URLCARPETACURSOS, fileListBanner[0].blobFile).then(data => {
+                            imagenBanner = constantes.cdnDigitalOcean + "/" + constantes.URLCARPETACURSOS + "/" + fileListBanner[0].blobFile.name;
+                        });
+                    }
+                    else{
+                        imagenBanner = fileListBanner[0].url
+                    }
+                }
+                else{
+                    imagenBanner  ="";
+                }
+                
                 let idPrograma = values.idPrograma
                 let nombre = values.nombre
                 let codigoProducto = values.codigoProducto
@@ -155,8 +216,10 @@ const EditarPrograma = () => {
                     idCursosSet.add(curso.idCurso);
                 });
 
-                let jsonPrograma = JSON.stringify({idPrograma,nombre,codigoProducto,descripcion,descripcionSEO,logros,duracion,videoIntroduccion,
-                    precio,listaCursos},null,2)
+                let jsonPrograma = JSON.stringify({
+                    idPrograma, nombre, codigoProducto, descripcion, descripcionSEO, logros, duracion, videoIntroduccion,
+                    precio, listaCursos,imagenProducto,imagenBanner
+                }, null, 2)
                 console.log("guardar programa",jsonPrograma)
                 formik.setSubmitting(false)
                 if(listaCursos.length > 1)
@@ -318,6 +381,36 @@ const EditarPrograma = () => {
                             <small className="p-error">
                                 {formik.touched.precio && formik.errors.precio}
                             </small>
+                        </div>
+                        <div className="field col-12 md:col-6">
+                        <Uploader  listType="picture" className="zv-fileUploader"
+                            fileList={defaultFile}
+                            disabled={fileList.length}
+                            onChange={setFileList} 
+                            autoUpload={false}
+                            
+                            >
+                            {/* <button type="button">
+                                <Iconsax.Camera></Iconsax.Camera>
+                            </button> */}
+                            <Boton label="Subir foto de programa" color="secondary" 
+                                    type ="button" style={{fontSize:12,width:160}}></Boton>
+                        </Uploader>
+                        </div>
+                        <div className="field col-12 md:col-6">
+                        <Uploader  listType="picture" className="zv-fileUploader"
+                            fileList={defaultFileBanner}
+                            disabled={fileListBanner.length}
+                            onChange={setFileListBanner} 
+                            autoUpload={false}
+                            
+                            >
+                            {/* <button type="button">
+                                <Iconsax.Camera></Iconsax.Camera>
+                            </button> */}
+                            <Boton label="Subir Banner de programa" color="secondary" 
+                                    type ="button" style={{fontSize:12,width:160}}></Boton>
+                        </Uploader>
                         </div>
                     </div>
                 </div>

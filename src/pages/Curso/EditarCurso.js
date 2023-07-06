@@ -332,13 +332,18 @@ const EditarCurso = () => {
             
         },
         validationSchema: schema,
-      onSubmit: async values => {
+        onSubmit: async values => {
             let imagenBase64 = imageBase64;
-            let fotoCurso = imagenBase64 == undefined ? "":values.fotoCurso
-            if(fileList[0] != undefined){
-                await uploadFiles(constantes.URLCARPETACURSOS, fileList[0].blobFile).then(data=>{
-                    fotoCurso = constantes.cdnDigitalOcean + "/" + constantes.URLCARPETACURSOS + "/" + fileList[0].blobFile.name;
-                });
+            let fotoCurso = imagenBase64 == undefined ? "" : values.fotoCurso
+            if (fileList[0] != undefined) {
+                if(fileList[0].blobFile != undefined) {
+                    await uploadFiles(constantes.URLCARPETACURSOS, fileList[0].blobFile).then(data => {
+                        fotoCurso = constantes.cdnDigitalOcean + "/" + constantes.URLCARPETACURSOS + "/" + fileList[0].blobFile.name;
+                    });
+                }
+                else{
+                     fotoCurso = fileList[0].url
+                }
             }
             else{
                 fotoCurso =imagenBase64 == undefined ?"":values.fotoCurso

@@ -22,6 +22,13 @@ import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For c
 import { EliminarPersonaCurso } from "../../service/UsuarioService";
 import { handleSoloLetras } from "../../helpers/helpers";
 import { handleSoloNumeros } from "../../helpers/helpers";
+import {
+  ChangeNameFile,
+  CreateDirectory,
+  DeleteFile,
+  fetchDirectoriesName,
+  uploadFiles,
+}from "../../service/DigitalOceansService";
 const EditarProfesor = () => {
     const navigate = useNavigate();
     const [profesor, setProfesor] = useState(null);
