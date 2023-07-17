@@ -149,7 +149,7 @@ export default function Login() {
                                         
                                     </div>
                                     <div className="form-footer">
-                                        <Button label="Ingesar" style={{background:"#404BD9",fontSize:14,width:160,borderRadius:0}} loading={isSubmitting}></Button>
+                                        <Button label="Ingresar" style={{background:"#404BD9",fontSize:14,width:160,borderRadius:0}} loading={isSubmitting}></Button>
                                     </div>
                                 </div>
 
