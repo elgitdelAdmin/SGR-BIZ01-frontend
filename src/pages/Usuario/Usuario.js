@@ -113,11 +113,12 @@ const Usuario = () => {
     }
 
 
-    const Eliminar =({id})=>{
+    const Eliminar =async ({id})=>{
         let jwt = window.localStorage.getItem("jwt");
         let idPersona = id
-        EliminarPersona({jwt,idPersona}).then(data=>{
+        await EliminarPersona({jwt,idPersona}).then(data=>{
             //formik.setSubmitting(false)
+            console.log(data);
             toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
   
   
