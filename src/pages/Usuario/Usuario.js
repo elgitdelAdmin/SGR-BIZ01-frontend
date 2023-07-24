@@ -179,7 +179,7 @@ const Usuario = () => {
                     listaPersonas &&
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
-                            globalFilterFields={['nombres', 'correo','dni']}
+                            globalFilterFields={['nombres', 'correo','documento']}
                             loading={loading}
                         >
                             <Column field="idPersona" header="ID" sortable></Column>
