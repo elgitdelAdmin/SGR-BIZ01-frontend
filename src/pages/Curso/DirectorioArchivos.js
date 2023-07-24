@@ -26,7 +26,7 @@ const DirectorioArchivos = () => {
     const [visibleDialogCrearCarpeta, setVisibleDialogCrearCarpeta] = useState(false);
     const [nombreCarpetaNueva, setNombreCarpetaNueva] = useState(null);
     const [buttonDisableCrearCarpeta,setbuttonDisableCrearCarpeta] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const listarDirectoriosPrincipales = ()=>{
     fetchDirectoriesAll("/",setListairectorios);
   }
@@ -74,7 +74,9 @@ const DirectorioArchivos = () => {
     setbuttonDisableCrearCarpeta(true);
     if(nombreCarpetaNueva)
     {
+      setLoading(true)
       CreateDirectory("",nombreCarpetaNueva).then(data =>{
+        setLoading(false)
         setbuttonDisableCrearCarpeta(false);
         toast.current.show({
           severity: "success",
@@ -86,6 +88,7 @@ const DirectorioArchivos = () => {
         setNombreCarpetaNueva(null)
         listarDirectoriosPrincipales();
       }).catch(res=>{
+        setLoading(false)
         setbuttonDisableCrearCarpeta(false);
         toast.current.show({
           severity: "error",
@@ -96,13 +99,14 @@ const DirectorioArchivos = () => {
       })
     }
     else{
+      setLoading(false)
       setbuttonDisableCrearCarpeta(false);
     }
   }
   const footerContentCrear = (
     <div>
         <Boton label="cancelar" color="secondary" onClick={() => setVisibleDialogCrearCarpeta(false)}/>
-        <Boton label="Crear"  color="primary" disabled = {buttonDisableCrearCarpeta} onClick={handleCrearDirectorio}/>
+        <Boton label="Crear"  color="primary" disabled = {buttonDisableCrearCarpeta} onClick={handleCrearDirectorio} loading = {loading}/>
     </div>
   );
   return (
