@@ -121,6 +121,7 @@ const EditarLeccion = () => {
         enableReinitialize:true,
         initialValues: { 
             idLeccion: leccion?leccion.idLeccion:0,
+            titulo : leccion?leccion.titulo:"",
             descripcion : leccion?leccion.descripcion:"",
             descripcionSeo : leccion?leccion.descripcionSEO:"",
             URLVideo: leccion?leccion.URLVideo:"",
@@ -129,13 +130,14 @@ const EditarLeccion = () => {
         },
     //   validationSchema: schema,
       onSubmit: values => {
-        let idUnidad = IDUnidad
+        let idLeccion = IDLeccion
+        let titulo =values.titulo
         let descripcion =values.descripcion
         let descripcionSEO =values.descripcionSeo
         let URLVideo = values.URLVideo
         let secuencia = values.secuencia
 
-        let jsonLeccion = JSON.stringify({idUnidad,descripcion,descripcionSEO,URLVideo,secuencia},null,2)
+        let jsonLeccion = JSON.stringify({idLeccion,descripcion,descripcionSEO,URLVideo,secuencia,titulo},null,2)
 
         if(!modoEdicion) Registrar({jsonLeccion}) 
         else {Actualizar({jsonLeccion})}
@@ -212,10 +214,10 @@ const EditarLeccion = () => {
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Titulo</label>
                             <InputText type={"text"} 
-                                id="descripcion"
-                                name="descripcion"
+                                id="titulo"
+                                name="titulo"
                                 placeholder="Escribe aquí"
-                                value ={formik.values.descripcion} 
+                                value ={formik.values.titulo} 
                                 onChange={formik.handleChange}
                                 onblur={formik.handleBlur}
                                 ></InputText>
