@@ -136,7 +136,7 @@ const EditarPrograma = () => {
     const schema = Yup.object().shape({
         codigoProducto: Yup.string().required("Codigo de producto es un campo obligatorio"),
         nombre: Yup.string().required("Nombre de programa es un campo obligatorio"),
-        precio: Yup.string().required("Precio es un campo obligatorio"),
+        precio: Yup.string().nullable().required("Precio es un campo obligatorio"),
         descripcion: Yup.string().required("Descripción es un campo obligatorio"),
       });
     const formik = useFormik({
@@ -157,7 +157,7 @@ const EditarPrograma = () => {
             descripcionSEO : programa?programa.descripcionSEO:"",
             duracion: programa?programa.duracion:"",
             videoIntroduccion: programa?programa.videoIntroduccion:"",
-            precio: programa?programa.precio:"",
+            precio: programa?programa.precio:null,
             listaCursos : programa?programa.listaCursos:[{idPrograma:0,idCurso:0}]
             
         },
