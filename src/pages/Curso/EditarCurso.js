@@ -317,7 +317,7 @@ const EditarCurso = () => {
             logros:  curso?curso.logros:"",
             descripcionSEO: curso?curso.descripcionSEO:"",
             duracion: curso?curso.duracion:"",
-            color: curso?curso.color:"",
+            color: curso && curso.color?curso.color:"",
             videoIniciacion: curso?curso.videoIniciacion:"",
             videoIntroduccion: curso?curso.videoIntroduccion:"",
             descripcionMeta: curso?curso.descripcionMeta:"",
@@ -358,7 +358,7 @@ const EditarCurso = () => {
             let logros = values.logros;
             let descripcionSEO = values.descripcionSEO;
             let duracion = values.duracion
-            let color = values.color
+            let color = values.color ? values.color.trim() :""
             let videoIniciacion = values.videoIniciacion
             let videoIntroduccion = values.videoIntroduccion
             let descripcionMeta = values.descripcionMeta
