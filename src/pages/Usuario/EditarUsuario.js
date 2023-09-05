@@ -79,7 +79,7 @@ const EditarUsuario = () => {
       let jwt = window.localStorage.getItem("jwt");
       let idPersona = id;
       await ObtenerCursosPorUsuario({ jwt, idPersona }).then((data) => {
-        setListaCursos(data);
+        setListaCursos(data.filter(x=>x.idPersonaPrograma == null));
         setLoadingCurso(false);
       });
     };

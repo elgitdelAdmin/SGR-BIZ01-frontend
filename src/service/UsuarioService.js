@@ -1,6 +1,38 @@
 import * as constantes from "../constants/constantes.js";
 const ENDPOINT = constantes.URLAPI;
 const ENDPOINTTEST = constantes.URL_TESTLOGIN;
+export const getPerfil = async ({jwt}) =>{
+    return await fetch(`${ENDPOINT}/ZPTAlumno/ObtenerPerfil`,{
+    //return await fetch(`${ENDPOINTTEST}/ObtenerPerfil`,{
+        method: "GET",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            //'Content-Type': 'application/json'
+            "accept": "text/plain"
+        },
+        
+    }).then(res=>{
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+    
+}
 
 export const ObtenerListaPersonas = async({jwt})=> {
     return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerListaPersonas`,{
@@ -333,7 +365,7 @@ export const ObtenerCursosPorUsuario = async ({jwt,idPersona}) =>{
 }
 
 export const RegistrarAsignarPrograma= ({jsonPrograma,jwt}) =>{
-    //return fetch(`${ENDPOINTTEST}/RegistrarPrograma`,{
+    // return fetch(`${ENDPOINTTEST}/RegistrarPrograma`,{
     return fetch(`${ENDPOINT}/ZADUsuario/RegistrarPrograma`,{
         method: "POST",
         headers:{

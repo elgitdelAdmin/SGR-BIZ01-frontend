@@ -10,13 +10,14 @@ import { Field,FieldArray, Formik ,useFormik,FormikProvider} from "formik";
 import { Toast } from 'primereact/toast';
 import useUsuario from "../../hooks/useUsuario";
 
-import { RegistrarAsignarCurso,ActualizarAsignarCurso,ObtenerCursoUsuarioPorId } from "../../service/UsuarioService";
+import { RegistrarAsignarCurso,ActualizarAsignarCurso,ObtenerCursoUsuarioPorId, ObtenerPersonaPorId } from "../../service/UsuarioService";
 import { ListarCursos } from "../../service/CursoService";
 
 import { Calendar } from 'primereact/calendar';
+import { buscarConfiguracion } from "../../helpers/helpers";
 const AsignarCurso = () => {
     const navigate = useNavigate();
-    const {isLogged} = useUsuario()
+    const {isLogged,configuraciones} = useUsuario()
 
     let { IDUsuario } = useParams();
     let { IdPersonaCurso } = useParams();
@@ -26,17 +27,45 @@ const AsignarCurso = () => {
     const [modoEdicion, setModoEdicion] = useState(false);
     const [curso, setCurso] = useState();
     const [listaCursos, setListaCursos] = useState(null);
+    const [persona, setPersona] = useState(null);
+    useEffect(() => {
+        const getPersona = async () => {
+          let jwt = window.localStorage.getItem("jwt");
+          let idPersona = IDUsuario;
+          await ObtenerPersonaPorId({ jwt, idPersona }).then((data) => {
+            setPersona(data)
+          });
+        };
+        if (IDUsuario) getPersona();
+      }, [IDUsuario]);
     useEffect(()=>{
         const GetCurso= async()=>{
             let jwt = window.localStorage.getItem("jwt");
             await ListarCursos({jwt}).then(data=>{
-                let temp = data.filter(x=>x.idEstado==3)
+                let usuariosPermitidos = buscarConfiguracion(configuraciones,"USUARIOS_PRUEBAS")
+                let arrayUsuarios = usuariosPermitidos.split("|")
+                if(arrayUsuarios.length >0)
+                {
+                    if(arrayUsuarios.includes(persona.correo))
+                    {
+                        setListaCursos(data.filter(x=>x.idEstado ==1|| x.idEstado ==2||x.idEstado ==3))
+                    }else{
+                        let temp = data.filter(x=>x.idEstado==3)
+    
+                        setListaCursos(temp)
+                    }
+                }else{
+                    let temp = data.filter(x=>x.idEstado==3)
 
-                setListaCursos(temp)
+                    setListaCursos(temp)
+                }
+                
             })
         }
-        if(!listaCursos) GetCurso()
-      },[])
+        if(!listaCursos && persona && configuraciones.length >0) GetCurso()
+      },[persona,configuraciones]);
+
+     
     useEffect(()=>{
         const GetCurso=()=>{
             let jwt = window.localStorage.getItem("jwt");

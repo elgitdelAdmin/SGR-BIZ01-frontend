@@ -190,7 +190,7 @@ const EditarCurso = () => {
     useEffect(() => {
       if (curso) {
         if (curso.idEstado == 1 ||curso.idEstado == 2) {
-            let temp = listaEstadoCurso.filter(x=>x.id == 1 || x.id ==2)
+            let temp = listaEstadoCurso.filter(x=>x.id == 1 || x.id ==2 || x.id ==3);
             setListaEstadoCurso(temp)
         } else if (curso.idEstado == 3 || curso.idEstado == 4) {
             let temp = listaEstadoCurso.filter(x=>x.id == 3 || x.id ==4)
