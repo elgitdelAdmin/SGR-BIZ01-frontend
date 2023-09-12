@@ -202,8 +202,8 @@ export const ListarTrazabilidadCurso = async ({jwt,id}) =>{
 }
 
 export const ImportarCursos= ({jsonImportar,jwt}) =>{
-    return fetch(`${ENDPOINTTEST}/ImportarCurso`,{
-    //return fetch(`${ENDPOINT}/ZADCurso/ImportarCurso`,{
+    //return fetch(`${ENDPOINTTEST}/ImportarCurso`,{
+    return fetch(`${ENDPOINT}/ZADCurso/ImportarCurso`,{
         method: "POST",
         headers:{
             "Authorization":"Bearer "+jwt,
