@@ -246,6 +246,7 @@ export const  convertirTiempoDecimal=(decimal)=> {
   return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
 
 }
+
 export const buscarConfiguracion =(lista,codigo)=>
 {
   if(lista)
