@@ -264,7 +264,8 @@ const ImportarCurso = () => {
       <div className="zv-importarCursos-body" style={{ marginTop: 16 }}>
         <div style={{ marginTop: 16, cursor: "pointer" }}>
           {/* <a href="#" onClick={()=>handleClickDownload("https://grplataformavirtual9128.blob.core.windows.net/adjuntos/PlantillasZegel/plantilla_carga_usuarios.xlsx","plantilla_carga_usuarios")}>Descargar plantilla</a> */}
-          <a href="https://grplataformavirtual9128.blob.core.windows.net/adjuntos/PlantillasZegel/FORMATO_IMPORTAR_CURSOS.xlsx">
+          {/* <a href="https://grplataformavirtual9128.blob.core.windows.net/adjuntos/PlantillasZegel/FORMATO_IMPORTAR_CURSOS.xlsx"> */}
+          <a href="https://zegelvirtual.nyc3.cdn.digitaloceanspaces.com/assets/cursos/plantillas-carga/FORMATO_IMPORTAR_CURSO.xlsx">
             Descargar plantilla
           </a>
         </div>
