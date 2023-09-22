@@ -12,18 +12,33 @@ import { Toast } from 'primereact/toast';
 import { InputTextarea } from "primereact/inputtextarea";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
-import { ActualizarPregunta,RegistrarPregunta,BuscarPreguntaID } from "../../service/PreguntaService";
+import { ActualizarPregunta,RegistrarPregunta,BuscarPreguntaID, ListarRespuestasPorPregunta } from "../../service/PreguntaService";
 const EditarPreguntas = () => {
     const navigate = useNavigate();
 
     const [pregunta, setPregunta] = useState(null); 
     const [modoEdicion, setModoEdicion] = useState(false);
     const [tituloPagina, setTituloPagina] = useState("Crear Pregunta");
+    const [listaRespuestas, setListaRespuestas] = useState(null);
+
     let { IDCurso } = useParams();
     let { IDUnidad } = useParams();
     let { IDLeccion } = useParams();
     let {IDPregunta} = useParams();
     const toast = useRef(null);
+
+
+    useEffect(() => {
+        const getRespuestas= async()=>{
+            let jwt = window.localStorage.getItem("jwt");
+            let id = IDPregunta
+            await ListarRespuestasPorPregunta({jwt,id}).then(data=>{
+                setListaRespuestas(data)
+            })
+        }
+        if(IDPregunta)getRespuestas()
+    }, [IDPregunta]);
+
 
     const comboTipoRecurso = [
         {valor:"imagen",label:"Imagen"}
@@ -135,6 +150,11 @@ const EditarPreguntas = () => {
       },
     });
 
+    const bodyEstadoRespuesta =(rowData)=>{
+        return(
+            <div>{rowData.correcta ? 1 :0}</div>
+        )
+    } 
     return ( 
         <form onSubmit={formik.handleSubmit}>
             <div className="zv-editarPregunta" style={{paddingTop:16}}>
@@ -245,12 +265,12 @@ const EditarPreguntas = () => {
                         <div className="zv-listado-respuestas" style={{marginTop:16 }}>
                             <div className="header-subTitulo">Respuestas</div>   
                             <DatatableDefault
-                                value={[]}
+                                value={listaRespuestas}
                                 >
-                                <Column field="iDRespuesta" header="ID" sortable></Column>
+                                <Column field="idRespuesta" header="ID" sortable></Column>
                                 <Column field="descripcion" header="Descripción" sortable ></Column>
-                                <Column field="correcta" header="Correcta/Incorrecta" sortable></Column>
-                                <Column field="tipo" header="Tipo" sortable></Column>
+                                <Column field="correcta" header="Correcta/Incorrecta"  body={bodyEstadoRespuesta} sortable></Column>
+                                <Column field="tipoRecurso" header="Tipo" sortable></Column>
                                 <Column 
                                     body={accionEditarRespuesta}
                                     style={{ display: "flex", justifyContent: "center" }}
