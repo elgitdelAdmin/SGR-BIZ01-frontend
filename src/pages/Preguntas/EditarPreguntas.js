@@ -123,7 +123,7 @@ const EditarPreguntas = () => {
             idPregunta: pregunta?pregunta.idPregunta:0,
             idUnidad: IDUnidad,
             idPreguntaTipo: pregunta?pregunta.idPreguntaTipo:"",
-            idTipoRecurso: pregunta?pregunta.idTipoRecurso:0,
+            idTipoRecurso: pregunta?(pregunta.idTipoRecurso == 1 ?"galeria":pregunta.idTipoRecurso ==2 ?"imagen": "video"  ):0,
             titulo:pregunta?pregunta.titulo:"",
             respuesta : pregunta?pregunta.respuesta:"",
             recurso : pregunta?pregunta.recurso:"",
@@ -182,10 +182,10 @@ const EditarPreguntas = () => {
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Tipo de Recurso</label>
                             <DropdownDefault type={"text"} 
-                                id="iDTipoRecurso"
-                                name="iDTipoRecurso"
+                                id="idTipoRecurso"
+                                name="idTipoRecurso"
                                 placeholder="Seleccionar..."
-                                value ={formik.values.iDTipoRecurso} 
+                                value ={formik.values.idTipoRecurso} 
                                 onChange={formik.handleChange}
                                 onblur={formik.handleBlur}
                                 options={comboTipoRecurso} optionLabel="label" optionValue ="valor"
