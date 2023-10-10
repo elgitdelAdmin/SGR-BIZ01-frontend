@@ -79,7 +79,7 @@ const EditarUsuario = () => {
       let jwt = window.localStorage.getItem("jwt");
       let idPersona = id;
       await ObtenerCursosPorUsuario({ jwt, idPersona }).then((data) => {
-        setListaCursos(data.filter(x=>x.idPersonaPrograma == null));
+        setListaCursos(data.filter(x=>x.idPersonaPrograma === null));
         setLoadingCurso(false);
       });
     };
@@ -308,6 +308,9 @@ const EditarUsuario = () => {
       </div>
     );
   };
+  const dateBodyTemplateFechaActivacion = (rowData) => {
+    return rowData.fechaActivacion ? formatDate(new Date(rowData.fechaActivacion)) : "";
+  };
   const dateBodyTemplate = (rowData) => {
     return rowData.finCurso ? formatDate(new Date(rowData.finCurso)) : "";
   };
@@ -386,7 +389,8 @@ const EditarUsuario = () => {
     });
   };
   const programaTemplate = (rowData) => {
-    return <span>{rowData.programa ? rowData.programa : "No"}</span>;
+    console.log(rowData);
+    return <span>{rowData.programa && rowData.idPersonaPrograma ? rowData.programa : "No"}</span>;
   };
 
   const headerPass = <div className="font-bold mb-3">Ingrese password</div>;
@@ -670,12 +674,12 @@ const EditarUsuario = () => {
                     <Column
                       field="fechaActivacion"
                       header="Activación"
+                      body={dateBodyTemplateFechaActivacion}
                       sortable
                     ></Column>
                     <Column
                       field="finCurso"
                       header="Vigencia"
-                      dataType="date"
                       body={dateBodyTemplate}
                       sortable
                     ></Column>
