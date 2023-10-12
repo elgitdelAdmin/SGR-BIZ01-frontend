@@ -101,3 +101,7 @@
     -webkit-transform: scale(0);
     transform: scale(0);
 }
+
+.p-ink-active{
+    animation: ripple 0s linear !important;
+}
