@@ -1,6 +1,6 @@
 
- export const URLAPI = "https://qazegelapi.azure-api.net";
- export const URLBLOB_BASE = "https://grplataformavirtual9128.blob.core.windows.net/adjuntos";
+ export const URLAPI = "https://prdzegelapi.azure-api.net";
+ export const URLBLOB_BASE = "https://blobplataformavirtual.blob.core.windows.net/adjuntos";
 
  export const URLCARPETACURSOS = 'assets/cursos/img';
  export const URLCARPETAAVATARDOCENTE = 'assets/cursos/img';// 'Docentes';
