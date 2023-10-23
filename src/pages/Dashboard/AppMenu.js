@@ -161,7 +161,7 @@ export const AppMenu = (props) => {
                             to: "Programa",
                             visible: true
                         },
-                        {
+                        /* {
                             label: "Marketing",
                             // icon: <Iconly.Home set="light" />,
                             icon: <Iconsax.ShoppingCart set="light" variant="Bold"/>,
@@ -175,7 +175,7 @@ export const AppMenu = (props) => {
                                     icon:<Iconsax.Tag set="light" variant="Bold"/>
                                 }
                             ]
-                        },
+                        }, */
                        
                     ],
                 },
