@@ -67,6 +67,7 @@ const EditarUsuario = () => {
       await ObtenerPersonaPorId({ jwt, idPersona }).then((data) => {
         setTituloPagina("Datos de usuario");
         setPersona(data);
+        console.log(data);
         setModoEdicion(true);
         data.idTipoPersona == 3 ? setChecked(true) : setChecked(false);
       });
@@ -119,13 +120,17 @@ const EditarUsuario = () => {
     documento: Yup.string()
       .required("Documento es un campo obligatorio")
       .min(8, "Documento debe tener mínimo 8 números"),
-    correo: Yup.string().nullable().required("Correo es un campo obligatorio"),
+    correo: Yup.string().nullable().required("Correo es un campo obligatorio")
+    .matches(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,"Correo no válido"),
+    
     celular: Yup.number()
       .nullable()
       .required("Teléfono es un campo obligatorio"),
     tipoDocumento: Yup.string()
       .nullable()
       .required("Tipo documento es un campo obligatorio"),
+    password: Yup.string()
+      .required("Password es un campo obligatorio")
   });
 
   const formik = useFormik({
@@ -138,7 +143,7 @@ const EditarUsuario = () => {
       ocupacion: persona ? persona.ocupacion : "",
       descripcion: persona ? persona.descripcion : "",
       activo: persona ? persona.activo : false,
-      password: "",
+      password: persona ? persona.password : "",
       tipoDocumento: persona ? persona.idTipoDocumento : null,
       documento: persona ? persona.documento : "",
       correo: persona ? persona.correo : "",
@@ -220,6 +225,23 @@ const EditarUsuario = () => {
 
   const Registrar = ({ jsonPersona }) => {
     let jwt = window.localStorage.getItem("jwt");
+    console.log(jsonPersona);
+    const jsonObject = JSON.parse(jsonPersona);
+    console.log(jsonObject.password);
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+    if (passwordRegex.test(jsonObject.password)) {
+    } else {
+      console.log("La contraseña no cumple con los requisitos.");
+      formik.setSubmitting(false);
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: 'La contraseña no cumple con los requisitos.',
+        life: 7000,
+      });
+      return;
+    }
     RegistrarPersona({ jsonPersona, jwt })
       .then((data) => {
         formik.setSubmitting(false);
@@ -544,8 +566,8 @@ const EditarUsuario = () => {
             <div className="field col-12 md:col-6">
               <label className="label-form">Telefono</label>
               <InputNumber
-                id="celular"
-                name="celular"
+                id="celular1"
+                name="celular1"
                 placeholder="Escribe aquí"
                 value={formik.values.celular}
                 //onValueChange={formik.handleChange}
@@ -553,6 +575,7 @@ const EditarUsuario = () => {
                 onBlur={formik.handleBlur}
                 useGrouping={false}
                 maxLength={9}
+                autoComplete = {false}
               ></InputNumber>
               <small className="p-error">
                 {formik.touched.celular && formik.errors.celular}
@@ -572,12 +595,13 @@ const EditarUsuario = () => {
               <Password
                 id="Password"
                 // className = "grey"
-                autoComplete="false"
+                autoComplete={false}
                 placeholder="Escribe aquí"
                 name="password"
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 toggleMask
+                value ={formik.values.password}
                 //header={headerPass}
                 footer={footerPass}
                 promptLabel="Ingrese contraseña"
