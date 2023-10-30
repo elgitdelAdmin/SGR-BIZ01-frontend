@@ -29,6 +29,11 @@ import {
   fetchDirectoriesName,
   uploadFiles,
 }from "../../service/DigitalOceansService";
+
+
+import { locale, addLocale, updateLocaleOption, updateLocaleOptions, localeOption, localeOptions } from 'primereact/api';
+
+        
 const EditarProfesor = () => {
     const navigate = useNavigate();
     const [profesor, setProfesor] = useState(null);
