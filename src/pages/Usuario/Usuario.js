@@ -142,6 +142,9 @@ const Usuario = () => {
             accept:()=>Eliminar({id})
         });
     };
+    const convertirAMayusculas = (rowData) => {
+    return rowData.nombres.toUpperCase();
+    };
     return ( 
         <div className="zv-usuario" style={{paddingTop:16}}>
             <ConfirmDialog />
@@ -184,7 +187,7 @@ const Usuario = () => {
                             loading={loading}
                         >
                             <Column field="idPersona" header="ID" sortable></Column>
-                            <Column field="nombres" header="Nombre" sortable></Column>
+                            <Column field="nombres" header="Nombre" sortable body={convertirAMayusculas}></Column>
                             <Column field="correo" header="Email"sortable> </Column>
                             <Column field="tipoPersona.descripcionTipo" header="Tipo"sortable> </Column>
                             <Column field="documento" header="Documento" sortable></Column>

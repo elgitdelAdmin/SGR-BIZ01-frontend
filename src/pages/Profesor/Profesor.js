@@ -51,6 +51,10 @@ const Profesor = () => {
                 <span><Iconsax.Trash color="#ffffff"/></span>
             </div>
     }
+    const convertirAMayusculas = (rowData) => {
+      return rowData.nombres.toUpperCase();
+    };
+      
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;     
 
@@ -67,7 +71,7 @@ const Profesor = () => {
           <div className="zv-profesor-body-listado" style={{ marginTop: 24 }}>
             <DatatableDefault value={listaProfesores} loading={loading}>
               <Column field="idPersona" header="ID" sortable></Column>
-              <Column field="nombres" header="Nombre" sortable></Column>
+              <Column field="nombres" header="Nombre" sortable body={convertirAMayusculas}></Column>
               <Column field="correo" header="Email" sortable>
                 {" "}
               </Column>
