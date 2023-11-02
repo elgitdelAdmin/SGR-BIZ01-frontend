@@ -1,15 +1,14 @@
+export const URLAPI = "https://prdzegelapi.azure-api.net";
+export const URLBLOB_BASE = "https://blobplataformavirtual.blob.core.windows.net/adjuntos";
 
-export const URLAPI = "https://qazegelapi.azure-api.net";
- export const URLBLOB_BASE = "https://grplataformavirtual9128.blob.core.windows.net/adjuntos";
-
- export const URLCARPETACURSOS = 'assets/cursos/img';
- export const URLCARPETAAVATARDOCENTE = 'assets/cursos/img';// 'Docentes';
+export const URLCARPETACURSOS = 'assets/cursos/img';
+export const URLCARPETAAVATARDOCENTE = 'assets/cursos/img';// 'Docentes';
 
 
 export const URLAVATARDEFAULT = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
-export const URLBLOB_CURSOS = URLBLOB_BASE+"/Cursos";
-export const URLBLOB_DOCENTES = URLBLOB_BASE+"/Docentes";
-export const URLBLOB_DISENADOR = URLBLOB_BASE+"/Disenador";
+export const URLBLOB_CURSOS = URLBLOB_BASE + "/Cursos";
+export const URLBLOB_DOCENTES = URLBLOB_BASE + "/Docentes";
+export const URLBLOB_DISENADOR = URLBLOB_BASE + "/Disenador";
 
 export const URL_TESTLOGIN = "http://localhost:7110/api";
 export const URL_TESTPROFESOR = "http://localhost:7178/api";
