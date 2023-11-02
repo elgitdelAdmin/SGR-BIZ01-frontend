@@ -254,7 +254,7 @@ const EditarUsuario = () => {
 
         setTimeout(() => {
           navigate(-1);
-        }, 3000);
+        }, 1000);
       })
       .catch((errors) => {
         toast.current.show({
@@ -350,7 +350,7 @@ const EditarUsuario = () => {
 
         setTimeout(() => {
           window.location.reload();
-        }, 3000);
+        }, 1000);
       })
       .catch((errors) => {
         toast.current.show({
@@ -377,7 +377,7 @@ const EditarUsuario = () => {
 
         setTimeout(() => {
           window.location.reload();
-        }, 3000);
+        }, 1000);
       })
       .catch((errors) => {
         toast.current.show({
