@@ -119,7 +119,10 @@ const EditarUsuario = () => {
     ),
     documento: Yup.string()
       .required("Documento es un campo obligatorio")
-      .min(8, "Documento debe tener mínimo 8 números"),
+      .min(8, "Documento debe tener mínimo 8 números")
+      .test("no-es-ceros", "Documento no puede ser igual a '00000000'", (value) => {
+        return value !== "00000000";
+      }),
     correo: Yup.string()
       .nullable()
       .required("Correo es un campo obligatorio")
