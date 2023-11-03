@@ -80,7 +80,7 @@ const EditarUsuario = () => {
       let jwt = window.localStorage.getItem("jwt");
       let idPersona = id;
       await ObtenerCursosPorUsuario({ jwt, idPersona }).then((data) => {
-        setListaCursos(data.filter(x=>x.idPersonaPrograma === null));
+        setListaCursos(data.filter((x) => x.idPersonaPrograma === null));
         setLoadingCurso(false);
       });
     };
@@ -120,17 +120,21 @@ const EditarUsuario = () => {
     documento: Yup.string()
       .required("Documento es un campo obligatorio")
       .min(8, "Documento debe tener mínimo 8 números"),
-    correo: Yup.string().nullable().required("Correo es un campo obligatorio")
-    .matches(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,"Correo no válido"),
-    
+    correo: Yup.string()
+      .nullable()
+      .required("Correo es un campo obligatorio")
+      .matches(
+        /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+        "Correo no válido"
+      ),
+
     celular: Yup.number()
       .nullable()
       .required("Teléfono es un campo obligatorio"),
     tipoDocumento: Yup.string()
       .nullable()
       .required("Tipo documento es un campo obligatorio"),
-    password: Yup.string()
-      .required("Password es un campo obligatorio")
+    password: Yup.string().required("Password es un campo obligatorio"),
   });
 
   const formik = useFormik({
@@ -237,7 +241,7 @@ const EditarUsuario = () => {
       toast.current.show({
         severity: "error",
         summary: "Error",
-        detail: 'La contraseña no cumple con los requisitos.',
+        detail: "La contraseña no cumple con los requisitos.",
         life: 7000,
       });
       return;
@@ -331,7 +335,9 @@ const EditarUsuario = () => {
     );
   };
   const dateBodyTemplateFechaActivacion = (rowData) => {
-    return rowData.fechaActivacion ? formatDate(new Date(rowData.fechaActivacion)) : "";
+    return rowData.fechaActivacion
+      ? formatDate(new Date(rowData.fechaActivacion))
+      : "";
   };
   const dateBodyTemplate = (rowData) => {
     return rowData.finCurso ? formatDate(new Date(rowData.finCurso)) : "";
@@ -412,7 +418,13 @@ const EditarUsuario = () => {
   };
   const programaTemplate = (rowData) => {
     console.log(rowData);
-    return <span>{rowData.programa && rowData.idPersonaPrograma ? rowData.programa : "No"}</span>;
+    return (
+      <span>
+        {rowData.programa && rowData.idPersonaPrograma
+          ? rowData.programa
+          : "No"}
+      </span>
+    );
   };
 
   const headerPass = <div className="font-bold mb-3">Ingrese password</div>;
@@ -564,7 +576,7 @@ const EditarUsuario = () => {
               </small>
             </div>
             <div className="field col-12 md:col-6">
-              <label className="label-form">Telefono</label>
+              <label className="label-form">Teléfono</label>
               <InputNumber
                 id="celular1"
                 name="celular1"
@@ -572,10 +584,15 @@ const EditarUsuario = () => {
                 value={formik.values.celular}
                 //onValueChange={formik.handleChange}
                 onValueChange={(e) => handleSoloNumeros(e, formik, "celular")}
+                onChange={(e) => {
+                  if (e.value == "-") {
+                    formik.setFieldValue("celular", "");
+                  }
+                }}
                 onBlur={formik.handleBlur}
                 useGrouping={false}
                 maxLength={9}
-                autoComplete = {false}
+                autoComplete={false}
               ></InputNumber>
               <small className="p-error">
                 {formik.touched.celular && formik.errors.celular}
@@ -601,36 +618,34 @@ const EditarUsuario = () => {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 toggleMask
-                value ={formik.values.password}
+                value={formik.values.password}
                 //header={headerPass}
                 footer={footerPass}
                 promptLabel="Ingrese contraseña"
                 weakLabel="Débil"
                 mediumLabel="Fuerte"
-                strongLabel="Complejidad"
+                strongLabel="Muy Fuerte"
               />
             </div>
-            {
-              !modoEdicion && 
+            {!modoEdicion && (
               <div
-              className="field col-12 md:col-3"
-              style={{
-                display: "flex",
-                alignItems: "end",
-                paddingBottom: 20,
-                gap: 20,
-              }}
-            >
-              <div>
-                <label className="label-form">Es Adminsitrador?</label>
+                className="field col-12 md:col-3"
+                style={{
+                  display: "flex",
+                  alignItems: "end",
+                  paddingBottom: 20,
+                  gap: 20,
+                }}
+              >
+                <div>
+                  <label className="label-form">¿Es Adminsitrador?</label>
+                </div>
+                <Checkbox
+                  onChange={(e) => setChecked(e.checked)}
+                  checked={checked}
+                ></Checkbox>
               </div>
-              <Checkbox
-                onChange={(e) => setChecked(e.checked)}
-                checked={checked}
-              ></Checkbox>
-            </div>
-            }
-            
+            )}
           </div>
 
           <div className="zv-editarUsuario-footer">
