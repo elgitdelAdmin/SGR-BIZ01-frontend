@@ -352,7 +352,9 @@ const EditarPreguntas = () => {
                     IDCurso +
                     "/Unidad/Editar/" +
                     IDUnidad +
-                    "/Leccion/CrearRespuesta"
+                    "/Pregunta/Editar/" +
+                    IDPregunta +
+                    "/CrearRespuesta"
                 )
               }
             ></Boton>
