@@ -343,7 +343,8 @@ const EditarUsuario = () => {
       : "";
   };
   const dateBodyTemplate = (rowData) => {
-    return rowData.finCurso ? formatDate(new Date(rowData.finCurso)) : "";
+    console.log(rowData);
+    return rowData.fechaVigencia ? formatDate(new Date(rowData.fechaVigencia)) : "";
   };
   const EliminarCurso = (id) => {
     let jwt = window.localStorage.getItem("jwt");

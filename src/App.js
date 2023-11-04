@@ -35,6 +35,7 @@ import Programa from "./pages/Programa/Programa";
 import EditarPrograma from "./pages/Programa/EditarPrograma";
 import AsignarCurso from "./pages/Usuario/AsignarCurso";
 import AsignarPrograma from "./pages/Usuario/AsignarPrograma";
+import UsuarioIntentos from "./pages/Usuario/UsuarioIntentos"
 import ImportarUsuarios from "./pages/Usuario/ImportarUsuarios";
 import ImportarCurso from "./pages/Curso/ImportarCurso";
 function App() {
@@ -179,6 +180,7 @@ const onSidebarClick = () => {
                     <Route path="Programa/Editar/:id" element={<EditarPrograma/>}></Route>
                     <Route path="Usuario/EditarUsuario/:IDUsuario/AsignarCurso/Crear" element={<AsignarCurso/>}></Route>
                     <Route path="Usuario/EditarUsuario/:IDUsuario/AsignarCurso/:IdPersonaCurso" element={<AsignarCurso/>}></Route>
+                    <Route path="Usuario/EditarUsuario/:IDUsuario/AsignarCurso/:IdPersonaCurso/VerIntentos/:IdPersonaCurso" element={<UsuarioIntentos/>}></Route>
                     <Route path="Usuario/EditarUsuario/:IDUsuario/AsignarPrograma/Crear" element={<AsignarPrograma/>}></Route>
                     <Route path="Usuario/EditarUsuario/:IDUsuario/AsignarPrograma/:IdPersonaPrograma" element={<AsignarPrograma/>}></Route>
                     <Route path="ImportarUsuario" element={<ImportarUsuarios/>}></Route>

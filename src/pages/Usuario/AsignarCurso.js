@@ -210,7 +210,16 @@ const AsignarCurso = () => {
                     style={{ fontSize: 12 }}
                     color="secondary"
                     type="button"
-                    loading={formik.isSubmitting}
+                    onClick={() =>
+                        navigate(
+                          "../Usuario/EditarUsuario/" +
+                          IDUsuario +
+                            "/AsignarCurso/" +
+                            IdPersonaCurso +
+                            "/VerIntentos/" +
+                            IdPersonaCurso
+                        )
+                      }
                     ></Boton>
                 }
                 
