@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
-  Navigate,
-  useLocation,
   useNavigate,
   useParams,
 } from "react-router-dom";
@@ -11,22 +9,11 @@ import * as Iconsax from "iconsax-react";
 import { InputText } from "primereact/inputtext";
 import Boton from "../../components/Boton/Boton";
 import * as Yup from "yup";
-import { Field, FieldArray, Formik, useFormik, FormikProvider } from "formik";
+import { useFormik } from "formik";
 import { Toast } from "primereact/toast";
-import useUsuario from "../../hooks/useUsuario";
 // import RegistrarRespuesta from "../../service/PreguntaService";
-import {
-  RegistrarAsignarCurso,
-  ActualizarAsignarCurso,
-  ObtenerCursoUsuarioPorId,
-  ObtenerPersonaPorId,
-} from "../../service/UsuarioService";
-import { ListarCursos } from "../../service/CursoService";
 
-import { Calendar } from "primereact/calendar";
-import { buscarConfiguracion } from "../../helpers/helpers";
-import { Dropdown } from "rsuite";
-import { RegistrarRespuesta } from "../../service/PreguntaService";
+import { RegistrarRespuesta,BuscarRespuestaID,ActualizarRespuesta } from "../../service/PreguntaService";
 
 function CrearRespuesta() {
   const navigate = useNavigate();
@@ -43,13 +30,55 @@ function CrearRespuesta() {
       detail: `${data.option.name}`,
     });
   };
-  let { IDUsuario, IDPregunta } = useParams();
+  let { IDUsuario, IDPregunta, IdRespuesta=null } = useParams();
   let { IdPersonaCurso } = useParams();
 
   const [tituloPagina, setTituloPagina] = useState("Crear respuesta");
+  const[Respuesta,setRespuesta]=useState(null);
+
+
+  useEffect(() => {
+    const getRespuestas = async () => {
+      setTituloPagina("Editar respuesta")
+      let jwt = window.localStorage.getItem("jwt");
+      let id = IdRespuesta;
+      await BuscarRespuestaID({ jwt, id }).then((data) => {
+        console.log(data);
+        setRespuesta(data);
+      });
+    };
+    if (IdRespuesta) getRespuestas(); 
+  }, [IDPregunta]);
+
 
   const Registrar = ({ jsonRespuesta }) => {
     let jwt = window.localStorage.getItem("jwt");
+
+    if(IdRespuesta){
+      ActualizarRespuesta({ jsonRespuesta, jwt })
+      .then((data) => {
+        formik.setSubmitting(false);
+        toast.current.show({
+          severity: "success",
+          summary: "Éxito",
+          detail: "Registro exitoso.",
+          life: 7000,
+        });
+        setTimeout(() => {
+          navigate(-1);
+        }, 1000);
+      })
+      .catch((errors) => {
+        toast.current.show({
+          severity: "error",
+          summary: "Error",
+          detail: errors.message,
+          life: 7000,
+        });
+        formik.setSubmitting(false);
+      });
+    } 
+    else{
     RegistrarRespuesta({ jsonRespuesta, jwt })
       .then((data) => {
         formik.setSubmitting(false);
@@ -61,7 +90,7 @@ function CrearRespuesta() {
         });
         setTimeout(() => {
           navigate(-1);
-        }, 3000);
+        }, 1000);
       })
       .catch((errors) => {
         toast.current.show({
@@ -72,6 +101,7 @@ function CrearRespuesta() {
         });
         formik.setSubmitting(false);
       });
+    } 
   };
 
   const schema = Yup.object().shape({
@@ -81,14 +111,15 @@ function CrearRespuesta() {
     respuesta: Yup.string().required("Debe ingresar la respuesta."),
   });
   const formik = useFormik({
-    initialValues: {
-      option: "",
-      respuesta: "",
+    enableReinitialize: true,
+    initialValues: { 
+      option: Respuesta!=null? Respuesta.correcta:"", 
+      respuesta: Respuesta!=null? Respuesta.descripcion:"", 
     },
     validationSchema: schema,
 
     onSubmit: (values) => {
-      let IDRespuesta = 0;
+      let IDRespuesta = IdRespuesta?IdRespuesta: 0;
       //let IDPregunta = IDPregunta;
       let Descripcion = values.respuesta;
       let Correcta = values.option;
@@ -107,7 +138,6 @@ function CrearRespuesta() {
         FechaRegistro,
         UsuarioRegistro,
       });
-      console.log(jsonRespuesta);
       Registrar({ jsonRespuesta });
     },
   });

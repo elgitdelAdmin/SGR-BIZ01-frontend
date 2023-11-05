@@ -74,20 +74,21 @@ const EditarPreguntas = () => {
   }, [IDPregunta]);
 
   const accionEditarRespuesta = (rowData) => {
+    console.log(rowData);
     return (
       <div className="datatable-accion">
         <div
           className="accion-editar"
           onClick={() =>
-            navigate(
-              "../Curso/Editar/" +
-                IDCurso +
-                "/Unidad/Editar/" +
-                IDUnidad +
-                "/Pregunta/" +
-                IDPregunta +
-                "/Respuesta/" +
-                rowData.idRespuesta
+                navigate(
+                  "../Curso/Editar/" +
+                    IDCurso +
+                    "/Unidad/Editar/" +
+                    IDUnidad +
+                    "/Pregunta/Editar/" +
+                    IDPregunta +
+                    "/EditarRespuesta/"+
+                    rowData.idRespuesta
             )
           }
         >
