@@ -188,7 +188,10 @@ const EditarPreguntas = () => {
       let idUnidad = values.idUnidad;
       let idPreguntaTipo = values.idPreguntaTipo;
       let titulo = values.titulo;
-      let idTipoRecurso = values.idTipoRecurso;
+      let idTipoRecurso = values.idTipoRecurso?
+         (pregunta.idTipoRecurso =="galeria")? 1 : 
+            (pregunta.idTipoRecurso =="imagen") ? 2:
+                (pregunta.idTipoRecurso=="video")? 0:0:0 ;
       let respuesta = values.respuesta;
       let fuente = values.fuente;
       let linkMaterial = values.linkMaterial;
