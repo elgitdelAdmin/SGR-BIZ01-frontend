@@ -64,7 +64,42 @@ const ImportarUsuarios = () => {
         throw new Error(
           `Error de validación para el documento ${documento}: No cumple con el formato del tipo de documento.`
         );
+
       }
+    }
+    return true; // Si no hay reglas de validación específicas, se considera válido
+  };
+
+  const validateCorreo = (correo) => {
+    const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    
+    if (!regex.test(correo)) {
+      if (correo.trim() !== correo) {
+        throw new Error(`Error de validación para el correo "${correo}": No debe contener espacios al principio o al final.`);
+      }
+      throw new Error(`Error de validación para el correo electrónico ${correo}: No es una dirección de correo válida.`);
+    }
+    return true;
+  };
+  const validateNombre = (nombre) => {
+    const regex = /^[A-Za-z\s]+$/;
+  
+    if (!regex.test(nombre)) {
+      throw new Error(`Error de validación para el nombre "${nombre}": Debe contener solo letras y espacios.`);
+    }
+    if (nombre.trim() !== nombre) {
+      throw new Error(`Error de validación para el nombre "${nombre}": No debe contener espacios al principio o al final.`);
+    }  
+    return true; // Si no hay reglas de validación específicas, se considera válido
+  };
+  const validateTelefono = (telefono) => {
+    const regex = /^(\+)?\d+$/;
+  
+    if (!regex.test(telefono)) {
+      throw new Error(`Error de validación para el teléfono "${telefono}": Debe contener solo números o un signo + al inicio.`);
+    }
+    if (telefono.trim() !== telefono) {
+      throw new Error(`Error de validación para el nombre "${telefono}": No debe contener espacios al principio o al final.`);
     }
     return true; // Si no hay reglas de validación específicas, se considera válido
   };
@@ -78,12 +113,17 @@ const ImportarUsuarios = () => {
             if (!obj.Tipo_documento) throw new Error(`Linea ${index +1}: Tipo_documento, cabecera incorrecta.`);
             if (!obj.Documento) throw new Error(`Linea ${index +1}: Documento, cabecera incorrecta.`);
             if (!obj.Nombres) throw new Error(`Linea ${index +1}: Nombres, cabecera incorrecta.`);
+            validateNombre(obj.Nombres);
             if (!obj.Primer_apellido) throw new Error(`Linea ${index +1}: Primer_apellido, cabecera incorrecta.`);
+            validateNombre(obj.Primer_apellido);
             if (!obj.Segundo_apellido) throw new Error(`Linea ${index +1}: Segundo_apellido, cabecera incorrecta.`);
+            validateNombre(obj.Segundo_apellido);
             if (!obj.Correo) throw new Error(`Linea ${index +1}: Correo, cabecera incorrecta.`);
+            validateCorreo(obj.Correo);
             if (!obj.Curso_ID) throw new Error(`Linea ${index +1}: Curso_ID, cabecera incorrecta.`);
             if (!obj.Telefono) throw new Error(`Linea ${index +1}: Telefono, cabecera incorrecta.`);
             validateDocumento(obj.Tipo_documento, obj.Documento);
+            validateTelefono(obj.Telefono);
             if (isNaN(obj.Tipo_documento)) throw new Error(`Linea ${obj.Tipo_documento}: incorrecto, solo admite valores enteros.`);
             if (isNaN(obj.Curso_ID)) throw new Error(`Linea ${obj.Curso_ID}: incorrecto, solo admite valores enteros.`);
 

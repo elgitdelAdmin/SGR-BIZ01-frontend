@@ -182,16 +182,18 @@ const EditarPreguntas = () => {
       fuente: pregunta ? pregunta.fuente : "",
       linkMaterial: pregunta ? pregunta.linkMaterial : "",
     },
-    validationSchema: schema,
+    validationSchema: schema, 
     onSubmit: (values) => {
       let idPregunta = values.idPregunta;
       let idUnidad = values.idUnidad;
       let idPreguntaTipo = values.idPreguntaTipo;
       let titulo = values.titulo;
+      //console.log(values.idTipoRecurso);
+      //console.log(pregunta.idTipoRecurso);
       let idTipoRecurso = values.idTipoRecurso?
-         (pregunta.idTipoRecurso =="galeria")? 1 : 
-            (pregunta.idTipoRecurso =="imagen") ? 2:
-                (pregunta.idTipoRecurso=="video")? 0:0:0 ;
+         (values.idTipoRecurso =="galeria")? 1 : 
+            (values.idTipoRecurso =="imagen") ? 2:
+                (values.idTipoRecurso=="video")? 0:0:0;
       let respuesta = values.respuesta;
       let fuente = values.fuente;
       let linkMaterial = values.linkMaterial;
