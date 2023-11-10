@@ -95,9 +95,9 @@ const Usuario = () => {
         setlazyState(event);
     };
     
-    useEffect(() => {
+    /* useEffect(() => {
         if(globalFilterValue.length > 0)loadLazyData(empresaSeleccionada)
-    }, [globalFilterValue]);
+    }, [globalFilterValue]); */
 
     const renderHeader = () => {
         return (
@@ -109,6 +109,9 @@ const Usuario = () => {
                     <i className="pi pi-search" />
                     <InputText value={globalFilterValue} onChange={(e)=>setGlobalFilterValue(e.target.value)} placeholder="Buscarss..." />
                 </span>
+                <div style={{marginLeft:"2%"}} className="accion-editar" onClick={()=>{loadLazyData(empresaSeleccionada)}}>
+                <span><Iconsax.SearchNormal color="#ffffff"/></span>
+            </div>
             </div>
         </div>
            
