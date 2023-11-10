@@ -57,9 +57,10 @@ const DatatableDefault = (props) => {
     return ( 
         <DataTable
         ref={dt}
+            header={header}
             {...props}
             filters={filters}
-            header={header}
+            
             size="small"
             stripedRows 
             paginator

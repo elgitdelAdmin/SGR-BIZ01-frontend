@@ -6,14 +6,13 @@ import * as Iconsax from "iconsax-react";
 import "./Usuario.scss"
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
 import ObtenerListaEmpresas from "../../service/EmpresaService";
-import {ObtenerListaPersonas,ObtenerPersonaPorEmpresa,EliminarPersona, ObtenerListaPersonasV2} from "../../service/UsuarioService";
+import {ObtenerListaPersonas,ObtenerPersonaPorEmpresa,EliminarPersona} from "../../service/UsuarioService";
 import { Loader, Placeholder } from 'rsuite';
 import Boton from "../../components/Boton/Boton";
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import useUsuario from "../../hooks/useUsuario";
-import { InputText } from "primereact/inputtext";
-const Usuario = () => {
+const UsuarioV1 = () => {
     const navigate = useNavigate();
 
     const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
@@ -23,102 +22,11 @@ const Usuario = () => {
     const [loading, setLoading] = useState(true);
     const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
     const [visible, setVisible] = useState(false);
-    const [globalFilterValue, setGlobalFilterValue] = useState("");
-    const [totalRecords, setTotalRecords] = useState(0);
-    
     const {permisos} = useUsuario();
     // const listaEmpresas =
     // [{value:1,name:"Zegel Virtual"}]
     const toast = useRef(null);
     const [isAdmin, setIsAdmin] = useState(false);
-
-    const [lazyState, setlazyState] = useState({
-        first: 0,
-        rows: 10,
-        page: 0,
-        sortField: null,
-        sortOrder: null,
-        filters: {
-            name: { value: '', matchMode: 'contains' },
-            'country.name': { value: '', matchMode: 'contains' },
-            company: { value: '', matchMode: 'contains' },
-            'representative.name': { value: '', matchMode: 'contains' }
-        }
-    });
-
-    let networkTimeout = null;
-
-  
-    useEffect(() => {
-        if(empresaSeleccionada)loadLazyData(empresaSeleccionada);
-        
-    }, [lazyState,empresaSeleccionada]);
-
-    
-
-    const loadLazyData = (idEmpresa) => {
-       
-        console.log("lazy state = >", lazyState)
-        if (networkTimeout) {
-            clearTimeout(networkTimeout);
-        }
-        networkTimeout = setTimeout(() => {
-            setLoading(true);
-            let jwt = window.localStorage.getItem("jwt");
-            let pageNumber = lazyState.page +1;
-            let pageSize  = lazyState.rows
-            let search = globalFilterValue ? globalFilterValue : "%20"
-
-            if(search.trim() != "%20")
-            {
-                pageNumber = 1
-            }
-
-            ObtenerListaPersonasV2({jwt,idEmpresa,pageNumber,pageSize,search}).then(data=>{
-                if(data.length >0)
-                {
-                    setTotalRecords(data[0].countReg)
-                }
-                setListaPersonasTotal(data)
-                setLoading(false)
-            })
-            // CustomerService.getCustomers({ lazyEvent: JSON.stringify(lazyState) }).then((data) => {
-            //     setTotalRecords(data.totalRecords);
-            //     setCustomers(data.customers);
-            //     setLoading(false);
-            // });
-            //setLoading(false);
-        }, Math.random() * 1000 + 250);
-    } 
-
-    const onPage = (event) => {
-        setlazyState(event);
-    };
-    
-    useEffect(() => {
-        if(globalFilterValue.length > 0)loadLazyData(empresaSeleccionada)
-    }, [globalFilterValue]);
-
-    const renderHeader = () => {
-        return (
-        <div className='flex justify-content-between flex-wrap'>
-            
-             
-            <div className="flex justify-content-end">
-                <span className="p-input-icon-left">
-                    <i className="pi pi-search" />
-                    <InputText value={globalFilterValue} onChange={(e)=>setGlobalFilterValue(e.target.value)} placeholder="Buscarss..." />
-                </span>
-            </div>
-        </div>
-           
-        
-            
-        );
-    };
-    const header = renderHeader();
-
-
 
     useEffect(()=>{
        
@@ -141,10 +49,16 @@ const Usuario = () => {
         if(!listaEmpresa)GetEmpresa();
         
     },[])
-    useEffect(() => {
-             if(listaPersonasTotal)
+    const GetPersonaPorEmpresa = async (id)=>
+    {
+        // let jwt = window.localStorage.getItem("jwt");
+        // let idEmpresa = id
+        // await ObtenerPersonaPorEmpresa({jwt,idEmpresa}).then(data=>{
+        //     setListaPersonas(data);
+        // })
+        if(listaPersonasTotal)
         {
-            let personaTemp = listaPersonasTotal.filter(x=>x.idEmpresa == empresaSeleccionada)
+            let personaTemp = listaPersonasTotal.filter(x=>x.idEmpresa == id)
             if(!isAdmin && personaTemp.length > 0)
             {
                 personaTemp = personaTemp.filter(x=>x.tipoPersona.descripcionTipo == "Alumno")
@@ -152,39 +66,21 @@ const Usuario = () => {
             
             setListaPersonas(personaTemp)
         }
-    }, [listaPersonasTotal]);
-    // const GetPersonaPorEmpresa = async (id)=>
-    // {
-    //     // let jwt = window.localStorage.getItem("jwt");
-    //     // let idEmpresa = id
-    //     // await ObtenerPersonaPorEmpresa({jwt,idEmpresa}).then(data=>{
-    //     //     setListaPersonas(data);
-    //     // })
-    //     if(listaPersonasTotal)
-    //     {
-    //         let personaTemp = listaPersonasTotal.filter(x=>x.idEmpresa == id)
-    //         if(!isAdmin && personaTemp.length > 0)
-    //         {
-    //             personaTemp = personaTemp.filter(x=>x.tipoPersona.descripcionTipo == "Alumno")
-    //         }
-            
-    //         setListaPersonas(personaTemp)
-    //     }
         
-    // }
+    }
 
 
-    // useEffect(()=>{
-    //     const GetPersonas= async()=>{
-    //         let jwt = window.localStorage.getItem("jwt");
-    //         await ObtenerListaPersonas({jwt}).then(data=>
-    //             {
-    //                 setListaPersonasTotal(data)
-    //                 setLoading(false)
-    //             })
-    //     }
-    //     if(!listaPersonasTotal) GetPersonas()
-    // },[])
+    useEffect(()=>{
+        const GetPersonas= async()=>{
+            let jwt = window.localStorage.getItem("jwt");
+            await ObtenerListaPersonas({jwt}).then(data=>
+                {
+                    setListaPersonasTotal(data)
+                    setLoading(false)
+                })
+        }
+        if(!listaPersonasTotal) GetPersonas()
+    },[])
 
     const tempDatatable = 
     [{id:1,nombre:"ADMIN",email: "admin@prueba.com",dni:"11111111",estado : true},
@@ -264,8 +160,7 @@ const Usuario = () => {
                                 onChange={(e)=>
                                     {
                                         setEmpresaSeleccionada(e.value)
-                                        //GetPersonaPorEmpresa(e.value)
-                                        //loadLazyData(e.value)
+                                        GetPersonaPorEmpresa(e.value)
                                     }
                                 }
                                 options={listaEmpresa} optionLabel="razonSocial" optionValue ="idEmpresa"
@@ -288,20 +183,15 @@ const Usuario = () => {
                     listaPersonas &&
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
-                            lazy
                             globalFilterFields={['nombres', 'correo','documento']}
                             loading={loading}
-                            onPage={onPage}
-                            first={lazyState.first}
-                            header = {header}
-                            totalRecords ={totalRecords}
                         >
-                            <Column field="idPersona" header="ID" ></Column>
-                            <Column field="nombres" header="Nombre"  body={convertirAMayusculas}></Column>
-                            <Column field="correo" header="Email"> </Column>
-                            <Column field="tipoPersona.descripcionTipo" header="Tipo"> </Column>
-                            <Column field="documento" header="Documento" ></Column>
-                            <Column field="activo" header="Estado"dataType="boolean"  body={booleanTemplate}></Column>
+                            <Column field="idPersona" header="ID" sortable></Column>
+                            <Column field="nombres" header="Nombre" sortable body={convertirAMayusculas}></Column>
+                            <Column field="correo" header="Email"sortable> </Column>
+                            <Column field="tipoPersona.descripcionTipo" header="Tipo"sortable> </Column>
+                            <Column field="documento" header="Documento" sortable></Column>
+                            <Column field="activo" header="Estado"dataType="boolean" sortable body={booleanTemplate}></Column>
                             <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column>
                         </DatatableDefault>
                     </div>
@@ -313,4 +203,4 @@ const Usuario = () => {
      );
 }
  
-export default Usuario;
+export default UsuarioV1;

@@ -67,6 +67,39 @@ export const ObtenerListaPersonas = async({jwt})=> {
     
 }
 
+export const ObtenerListaPersonasV2 = async({jwt,idEmpresa,pageNumber,pageSize,search})=> {
+    return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerListaPersonasV2/${idEmpresa}/${pageNumber}/${pageSize}/${search}`,{
+    //return await fetch(`${ENDPOINTTEST}/ObtenerListaPersonas`,{
+        method: "GET",
+        headers:{
+            "Authorization":"Bearer "+jwt,
+            //'Content-Type': 'application/json'
+            "accept": "text/plain"
+        },
+        
+    }).then(res=>{
+        //if(!res.ok) throw new Error("Response is Not Ok")
+        if(!res.ok) 
+        {
+            if(res.status == 401)
+            {
+                window.localStorage.removeItem('jwt')
+                window.location.reload();
+            }
+            else
+            {
+                throw new Error("No se recibió respuesta del servidor")
+            }
+        }
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        const {data} = res
+        return data
+    })
+    
+}
+
 export const ObtenerPersonaPorId = async ({jwt,idPersona}) =>{
     return await fetch(`${ENDPOINT}/ZADUsuario/ObtenerPersonaPorId/${idPersona}`,{
     //return await fetch(`${ENDPOINTTEST}/ObtenerPersonaPorId/${idPersona}`,{
