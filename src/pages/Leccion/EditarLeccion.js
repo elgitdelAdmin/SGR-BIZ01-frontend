@@ -136,8 +136,9 @@ const EditarLeccion = () => {
         let descripcionSEO =values.descripcionSeo
         let URLVideo = values.URLVideo
         let secuencia = values.secuencia
+        let idUnidad = IDUnidad
 
-        let jsonLeccion = JSON.stringify({idLeccion,descripcion,descripcionSEO,URLVideo,secuencia,titulo},null,2)
+        let jsonLeccion = JSON.stringify({idUnidad,idLeccion,descripcion,descripcionSEO,URLVideo,secuencia,titulo},null,2)
 
         if(!modoEdicion) Registrar({jsonLeccion}) 
         else {Actualizar({jsonLeccion})}
