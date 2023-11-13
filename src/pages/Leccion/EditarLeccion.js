@@ -258,7 +258,7 @@ const EditarLeccion = () => {
                         </div>
                         <div className="field col-12 md:col-6">
                             <label className="label-form">Secuencia</label>
-                            <InputText type={"text"} 
+                            <InputText type={"number"} 
                                 id="secuencia"
                                 name="secuencia"
                                 placeholder="Escribe aquí"

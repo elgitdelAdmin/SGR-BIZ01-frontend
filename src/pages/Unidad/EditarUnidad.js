@@ -16,7 +16,7 @@ import {
   RegistrarUnidad,
   ActualizarUnidad,
 } from "../../service/UnidadService";
-import { ListarLeccionesPorUnidad } from "../../service/LeccionService";
+import { EliminarLecciones, ListarLeccionesPorUnidad } from "../../service/LeccionService";
 import { Field, FieldArray, Formik, useFormik, FormikProvider } from "formik";
 import * as Yup from "yup";
 import { Toast } from "primereact/toast";
@@ -24,7 +24,9 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { TabView, TabPanel } from "primereact/tabview";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
-import { ListarPreguntasPorUnidad } from "../../service/PreguntaService";
+import {  EliminarPregunta, ListarPreguntasPorUnidad } from "../../service/PreguntaService";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
+import { BuscarCursoID } from "../../service/CursoService";
 const EditarUnidad = () => {
   const navigate = useNavigate();
 
@@ -33,10 +35,92 @@ const EditarUnidad = () => {
   const [tituloPagina, setTituloPagina] = useState("Crear unidad");
   const [listaLecciones, setListaLecciones] = useState(null);
   const [listaPreguntas, setListaPreguntas] = useState(null);
+  const [estadoCurso, setEstadoCurso] = useState(null);
   let { IDCurso } = useParams();
   let { IDUnidad } = useParams();
   const toast = useRef(null);
 
+
+  const confirLeccion = (id) => {
+    console.log(id);
+    confirmDialog({
+      message: "Seguro de eliminar lección?",
+      header: "Eliminar",
+      icon: "pi pi-info-circle",
+      acceptClassName: "p-button-danger",
+      acceptLabel: "Aceptar",
+      accept: () => EliminarLeccion(id),
+    });
+  };
+
+  const confirPreguntas = (id) => {
+    confirmDialog({
+      message: "Seguro de eliminar pregunta?",
+      header: "Eliminar",
+      icon: "pi pi-info-circle",
+      acceptClassName: "p-button-danger",
+      acceptLabel: "Aceptar",
+      accept: () => EliminarPreguntas(id),
+    });
+  };
+
+  const EliminarPreguntas = (idPregunta) => {
+    let jwt = window.localStorage.getItem("jwt");
+    let id = idPregunta;
+    EliminarPregunta({ jwt, id })
+      .then((data) => {
+        //formik.setSubmitting(false)
+        toast.current.show({
+          severity: "success",
+          summary: "Éxito",
+          detail: "Registro eliminado.",
+          life: 7000,
+        });
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      })
+      .catch((errors) => {
+        toast.current.show({
+          severity: "error",
+          summary: "Error",
+          detail: errors.message,
+          life: 7000,
+        });
+        //formik.setSubmitting(false)
+      });
+  };
+
+
+
+  const EliminarLeccion = (idLeccion) => {
+    let jwt = window.localStorage.getItem("jwt");
+    let id = idLeccion;
+    EliminarLecciones({ jwt, idLeccion })
+      .then((data) => {
+        //formik.setSubmitting(false)
+        toast.current.show({
+          severity: "success",
+          summary: "Éxito",
+          detail: "Registro eliminado.",
+          life: 7000,
+        });
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      })
+      .catch((errors) => {
+        toast.current.show({
+          severity: "error",
+          summary: "Error",
+          detail: errors.message,
+          life: 7000,
+        });
+        //formik.setSubmitting(false)
+      });
+  };
   const accionEditar = (rowData) => {
     return (
       <div className="datatable-accion">
@@ -57,9 +141,11 @@ const EditarUnidad = () => {
             <Iconsax.Eye color="#ffffff" />
           </span>
         </div>
-        {/* <div className="accion-eliminar" onClick={()=>navigate()}>
+        {/* Si el estado del curso es igual a registrado puede eliminar */}
+        {estadoCurso === 1? ( <div className="accion-eliminar" onClick={()=> confirLeccion(rowData.idLeccion)}>
                 <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> */}
+            </div>): null}
+       
       </div>
     );
   };
@@ -84,9 +170,10 @@ const EditarUnidad = () => {
             <Iconsax.Eye color="#ffffff" />
           </span>
         </div>
-        {/* <div className="accion-eliminar" onClick={()=>navigate()}>
+        {/* Si el estado del curso es igual a registrado puede eliminar */}
+        {estadoCurso === 1? ( <div className="accion-eliminar" onClick={()=> confirPreguntas( rowData.idPregunta)}>
                 <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> */}
+            </div>): null}
       </div>
     );
   };
@@ -109,6 +196,14 @@ const EditarUnidad = () => {
     const GetLecciones = async () => {
       let jwt = window.localStorage.getItem("jwt");
       let idUnidad = IDUnidad;
+      let idCurso = IDCurso;
+       await BuscarCursoID({ jwt, idCurso}).then((data) => {
+          console.log(data?.idEstado);
+          setEstadoCurso(data?.idEstado);
+  
+          
+        });
+
       await ListarLeccionesPorUnidad({ jwt, idUnidad }).then((data) => {
         setListaLecciones(data);
       });
@@ -259,6 +354,7 @@ const EditarUnidad = () => {
   });
   return (
     <form onSubmit={formik.handleSubmit}>
+      <ConfirmDialog />
       <div className="zv-editarUnidad" style={{ paddingTop: 16 }}>
         <Toast ref={toast} position="top-center"></Toast>
         <div className="header">
