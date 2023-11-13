@@ -169,13 +169,13 @@ const EditarPreguntas = () => {
       idPregunta: pregunta ? pregunta.idPregunta : 0,
       idUnidad: IDUnidad,
       idPreguntaTipo: pregunta ? pregunta.idPreguntaTipo : "",
-      idTipoRecurso: pregunta
-        ? pregunta.idTipoRecurso == 1
+      idTipoRecurso: pregunta? pregunta.idTipoRecurso == 1
           ? "galeria"
           : pregunta.idTipoRecurso == 2
           ? "imagen"
-          : "video"
-        : 0,
+          : pregunta.idTipoRecurso == 3 
+          ? "video"
+        : 0 : 0,
       titulo: pregunta ? pregunta.titulo : "",
       respuesta: pregunta ? pregunta.respuesta : "",
       recurso: pregunta ? pregunta.recurso : "",
@@ -193,10 +193,11 @@ const EditarPreguntas = () => {
       let idTipoRecurso = values.idTipoRecurso?
          (values.idTipoRecurso =="galeria")? 1 : 
             (values.idTipoRecurso =="imagen") ? 2:
-                (values.idTipoRecurso=="video")? 0:0:0;
+                (values.idTipoRecurso=="video")? 3:0:0;
       let respuesta = values.respuesta;
       let fuente = values.fuente;
       let linkMaterial = values.linkMaterial;
+      let recurso = values.recurso
 
       let jsonPregunta = JSON.stringify(
         {
@@ -208,6 +209,7 @@ const EditarPreguntas = () => {
           respuesta,
           fuente,
           linkMaterial,
+          recurso,
         },
         null,
         2
