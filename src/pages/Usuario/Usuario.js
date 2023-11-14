@@ -25,6 +25,7 @@ const Usuario = () => {
     const [visible, setVisible] = useState(false);
     const [globalFilterValue, setGlobalFilterValue] = useState("");
     const [totalRecords, setTotalRecords] = useState(0);
+    const [paginaReinicio, setpaginaReinicio] = useState(null);
     
     const {permisos} = useUsuario();
     // const listaEmpresas =
@@ -65,14 +66,19 @@ const Usuario = () => {
         networkTimeout = setTimeout(() => {
             setLoading(true);
             let jwt = window.localStorage.getItem("jwt");
-            let pageNumber = lazyState.page +1;
-            let pageSize  = lazyState.rows
+            let pageNumber = (lazyState?.page?? 0 ) +1;
+            let pageSize  = lazyState?.rows??10;
             let search = globalFilterValue ? globalFilterValue : "%20"
 
-            if(search.trim() != "%20")
+            console.log(pageSize);
+
+            if(paginaReinicio == 1/* search.trim() != "%20" */)
             {
+                setpaginaReinicio(null)
                 pageNumber = 1
-            }
+            } 
+
+            console.log(pageSize);
 
             ObtenerListaPersonasV2({jwt,idEmpresa,pageNumber,pageSize,search}).then(data=>{
                 if(data.length >0)
@@ -109,7 +115,7 @@ const Usuario = () => {
                     <i className="pi pi-search" />
                     <InputText value={globalFilterValue} onChange={(e)=>setGlobalFilterValue(e.target.value)} placeholder="Buscarss..." />
                 </span>
-                <div style={{marginLeft:"2%"}} className="accion-editar" onClick={()=>{loadLazyData(empresaSeleccionada)}}>
+                <div style={{marginLeft:"2%"}} className="accion-editar" onClick={()=>{onPage(1);setpaginaReinicio(1);loadLazyData(empresaSeleccionada)}}>
                 <span><Iconsax.SearchNormal color="#ffffff"/></span>
             </div>
             </div>
