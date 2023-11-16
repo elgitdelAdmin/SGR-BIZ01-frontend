@@ -105,6 +105,14 @@ const Usuario = () => {
         if(globalFilterValue.length > 0)loadLazyData(empresaSeleccionada)
     }, [globalFilterValue]); */
 
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            onPage(1);
+            setpaginaReinicio(1);
+            loadLazyData(empresaSeleccionada);
+        }
+    };
+
     const renderHeader = () => {
         return (
         <div className='flex justify-content-between flex-wrap'>
@@ -113,7 +121,10 @@ const Usuario = () => {
             <div className="flex justify-content-end">
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
-                    <InputText value={globalFilterValue} onChange={(e)=>setGlobalFilterValue(e.target.value)} placeholder="Buscarss..." />
+                    <InputText value={globalFilterValue} 
+                        onChange={(e)=>setGlobalFilterValue(e.target.value)} 
+                        onKeyDown={handleKeyPress} 
+                        placeholder="Buscarss..." />
                 </span>
                 <div style={{marginLeft:"2%"}} className="accion-editar" onClick={()=>{onPage(1);setpaginaReinicio(1);loadLazyData(empresaSeleccionada)}}>
                 <span><Iconsax.SearchNormal color="#ffffff"/></span>
