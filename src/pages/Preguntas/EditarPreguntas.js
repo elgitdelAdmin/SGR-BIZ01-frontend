@@ -22,7 +22,9 @@ import {
   RegistrarPregunta,
   BuscarPreguntaID,
   ListarRespuestasPorPregunta,
+  EliminarRespuesta
 } from "../../service/PreguntaService";
+import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 const EditarPreguntas = () => {
   const navigate = useNavigate();
 
@@ -96,12 +98,37 @@ const EditarPreguntas = () => {
             <Iconsax.Eye color="#ffffff" />
           </span>
         </div>
-        {/* <div className="accion-eliminar" onClick={()=>navigate()}>
+        <div className="accion-eliminar" onClick={()=>{confirm2(rowData.idRespuesta)}}>
                 <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> */}
+            </div>
       </div>
     );
   };
+
+  const confirm2 = (id) => {
+    confirmDialog({
+        message: 'Seguro de eliminar la respuesta?',
+        header: 'Eliminar',
+        icon: 'pi pi-info-circle',
+        acceptClassName: 'p-button-danger',
+        acceptLabel:"Aceptar",
+        accept:()=>Eliminar({id})
+    });
+  };
+
+  const Eliminar =({id})=>{
+    let jwt = window.localStorage.getItem("jwt");
+    EliminarRespuesta({jwt,id}).then(data=>{
+        //formik.setSubmitting(false)
+        toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000)
+    })
+    .catch(errors => {
+        toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+    })
+}
 
   const Actualizar = ({ jsonPregunta }) => {
     let jwt = window.localStorage.getItem("jwt");
@@ -227,6 +254,7 @@ const EditarPreguntas = () => {
   };
   return (
     <form onSubmit={formik.handleSubmit}>
+      <ConfirmDialog />
       <div className="zv-editarPregunta" style={{ paddingTop: 16 }}>
         <Toast ref={toast} position="top-center"></Toast>
         <div className="header">
