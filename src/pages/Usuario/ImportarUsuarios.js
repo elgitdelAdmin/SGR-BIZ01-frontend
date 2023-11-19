@@ -74,7 +74,7 @@ const ImportarUsuarios = () => {
     const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     
     if (!regex.test(correo)) {
-      if (correo.trim() !== correo) {
+      if (correo.toString().trim() !== correo.toString()) {
         throw new Error(`Error de validación para el correo "${correo}": No debe contener espacios al principio o al final.`);
       }
       throw new Error(`Error de validación para el correo electrónico ${correo}: No es una dirección de correo válida.`);
@@ -87,7 +87,7 @@ const ImportarUsuarios = () => {
     if (!regex.test(nombre)) {
       throw new Error(`Error de validación para el nombre "${nombre}": Debe contener solo letras y espacios.`);
     }
-    if (nombre.trim() !== nombre) {
+    if (nombre.toString().trim() !== nombre.toString()) {
       throw new Error(`Error de validación para el nombre "${nombre}": No debe contener espacios al principio o al final.`);
     }  
     return true; // Si no hay reglas de validación específicas, se considera válido
@@ -98,8 +98,8 @@ const ImportarUsuarios = () => {
     if (!regex.test(telefono)) {
       throw new Error(`Error de validación para el teléfono "${telefono}": Debe contener solo números o un signo + al inicio.`);
     }
-    if (telefono.trim() !== telefono) {
-      throw new Error(`Error de validación para el nombre "${telefono}": No debe contener espacios al principio o al final.`);
+    if (telefono.toString().trim() !== telefono.toString()) {
+      throw new Error(`Error de validación para el teléfono "${telefono}": No debe contener espacios al principio o al final.`);
     }
     return true; // Si no hay reglas de validación específicas, se considera válido
   };
