@@ -307,7 +307,7 @@ const EditarUnidad = () => {
       let duracion = values.duracion;
       let secuencia = values.secuencia;
       let logro = values.logro;
-
+      let idUnidad = IDUnidad
       if (
         !descripcion == "" &&
         !descripcionSEO == "" &&
@@ -318,6 +318,7 @@ const EditarUnidad = () => {
         if (Number.isInteger(secuencia)) {
           let jsonUnidad = JSON.stringify(
             {
+              idUnidad,
               idCurso,
               descripcion,
               descripcionSEO,

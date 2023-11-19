@@ -130,7 +130,7 @@ const AsignarPrograma = () => {
         },
       validationSchema: schema,
       onSubmit: values => {
-        let idPersonaPrograma = values.idPersonaCurso
+        let idPersonaPrograma = IdPersonaPrograma ? IdPersonaPrograma : 0
         let idPrograma = values.idPrograma
         let idUsuario = IDUsuario
         

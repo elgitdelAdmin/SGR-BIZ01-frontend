@@ -32,7 +32,10 @@ const EditarMaterial = () => {
            
         }
 
-        if(IDMaterial)getMaterial()
+        if(IDMaterial){
+          setModoEdicion(true)
+          getMaterial()
+        }
     },[IDMaterial])
 
     const Registrar =({jasonMaterial})=>{
@@ -87,8 +90,9 @@ const EditarMaterial = () => {
         let descripcion =values.descripcion
         let titulo =values.titulo
         let link = values.link
+        let idMaterial = IDMaterial
 
-        let jasonMaterial = JSON.stringify({idLeccion,descripcion,titulo,link},null,2)
+        let jasonMaterial = JSON.stringify({idMaterial,idLeccion,descripcion,titulo,link},null,2)
 
         if(!modoEdicion) Registrar({jasonMaterial}) 
         else {Actualizar({jasonMaterial})}
