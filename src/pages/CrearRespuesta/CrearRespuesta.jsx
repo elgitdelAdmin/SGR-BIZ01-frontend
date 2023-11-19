@@ -115,6 +115,7 @@ function CrearRespuesta() {
     initialValues: { 
       option: Respuesta!=null? Respuesta.correcta:"", 
       respuesta: Respuesta!=null? Respuesta.descripcion:"", 
+      recurso: Respuesta!=null? Respuesta.recurso:"", 
     },
     validationSchema: schema,
 
@@ -123,7 +124,7 @@ function CrearRespuesta() {
       //let IDPregunta = IDPregunta;
       let Descripcion = values.respuesta;
       let Correcta = values.option;
-      let Recurso = "";
+      let Recurso = values.recurso;
       let TipoRecurso = "";
       let FechaRegistro = new Date().toISOString();
       let UsuarioRegistro = IDUsuario;
@@ -161,13 +162,27 @@ function CrearRespuesta() {
                 type={"text"}
                 id="respuesta"
                 name="respuesta"
-                placeholder="Escribe aquí"
+                placeholder="Descripción"
                 value={formik.values.respuesta}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
               ></InputText>
               <small className="p-error">
                 {formik.touched.respuesta && formik.errors.respuesta}
+              </small>
+            </div>
+            <div className="field col-12 md:col-7">
+              <InputText
+                type={"text"}
+                id="recurso"
+                name="recurso"
+                placeholder="Link de imagen"
+                value={formik.values.recurso}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              ></InputText>
+              <small className="p-error">
+                {formik.touched.recurso && formik.errors.recurso}
               </small>
             </div>
             <div className="field col-12 md:col-7">
