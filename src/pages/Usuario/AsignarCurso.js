@@ -160,8 +160,8 @@ const AsignarCurso = () => {
       idPersonaCurso: modoEdicion ? curso.idPersonaCurso : 0,
       idCurso: modoEdicion ? curso.idCurso : "",
       finCurso: modoEdicion
-        ? curso.finCurso
-          ? new Date(curso.finCurso)
+        ? curso.fechaVigencia
+          ? new Date(curso.fechaVigencia)
           : null
         : new Date(),
     },
@@ -169,11 +169,11 @@ const AsignarCurso = () => {
     onSubmit: (values) => {
       let idPersonaCurso = values.idPersonaCurso;
       let idCurso = values.idCurso;
-      let finCurso = values.finCurso;
+      let fechaVigencia = values.finCurso;
       let idUsuario = IDUsuario;
 
       let jsonCurso = JSON.stringify(
-        { idPersonaCurso, idUsuario, idCurso, finCurso },
+        { idPersonaCurso, idUsuario, idCurso, fechaVigencia },
         null,
         2
       );
@@ -218,7 +218,7 @@ const AsignarCurso = () => {
             </div>
             {modoEdicion && curso && curso.usuario.idTipoPersona != 2 && (
               <div className="field col-12 md:col-7">
-                <label className="label-form">Fin del curso</label>
+                <label className="label-form">Vigencia del curso</label>
                 <Calendar
                   id="finCurso"
                   name="finCurso"
