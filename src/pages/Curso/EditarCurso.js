@@ -84,7 +84,7 @@ const EditarCurso = () => {
 
   const [showPicker, setShowPicker] = useState(false);
 
-  const { isLogged } = useUsuario();
+  const { isLogged,setEstadoCursoGeneral } = useUsuario();
   useEffect(() => {
     !isLogged && navigate("/");
   }, []);
@@ -530,6 +530,7 @@ const EditarCurso = () => {
           setDefaultFile(temp);
           setFileList(temp);
         }
+        setEstadoCursoGeneral(data.idEstado)
         setCurso(data);
 
         setTituloPagina("Editar Curso");

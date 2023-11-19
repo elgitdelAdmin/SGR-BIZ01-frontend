@@ -27,6 +27,7 @@ import { Column } from "primereact/column";
 import {  EliminarPregunta, ListarPreguntasPorUnidad } from "../../service/PreguntaService";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { BuscarCursoID } from "../../service/CursoService";
+import useUsuario from "../../hooks/useUsuario";
 const EditarUnidad = () => {
   const navigate = useNavigate();
 
@@ -39,6 +40,7 @@ const EditarUnidad = () => {
   let { IDCurso } = useParams();
   let { IDUnidad } = useParams();
   const toast = useRef(null);
+  const {estadoCursoGeneral} = useUsuario()
 
 
   const confirLeccion = (id) => {
@@ -442,7 +444,7 @@ const EditarUnidad = () => {
             type="submit"
             loading={formik.isSubmitting}
           ></Boton>
-          {modoEdicion && (
+          {modoEdicion && estadoCursoGeneral == 1 &&(
             <Boton
               label="Agregar lección"
               style={{ fontSize: 12 }}

@@ -11,6 +11,7 @@ export function UsuarioContextProvider({children}){
     const [jwt,setJwt] = useState(()=>window.localStorage.getItem('jwt'))
     const [permisos, setPermisos] = useState([]);
     const [configuraciones, setConfiguraciones] = useState([]);
+    const [estadoCursoGeneral, setEstadoCursoGeneral] = useState(0);
     useEffect(()=>{
         if(!jwt) return setPerfil({})
         getPerfil({jwt}).then(setPerfil)
@@ -42,7 +43,8 @@ export function UsuarioContextProvider({children}){
         setPerfil,
         setPermisos,
         setJwt,
-        setConfiguraciones
+        setConfiguraciones,
+        estadoCursoGeneral, setEstadoCursoGeneral
         }}>
         {children}
     </Context.Provider>

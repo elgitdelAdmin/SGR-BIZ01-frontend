@@ -3,7 +3,7 @@ import Context from "../context/usuarioContext"
 import loginService from "../service/LoginService";
 // import {CreateUser, UpdateUser,DeleteUser,UsersGerencia,ListUsers}from "../service/UsuariosService";
 export default function useUsuario(){
-    const {jwt,setJwt,permisos,configuraciones} = useContext(Context)
+    const {jwt,setJwt,permisos,configuraciones,estadoCursoGeneral, setEstadoCursoGeneral} = useContext(Context)
     const [state,setState] = useState({loading:false,error:false})
     const [stateCreate,setStateCreate] = useState({loading:false,error:false,success:false})
     const [stateUpdate,setStateUpdate] = useState({loading:false,error:false,success:false})
@@ -45,5 +45,6 @@ export default function useUsuario(){
         configuraciones,
         login,
         logout,
+        estadoCursoGeneral, setEstadoCursoGeneral
     }
 }
