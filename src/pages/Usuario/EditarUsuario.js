@@ -719,7 +719,7 @@ const EditarUsuario = () => {
                       sortable
                     ></Column>
                     <Column
-                      field="CondicionCursoPrograma.nombre"
+                      field="condicionCursoPrograma.nombre"
                       header="Condición"
                       sortable
                     ></Column>
