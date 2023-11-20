@@ -82,7 +82,7 @@ const ImportarUsuarios = () => {
     return true;
   };
   const validateNombre = (nombre) => {
-    const regex = /^[A-Za-zÁáÉéÍíÓóÚúÜüÑñ\s]+$/;
+    const regex = /^[A-Za-z\s]+$/;
   
     if (!regex.test(nombre)) {
       throw new Error(`Error de validación para el nombre "${nombre}": Debe contener solo letras y espacios.`);
