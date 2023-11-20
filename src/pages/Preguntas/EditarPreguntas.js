@@ -333,9 +333,19 @@ const EditarPreguntas = () => {
                 type={"text"}
                 id="respuesta"
                 name="respuesta"
-                placeholder="Respueesta correcta para pregunta tipo Input"
+                placeholder="Respuesta correcta para pregunta tipo Input"
                 value={formik.values.respuesta}
-                onChange={formik.handleChange}
+                keyfilter={"pnum"}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  if (/^\d*$/g.test(inputValue)) {
+                    // Solo si el valor es un número, actualiza el estado usando formik.handleChange
+                    formik.handleChange(e);
+                  }
+                }}
+                // onChange={
+                //   formik.handleChange
+                // }
                 onblur={formik.handleBlur}
               ></InputText>
             </div>
