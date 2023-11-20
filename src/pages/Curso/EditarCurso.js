@@ -604,7 +604,7 @@ const EditarCurso = () => {
     }
   }, [fileList]);
   const schema = Yup.object().shape({
-    idCategoria: Yup.string().required("Categoría es un campo obligatorio"),
+    idCategoria: Yup.string().nullable().required("Categoría es un campo obligatorio"),
     nombre: Yup.string().required("Nombre es un campo obligatorio"),
     descripcion: Yup.string().required("Descripción es un campo obligatorio"),
     logros: Yup.string().required("Logros es un campo obligatorio"),
