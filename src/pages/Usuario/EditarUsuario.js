@@ -470,9 +470,10 @@ const EditarUsuario = () => {
                 value={formik.values.nombres}
                 //onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                // onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
-                onChange={formik.handleChange}
-                onKeyPress={(e) => handleSoloLetrastest(e)}
+                onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
+                //onChange={formik.handleChange}
+                //onKeyPress={(e) => handleSoloLetrastest(e)}
+               
               ></InputText>
               <div className="p-error">
                 {formik.touched.nombres && formik.errors.nombres}
@@ -486,10 +487,10 @@ const EditarUsuario = () => {
                 name="primerApellido"
                 placeholder="Escribe aquí"
                 value={formik.values.primerApellido}
-                onChange={formik.handleChange}
-                //onChange={(e) => handleSoloLetras(e, formik, "primerApellido")}
+                //onChange={formik.handleChange}
+                onChange={(e) => handleSoloLetras(e, formik, "primerApellido")}
                 onBlur={formik.handleBlur}
-                onKeyPress={(e) => handleSoloLetrastest(e)}
+                //onKeyPress={(e) => handleSoloLetrastest(e)}
               ></InputText>
               <small className="p-error">
                 {formik.touched.primerApellido && formik.errors.primerApellido}
@@ -503,10 +504,10 @@ const EditarUsuario = () => {
                 name="segundoApellido"
                 placeholder="Escribe aquí"
                 value={formik.values.segundoApellido}
-                onChange={formik.handleChange}
-                //onChange={(e) => handleSoloLetras(e, formik, "segundoApellido")}
+                //onChange={formik.handleChange}
+                onChange={(e) => handleSoloLetras(e, formik, "segundoApellido")}
                 onBlur={formik.handleBlur}
-                onKeyPress={(e) => handleSoloLetrastest(e)}
+                //onKeyPress={(e) => handleSoloLetrastest(e)}
               ></InputText>
               <small className="p-error">
                 {formik.touched.segundoApellido &&

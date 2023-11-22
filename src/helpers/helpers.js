@@ -167,7 +167,7 @@ const copyToClipboard = (content) => {
 export const handleSoloLetras = (event,formik,label) => {
   if(event.target.value != null && event.target.value != undefined)
   {
-    const result = event.target.value.replace(/[^a-z]/gi, '');
+    const result = event.target.value.replace(/[^a-zA-Z\u00C0-\u017F\\s]/gi, '');
     // const result = event.target.value.replace(/^[a-zA-Z\u00C0-\u017F\s]+$/gi, '');
     
 
