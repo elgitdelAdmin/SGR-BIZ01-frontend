@@ -969,7 +969,7 @@ const EditarCurso = () => {
         <div className="zv-editarCurso-body" style={{ marginTop: 16 }}>
           <div className="p-fluid formgrid grid">
             <div className="field col-12 md:col-6">
-              <label className="label-form">Categoria</label>
+              <label className="label-form">Categoría</label>
               <DropdownDefault
                 type={"text"}
                 id="idCategoria"
