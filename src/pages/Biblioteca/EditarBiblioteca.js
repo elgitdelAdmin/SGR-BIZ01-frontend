@@ -12,7 +12,7 @@ import { Field,FieldArray, Formik ,useFormik,FormikProvider} from "formik";
 import * as Yup from "yup";
 import { Toast } from 'primereact/toast';
 import { RegistrarBiblioteca,ActualizarBiblioteca,BuscarBibliotecaID} from "../../service/BlibliotecaService";
-import { ObtenerListaLibroTipo } from "../../service/EmpresaService";
+import { ObtenerListaLibroTipo } from "../../service/ExEmpresaService";
 const EditarBiblioteca = () => {
     const navigate = useNavigate();
 

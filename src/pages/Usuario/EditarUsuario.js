@@ -41,6 +41,7 @@ import { handleSoloLetras, handleSoloLetrastest } from "../../helpers/helpers";
 import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
+import { Dialog } from 'primereact/dialog';
 
 const EditarUsuario = () => {
   const navigate = useNavigate();

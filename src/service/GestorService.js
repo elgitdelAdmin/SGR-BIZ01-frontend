@@ -2,22 +2,22 @@ import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
 const ENDPOINT = constantes.URLAPICONECTA;
 
-export const ListarEmpresas = async () => {
-  return await fetch(`${ENDPOINT}/api/Empresas`, {
+export const ListarGestores = async () => {
+  return await fetch(`${ENDPOINT}/api/Gestor`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
     },
   })
   .then(res => {
-    if (!res.ok) throw new Error("Error al obtener las Empresas");
+    if (!res.ok) throw new Error("Error al obtener los consultores");
     return res.json();
   });
 };
 
 
-export const RegistrarEmpresa = ({ jsonData }) => {
-    return fetch(`${ENDPOINT}/api/Empresas`, {
+export const RegistrarGestor = ({ jsonData }) => {
+    return fetch(`${ENDPOINT}/api/Gestor`, {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -42,8 +42,8 @@ export const RegistrarEmpresa = ({ jsonData }) => {
         return data;
       });
   };
-  export const ActualizarEmpresa= ({jsonData,idEmpresa}) =>{
-      return fetch(`${ENDPOINT}/api/Empresas/${idEmpresa}`,{
+  export const ActualizarGestor= ({jsonData,idGestor}) =>{
+      return fetch(`${ENDPOINT}/api/Gestor/${idGestor}`,{
           method: "PUT",
           headers:{
               'Content-Type': 'application/json',
@@ -97,8 +97,8 @@ export const ListarParametros = async () => {
   });
 };
 
-export const EliminarEmpresa = async ({ idEmpresa }) => {
-    return await fetch(`${ENDPOINT}/api/Empresas/${idEmpresa}`, {
+export const EliminarGestor = async ({ idGestor }) => {
+    return await fetch(`${ENDPOINT}/api/Gestor/${idGestor}`, {
         method: "DELETE",
         headers: {
             "accept": "text/plain"
@@ -125,8 +125,8 @@ export const EliminarEmpresa = async ({ idEmpresa }) => {
     });
 }
 
-export const ObtenerEmpresa = async ({idEmpresa}) =>{
-    return await fetch(`${ENDPOINT}/api/Empresas/${idEmpresa}`,{
+export const ObtenerGestor = async ({idGestor}) =>{
+    return await fetch(`${ENDPOINT}/api/Gestor/${idGestor}`,{
         method: "GET",
         headers:{
             // "Authorization":"Bearer "+jwt,

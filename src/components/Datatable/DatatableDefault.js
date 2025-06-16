@@ -38,14 +38,15 @@ const DatatableDefault = (props) => {
                     </div>
                 </div>
             }
-           
+            {props.showSearch !== false && (
+                <div className="flex justify-content-end">
+                    <span className="p-input-icon-left">
+                        <i className="pi pi-search" />
+                        <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Buscar..." />
+                    </span>
+                </div>
+            )}
              
-            <div className="flex justify-content-end">
-                <span className="p-input-icon-left">
-                    <i className="pi pi-search" />
-                    <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Buscar..." />
-                </span>
-            </div>
         </div>
            
         
@@ -63,7 +64,7 @@ const DatatableDefault = (props) => {
             
             size="small"
             stripedRows 
-            paginator
+            paginator={props.paginator !== false}
             paginatorLeft={paginatorLeft}
             paginatorRight={paginatorRight}
             responsiveLayout="scroll"

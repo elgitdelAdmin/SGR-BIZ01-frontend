@@ -37,6 +37,22 @@ import AsignarCurso from "./pages/Usuario/AsignarCurso";
 import AsignarPrograma from "./pages/Usuario/AsignarPrograma";
 import ImportarUsuarios from "./pages/Usuario/ImportarUsuarios";
 import ImportarCurso from "./pages/Curso/ImportarCurso";
+import CargaArchivos from "./pages/Curso/CargaArchivos";
+import DirectorioArchivos from "./pages/Curso/DirectorioArchivos";
+import CrearRespuesta from "./pages/CrearRespuesta/CrearRespuesta";
+import { Home } from "iconsax-react";
+import  Dashboard  from "./pages/Dashboard/Dashboard"
+import  Consultores  from "./pages/Consultores/Consultores"
+import  EditarConsultor from "./pages/Consultores/EditarConsultor";
+import  Gestores  from "./pages/Gestores/Gestores"
+import  EditarGestor from "./pages/Gestores/EditarGestor";
+import  Empresas  from "./pages/Empresas/Empresas"
+import  EditarEmpresa from "./pages/Empresas/EditarEmpresa";
+import  Gestiontikets  from "./pages/Gestiontikets/Gestiontikets"
+import  Editar from "./pages/Gestiontikets/Editar";
+
+
+
 function App() {
   const [layoutMode, setLayoutMode] = useState("static");
     const [layoutColorMode, setLayoutColorMode] = useState("light");
@@ -141,61 +157,181 @@ const removeClass = (element, className) => {
 const onSidebarClick = () => {
   menuClick = true;
 };
-  return (
-    <>
-      <div className={wrapperClass} onClick={onWrapperClick}>
-          <TopBar onToggleMenuClick={onToggleMenuClick} layoutColorMode={layoutColorMode} mobileTopbarMenuActive={mobileTopbarMenuActive} onMobileTopbarMenuClick={onMobileTopbarMenuClick} onMobileSubTopbarMenuClick={onMobileSubTopbarMenuClick} ></TopBar>
-          <div className="layout-sidebar zv-slider-left" onClick={onSidebarClick}>
-              <AppMenu model={[]}onMenuItemClick={onMenuItemClick}  layoutColorMode={layoutColorMode} />
-          </div>
-          <div className="layout-main-container">
-            <div className="layout-main">
-                <Routes>
-                    <Route path="Usuario" element={<Usuario/>}></Route>
-                    <Route path="Usuario/EditarUsuario/:id" element={<EditarUsuario/>}></Route>
-                    <Route path="Usuario/CrearUsuario/:IdEmpresa" element={<EditarUsuario/>}></Route>
-                    <Route path="Profesor" element={<Profesor/>}></Route>
-                    <Route path="EditarProfesor/:id" element={<EditarProfesor/>}></Route>
-                    <Route path="EditarProfesor/Crear" element={<EditarProfesor/>}></Route>
-                    <Route path="Curso" element={<Curso/>}></Route>
-                    <Route path="Curso/Crear" element={<EditarCurso/>}></Route>
-                    <Route path="Curso/Editar/:id" element={<EditarCurso/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Crear" element={<EditarUnidad/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad" element={<EditarUnidad/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion" element={<EditarLeccion/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/Crear" element={<EditarLeccion/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Pregunta/Crear" element={<EditarPreguntas/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Pregunta/Editar/:IDPregunta" element={<EditarPreguntas/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Material/Crear" element={<EditarMaterial/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Material/Editar/:IDMaterial" element={<EditarMaterial/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Biblioteca/Crear" element={<EditarBiblioteca/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Biblioteca/Editar/:IDBiblioteca" element={<EditarBiblioteca/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Requisito/Crear" element={<Requisito/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Beneficio/Crear" element={<EditarBeneficio/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Disenador/Crear" element={<EditarDisenador/>}></Route>
-                    <Route path="Curso/Editar/:IDCurso/Disenador/Editar/:IDDisenador" element={<EditarDisenador/>}></Route>
-                    <Route path="Programa" element={<Programa/>}></Route>
-                    <Route path="Programa/Crear" element={<EditarPrograma/>}></Route>
-                    <Route path="Programa/Editar/:id" element={<EditarPrograma/>}></Route>
-                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarCurso/Crear" element={<AsignarCurso/>}></Route>
-                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarCurso/:IdPersonaCurso" element={<AsignarCurso/>}></Route>
-                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarPrograma/Crear" element={<AsignarPrograma/>}></Route>
-                    <Route path="Usuario/EditarUsuario/:IDPersona/AsignarPrograma/:IdPersonaPrograma" element={<AsignarPrograma/>}></Route>
-                    <Route path="ImportarUsuario" element={<ImportarUsuarios/>}></Route>
-                    <Route path="ImportarCurso" element={<ImportarCurso/>}></Route>
-
-
-
-                </Routes>
-            </div>
-          </div>
-          <CSSTransition classNames="layout-mask" timeout={{ enter: 200, exit: 200 }} in={mobileMenuActive} unmountOnExit>
-                          <div className="layout-mask p-component-overlay"></div>
-                      </CSSTransition>
-      </div>
-    </>
-    
-  );
+ return (
+     <>
+       <div className={wrapperClass} onClick={onWrapperClick}>
+         <TopBar
+           onToggleMenuClick={onToggleMenuClick}
+           layoutColorMode={layoutColorMode}
+           mobileTopbarMenuActive={mobileTopbarMenuActive}
+           onMobileTopbarMenuClick={onMobileTopbarMenuClick}
+           onMobileSubTopbarMenuClick={onMobileSubTopbarMenuClick}
+         ></TopBar>
+         <div className="layout-sidebar zv-slider-left" onClick={onSidebarClick}>
+           <AppMenu
+             model={[]}
+             onMenuItemClick={onMenuItemClick}
+             layoutColorMode={layoutColorMode}
+           />
+         </div>
+         <div className="layout-main-container">
+           <div className="layout-main">
+             <Routes>
+               <Route path="Dashboard" element={<Dashboard />}></Route>
+ 
+               <Route path="Consultores" element={<Consultores />}></Route>
+               <Route path="Consultores/CrearConsultor" element={<EditarConsultor/>}></Route>
+               <Route path="Consultores/Editar/:id" element={<EditarConsultor />}></Route>
+ 
+               <Route path="Gestiontikets" element={<Gestiontikets />}></Route>
+               <Route path="Gestiontikets/Crear" element={<Editar/>}></Route>
+               <Route path="Gestiontikets/Editar/:id" element={<Editar />}></Route>
+ 
+               <Route path="Gestores" element={<Gestores/>}></Route>
+               <Route path="Gestores/CrearGestor" element={<EditarGestor/>}></Route>
+               <Route path="Gestores/EditarGestor/:id" element={<EditarGestor />}></Route>
+ 
+               <Route path="Empresas" element={<Empresas/>}></Route>
+               <Route path="Empresas/CrearEmpresa" element={<EditarEmpresa/>}></Route>
+               <Route path="Empresas/EditarEmpresa/:id" element={<EditarEmpresa />}></Route>
+ 
+               <Route path="Usuarios" element={<Usuarios/>}></Route>
+               <Route path="Usuarios/CrearUsuario" element={<EditarUsuario/>}></Route>
+               <Route path="Usuarios/EditarUsuario/:id" element={<EditarUsuario />}></Route>
+ 
+ 
+               <Route path="Cargabilidad" element={<Cargabilidad />}></Route>
+ 
+ 
+               <Route path="Usuario" element={<Usuario />}></Route>
+               <Route
+                 path="Usuario/EditarUsuario/:id"
+                 element={<EditarUsuario />}
+               ></Route>
+               <Route
+                 path="Usuario/CrearUsuario/:IdEmpresa"
+                 element={<EditarUsuario />}
+               ></Route>
+               
+           
+               <Route path="Curso" element={<Curso />}></Route>
+               <Route path="Curso/Crear" element={<EditarCurso />}></Route>
+               <Route path="Curso/Editar/:id" element={<EditarCurso />}></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Crear"
+                 element={<EditarUnidad />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad"
+                 element={<EditarUnidad />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion"
+                 element={<EditarLeccion />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/Crear"
+                 element={<EditarLeccion />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Pregunta/Crear"
+                 element={<EditarPreguntas />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Pregunta/Editar/:IDPregunta"
+                 element={<EditarPreguntas />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Pregunta/Editar/:IDPregunta/CrearRespuesta"
+                 element={<CrearRespuesta />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Pregunta/Editar/:IDPregunta/EditarRespuesta/:IdRespuesta"
+                 element={<CrearRespuesta />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Material/Crear"
+                 element={<EditarMaterial />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Unidad/Editar/:IDUnidad/Leccion/:IDLeccion/Material/Editar/:IDMaterial"
+                 element={<EditarMaterial />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Biblioteca/Crear"
+                 element={<EditarBiblioteca />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Biblioteca/Editar/:IDBiblioteca"
+                 element={<EditarBiblioteca />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Requisito/Crear"
+                 element={<Requisito />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Beneficio/Crear"
+                 element={<EditarBeneficio />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Disenador/Crear"
+                 element={<EditarDisenador />}
+               ></Route>
+               <Route
+                 path="Curso/Editar/:IDCurso/Disenador/Editar/:IDDisenador"
+                 element={<EditarDisenador />}
+               ></Route>
+               <Route path="Programa" element={<Programa />}></Route>
+               <Route path="Programa/Crear" element={<EditarPrograma />}></Route>
+               <Route
+                 path="Programa/Editar/:id"
+                 element={<EditarPrograma />}
+               ></Route>
+               <Route
+                 path="Usuario/EditarUsuario/:IDUsuario/AsignarCurso/Crear"
+                 element={<AsignarCurso />}
+               ></Route>
+               <Route
+                 path="Usuario/EditarUsuario/:IDUsuario/AsignarCurso/:IdPersonaCurso"
+                 element={<AsignarCurso />}
+               ></Route>
+               <Route
+                 path="Usuario/EditarUsuario/:IDUsuario/AsignarCurso/:IdPersonaCurso/VerIntentos/:IdPersonaCurso"
+                 element={<UsuarioIntentos />}
+               ></Route>
+               <Route
+                 path="Usuario/EditarUsuario/:IDUsuario/AsignarPrograma/Crear"
+                 element={<AsignarPrograma />}
+               ></Route>
+               <Route
+                 path="Usuario/EditarUsuario/:IDUsuario/AsignarPrograma/:IdPersonaPrograma"
+                 element={<AsignarPrograma />}
+               ></Route>
+               <Route
+                 path="ImportarUsuario"
+                 element={<ImportarUsuarios />}
+               ></Route>
+               <Route path="ImportarCurso" element={<ImportarCurso />}></Route>
+               {/* <Route
+                 path="CargarArchivos/:nombreCarpeta"
+                 element={<CargaArchivos />}
+               ></Route> */}
+               <Route
+                 path="CargarArchivos"
+                 element={<DirectorioArchivos />}
+               ></Route>
+             </Routes>
+           </div>
+         </div>
+         <CSSTransition
+           classNames="layout-mask"
+           timeout={{ enter: 200, exit: 200 }}
+           in={mobileMenuActive}
+           unmountOnExit
+         >
+           <div className="layout-mask p-component-overlay"></div>
+         </CSSTransition>
+       </div>
+     </>
+   );
 }
-
-export default App;

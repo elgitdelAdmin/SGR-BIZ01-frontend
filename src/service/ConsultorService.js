@@ -2,22 +2,52 @@ import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
 const ENDPOINT = constantes.URLAPICONECTA;
 
-export const ListarEmpresas = async () => {
-  return await fetch(`${ENDPOINT}/api/Empresas`, {
+// export const ListarConsultores = async({jwt})=> {
+//     return await fetch(`${ENDPOINT}/api/Consultor`,{
+//         method: "GET",
+//         headers:{
+//             "Authorization":"Bearer "+jwt,
+//             "accept": "text/plain"
+//         },
+        
+//     }).then(res=>{
+//         if(!res.ok) 
+//         {
+//             if(res.status == 401)
+//             {
+//                 window.localStorage.removeItem('jwt')
+//                 window.location.reload();
+//             }
+//             else
+//             {
+//                 throw new Error("No se recibió respuesta del servidor")
+//             }
+//         }
+//         return res.json()
+//     }).then(res=>{
+//         if(res.errors) throw new Error(res.errors[0])
+//         const {data} = res
+//         return data
+//     })
+    
+// }
+
+export const ListarConsultores = async () => {
+  return await fetch(`${ENDPOINT}/api/Consultor`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
     },
   })
   .then(res => {
-    if (!res.ok) throw new Error("Error al obtener las Empresas");
+    if (!res.ok) throw new Error("Error al obtener los consultores");
     return res.json();
   });
 };
 
 
-export const RegistrarEmpresa = ({ jsonData }) => {
-    return fetch(`${ENDPOINT}/api/Empresas`, {
+export const RegistrarConsultor = ({ jsonData }) => {
+    return fetch(`${ENDPOINT}/api/Consultor`, {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -42,8 +72,8 @@ export const RegistrarEmpresa = ({ jsonData }) => {
         return data;
       });
   };
-  export const ActualizarEmpresa= ({jsonData,idEmpresa}) =>{
-      return fetch(`${ENDPOINT}/api/Empresas/${idEmpresa}`,{
+  export const ActualizarConsultor= ({jsonData,idConsultor}) =>{
+      return fetch(`${ENDPOINT}/api/Consultor/${idConsultor}`,{
           method: "PUT",
           headers:{
               'Content-Type': 'application/json',
@@ -97,13 +127,14 @@ export const ListarParametros = async () => {
   });
 };
 
-export const EliminarEmpresa = async ({ idEmpresa }) => {
-    return await fetch(`${ENDPOINT}/api/Empresas/${idEmpresa}`, {
+export const EliminarConsultor = async ({ idConsultor }) => {
+    return await fetch(`${ENDPOINT}/api/Consultor/${idConsultor}`, {
         method: "DELETE",
         headers: {
             "accept": "text/plain"
         },
     }).then(async res => {
+                  console.log("res",res);
 
         if (!res.ok) {
             if (res.status === 401) {
@@ -125,8 +156,8 @@ export const EliminarEmpresa = async ({ idEmpresa }) => {
     });
 }
 
-export const ObtenerEmpresa = async ({idEmpresa}) =>{
-    return await fetch(`${ENDPOINT}/api/Empresas/${idEmpresa}`,{
+export const ObtenerConsultor = async ({idConsultor}) =>{
+    return await fetch(`${ENDPOINT}/api/Consultor/${idConsultor}`,{
         method: "GET",
         headers:{
             // "Authorization":"Bearer "+jwt,

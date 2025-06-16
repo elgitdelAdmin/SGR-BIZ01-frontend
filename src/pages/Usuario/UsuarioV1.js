@@ -5,7 +5,7 @@ import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Usuario.scss"
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
-import ObtenerListaEmpresas from "../../service/EmpresaService";
+import ObtenerListaEmpresas from "../../service/ExEmpresaService";
 import {ObtenerListaPersonas,ObtenerPersonaPorEmpresa,EliminarPersona} from "../../service/UsuarioService";
 import { Loader, Placeholder } from 'rsuite';
 import Boton from "../../components/Boton/Boton";
@@ -28,14 +28,14 @@ const UsuarioV1 = () => {
     const toast = useRef(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
-    useEffect(()=>{
+    // useEffect(()=>{
        
-        if(permisos.length >0)
-        {
-            permisos.indexOf("editarUsuarioAdmin") > -1 && setIsAdmin(true)
-        }
+    //     if(permisos.length >0)
+    //     {
+    //         permisos.indexOf("editarUsuarioAdmin") > -1 && setIsAdmin(true)
+    //     }
 
-    },[permisos])
+    // },[permisos])
 
     useEffect(()=>{
         const GetEmpresa = async ()=>

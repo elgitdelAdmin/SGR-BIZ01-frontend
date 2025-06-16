@@ -1,4 +1,14 @@
+export const URLAPICONECTA = "http://154.38.177.31:5000";
+
+
+
+
+
+
+
 export const URLAPI = "https://qazegelapi.azure-api.net";
+
+
 // export const URLAPI = "https://prdzegelapi.azure-api.net";
 export const URLBLOB_BASE = "https://grplataformavirtual9128.blob.core.windows.net/adjuntos";
 

@@ -29,7 +29,7 @@ export default function Login() {
         
         if (isLogged)
         {
-            navigate("/Dashboard/Usuario")
+            navigate("/Dashboard/Dashboard")
         }
 
     }, [isLogged]);
@@ -52,15 +52,27 @@ export default function Login() {
         setpasswordType("password");
     };
 
-    const Logarse = async(userName,password,setSubmitting)=>{
-        await login({ userName, password},()=>setSubmitting(false));
-       // await login({ userName, password},()=>setSubmitting(false));
-        // setSubmitting(false)
-        // await Promise.all([login({ userName, password })]).catch(
-        //     () => setSubmitting(false)
-        //     )
+    // const Logarse = async(userName,password,setSubmitting)=>{
+    //     await login({ userName, password},()=>setSubmitting(false));
+    // }
 
-    }
+    const Logarse = async (userName, password, setSubmitting) => {
+    await login({ userName, password }, (success) => {
+        setSubmitting(false);
+        if (success) navigate("/Dashboard/Dashboard"); 
+    });
+}
+
+// const Logarse = async (userName, password, setSubmitting) => {
+//   setSubmitting(false);
+  
+//   localStorage.setItem("token", "demo-token"); 
+//   localStorage.setItem("user", JSON.stringify({ userName }));
+
+//   navigate("/Dashboard/Dashboard");
+// };
+
+
 
     return (
         <>
@@ -71,85 +83,95 @@ export default function Login() {
                 initialValues={{ username: "", password: "" }}
                 onSubmit={(values,{ setSubmitting }) => {
 
-                    // Alert the input values of the form that we filled
                     let userName = values.username;
                     let password = values.password;
 
                     Logarse(userName,password,setSubmitting)
-                    // window.localStorage.setItem('jwt','test')
-                    // window.location = "#/Home";
-
-                    //   alert(JSON.stringify(values));
-
+                   
                 }}
             >
                 {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting,setSubmitting }) => (
                     <form onSubmit={handleSubmit}>
                         <div style={{background:"#f2f2f2",display:"flex",justifyContent:"center",height:"100vh",alignItems:"center"}}>
-                            {/* <Slider/> */}
                                 <div className="card contentLogin">
-                                {/* <div className="surface-card p-4 shadow-2 border-round w-full lg:w-6"> */}
-                                    <div className="text-center form-img">
-                                        <img src="images/zegelvirtual.png" alt="hyper" width={365} />
+                                    <div className="text-center ">
+                                        <img src="images/fondo.jpg" alt="hyper" className="imgResponsive" />
                                     </div>
-
-                                    <div className="p-titulo-login"> Administrador</div>
                                     <div className="form-login">
                                     {
                                         hasLoginError && <p className="error">Credenciales no validas</p>
 
                                     }
                                     </div>
-                                    <div className="p-fluid formgrid grid form-login">
-                                        <div className="field col-12 md:col-12">
-                                            <label htmlFor="CodigoColaborador" className="peva-label">
-                                                Código Colaborador
-                                            </label>
-                                            <InputText
-                                                id={"CodigoColaborador"}
-                                                type="text"
-                                                placeholder="Escribe aquí"
-                                                name="username"
-                                                onChange={handleChange}
-                                                onBlur={handleBlur}
-                                                //className="grey"
-                                                className={classNames({ 'p-invalid': touched.username && errors.username })}
+                                    <div style={{ display: 'flex', height: '100vh' }}>
+                                      <div style={{ flex: 1, backgroundColor: '#fff', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start'}}>
+                                            <img
+                                            src="images/bizlogo.jpg"
+                                            style={{ width: '30%', maxHeight: '120px', objectFit: 'contain', marginBottom: '20px' }}
+                                            />
+                                            <img
+                                            src="images/bizletra.png"
+                                            style={{ width: '30%', maxHeight: '120px', objectFit: 'contain' }}
+                                            />
+                                       </div>
 
-                                                height={48}
-                                                />
-                                            <small className="p-error">{errors.username && touched.username && errors.username}</small>
+                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <div style={{ display: 'flex'}}>
+                                                <div className="p-fluid formgrid grid form-login" style={{ width:400}}>
+                                                    <div className="field col-12 md:col-12">
+                                                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                            <img
+                                                                src="images/correo.png"
+                                                                alt="icono"
+                                                                style={{ width: 34, height: 34 }}
+                                                            />
+                                                            <InputText
+                                                                id="CodigoColaborador"
+                                                                type="text"
+                                                                placeholder="Escribe aquí"
+                                                                name="username"
+                                                                onChange={handleChange}
+                                                                onBlur={handleBlur}
+                                                                className={classNames({ 'p-invalid': touched.username && errors.username })}
+                                                                style={{ flex: 1 }}
+                                                            />
+                                                        </div>
+                                                        <small className="p-error">{errors.username && touched.username && errors.username}</small>
+                                                    </div>
 
-                                            {/* <p className="error">{errors.username && touched.username && errors.username}</p> */}
-                                        </div>
-                                        
-                                        <div className="field col-12 md:col-12">
-                                            <label htmlFor="Password" className="peva-label">
-                                                Contraseña
-                                            </label>
-                                            <div className="peva-input-icon">
-                                                <Password
-                                                    id="Password"
-                                                    // className = "grey"
-                                                    className={classNames({ 'p-invalid': touched.password && errors.password })}
-                                                    placeholder="Escribe aquí"
-                                                    name="password"
-                                                    onChange={handleChange}
-                                                    onBlur={handleBlur}
-                                                    width="100%"
-                                                    height={48}
-                                                    toggleMask 
-                                                    feedback={false}
-                                                />
-                                                <small className="p-error">{errors.password && touched.password && errors.password}</small>
-                                                {/* <p className="error">{errors.password && touched.password && errors.password}</p> */}
-                                        </div>
-                                        
-                                        </div>
+                                                    <div className="field col-12 md:col-12">
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                        <img
+                                                            src="images/contraseña.png"
+                                                            alt="clave"
+                                                            style={{ width: 34, height: 34 }}
+                                                        />
+                                                        <Password
+                                                            id="Password"
+                                                            name="password"
+                                                            onChange={handleChange}
+                                                            onBlur={handleBlur}
+                                                            className={classNames({ 'p-invalid': touched.password && errors.password })}
+                                                            placeholder="Escribe aquí"
+                                                            toggleMask
+                                                            feedback={false}
+                                                            style={{ flex: 1 }}
+                                                        />
+                                                        </div>
+                                                        <small className="p-error">{errors.password && touched.password && errors.password}</small>
 
-                                        
-                                    </div>
-                                    <div className="form-footer">
-                                        <Button label="Ingresar" style={{background:"#404BD9",fontSize:14,width:160,borderRadius:0}} loading={isSubmitting}></Button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="form-footer" style={{ marginTop: 20,marginright: 50,marginBottom:50}}>
+                                                    <Button
+                                                    label="Iniciar sesión"
+                                                    style={{ background: "#404BD9", fontSize: 14, width: 160,height:90, borderRadius: 6 }}
+                                                    loading={isSubmitting}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 

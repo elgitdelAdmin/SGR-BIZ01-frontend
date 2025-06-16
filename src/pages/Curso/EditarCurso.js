@@ -39,7 +39,7 @@ import { Column } from "primereact/column";
 import { Uploader } from "rsuite";
 import { getBase64, validateRegex } from "../../helpers/helpers";
 import * as constantes from "../../constants/constantes.js";
-import { ObtenerListaCategorias } from "../../service/EmpresaService";
+import { ObtenerListaCategorias } from "../../service/ExEmpresaService";
 import useUsuario from "../../hooks/useUsuario";
 import { Loader } from "rsuite";
 import "bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css";
@@ -49,7 +49,7 @@ import $ from "jquery"; // Importar jQuery
 import { InputNumber } from "primereact/inputnumber";
 import { handleSoloNumeros } from "../../helpers/helpers";
 import { handleSoloLetrasNumeros } from "../../helpers/helpers";
-import { ObtenerEstadoCurso } from "../../service/EmpresaService";
+import { ObtenerEstadoCurso } from "../../service/ExEmpresaService";
 import { ListarTrazabilidadCurso } from "../../service/CursoService";
 import { formatDate } from "../../helpers/helpers";
 import { ChromePicker } from "react-color";

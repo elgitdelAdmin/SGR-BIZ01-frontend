@@ -11,7 +11,7 @@ import * as Iconsax from "iconsax-react";
 import { FileUpload } from "primereact/fileupload";
 import { Toast } from "primereact/toast";
 import useUsuario from "../../hooks/useUsuario";
-import ObtenerListaEmpresas from "../../service/EmpresaService";
+import ObtenerListaEmpresas from "../../service/ExEmpresaService";
 import {
   excelFileToJSON,
   excelFileToJSONSheetName,

@@ -18,9 +18,10 @@ root.render(
       <Routes>
         <Route
           path="/"
+
           element={
             Boolean(jwt) ? (
-              <Navigate to="/Dashboard/Usuario" />
+              <Navigate to="/Dashboard/Dashboard" />
             ) : (
               <Navigate to="/Login" />
             )
