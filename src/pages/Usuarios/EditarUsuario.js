@@ -5,12 +5,12 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
 import * as Iconsax from "iconsax-react";
-import "./Gestores.scss"
+import "./Usuarios.scss"
 import { InputText } from "primereact/inputtext";
 import Boton from "../../components/Boton/Boton";
+
 import * as Yup from "yup";
 import { Field, FieldArray, Formik, useFormik, FormikProvider } from "formik";
 
@@ -37,7 +37,7 @@ const EditarGestor = () => {
   const [parametros, setParametro] = useState([]);
 
   const [consultor, setConsultor] = useState(null);
-  const [tituloPagina, setTituloPagina] = useState("Crear Gestor");
+  const [tituloPagina, setTituloPagina] = useState("Crear Usuario");
   const [modoEdicion, setModoEdicion] = useState(false);
   const [listaCursos, setListaCursos] = useState(null);
   const [listaPrograma, setListaPrograma] = useState(null);
@@ -60,7 +60,7 @@ const EditarGestor = () => {
       let idGestor = id;
       await ObtenerGestor({idGestor}).then((data) => {
         console.log("data",data);
-        setTituloPagina("Datos del Gestor");
+        setTituloPagina("Datos del Usuario");
         setConsultor(data);
         setModoEdicion(true);
       });
@@ -146,8 +146,6 @@ const EditarGestor = () => {
     .min(8, "Documento debe tener mínimo 8 números")
     .test("no-es-ceros", "Documento no puede ser igual a '00000000'", value => value !== "00000000"),
   tipoDocumento: Yup.number().required("Tipo de documento es un campo obligatorio"),
-  idNivelExperiencia: Yup.number().required("Nivel de Experiencia es un campo obligatorio"),
-  idModalidadLaboral: Yup.number().required("Modalidad laboral es un campo obligatorio"),
   telefono: Yup.string()
     .required("Teléfono es un campo obligatorio")
     .matches(/^\d+$/, "El teléfono solo debe contener números")
@@ -163,23 +161,13 @@ const EditarGestor = () => {
   fechaNacimiento: Yup.date()
     .required("Fecha de nacimiento es obligatoria")
     .max(new Date(), "La fecha de nacimiento no puede ser en el futuro"),
- nuevaEspecializacion: Yup.object().shape({
-  idFrente: Yup.number().nullable().transform((v, o) => o === "" ? null : v),
-  idSubFrente: Yup.number().nullable().transform((v, o) => o === "" ? null : v),
-    idNivelExperiencia: Yup.number().nullable().transform((v, o) => o === "" ? null : v),
+  username: Yup.string().required("username es un campo obligatorio"),
+  password: Yup.string().required("password es un campo obligatorio"),
+  idRol: Yup.number().required("Rol es un campo obligatorio"),
+  email: Yup.string(),
 
-  // idNivelExperiencia: Yup.number().transform(value => value === "" ? null : value),
-    esCertificado: Yup.boolean(),
-}).notRequired(),
-  especializaciones: Yup.array().of(
-    Yup.object().shape({
-      idFrente: Yup.number().required(),
-      idSubFrente: Yup.number().required(),
-      idNivelExperiencia: Yup.string().required(),
-      esCertificado: Yup.boolean(),
 
-    })
-  )
+
 });
 
     const formik = useFormik({
@@ -190,33 +178,29 @@ const EditarGestor = () => {
         apellidoMaterno: consultor?.apellidoMaterno || "",
         numeroDocumento: consultor?.numeroDocumento || "",
         tipoDocumento: consultor?.tipoDocumento || "",
-        idNivelExperiencia:consultor?.idNivelExperiencia || "",
-        idModalidadLaboral:consultor?.idModalidadLaboral || "",
         telefono: consultor?.telefono || "",
         telefono2: consultor?.telefono2 || "",
         direccion: consultor?.direccion || "",
         correo: consultor?.correo || "",
         fechaNacimiento: consultor?.fechaNacimiento ? new Date(consultor.fechaNacimiento) : "",
+        username: consultor?.username || "",
+        password: consultor?.password || "",
+        email: consultor?.email || "",
         idSocio: empresa?.idSocio ||  Number(window.localStorage.getItem("idsocio")),
- 
-
-        nuevaEspecializacion: {
-          idFrente: "",
-          idSubFrente: "",
-          idNivelExperiencia: "",
-          esCertificado:false,
-
-        },
-         especializaciones: consultor?.frentesSubFrente||[]
+        idRol: consultor?.idRol || "",
       },
       validationSchema: schema,
 
       onSubmit: (values) => {
       
           const data = {
-            ...(modoEdicion && { id: consultor.id }), 
-            idNivelExperiencia: values.idNivelExperiencia,
-            idModalidadLaboral:values.idModalidadLaboral,
+            // ...(modoEdicion && { id: consultor.id }), 
+            username: values.username ,
+            email: values.password,
+            password: values.password,
+            idSocio: Number(window.localStorage.getItem("idsocio")),
+            idRol:values.idRol,
+            persona:{
             nombres: values.nombres,
             apellidoMaterno: values.apellidoMaterno,
             apellidoPaterno: values.apellidoPaterno,
@@ -226,19 +210,13 @@ const EditarGestor = () => {
             telefono2: values.telefono2,
             direccion: values.direccion || "",
             correo: values.correo || "",
-            idSocio: Number(window.localStorage.getItem("idsocio")),
-
             fechaNacimiento: new Date(values.fechaNacimiento).toISOString(),
-            ...(modoEdicion
-              ? { usuarioActualizacion:window.localStorage.getItem("username")}
-              : { usuarioCreacion: values.usuarioCreacion||window.localStorage.getItem("username")}),            
-            frentesSubFrente: values.especializaciones.map(e => ({
-              idFrente: Number(e.idFrente),
-              idSubFrente: Number(e.idSubFrente),
-              idNivelExperiencia: e.idNivelExperiencia,
-              esCertificado: e.esCertificado,
-              usuarioCreacion:window.localStorage.getItem("username"),
-            }))
+            },
+            
+            
+            // ...(modoEdicion
+            //   ? { usuarioActualizacion:window.localStorage.getItem("username")}
+            //   : { usuarioCreacion: values.usuarioCreacion||window.localStorage.getItem("username")}),            
           };
            let jsonData = JSON.stringify(data,null,2);
 
@@ -252,7 +230,7 @@ const EditarGestor = () => {
     });
  
   const Registrar = ({ jsonData }) => {
-    console.log("RegistrarGestor",jsonData)
+    console.log("RegistrarUsuario",jsonData)
 
     RegistrarGestor({ jsonData})
       .then((data) => {
@@ -490,29 +468,7 @@ const EditarGestor = () => {
                 {formik.touched.numeroDocumento && formik.errors.numeroDocumento}
               </small>
             </div>
-            <div className="field col-12 md:col-6">
-              <label className="label-form">Nivel de Experiencia</label>
-              <DropdownDefault
-                type={"text"}
-                id="idNivelExperiencia"
-                name="idNivelExperiencia"
-                placeholder="Seleccione"
-                value={formik.values.idNivelExperiencia}
-                onChange={(e) => {
-                  formik.setFieldValue("idNivelExperiencia", "");
-                  formik.handleChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                options={parametros?.filter((item) => item.tipoParametro === "Seniority")}
-                // options={parametros?.filter((item) => item.tipoParametro === "TipoTicket")}
-
-                optionLabel="nombre"
-                optionValue="id"
-              ></DropdownDefault>
-              <small className="p-error">
-                {formik.touched.idNivelExperiencia && formik.errors.idNivelExperiencia}
-              </small>
-            </div>
+       
             <div className="field col-12 md:col-6">
                 <label className="label-form">Teléfono</label>
                 <InputNumber
@@ -606,186 +562,43 @@ const EditarGestor = () => {
               </div>
             </div>  
             <div className="field col-12 md:col-6">
-              <label className="label-form">Modalidad Laboral</label>
-              <DropdownDefault
-                type={"text"}
-                id="idModalidadLaboral"
-                name="idModalidadLaboral"
-                placeholder="Seleccione"
-                value={formik.values.idModalidadLaboral}
-                onChange={(e) => {
-                  formik.setFieldValue("idModalidadLaboral", "");
-                  formik.handleChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                options={modalidad}
-                optionLabel="nombre"
-                optionValue="id"
-              ></DropdownDefault>
-              <small className="p-error">
-                {formik.touched.idModalidadLaboral && formik.errors.idModalidadLaboral}
-              </small>
-            </div>
-            <div className="field col-12">
-              <label style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "10px", display: "block" }}>
-                Especializaciones
-              </label>
-            </div>
-            <div className="field col-12 md:col-3">
-              <DropdownDefault
-              value={formik.values.nuevaEspecializacion.idFrente}
-              options={frentes}
-              optionLabel="nombre"
-              optionValue="id"
-              onChange={(e) => {
-                      const idFrenteSeleccionado = e.value;
-                      formik.setFieldValue("nuevaEspecializacion.idFrente", idFrenteSeleccionado);
-                      const frenteSeleccionado = frentes.find((f) => f.id === idFrenteSeleccionado);
-                      if (frenteSeleccionado) {
-                        setSubfrentes(frenteSeleccionado.subFrente || []);
-                      } else {
-                        setSubfrentes([]);
-                      }
-                    }}
-                    placeholder="Selecciona Frente"
-              />
-            </div>
-            <div className="field col-12 md:col-3">
-            <DropdownDefault
-              value={formik.values.nuevaEspecializacion.idSubFrente}
-              options={subfrentes}
-              optionLabel="nombre"
-              optionValue="id"
-              onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idSubFrente", e.value)}
-              placeholder="Selecciona Subfrente"
+            <label className="label-form">Usuario</label>
+            <InputText
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Escribe tu usuario"
+              value={formik.values.username}
+              onBlur={formik.handleBlur}
+              onChange={formik.handleChange}
             />
-            </div>
-            <div className="field col-12 md:col-3">
-              <DropdownDefault
-              value={formik.values.nuevaEspecializacion.idNivelExperiencia}
-              options={parametros?.filter((item) => item.tipoParametro === "NivelExperiencia")}
-              optionLabel="nombre"
-              optionValue="id"
-              onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idNivelExperiencia", e.value)}
-              placeholder="Selecciona Nivel"
-            />
-            </div>
-            <div className="field col-12 md:col-1">
-            <div className="p-field-checkbox">
-              <label htmlFor="esCertificado">Es Certificado</label>
-
-              <Checkbox
-                inputId="esCertificado"
-                checked={formik.values.nuevaEspecializacion.esCertificado}
-                onChange={(e) =>
-                  formik.setFieldValue("nuevaEspecializacion.esCertificado", e.checked)
-                }
-              />
-            </div>
-            </div>
-            <div className="field col-12 md:col-2">
-              <Boton
-              type="button"
-              label="Agregar especialización"
-              style={{ fontSize: 13, borderRadius: 15 }}
-              onClick={() => {
-                const nueva = formik.values.nuevaEspecializacion;
-
-                if (!nueva.idFrente || !nueva.idSubFrente || !nueva.idNivelExperiencia) {
-                  alert("Completa todos los campos de la especialización");
-                  return;
-                }
-
-                const especializacionesActuales = Array.isArray(formik.values.especializaciones)
-                  ? formik.values.especializaciones
-                  : [];
-
-                // Verificar si ya existe una igual
-                const yaExiste = especializacionesActuales.some(
-                  (esp) =>
-                    esp.idFrente === Number(nueva.idFrente) &&
-                    esp.idSubFrente === Number(nueva.idSubFrente) &&
-                    esp.idNivelExperiencia === nueva.idNivelExperiencia
-                );
-
-                if (yaExiste) {
-                  alert("Ya has agregado esta especialización.");
-                  return;
-                }
-
-                // Si no existe, agregarla
-                formik.setFieldValue("especializaciones", [
-                  ...especializacionesActuales,
-                  {
-                    idFrente: Number(nueva.idFrente),
-                    idSubFrente: Number(nueva.idSubFrente),
-                    idNivelExperiencia: nueva.idNivelExperiencia,
-                    esCertificado: nueva.esCertificado,
-                  },
-                ]);
-
-                // Limpiar campos
-                formik.setFieldValue("nuevaEspecializacion", {
-                  idFrente: "",
-                  idSubFrente: "",
-                  idNivelExperiencia: "",
-                  esCertificado:false
-                });
-              }}
-            />
-
-            </div>
-            <div className="field col-12 md:col-12">
-            <DatatableDefault showSearch={false} paginator={false} value={formik.values.especializaciones}>
-              <Column
-                field="idFrente"
-                header="Frente"
-                body={(rowData) => {
-                  if (!rowData?.idFrente || !frentes?.length) return "—";
-                  const frente = frentes.find(f => f.id === rowData.idFrente);
-                  return frente?.nombre || "—";
-                }}
-              />
-              <Column
-              field="idSubFrente"
-              header="Subfrente"
-              body={(rowData) => {
-                if (!rowData?.idFrente || !frentes?.length) return "—";
-                
-                const frenteactual = frentes.find(f => f.id === rowData.idFrente);
-                const subfrentesDelFrente = frenteactual?.subFrente || [];
-                const subfrente = subfrentesDelFrente.find(sf => sf.id === rowData.idSubFrente);
-                return subfrente?.nombre || "—";
-              }}
-
-              
-            />
-
-
-                <Column
-                  field="idNivelExperiencia"
-                  header="Nivel de experiencia"
-                  body={(rowData) => {
-                    if (!nivelExperiencia || !Array.isArray(nivelExperiencia)) return '';
-                    const item = nivelExperiencia.find((n) => n.id === rowData?.idNivelExperiencia);
-                    return item?.nombre || '';
-                  }}
-                />
-
-
-                  <Column
-                  field="esCertificado"
-                  header="Es certificado"
-                  body={(rowData) => (rowData.esCertificado ? "SI" : "NO")}
-                />
-
-              <Column
-                  header="Acciones"
-                  body={accion} 
-                />
-            </DatatableDefault>
+            <div className="p-error">
+              {formik.touched.username && formik.errors.username}
             </div>
           </div>
+
+
+          <div className="field col-12 md:col-6">
+            <label className="label-form">Contraseña</label>
+            <Password
+              id="password"
+              name="password"
+              placeholder="Escribe tu contraseña"
+              value={formik.values.password}
+              onBlur={formik.handleBlur}
+              onChange={(e) => formik.setFieldValue('password', e.target.value)}
+              toggleMask
+              feedback={false} // Oculta la sugerencia de seguridad si no la quieres
+            />
+            <div className="p-error">
+              {formik.touched.password && formik.errors.password}
+            </div>
+          </div>
+          </div>
+
+
+        
+
 
           {/* <button type="button" onClick={() => console.log("VALUES", formik.values)}>
             Ver valores

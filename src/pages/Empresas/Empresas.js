@@ -6,8 +6,6 @@ import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Empresas.scss"
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
-import ObtenerListaEmpresas from "../../service/ExEmpresaService";
-import {ObtenerListaPersonas,ObtenerPersonaPorEmpresa,EliminarPersona, ObtenerListaPersonasV2} from "../../service/UsuarioService";
 import { Loader, Placeholder } from 'rsuite';
 import Boton from "../../components/Boton/Boton";
 import { Toast } from 'primereact/toast';
@@ -266,7 +264,7 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                             header = {header}
                             totalRecords ={totalRecords}
                         >
-                              <Column field="codigo" header="Codigo" />
+                              {/* <Column field="codigo" header="Codigo" /> */}
                              <Column field="nombreComercial" header="Nombre Comercial" />
                              <Column field="razonSocial" header="Razon social" />
                             <Column field="ruc" header="RUC" />

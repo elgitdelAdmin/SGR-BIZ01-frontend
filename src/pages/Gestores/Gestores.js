@@ -6,7 +6,6 @@ import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Gestores.scss"
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
-import ObtenerListaEmpresas from "../../service/ExEmpresaService";
 import { Loader, Placeholder } from 'rsuite';
 import Boton from "../../components/Boton/Boton";
 import { Toast } from 'primereact/toast';

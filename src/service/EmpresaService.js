@@ -135,7 +135,22 @@ export const ObtenerEmpresa = async ({idEmpresa}) =>{
         
     })
     .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los consultores");
+    if (!res.ok) throw new Error("Error al obtener los empresas");
+    return res.json();
+  });
+    
+}
+export const ObtenerPersona = async ({idPersona}) =>{
+    return await fetch(`${ENDPOINT}/api/Persona/${idPersona}`,{
+        method: "GET",
+        headers:{
+            // "Authorization":"Bearer "+jwt,
+            "accept": "text/plain"
+        },
+        
+    })
+    .then(res => {
+    if (!res.ok) throw new Error("Error al obtener personas");
     return res.json();
   });
     

@@ -304,9 +304,23 @@ export const AppMenu = (props) => {
                             permiso:"verHome"
                         },
                         {
-                            label: "Gestión de Tikets",
+                            label: "Gestión de Tickets",
                             icon: <Iconsax.Grid7 set="light" />,
                             to: "Gestiontikets",
+                            visible:true,
+                            permiso:"verHome"
+                        },
+                        {
+                            label: "Gestión de Usuarios",
+                            icon: <Iconsax.Grid7 set="light" />,
+                            to: "Usuarios",
+                            visible:true,
+                            permiso:"verHome"
+                        },
+                         {
+                            label: "Cargabilidad",
+                            icon: <Iconsax.Grid7 set="light"/>,
+                            to: "Cargabilidad",
                             visible:true,
                             permiso:"verHome"
                         },

@@ -15,11 +15,22 @@ import { Password } from "primereact/password";
 import {Uploader} from "rsuite"
 import * as constantes from "../../constants/constantes.js";
 import { getBase64, handleSoloLetrastest } from "../../helpers/helpers";
+<<<<<<< HEAD
 import { ObtenerCursosPorUsuario } from "../../service/UsuarioService";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import { EliminarPersonaCurso } from "../../service/UsuarioService";
+=======
+import {
+  ObtenerCursosPorUsuario,
+  ObtenerTipoDocumento,
+} from "../../service/UsuarioServiceOld.js";
+import DatatableDefault from "../../components/Datatable/DatatableDefault";
+import { Column } from "primereact/column";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog"; // For confirmDialog method
+import { EliminarPersonaCurso } from "../../service/UsuarioServiceOld.js";
+>>>>>>> e508bcb (Cambios iniciales)
 import { handleSoloLetras } from "../../helpers/helpers";
 import { handleSoloNumeros } from "../../helpers/helpers";
 import {

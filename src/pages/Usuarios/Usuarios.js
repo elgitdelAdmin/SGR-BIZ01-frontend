@@ -4,7 +4,7 @@ import DropdownDefault from "../../components/Dropdown/DropdownDefault";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
-import "./Gestiontikets.scss"
+import "./Usuarios.scss"
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
 import { Loader, Placeholder } from 'rsuite';
 import Boton from "../../components/Boton/Boton";
@@ -12,13 +12,17 @@ import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import useUsuario from "../../hooks/useUsuario";
 import { InputText } from "primereact/inputtext";
-import {ListarTicket,EliminarTicket} from "../../service/TiketService";
+import {ListarGestores,EliminarGestor} from "../../service/GestorService";
+import {ListarUsuarios} from "../../service/UsuarioService";
 
-const Gestiontikets = () => {
+import { Dialog } from 'primereact/dialog';
+import { DataTable } from 'primereact/datatable';
+
+const Gestores = () => {
     const navigate = useNavigate();
+    const [especializaciones, setEspecializaciones] = useState([]);
 
     const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
-    const [listaEmpresa, setListaEmpresa] = useState(null);
     const [listaPersonas, setListaPersonas] = useState(null);
     const [listaPersonasTotal, setListaPersonasTotal] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -49,66 +53,26 @@ const Gestiontikets = () => {
     });
 
     let networkTimeout = null;
+
     useEffect(() => {
     loadLazyData();
-}, [lazyState, globalFilterValue]);
+    }, [lazyState, globalFilterValue]);
 
 
-    
-
-    // const loadLazyData = () => {
-    //    const idEmpresa= 1
-    //     console.log("lazy state = >", lazyState)
-    //     if (networkTimeout) {
-    //         clearTimeout(networkTimeout);
-    //     }
-    //     networkTimeout = setTimeout(() => {
-    //         setLoading(true);
-    //         let jwt = window.localStorage.getItem("jwt");
-    //         let pageNumber = (lazyState?.page?? 0 ) +1;
-    //         let pageSize  = lazyState?.rows??10;
-    //         let search = globalFilterValue ? globalFilterValue : "%20"
-
-    //         console.log(pageSize);
-
-    //         if(paginaReinicio == 1/* search.trim() != "%20" */)
-    //         {
-    //             setpaginaReinicio(null)
-    //             pageNumber = 1
-    //         } 
-
-    //         console.log(pageSize);
-
-    //         ObtenerListaPersonasV2({jwt,idEmpresa,pageNumber,pageSize,search}).then(data=>{
-    //             if(data.length >0)
-    //             {
-    //                 setTotalRecords(data[0].countReg)
-    //             }
-    //             setListaPersonasTotal(data)
-    //             setLoading(false)
-    //         })
-    //     }, Math.random() * 1000 + 250);
-    // } 
 const loadLazyData = () => {
     if (networkTimeout) clearTimeout(networkTimeout);
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
 
-        ListarTicket()
+        ListarUsuarios()
             .then((data) => {
-                // Total de registros
+                console.log("DATA",data)
                 setTotalRecords(data.length);
-
-                // Parámetros de paginación del estado
                 const pageNumber = lazyState?.page ?? 0;
                 const pageSize = lazyState?.rows ?? 10;
-
-                // Calcula el índice de inicio y fin
                 const start = pageNumber * pageSize;
                 const end = start + pageSize;
-
-                // Filtrado (opcional, si usas globalFilterValue)
                 let filteredData = data;
                 if (globalFilterValue) {
                     const search = globalFilterValue.toLowerCase();
@@ -117,10 +81,8 @@ const loadLazyData = () => {
                         ticket.descripcion?.toLowerCase().includes(search)
                     );
                 }
-                //Agrego
-filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
-
-                // Pagina localmente los datos
+                 //Agrego
+               filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
                 const paginatedData = filteredData.slice(start, end);
 
                 setListaPersonasTotal(paginatedData);
@@ -190,26 +152,61 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
 
     // },[permisos])
 
-    // useEffect(()=>{
-    //     const GetEmpresa = async ()=>
-    //     {
-    //         let jwt = window.localStorage.getItem("jwt");
-
-    //         await ObtenerListaEmpresas({jwt}).then(data=>{
-    //             setListaEmpresa(data);
-    //         })
-    //     }
-    //     if(!listaEmpresa)GetEmpresa();
-        
-    // },[])
+  
     useEffect(() => {
-              setListaPersonas(listaPersonasTotal)
+    
+        setListaPersonas(listaPersonasTotal)
     }, [listaPersonasTotal]);
    
 
+    //  useEffect(() => {
+        
+    //          const list= { 
+    //             id: 4,
+    //             personaId: 38,
+    //             idNivelExperiencia: 3,
+    //             idModalidadLaboral: 1,
+    //             idSocio: 1,
+    //             usuarioCreacion: "",
+    //             fechaCreacion: "2025-06-10T18:31:50.071123",
+    //             usuarioActualizacion: null,
+    //             fechaActualizacion: null,
+    //             activo: true,
+    //             nombres: "Alonso Pablo",
+    //             apellidoPaterno: "Castro",
+    //             apellidoMaterno: "Tello",
+    //             numeroDocumento: "76543221",
+    //             tipoDocumento: 1,
+    //             telefono: "900887887",
+    //             telefono2: "975772456",
+    //             correo: "prueba@gmail",
+    //             direccion: "Direccion",
+    //             fechaNacimiento: "1989-05-04T05:00:00",
+    //             frentesSubFrente: [
+    //                 {
+    //                     id: 3,
+    //                     idGestor: 4,
+    //                     idFrente: 2,
+    //                     idSubFrente: 6,
+    //                     idNivelExperiencia: 1,
+    //                     esCertificado: true,
+    //                     fechaCreacion: "2025-06-10T18:31:50.54328",
+    //                     usuarioCreacion: "",
+    //                     fechaActualizacion: null,
+    //                     usuarioActualizacion: null,
+    //                     activo: true
+    //                 }
+    //             ]
+    //          }
+    //         setListaPersonas(list)
+    // }, []);
+    
+
+
+
     const accion =(rowData)=>{
         return  <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("Editar/"+rowData.id)}>
+            <div className="accion-editar" onClick={()=>navigate("EditarUsuario/"+rowData.id)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
              <div className="accion-eliminar" onClick={()=>{
@@ -233,23 +230,27 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
     }
 
 
-
     const Eliminar =async ({id})=>{
-        console.log("ID",id)
-            await EliminarTicket({id}).then(data=>{
-                console.log(data);
-                toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
-                loadLazyData(); 
-    
-            })
-            .catch(errors => {
-                toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
-            })
-        }
+        const idGestor = id
+        await EliminarGestor({idGestor}).then(data=>{
+            console.log(data);
+            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
+  
+  
+            // setTimeout(() => {
+            //     window.location.reload();
+            // }, 3000)
+            loadLazyData(); // recarga solo la tabla
+
+        })
+        .catch(errors => {
+            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+        })
+    }
 
     const confirm2 = (id) => {
         confirmDialog({
-            message: 'Seguro de eliminar ticket?',
+            message: 'Seguro de eliminar el Usuario?',
             header: 'Eliminar',
             icon: 'pi pi-info-circle',
             acceptClassName: 'p-button-danger',
@@ -257,50 +258,71 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
             accept:()=>Eliminar({id})
         });
     };
+
+    const verespecializaciones =(rowData)=>{
+        return  <div className="detalle-datatable-accion">
+            <div className="accion-editar" onClick={() => handleVerEspecializaciones(rowData)}>
+                <span><Iconsax.Eye color="#ffffff"/></span>
+            </div>
+        </div>
+        
+    }
+        const handleVerEspecializaciones = (persona) => {
+        console.log("PERSON",persona)
+        setEspecializaciones(persona.frentesSubFrente || []);
+        setVisible(true);
+    };
+      const modalFooter = (
+    <Boton label="Cerrar" icon="pi pi-times" onClick={() => setVisible(false)} />
+  );
     return ( 
         <div className="zv-usuario" style={{paddingTop:16}}>
             <ConfirmDialog />
             <Toast ref={toast} position="top-center"></Toast>
-            <div className="header-titulo">Gestión de Tickets</div>
+            <div className="header-titulo">Gestión de Usuarios</div>
             <div className="zv-usuario-body" style={{marginTop:16}}>
-                 <div className="zv-usuario-body-filtro">
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <div style={{ marginLeft: "auto" }}>
+                   <div className="zv-usuario-body-filtro">
+                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                 <div style={{ marginLeft: "auto" }}>
                                      <Boton
-                                     icon="pi pi-plus" 
-                                     style={{ fontSize: 15, borderRadius: 15 }}
+                                     label="Crear Usuario"
+                                     style={{ fontSize: 12,borderRadius:15 }}
                                      color="primary"
-                                     onClick={() => navigate("Crear/")}
-                                     />
-
+                                     onClick = {()=>navigate("CrearUsuario/")}
+                                     ></Boton>
                                  </div>
                              </div>                        
                      </div>
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy
-                            onGlobalFilterChange={['titulo', 'codTicket']}
+                            globalFilterFields={['nombres']}
                             loading={loading}
                             onPage={onPage}
                             first={lazyState.first}
                             header = {header}
                             totalRecords ={totalRecords}
-                            
                         >
-                            <Column field="codTicket" header="Codigo Ticket" ></Column>
-                            <Column field="titulo" header="Titulo" ></Column>
-                            <Column field="fechaSolicitud" header="Fecha de Solicitud" ></Column>
-                            <Column field="descripcion" header="Descripcion" ></Column>
-                            <Column field="activo" header="Estado"dataType="boolean"  body={booleanTemplate}></Column>
-                            <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column>
+                            <Column field="nombres" header="Nombres" />
+                            <Column field="apellidoPaterno" header="Apellido Paterno" />
+                            <Column field="apellidoMaterno" header="Apellido Materno" />
+                            <Column field="username" header="Username" />
+                            <Column field="email" header="Email" />
+                            <Column
+                                field="activo"
+                                header="Estado"
+                                body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
+                            />
+                            <Column
+                                header="Acciones"
+                                body={accion} 
+                            />
                         </DatatableDefault>
+                       
                     </div>
             </div>
         </div>
      );
 }
  
-export default Gestiontikets;
-
-
-
+export default Gestores;

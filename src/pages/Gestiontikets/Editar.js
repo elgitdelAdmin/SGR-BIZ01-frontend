@@ -24,6 +24,7 @@ import { Checkbox } from "primereact/checkbox";
 import { TabView, TabPanel } from "primereact/tabview";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
+import {ListarConsultores} from "../../service/ConsultorService";
 
 
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog"; // For confirmDialog method
@@ -34,7 +35,7 @@ import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { InputSwitch } from 'primereact/inputswitch';
 import { FileUpload } from "primereact/fileupload";
-import { ListarParametros,ListarEmpresas,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket} from "../../service/TiketService";
+import { ListarParametros,ListarEmpresas,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket} from "../../service/TiketService";
 import {ListarGestores} from "../../service/GestorService";
 
 const Editar = () => {
@@ -61,6 +62,7 @@ const Editar = () => {
   const [mostrarSeccion, setMostrarSeccion] = useState(false);
   const [gestores, setGestores] = useState(null);
   const [consultores, setConsultores] = useState(null);
+  const [nombreResponsable, setnombreResponsable] = useState(null);
 
 
 
@@ -69,12 +71,23 @@ const Editar = () => {
   let { id } = useParams();
   let { IdEmpresa } = useParams();
   const toast = useRef(null);
+useEffect(() => {
+    const getEmpresa = async () => {
+      await ListarEmpresas().then(data=>{setEmpresa(data)})
+    };
+    getEmpresa();
+  }, []);
+   useEffect(() => {
+      const getFrentes = async () => {
+       await ListarFrentes().then(data=>{setFrentes(data)})
 
+          };
+      getFrentes();
+  }, []);
   useEffect(() => {
       const getTicket = async () => {
         // let jwt = window.localStorage.getItem("jwt");
         await ObtenerTicket({id}).then((data) => {
-          console.log("data",data);
           setTituloPagina("Datos del Ticket");
           setTicket(data);
           setModoEdicion(true);
@@ -88,12 +101,23 @@ const Editar = () => {
 
 
   //OK 
-  useEffect(() => {
-    const getEmpresa = async () => {
-      await ListarEmpresas().then(data=>{setEmpresa(data)})
-    };
-    getEmpresa();
-  }, []);
+  
+ useEffect(() => {
+  if (
+    persona &&
+    persona.idEmpresa &&
+    Array.isArray(empresa) &&
+    empresa.length > 0
+  ) {
+    const empresaSeleccionada = empresa.find(emp => emp.id === persona.idEmpresa);
+    
+    if (empresaSeleccionada) {
+      formik.setFieldValue("nombrePersonaResponsable", empresaSeleccionada.nombrePersonaResponsable);
+      formik.setFieldValue("idUsuarioResponsableCliente", empresaSeleccionada.idPersonaResponsable);
+    }
+  }
+}, [persona, empresa]);
+
 
     useEffect(() => {
     const getPais = async () => {
@@ -102,13 +126,7 @@ const Editar = () => {
     getPais();
   }, []);
 
-  useEffect(() => {
-      const getFrentes = async () => {
-       await ListarFrentes().then(data=>{setFrentes(data)})
-
-          };
-      getFrentes();
-  }, []);
+ 
 
   useEffect(() => {
     const getUsuario = async () => {
@@ -147,17 +165,32 @@ const Editar = () => {
     };
     getGestores();
   }, []);
-   useEffect(() => {
-    const getConsultores = async () => {
-      //await ListarConsultores().then(data=>{setConsultores(data)})
-      const data=[{id: 1,nombre: 'Francisco'},
-       {id: 2, nombre:'Eduardo'},
-      ]
-      setConsultores(data);
-    };
-    getConsultores();
-  }, []);
+  //  useEffect(() => {
+  //   const getConsultores = async () => {
+  //     // await ListarConsultores().then(data=>{
+  //     //   console.log("Data",data)
+  //     //   setConsultores(data)})
+  //     const data=[{id: 1,nombre: 'Francisco'},
+  //      {id: 2, nombre:'Eduardo'},
+  //     ]
+  //     setConsultores(data);
+  //   };
+  //   getConsultores();
+  // }, []);
   
+useEffect(() => {
+  const getConsultores = async () => {
+    await ListarConsultores().then((data) => {
+      const consultoresFormateados = data.map((item) => ({
+        id: item.id,
+        nombre: `${item.persona.nombres} ${item.persona.apellidoPaterno}`
+      }));
+      console.log("Data",consultoresFormateados)
+      setConsultores(consultoresFormateados);
+    });
+  };
+  getConsultores();
+}, []);
 
   const schema = Yup.object().shape({
 
@@ -167,8 +200,8 @@ const Editar = () => {
       idTipoTicket: Yup.number().required("Tipo de ticket es obligatorio"),
       idEstadoTicket: Yup.number().required("Estado del ticket es obligatorio"),
       idEmpresa: Yup.number().required("Empresa es obligatoria"),
-      idUsuarioResponsableCliente: Yup.number().required("Responsable del cliente es obligatorio"),
-      idPais: Yup.number().required("País es obligatorio"),
+      // idUsuarioResponsableCliente: Yup.number().required("Responsable del cliente es obligatorio"),
+      // idPais: Yup.number().required("País es obligatorio"),
       idPrioridad: Yup.number().required("Prioridad es obligatoria"),
       descripcion: Yup.string().required("Descripción es obligatoria"),
       urlArchivos: Yup.string().nullable(),
@@ -205,10 +238,9 @@ const Editar = () => {
       titulo: persona ? persona.titulo : "",
       fechaSolicitud: persona ? new Date(persona.fechaSolicitud) : null,
       idTipoTicket: persona ? persona.idTipoTicket : null,
-      idEstadoTicket: persona ? persona.idEstadoTicket : null,
+      idEstadoTicket: persona ? persona.idEstadoTicket : 1,
       idEmpresa: persona ? persona.idEmpresa : null,
       idUsuarioResponsableCliente: persona ? persona.idUsuarioResponsableCliente : null,
-      idPais: persona ? persona.idPais : null,
       idPrioridad: persona ? persona.idPrioridad : null,
       descripcion: persona ? persona.descripcion : "",
       urlArchivos: persona ? persona.urlArchivos : "",
@@ -218,51 +250,67 @@ const Editar = () => {
           idSubFrente: "",
           cantidad:""
       },
-      frenteSubFrentes: [],
+      frenteSubFrentes: persona ?persona.frenteSubFrentes:[],
       asignaciones:persona ? persona.consultorAsignaciones : [],
+      usuarioCreacion:persona?.usuarioCreacion|| window.localStorage.getItem("username"), 
+      nombrePersonaResponsable:  ""
+  
     },
     validationSchema: schema,
   onSubmit: (values) => {
     console.log(values.frenteSubFrentes)
-     if (values.frenteSubFrentes.length === 0) {
-              formik.setSubmitting(false);
 
-    confirmDialog({
-      message: 'Debes cargar al menos un frente/subfrente antes de continuar.',
-      header: 'Faltan datos',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Entendido',
-      acceptClassName: 'p-button-danger',
-      accept: () => {}, // solo cierra el diálogo
-      reject: null // no hay botón de cancelar
-    });
-    return; // evita que continúe
-  }
+  //    if (values.frenteSubFrentes.length === 0) {
+  //             formik.setSubmitting(false);
+
+  //   confirmDialog({
+  //     message: 'Debes cargar al menos un frente/subfrente antes de continuar.',
+  //     header: 'Faltan datos',
+  //     icon: 'pi pi-exclamation-triangle',
+  //     acceptLabel: 'Entendido',
+  //     acceptClassName: 'p-button-danger',
+  //     accept: () => {}, // solo cierra el diálogo
+  //     reject: null // no hay botón de cancelar
+  //   });
+  //   return; // evita que continúe
+  // }
     const data = {
-          // codTicketInterno:values.codTicketInterno,
+            // ...(modoEdicion && { id: persona.id }), 
+          codTicketInterno:values.codTicketInterno,
           titulo: values.titulo,
           fechaSolicitud : values.fechaSolicitud ? new Date(values.fechaSolicitud) : null,
           idTipoTicket : values.idTipoTicket,
           idEstadoTicket : values.idEstadoTicket,
           idEmpresa : values.idEmpresa,
-          // idUsuarioResponsableCliente : values.idUsuarioResponsableCliente,
-          // idPais : values.idPais,
+          idUsuarioResponsableCliente : values.idUsuarioResponsableCliente,
           idPrioridad : values.idPrioridad,
           descripcion : values.descripcion,
           urlArchivos : "",
-          // idGestorAsignado : values.idGestorAsignado,
           consultorAsignaciones : values.asignaciones?values.asignaciones:[],
-          titulo: values.titulo,
+           frenteSubFrentes: values.frenteSubFrentes.map(e => ({
+              idFrente: Number(e.idFrente),
+              idSubFrente: Number(e.idSubFrente),
+              cantidad: e.cantidad,
+            })),
+          ...(modoEdicion
+        ? { usuarioActualizacion: window.localStorage.getItem("username") }
+        : { usuarioCreacion: values.usuarioCreacion }),
+          // usuarioCreacion:values.usuarioCreacion,
+          // ...(modoEdicion && { usuarioActualizacion:  window.localStorage.getItem("username") }), 
 
-          frenteSubFrentes : values.frenteSubFrentes,
-           
     }
+       const jsonData = JSON.stringify(data, null, 2);
+      console.log("JSON",jsonData)
 
+      if (modoEdicion) {
+        const idTicket = persona?.id;
+        console.log(idTicket)
+        
+        Actualizar({ jsonData, idTicket });
+      } else {
 
-        let jsonData = JSON.stringify(data,null,2);
-        console.log("JSON",jsonData)
-
-        Registrar({ jsonData })
+        Registrar({ jsonData });
+      }
 
       },
     });
@@ -271,6 +319,22 @@ const Editar = () => {
     console.log("Errores actuales:", formik.errors);
   }
 }, [formik.submitCount]);
+ useEffect(() => {
+  if (
+    persona &&
+    persona.idEmpresa &&
+    Array.isArray(empresa) &&
+    empresa.length > 0
+  ) {
+    const empresaSeleccionada = empresa.find(emp => emp.id === persona.idEmpresa);
+    
+    if (empresaSeleccionada) {
+      formik.setFieldValue("nombrePersonaResponsable", empresaSeleccionada.nombrePersonaResponsable);
+      formik.setFieldValue("idUsuarioResponsableCliente", empresaSeleccionada.idPersonaResponsable);
+    }
+  }
+}, [persona, empresa]);
+
 
 
   const Registrar = ({ jsonData }) => {
@@ -299,6 +363,32 @@ const Editar = () => {
       });
   };
 
+  const Actualizar = ({ jsonData,idTicket }) => {
+        ActualizarTicket({ jsonData, idTicket })
+          .then((data) => {
+            formik.setSubmitting(false);
+            toast.current.show({
+              severity: "success",
+              summary: "Éxito",
+              detail: "Registro actualizado exitosamente.",
+              life: 7000,
+            });
+            setTimeout(() => {
+          navigate(-1);
+        }, 1000);
+    
+          })
+          .catch((errors) => {
+            toast.current.show({
+              severity: "error",
+              summary: "Error",
+              detail: errors.message,
+              life: 7000,
+            });
+            formik.setSubmitting(false);
+          });
+      };
+  
 
 
 
@@ -378,10 +468,21 @@ const Editar = () => {
   
   if (empresaSeleccionada) {
     formik.setFieldValue("idGestorAsignado", empresaSeleccionada.idGestor);
+    formik.setFieldValue("nombrePersonaResponsable", empresaSeleccionada?.nombrePersonaResponsable);
+    formik.setFieldValue("idUsuarioResponsableCliente", empresaSeleccionada?.idPersonaResponsable );
+
+
   } else {
     formik.setFieldValue("idGestorAsignado", "");
+    formik.setFieldValue("nombrePersonaResponsable", "");
+    formik.setFieldValue("idUsuarioResponsableCliente", "");
+
+
   }
 };
+
+
+
 
 
 //   const handleChangeAsignacion = (index, field, value) => {
@@ -494,6 +595,7 @@ const Editar = () => {
                   formik.setFieldValue("idEstadoTicket", "");
                   formik.handleChange(e);
                 }}
+                disabled={!modoEdicion}
                 onBlur={formik.handleBlur}
                 // options={estadoTiket}
                 options={parametros?.filter((item) => item.tipoParametro === "EstadoTicket")}
@@ -513,6 +615,7 @@ const Editar = () => {
                 placeholder="Seleccione"
                 value={formik.values.idEmpresa}
                 onChange={handleEmpresaChange}
+                
                 onBlur={formik.handleBlur}
                 options={empresa}
                 optionLabel="nombreComercial"
@@ -522,70 +625,27 @@ const Editar = () => {
                 {formik.touched.idEmpresa && formik.errors.idEmpresa}
               </small>
               </div>
-              <div className="field col-12 md:col-6">
-              <label className="label-form">Usuario Responsable del Cliente</label>
-              <DropdownDefault
-                type={"text"}
-                id="idUsuarioResponsableCliente"
-                name="idUsuarioResponsableCliente"
-                placeholder="Seleccione"
-                value={formik.values.idUsuarioResponsableCliente}
-                onChange={(e) => {
-                  formik.setFieldValue("idUsuarioResponsableCliente", "");
-                  formik.handleChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                options={usuario}
-                optionLabel="nombre"
-                optionValue="id"
-              ></DropdownDefault>
-              <small className="p-error">
-                {formik.touched.idUsuarioResponsableCliente && formik.errors.idUsuarioResponsableCliente}
-              </small>
+
+            
+                <div className="field col-12 md:col-6">
+                <label className="label-form">Usuario Responsable del Cliente</label>
+                <InputText
+                  type={"text"}
+                  id="nombrePersonaResponsable"
+                  name="nombrePersonaResponsable"
+                  placeholder="Escribe aquí"
+                  value={formik.values.nombrePersonaResponsable}
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  disabled = {true}
+
+                  // onChange={(e)=>handleSoloLetras(e,formik,"titulo")}
+                ></InputText>
+                <div className="p-error">
+                  {formik.touched.titulo && formik.errors.titulo}
+                </div>
+            
               </div>
-              {/* <div className="field col-12 md:col-6">
-              <label className="label-form">Gestor</label>
-               <DropdownDefault
-                type="text"
-                id="idGestorAsignado"
-                name="idGestorAsignado"
-                placeholder="Seleccione"
-                value={formik.values.idGestorAsignado}
-                onChange={(e) => {
-                  formik.setFieldValue("idGestorAsignado", "");
-                  formik.handleChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                options={gestores}
-                optionLabel="nombres"
-                optionValue="id"
-                 disabled={true}
-              />
-              <small className="p-error">
-                {formik.touched.idGestorAsignado && formik.errors.idGestorAsignado}
-              </small>
-              </div>
-              <div className="field col-12 md:col-6">
-              <label className="label-form">Pais</label>
-              <DropdownDefault
-                type={"text"}
-                id="idPais"
-                name="idPais"
-                placeholder="Seleccione"
-                value={formik.values.idPais}
-                onChange={(e) => {
-                  formik.setFieldValue("idPais", "");
-                  formik.handleChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                options={pais}
-                optionLabel="nombre"
-                optionValue="id"
-              ></DropdownDefault>
-              <small className="p-error">
-                {formik.touched.idPais && formik.errors.idPais}
-              </small>
-              </div> */}
               <div className="field col-12 md:col-6">
               <label className="label-form">Prioridad</label>
                <DropdownDefault
@@ -685,6 +745,8 @@ const Editar = () => {
                   {formik.touched.urlArchivos && formik.errors.urlArchivos}
                 </small>
               </div>
+               { modoEdicion && (
+             <>
               <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
 
               <div className="field col-12">
@@ -731,25 +793,7 @@ const Editar = () => {
                   onChange={formik.handleChange}
                 />
               </div>
-                  
 
-              
-                          {/* <div className="field col-12 md:col-2">
-                <Calendar
-                value={formik.values.nuevaEspecializacion.fechaInicio}
-                onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
-                dateFormat="yy-mm-dd"
-                placeholder="Fecha de inicio"
-              />
-              </div>
-              <div className="field col-12 md:col-2">
-                <Calendar
-                value={formik.values.nuevaEspecializacion.fechaFin}
-                onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
-                dateFormat="yy-mm-dd"
-                placeholder="Fecha de Fin"
-              />
-              </div> */}
               <div className="field col-12 md:col-3">
              <Boton
                 type="button"
@@ -811,8 +855,12 @@ const Editar = () => {
                     header="Subfrente"
                     body={(rowData) => {
                       const idFrente = rowData.idFrente;
-                      const frenteactual = frentes.filter(sf => sf.id === idFrente);
-                      const subfrentesDelFrente = frenteactual[0].subFrente
+                      // const frenteactual = frentes.filter(sf => sf.id === idFrente);
+                      // const subfrentesDelFrente = frenteactual[0].subFrente
+                      
+                      const frenteactual = frentes? frentes.find(sf => sf.id === idFrente):[]
+                      const subfrentesDelFrente = frenteactual?.subFrente || [];
+
                       const subfrente = subfrentesDelFrente.find(sf => sf.id === rowData.idSubFrente);
                       return subfrente?.nombre || "—";
                     }}
@@ -828,8 +876,7 @@ const Editar = () => {
                       />   
               </DatatableDefault>
               </div>
-             { modoEdicion && (
-             <>
+            
               <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
 
               <div className="field col-12">
@@ -880,9 +927,7 @@ const Editar = () => {
                           name={`asignaciones[${index}].idTipoActividad`}
                           placeholder="Seleccione"
                           value={formik.values.asignaciones[index].idTipoActividad}
-                          // options={prueba}
                           options={parametros?.filter((item) => item.tipoParametro === "TipoActividad")}
-
                           optionLabel="nombre"
                           optionValue="id"
                           onChange={(e) =>
@@ -899,26 +944,24 @@ const Editar = () => {
                       </td>
 
                       <td className="p-2 border">
-                        {/* <Calendar
-                          id={`fechaAsignacion-${index}`}
-                          name={`asignaciones[${index}].fechaAsignacion`}
-                          value={formik.values.asignaciones[index].fechaAsignacion}
-                          onChange={(e) =>
-                            formik.setFieldValue(`asignaciones[${index}].fechaAsignacion`, e.value)
-                          }
-                          onBlur={formik.handleBlur}
-                          showTime
-                          hourFormat="24"
-                          timeOnly
-                        /> */}
-
-                                              <Calendar
+                        <Calendar
                         id={`fechaAsignacion-${index}`}
                         name={`asignaciones[${index}].fechaAsignacion`}
-                        value={formik.values.asignaciones[index].fechaAsignacion}
+                        value={
+                            formik.values.asignaciones[index].fechaAsignacion
+                              ? new Date(formik.values.asignaciones[index].fechaAsignacion)
+                              : null
+                          }  
                         onChange={(e) =>
-                          formik.setFieldValue(`asignaciones[${index}].fechaAsignacion`, e.value)
+                          formik.setFieldValue(
+                            `asignaciones[${index}].fechaAsignacion`,
+                            e.value ? e.value.toISOString() : null
+                          )
                         }
+                      
+                        //   onChange={(e) =>
+                        //   formik.setFieldValue(`asignaciones[${index}].fechaAsignacion`, e.value)
+                        // }
                         onBlur={formik.handleBlur}
                         showTime
                         hourFormat="24"
@@ -933,24 +976,24 @@ const Editar = () => {
                       </td>
 
                       <td className="p-2 border">
-                        {/* <Calendar
-                          id={`fechaDesasignacion-${index}`}
-                          name={`asignaciones[${index}].fechaDesasignacion`}
-                          value={formik.values.asignaciones[index].fechaDesasignacion}
-                          onChange={(e) =>
-                            formik.setFieldValue(`asignaciones[${index}].fechaDesasignacion`, e.value)
-                          }
-                          onBlur={formik.handleBlur}
-                          showTime
-                          hourFormat="24"
-                          timeOnly
-                        /> */}
                         <Calendar
                         id={`fechaDesasignacion-${index}`}
                         name={`asignaciones[${index}].fechaDesasignacion`}
-                        value={formik.values.asignaciones[index].fechaDesasignacion}
+                        // value={new Date(formik.values.asignaciones[index].fechaDesasignacion)}
+                        // onChange={(e) =>
+                        //   formik.setFieldValue(`asignaciones[${index}].fechaDesasignacion`, e.value)
+                        // }
+
+                        value={
+                            formik.values.asignaciones[index].fechaDesasignacion
+                              ? new Date(formik.values.asignaciones[index].fechaDesasignacion)
+                              : null
+                          }  
                         onChange={(e) =>
-                          formik.setFieldValue(`asignaciones[${index}].fechaDesasignacion`, e.value)
+                          formik.setFieldValue(
+                            `asignaciones[${index}].fechaDesasignacion`,
+                            e.value ? e.value.toISOString() : null
+                          )
                         }
                         onBlur={formik.handleBlur}
                         showTime 

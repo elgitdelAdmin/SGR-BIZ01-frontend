@@ -11,12 +11,7 @@ import * as Iconsax from "iconsax-react";
 import "./Consultores.scss"
 import { InputText } from "primereact/inputtext";
 import Boton from "../../components/Boton/Boton";
-import {
-  ObtenerPersonaPorId,
-  ActualizarPersona,
-  RegistrarPersona,
-  ObtenerTipoDocumento,
-} from "../../service/UsuarioService";
+
 import * as Yup from "yup";
 import { Field, FieldArray, Formik, useFormik, FormikProvider } from "formik";
 
@@ -28,13 +23,6 @@ import { Checkbox } from "primereact/checkbox";
 import { TabView, TabPanel } from "primereact/tabview";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
-
-// import {
-//   ObtenerCursosPorUsuario,
-//   ObtenerProgramasPorUsuario,
-//   EliminarPersonaCurso,
-//   EliminarPersonaPrograma,
-// } from "../../service/UsuarioService";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog"; // For confirmDialog method
 
 import { handleSoloLetras, handleSoloLetrastest } from "../../helpers/helpers";
@@ -617,6 +605,9 @@ const EditarConsultor = () => {
             detail: "Registro actualizado exitosamente.",
             life: 7000,
           });
+           setTimeout(() => {
+          navigate(-1);
+        }, 1000);
   
         })
         .catch((errors) => {
@@ -923,7 +914,9 @@ const EditarConsultor = () => {
                   formik.handleChange(e);
                 }}
                 onBlur={formik.handleBlur}
-                options={tipoDocumento}
+                // options={tipoDocumento}
+                options={parametros?.filter((item) => item.tipoParametro === "TipoDocumento")}
+
                 optionLabel="nombre"
                 optionValue="id"
               ></DropdownDefault>
@@ -931,33 +924,7 @@ const EditarConsultor = () => {
                 {formik.touched.tipoDocumento && formik.errors.tipoDocumento}
               </small>
             </div>
-            {/* <div className="field col-12 md:col-6">
-              <label className="label-form">Tipo documento de Identidad</label>
-              <DropdownDefault
-                type={"text"}
-                id="tipoDocumento"
-                name="tipoDocumento"
-                placeholder="Seleccione"
-                value={formik.values.tipoDocumento}
-                // onChange={(e) => {
-                //   formik.setFieldValue("tipoDocumento", "");
-                //   formik.handleChange(e);
-                // }}
 
-                onChange={(e) => {
-                  formik.setFieldValue("tipoDocumento", e.value);
-                }}
-                onBlur={formik.handleBlur}
-                options={tipoDocumento}
-                // options={parametros?.filter((item) => item.tipoParametro === "TipoTicket")}
-
-                optionLabel="nombre"
-                optionValue="id"
-              ></DropdownDefault>
-              <small className="p-error">
-                {formik.touched.tipoDocumento && formik.errors.tipoDocumento}
-              </small>
-            </div> */}
 
             <div className="field col-12 md:col-6">
               <label className="label-form"> N° Documento de Identidad </label>
@@ -988,7 +955,7 @@ const EditarConsultor = () => {
               </small>
             </div>
             <div className="field col-12 md:col-6">
-              <label className="label-form">Nivel de Experiencia</label>
+              <label className="label-form">Seniority</label>
               <DropdownDefault
                 type={"text"}
                 id="idNivelExperiencia"
@@ -1000,8 +967,9 @@ const EditarConsultor = () => {
                   formik.handleChange(e);
                 }}
                 onBlur={formik.handleBlur}
-                options={nivelExperiencia}
-                // options={parametros?.filter((item) => item.tipoParametro === "TipoTicket")}
+                // options={nivelExperiencia}
+                
+                options={parametros?.filter((item) => item.tipoParametro === "Seniority")}
 
                 optionLabel="nombre"
                 optionValue="id"
@@ -1160,7 +1128,7 @@ const EditarConsultor = () => {
             <div className="field col-12 md:col-3">
                <DropdownDefault
               value={formik.values.nuevaEspecializacion.idNivelExperiencia}
-              options={nivelExperiencia}
+                options={parametros?.filter((item) => item.tipoParametro === "NivelExperiencia")}
               optionLabel="nombre"
               optionValue="id"
               onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idNivelExperiencia", e.value)}

@@ -11,12 +11,6 @@ import * as Iconsax from "iconsax-react";
 import "./Empresas.scss"
 import { InputText } from "primereact/inputtext";
 import Boton from "../../components/Boton/Boton";
-import {
-  ObtenerPersonaPorId,
-  ActualizarPersona,
-  RegistrarPersona,
-  ObtenerTipoDocumento,
-} from "../../service/UsuarioService";
 import * as Yup from "yup";
 import { Field, FieldArray, Formik, useFormik, FormikProvider } from "formik";
 
@@ -36,7 +30,7 @@ import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { Calendar } from 'primereact/calendar';
 import DataTable from 'react-data-table-component';
-import {RegistrarEmpresa,ListarFrentes,ListarParametros,ObtenerEmpresa,ActualizarEmpresa} from "../../service/EmpresaService";
+import {RegistrarEmpresa,ListarFrentes,ListarParametros,ObtenerEmpresa,ActualizarEmpresa,ObtenerPersona} from "../../service/EmpresaService";
 import { ListarPais} from "../../service/TiketService";
 import {ListarGestores} from "../../service/GestorService";
 
@@ -46,7 +40,8 @@ const EditarConsultor = () => {
   const [parametros, setParametro] = useState([]);
   const [pais, setPais] = useState(null);
   const [gestor, setGestor] = useState(null);
-  const [empresa, setConsultor] = useState(null);
+  const [empresa, setEmpresa] = useState(null);
+  const [persona, setPersona] = useState(null);
   const [tituloPagina, setTituloPagina] = useState("Crear Empresa");
   const [modoEdicion, setModoEdicion] = useState(false);
 
@@ -66,20 +61,65 @@ const EditarConsultor = () => {
 
   const [checked, setChecked] = useState(false);
 
-  useEffect(() => {
-    const getPersona = async () => {
-      // let jwt = window.localStorage.getItem("jwt");
 
-      let idEmpresa = id;
-      await ObtenerEmpresa({idEmpresa}).then((data) => {
-        console.log("data",data);
-        setTituloPagina("Datos de la Empresa");
-        setConsultor(data);
-        setModoEdicion(true);
-      });
-    };
-    if (id) getPersona();
-  }, [id]);
+  useEffect(() => {
+  const getEmpresaYPersona = async () => {
+    if (!id) return;
+
+    try {
+      const idEmpresa = id;
+      const empresaData = await ObtenerEmpresa({ idEmpresa });
+      console.log("Empresa:", empresaData);
+      setEmpresa(empresaData);
+      setTituloPagina("Datos de la Empresa");
+      setModoEdicion(true);
+
+      const idPersonaResponsable = empresaData.idPersonaResponsable;
+      if (idPersonaResponsable) {
+        const personaData = await ObtenerPersona({ idPersona: idPersonaResponsable });
+        console.log("Persona:", personaData);
+        setPersona(personaData);
+      }
+
+    } catch (error) {
+      console.error("Error al obtener empresa o persona", error);
+    }
+  };
+
+  getEmpresaYPersona();
+}, [id]);
+
+  // useEffect(() => {
+  //   const getEmpresa = async () => {
+  //     // let jwt = window.localStorage.getItem("jwt");
+
+  //     let idEmpresa = id;
+  //     await ObtenerEmpresa({idEmpresa}).then((data) => {
+  //       console.log("data",data);
+  //       setTituloPagina("Datos de la Empresa");
+  //       setEmpresa(data);
+  //       setModoEdicion(true);
+  //     });
+  //   };
+  //   if (id) getEmpresa();
+  // }, [id]);
+
+  
+  // useEffect(() => {
+  //   const getPersona = async () => {
+  //     // let jwt = window.localStorage.getItem("jwt");
+
+  //     let idPersona = id;
+  //     await ObtenerPersona({idPersona}).then((data) => {
+  //       console.log("data",data);
+  //       setTituloPagina("Datos de la persona");
+  //       setPersona(data);
+  //       setModoEdicion(true);
+  //     });
+  //   };
+  //   if (id) getPersona();
+  // }, [id]);
+
   useEffect(() => {
     const getTipoDoc = async () => {
       const data=[{id: 1,nombre: 'DNI'},
@@ -165,7 +205,7 @@ const EditarConsultor = () => {
 const schema = Yup.object().shape({
   razonSocial: Yup.string().required("La razón social es obligatoria"),
   nombreComercial: Yup.string().required("El nombre comercial es obligatorio"),
-  ruc: Yup.string()
+  numDocContribuyente: Yup.string()
     .required("El RUC es obligatorio")
     .matches(/^\d+$/, "El RUC debe contener solo números")
     .length(11, "El RUC debe tener exactamente 11 dígitos"),
@@ -182,7 +222,7 @@ const schema = Yup.object().shape({
   idPais: Yup.number()
     .required("El país es obligatorio")
     .min(1, "Debe seleccionar un país válido"),
-  gestorId: Yup.number()
+  idGestor: Yup.number()
     .required("El gestor es obligatorio")
     .min(1, "Debe seleccionar un gestor válido"),
   cargoResponsable: Yup.string().required("Cargo es un campo obligatorio"),
@@ -215,43 +255,45 @@ const schema = Yup.object().shape({
   initialValues: {
     razonSocial: empresa?.razonSocial || "",
     nombreComercial: empresa?.nombreComercial || "",
-    ruc: empresa?.ruc || "",
+    numDocContribuyente: empresa?.numDocContribuyente || "",
     direccion: empresa?.direccion || "",
      telefono: empresa?.telefono?.replace(/\D/g, "") || "",
     email: empresa?.email || "",
     usuarioRegistro:empresa?.usuarioRegistro|| window.localStorage.getItem("username"), 
     idPais: empresa?.idPais || 0,
-    gestorId: empresa?.idGestor || 0,
-    socioId: empresa?.idSocio || Number(window.localStorage.getItem("idsocio")),
+    idGestor: empresa?.idGestor || 0,
+    idSocio: empresa?.idSocio || Number(window.localStorage.getItem("idsocio")),
     activo:empresa?.activo|| true,
     cargoResponsable:empresa?.cargoResponsable|| "",
-        nombres: empresa?.persona.nombres || "",
-        apellidoPaterno: empresa?.persona.apellidoPaterno || "",
-        apellidoMaterno: empresa?.persona.apellidoMaterno || "",
-        numeroDocumento: empresa?.persona.numeroDocumento || "",
-        tipoDocumento: empresa?.persona.tipoDocumento || "",
-        telefonopersona: empresa?.persona.telefonopersona || "",
-        telefono2: empresa?.persona.telefono2 || "",
-        direccionpersona: empresa?.persona.direccionpersona || "",
-        correopersona: empresa?.persona.correopersona || "",
-        fechaNacimiento: null,
+    nombres: persona?.nombres || "",
+    apellidoPaterno: persona?.apellidoPaterno || "",
+    apellidoMaterno: persona?.apellidoMaterno || "",
+    numeroDocumento: persona?.numeroDocumento || "",
+    tipoDocumento: persona?.tipoDocumento || "",
+    telefonopersona: persona?.telefono || "",
+    telefono2: persona?.telefono2 || "",
+    direccionpersona: persona?.direccion || "",
+    correopersona: persona?.correo || "",
+    fechaNacimiento: null,
   },
   validationSchema:schema,
  onSubmit: (values) => {
   const data = {
     razonSocial: values.razonSocial,
     nombreComercial: values.nombreComercial,
-    ruc: values.ruc,
+    numDocContribuyente: values.numDocContribuyente,
     direccion: values.direccion,
     telefono: values.telefono,
     email: values.email,
-    usuarioRegistro: window.localStorage.getItem("username"),
+    usuarioRegistro: values.usuarioRegistro,
     idPais: values.idPais,
-    gestorId: values.gestorId,
-    socioId:Number(window.localStorage.getItem("idsocio")),
+    idGestor: values.idGestor,
+    idSocio:values.idSocio,
     activo:true,
     cargoResponsable:values.cargoResponsable,
+    ...(modoEdicion && { usuarioModificacion:  window.localStorage.getItem("username") }), 
     persona: {
+       ...(modoEdicion && { id: persona?.id }), 
               nombres: values.nombres,
               apellidoMaterno: values.apellidoMaterno,
               apellidoPaterno: values.apellidoPaterno,
@@ -315,7 +357,9 @@ const schema = Yup.object().shape({
             detail: "Registro actualizado exitosamente.",
             life: 7000,
           });
-  
+        setTimeout(() => {
+          navigate(-1);
+        }, 1000);
         })
         .catch((errors) => {
           toast.current.show({
@@ -462,17 +506,17 @@ const schema = Yup.object().shape({
               <label className="label-form"> N° Documento del contribuyente</label>
               <InputText
                 type={"numeric"}
-                id="ruc"
-                name="ruc"
+                id="numDocContribuyente"
+                name="numDocContribuyente"
                 placeholder="Escribe aquí"
-                value={formik.values.ruc}
+                value={formik.values.numDocContribuyente}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 maxLength={11}
                 keyfilter={ /^\d+$/}
               ></InputText>
               <small className="p-error">
-                {formik.touched.ruc && formik.errors.ruc}
+                {formik.touched.numDocContribuyente && formik.errors.numDocContribuyente}
               </small>
             </div>
             <div className="field col-12 md:col-6">
@@ -553,12 +597,12 @@ const schema = Yup.object().shape({
               <label className="label-form">Gestor</label>
               <DropdownDefault
                 type={"text"}
-                id="gestorId"
-                name="gestorId"
+                id="idGestor"
+                name="idGestor"
                 placeholder="Seleccione"
-                value={formik.values.gestorId}
+                value={formik.values.idGestor}
                 onChange={(e) => {
-                  formik.setFieldValue("gestorId", "");
+                  formik.setFieldValue("idGestor", "");
                   formik.handleChange(e);
                 }}
                 onBlur={formik.handleBlur}
@@ -567,7 +611,7 @@ const schema = Yup.object().shape({
                 optionValue="id"
               ></DropdownDefault>
               <small className="p-error">
-                {formik.touched.gestorId && formik.errors.gestorId}
+                {formik.touched.idGestor && formik.errors.idGestor}
               </small>
             </div>
 
@@ -641,7 +685,8 @@ const schema = Yup.object().shape({
                   formik.handleChange(e);
                 }}
                 onBlur={formik.handleBlur}
-                options={tipoDocumento}
+                // options={tipoDocumento}
+                options={parametros?.filter((item) => item.tipoParametro === "TipoDocumento")}
                 optionLabel="nombre"
                 optionValue="id"
               ></DropdownDefault>

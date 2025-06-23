@@ -17,30 +17,6 @@ import { AppMenu } from './pages/Dashboard/AppMenu';
 import useUsuario from "./hooks/useUsuario";
 import PrimeReact from "primereact/api";
 
-import Usuario from "./pages/Usuario/Usuario";
-import EditarUsuario from "./pages/Usuario/EditarUsuario";
-import Profesor from "./pages/Profesor/Profesor";
-import EditarProfesor from "./pages/Profesor/EditarProfesor";
-import Curso from "./pages/Curso/Curso";
-import EditarCurso from "./pages/Curso/EditarCurso";
-import EditarUnidad from "./pages/Unidad/EditarUnidad";
-import EditarLeccion from "./pages/Leccion/EditarLeccion";
-import EditarPreguntas from "./pages/Preguntas/EditarPreguntas";
-import EditarMaterial from "./pages/Material/EditarMaterial";
-import EditarBiblioteca from "./pages/Biblioteca/EditarBiblioteca";
-import Requisito from "./pages/Requisito/EditarRequisito";
-import EditarBeneficio from "./pages/Beneficio/EditarBeneficio";
-import EditarDisenador from "./pages/Disenador/EditarDisenador";
-import Programa from "./pages/Programa/Programa";
-import EditarPrograma from "./pages/Programa/EditarPrograma";
-import AsignarCurso from "./pages/Usuario/AsignarCurso";
-import AsignarPrograma from "./pages/Usuario/AsignarPrograma";
-import ImportarUsuarios from "./pages/Usuario/ImportarUsuarios";
-import ImportarCurso from "./pages/Curso/ImportarCurso";
-import CargaArchivos from "./pages/Curso/CargaArchivos";
-import DirectorioArchivos from "./pages/Curso/DirectorioArchivos";
-import CrearRespuesta from "./pages/CrearRespuesta/CrearRespuesta";
-import { Home } from "iconsax-react";
 import  Dashboard  from "./pages/Dashboard/Dashboard"
 import  Consultores  from "./pages/Consultores/Consultores"
 import  EditarConsultor from "./pages/Consultores/EditarConsultor";
@@ -50,8 +26,9 @@ import  Empresas  from "./pages/Empresas/Empresas"
 import  EditarEmpresa from "./pages/Empresas/EditarEmpresa";
 import  Gestiontikets  from "./pages/Gestiontikets/Gestiontikets"
 import  Editar from "./pages/Gestiontikets/Editar";
-
-
+import  Cargabilidad from "./pages/Cargabilidad/Cargabilidad"
+import  Usuarios  from "./pages/Usuarios/Usuarios"
+import  EditarUsuario from "./pages/Usuarios/EditarUsuario";
 
 function App() {
   const [layoutMode, setLayoutMode] = useState("static");

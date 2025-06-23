@@ -125,6 +125,36 @@ export const RegistrarTiket = ({ jsonData }) => {
     });
 };
 
+ export const ActualizarTicket= ({jsonData,idTicket}) =>{
+      return fetch(`${ENDPOINT}/api/Ticket/${idTicket}`,{
+          method: "PUT",
+          headers:{
+              'Content-Type': 'application/json',
+              "accept": "application/json"
+          },
+          
+          body: jsonData
+      }).then(res=>{
+          if(!res.ok) 
+          {
+              if(res.status == 401)
+              {
+                  window.localStorage.removeItem('jwt')
+                  window.location.reload();
+              }
+              else
+              {
+                  throw new Error("No se recibió respuesta del servidor")
+              }
+          }
+          return res.json()
+      }).then(res=>{
+          if(res.errors) throw new Error(res.errors[0])
+          const {data} = res
+          return data
+      })
+  }
+
 export const ListarTicket= async () => {
   return await fetch(`${ENDPOINT}/api/Ticket`, {
     method: "GET",
