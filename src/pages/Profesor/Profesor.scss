@@ -1,0 +1,29 @@
+.profesor-datatable-accion
+{
+    display: flex;
+    gap:12px;
+    align-items: center;
+}
+.profesor-accion-eliminar
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:#DD4B39;
+    //width: 20%;
+    padding: 4px;
+    cursor: pointer;
+    
+}
+
+.profesor-accion-editar
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:#404BD9;
+    //width: 20%;
+    padding: 4px;
+    cursor: pointer;
+    
+}

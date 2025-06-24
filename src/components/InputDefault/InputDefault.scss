@@ -1,0 +1,34 @@
+.p-eva-inputDefault
+{
+    border-radius: 16px;
+    border: none;
+    box-shadow: none;
+}
+.white
+{
+    background: #FFFFFF;
+}
+.grey
+{
+    background: #F5F5F5;
+}
+.p-eva-inputDefault:hover
+{
+    border: 1px solid #000000 !important;
+}
+.p-eva-input-error:hover
+{
+    border: 1px solid #DC0922 !important;
+}
+.p-eva-input-error
+{
+    border: 1px solid #DC0922 !important;
+}
+.p-eva-input-success:hover
+{
+    border: 1px solid #00B560 !important;
+}
+.p-eva-input-success
+{
+    border: 1px solid #00B560  !important;
+}

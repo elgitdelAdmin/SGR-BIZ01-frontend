@@ -1,0 +1,65 @@
+.p-eva-inputIcon
+{
+    border-radius: 16px;
+    border: none;
+    box-shadow: none;
+}
+#file-upload-button
+{
+    display: none !important;
+}
+.p-eva-input-icon-right svg
+{
+    margin-top: -0.4rem !important;
+    color: #F47647;
+}
+
+.white
+{
+    background: #FFFFFF;
+}
+.grey
+{
+    background: #F5F5F5;
+}
+.p-eva-inputIcon:hover
+{
+    border: 1px solid #000000 !important;
+}
+.p-eva-inputIcon-error:hover
+{
+    border: 1px solid #DC0922 !important;
+}
+.p-eva-inputIcon-error
+{
+    border: 1px solid #DC0922 !important;
+}
+.p-eva-inputIcon-success:hover
+{
+    border: 1px solid #00B560 !important;
+}
+.p-eva-inputIcon-success
+{
+    border: 1px solid #00B560  !important;
+}
+.p-eva-inputSearch
+{
+  border: 1px solid #F47647 !important;
+  
+}
+.p-eva-inputSearch::placeholder
+{
+    color: #F47647 !important;
+      
+}
+
+.p-eva-inputSearch input:hover
+{
+    border: 1px solid #F47647 !important;
+}
+.p-eva-input-iconDelete
+{  
+     /* transform-origin: left; */
+    transform: rotate(50deg) ;
+    cursor: pointer;
+}

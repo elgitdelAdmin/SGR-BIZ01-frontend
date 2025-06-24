@@ -1,0 +1,19 @@
+.layout-topbar
+{
+    position: fixed;
+    height: 72px;
+    z-index: 997;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0 2rem;
+    transition: left 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.blue-button {
+  background-color: #2D5B97; /* azul */
+  color: white;
+}
