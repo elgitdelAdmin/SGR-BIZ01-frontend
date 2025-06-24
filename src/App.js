@@ -9,7 +9,6 @@ import "primeflex/primeflex.css";
 import "prismjs/themes/prism-coy.css";
 import "./assets/demo/flags/flags.css";
 import "./assets/demo/Demos.scss";
-// import "./assets/layout/layout.scss";
 import logo from "./logo.svg";
 import "./App.scss";
 import TopBar from "./pages/Dashboard/Topbar";
