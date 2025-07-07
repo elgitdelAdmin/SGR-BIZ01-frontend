@@ -2,83 +2,22 @@ import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
 const ENDPOINT = constantes.URLAPICONECTA;
 
-// export const ListarUsuarios = async () => {
-//   return await fetch(`${ENDPOINT}/api/Usuario`, {
-//     method: "GET",
-//     headers: {
-//       "Accept": "application/json"
-//     },
-//   })
-//   .then(res => {
-//     if (!res.ok) throw new Error("Error al obtener los consultores");
-//     return res.json();
-//   });
-// };
 
 export const ListarUsuarios = async () => {
-  return [
-    // {
-    //   id: 4,
-    //   personaId: 38,
-    //   idNivelExperiencia: 3,
-    //   idModalidadLaboral: 1,
-    //   idSocio: 1,
-    //   usuarioCreacion: "",
-    //   fechaCreacion: "2025-06-10T18:31:50.071123",
-    //   usuarioActualizacion: null,
-    //   fechaActualizacion: null,
-    //   activo: true,
-    //   nombres: "Alonso Pablo",
-    //   apellidoPaterno: "Castro",
-    //   apellidoMaterno: "Tello",
-    //   numeroDocumento: "76543221",
-    //   tipoDocumento: 1,
-    //   telefono: "900887887",
-    //   telefono2: "975772456",
-    //   correo: "prueba@gmail",
-    //   direccion: "Direccion",
-    //   fechaNacimiento: "1989-05-04T05:00:00",
-    //   frentesSubFrente: [
-    //     {
-    //       id: 3,
-    //       idGestor: 4,
-    //       idFrente: 2,
-    //       idSubFrente: 6,
-    //       idNivelExperiencia: 1,
-    //       esCertificado: true,
-    //       fechaCreacion: "2025-06-10T18:31:50.54328",
-    //       usuarioCreacion: "",
-    //       fechaActualizacion: null,
-    //       usuarioActualizacion: null,
-    //       activo: true,
-    //     },
-    //   ],
-    // },
-
-      {
-            username: "luis.garcia25",
-            email: "luis.garcia@example.com",
-            password: "Luis1234*",
-            id: 1,
-            nombres: "Luis Alberto",
-            apellidoMaterno: "Torres",
-            apellidoPaterno: "García",
-            numeroDocumento: "45678912",
-            tipoDocumento: 1,
-            telefono: "987654321",
-            telefono2: "912345678",
-            correo: "luis.garcia@example.com",
-            direccion: "Av. Los Álamos 123, Lima",
-            fechaNacimiento: "1998-03-15T00:00:00.000Z",
-            fechaCreacion: "2025-06-23T21:22:25.684Z",
-            fechaActualizacion: "2025-06-23T21:22:25.684Z",
-            activo: true
-            }
-  ];
+  return await fetch(`${ENDPOINT}/api/Auth/usuario`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    },
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Error al obtener los usuarios");
+    return res.json();
+  });
 };
 
-export const RegistrarGestor = ({ jsonData }) => {
-    return fetch(`${ENDPOINT}/api/Gestor`, {
+export const RegistrarUsuario = ({ jsonData }) => {
+    return fetch(`${ENDPOINT}/api/Auth/register`, {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -103,6 +42,38 @@ export const RegistrarGestor = ({ jsonData }) => {
         return data;
       });
   };
+
+export const ListaRoles = async () => {
+  return await fetch(`${ENDPOINT}/api/Auth/roles`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    },
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Error al obtener los roles");
+    return res.json();
+  });
+};
+
+export const ListaSocio = async () => {
+  return await fetch(`${ENDPOINT}/api/Socios`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    },
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Error al obtener los socios");
+    return res.json();
+  });
+};
+
+
+
+
+
+
   export const ActualizarGestor= ({jsonData,idGestor}) =>{
       return fetch(`${ENDPOINT}/api/Gestor/${idGestor}`,{
           method: "PUT",

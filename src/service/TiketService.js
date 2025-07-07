@@ -70,33 +70,6 @@ export const ListarConsultores = async () => {
   });
 };
 
-// export const RegistrarTiket= ({jsonData}) =>{
-//     return fetch(`${ENDPOINT}/api/Ticket`,{
-//         method: "POST",
-//          headers: {
-//             "Accept": "application/json"
-//           },
-//         body: jsonData
-//     }).then(res=>{
-//         if(!res.ok) 
-//         {
-//             if(res.status == 401)
-//             {
-//                 window.localStorage.removeItem('jwt')
-//                 window.location.reload();
-//             }
-//             else
-//             {
-//                 throw new Error("No se recibió respuesta del servidor")
-//             }
-//         }
-//         return res.json()
-//     }).then(res=>{
-//         if(res.errors) throw new Error(res.errors[0])
-//         const {data} = res
-//         return data
-//     })
-// }
 
 export const RegistrarTiket = ({ jsonData }) => {
   return fetch(`${ENDPOINT}/api/Ticket`, {
@@ -155,8 +128,20 @@ export const RegistrarTiket = ({ jsonData }) => {
       })
   }
 
-export const ListarTicket= async () => {
-  return await fetch(`${ENDPOINT}/api/Ticket`, {
+// export const ListarTicket= async () => {
+//   return await fetch(`${ENDPOINT}/api/Ticket`, {
+//     method: "GET",
+//     headers: {
+//       "Accept": "application/json"
+//     },
+//   })
+//   .then(res => {
+//     if (!res.ok) throw new Error("Error al obtener los ticket");
+//     return res.json();
+//   });
+// };
+export const ListarTicket= async ({idUser,codRol}) => {
+  return await fetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"

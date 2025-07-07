@@ -224,7 +224,7 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
             <Toast ref={toast} position="top-center"></Toast>
             <div className="header-titulo">Gestión de Consultores</div>
             <div className="zv-usuario-body" style={{marginTop:16}}>
-                   <div className="zv-usuario-body-filtro">
+                   {/* <div className="zv-usuario-body-filtro">
                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                  <div style={{ marginLeft: "auto" }}>
                                      <Boton
@@ -235,7 +235,7 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                                      ></Boton>
                                  </div>
                              </div>                        
-                     </div>
+                     </div> */}
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy

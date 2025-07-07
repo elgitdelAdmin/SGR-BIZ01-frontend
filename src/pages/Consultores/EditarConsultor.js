@@ -144,301 +144,7 @@ const EditarConsultor = () => {
       // });
        await ListarFrentes().then(data=>{setFrentes(data)})
 
-      // const data=[{id: 1,nombre: 'Frente1'},
-      //  {id: 2, nombre:'Frente2'},
-      // ]
-      // const frentes =
-      // [
-      //   {
-      //     id: 4,
-      //     codigo: "FRN004",
-      //     nombre: "Análisis",
-      //     descripcion: "Área de análisis y requerimientos",
-      //     activo: true,
-      //     fechaRegistro: "2025-05-21T21:53:11.536815",
-      //     fechaModificacion: null,
-      //     usuarioRegistro: "SYSTEM",
-      //     usuarioModificacion: null,
-      //     subFrente: [
-      //       {
-      //         id: 12,
-      //         codigo: "SFR012",
-      //         nombre: "Técnico",
-      //         descripcion: "Análisis técnico",
-      //         idFrente: 4,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 11,
-      //         codigo: "SFR011",
-      //         nombre: "Funcional",
-      //         descripcion: "Análisis funcional",
-      //         idFrente: 4,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       }
-      //     ]
-      //   },
-      //   {
-      //     id: 5,
-      //     codigo: "FRN005",
-      //     nombre: "Calidad",
-      //     descripcion: "Área de testing y calidad de software",
-      //     activo: true,
-      //     fechaRegistro: "2025-05-21T21:53:11.536815",
-      //     fechaModificacion: null,
-      //     usuarioRegistro: "SYSTEM",
-      //     usuarioModificacion: null,
-      //     subFrente: [
-      //       {
-      //         id: 13,
-      //         codigo: "SFR013",
-      //         nombre: "Testing Manual",
-      //         descripcion: "Pruebas manuales",
-      //         idFrente: 5,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 14,
-      //         codigo: "SFR014",
-      //         nombre: "Testing Automatizado",
-      //         descripcion: "Pruebas automatizadas",
-      //         idFrente: 5,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       }
-      //     ]
-      //   },
-      //   {
-      //     id: 1,
-      //     codigo: "FRN001",
-      //     nombre: "Desarrollo",
-      //     descripcion: "Área de desarrollo de software",
-      //     activo: true,
-      //     fechaRegistro: "2025-05-21T21:53:11.536815",
-      //     fechaModificacion: null,
-      //     usuarioRegistro: "SYSTEM",
-      //     usuarioModificacion: null,
-      //     subFrente: [
-      //       {
-      //         id: 3,
-      //         codigo: "SFR003",
-      //         nombre: "Base de Datos",
-      //         descripcion: "Desarrollo y mantenimiento de BD",
-      //         idFrente: 1,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 4,
-      //         codigo: "SFR004",
-      //         nombre: "Mobile",
-      //         descripcion: "Desarrollo de aplicaciones móviles",
-      //         idFrente: 1,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 1,
-      //         codigo: "SFR001",
-      //         nombre: "Frontend",
-      //         descripcion: "Desarrollo de interfaces de usuario",
-      //         idFrente: 1,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 2,
-      //         codigo: "SFR002",
-      //         nombre: "Backend",
-      //         descripcion: "Desarrollo de servicios y APIs",
-      //         idFrente: 1,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       }
-      //     ]
-      //   },
-      //   {
-      //     id: 2,
-      //     codigo: "FRN002",
-      //     nombre: "Infraestructura",
-      //     descripcion: "Área de infraestructura y sistemas",
-      //     activo: true,
-      //     fechaRegistro: "2025-05-21T21:53:11.536815",
-      //     fechaModificacion: null,
-      //     usuarioRegistro: "SYSTEM",
-      //     usuarioModificacion: null,
-      //     subFrente: [
-      //       {
-      //         id: 6,
-      //         codigo: "SFR006",
-      //         nombre: "Redes",
-      //         descripcion: "Administración de redes",
-      //         idFrente: 2,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 7,
-      //         codigo: "SFR007",
-      //         nombre: "Cloud",
-      //         descripcion: "Servicios en la nube",
-      //         idFrente: 2,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 5,
-      //         codigo: "SFR005",
-      //         nombre: "Servidores",
-      //         descripcion: "Administración de servidores",
-      //         idFrente: 2,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       }
-      //     ]
-      //   },
-      //   {
-      //     id: 6,
-      //     codigo: "FRN006",
-      //     nombre: "Seguridad",
-      //     descripcion: "Área de seguridad informática",
-      //     activo: true,
-      //     fechaRegistro: "2025-05-21T21:53:11.536815",
-      //     fechaModificacion: null,
-      //     usuarioRegistro: "SYSTEM",
-      //     usuarioModificacion: null,
-      //     subFrente: [
-      //       {
-      //         id: 16,
-      //         codigo: "SFR016",
-      //         nombre: "Auditoria",
-      //         descripcion: "Auditorías de seguridad",
-      //         idFrente: 6,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 15,
-      //         codigo: "SFR015",
-      //         nombre: "Pentesting",
-      //         descripcion: "Pruebas de penetración",
-      //         idFrente: 6,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       }
-      //     ]
-      //   },
-      //   {
-      //     id: 3,
-      //     codigo: "FRN003",
-      //     nombre: "Soporte",
-      //     descripcion: "Área de soporte técnico",
-      //     activo: true,
-      //     fechaRegistro: "2025-05-21T21:53:11.536815",
-      //     fechaModificacion: null,
-      //     usuarioRegistro: "SYSTEM",
-      //     usuarioModificacion: null,
-      //     subFrente: [
-      //       {
-      //         id: 9,
-      //         codigo: "SFR009",
-      //         nombre: "Soporte Técnico",
-      //         descripcion: "Soporte nivel 2",
-      //         idFrente: 3,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 8,
-      //         codigo: "SFR008",
-      //         nombre: "Mesa de Ayuda",
-      //         descripcion: "Soporte nivel 1",
-      //         idFrente: 3,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       },
-      //       {
-      //         id: 10,
-      //         codigo: "SFR010",
-      //         nombre: "Soporte Especializado",
-      //         descripcion: "Soporte nivel 3",
-      //         idFrente: 3,
-      //         activo: true,
-      //         fechaRegistro: "2025-05-21T21:53:11.536815",
-      //         fechaModificacion: null,
-      //         usuarioRegistro: "SYSTEM",
-      //         usuarioModificacion: null,
-      //         nivel: null
-      //       }
-      //     ]
-      //   }
-      // ]
-
-      // setFrentes(frentes);
-    };
+       };
     getFrentes();
   }, []);
  useEffect(() => {
@@ -531,6 +237,7 @@ const EditarConsultor = () => {
             ...(modoEdicion && { id: consultor.id }), 
             idNivelExperiencia: values.idNivelExperiencia,
             idModalidadLaboral:values.idModalidadLaboral,
+            usuarioActualizacion:window.localStorage.getItem("username"),
             idSocio: Number(window.localStorage.getItem("idsocio")),
             persona: {
               nombres: values.nombres,
@@ -542,7 +249,9 @@ const EditarConsultor = () => {
               telefono2: values.telefono2,
               direccion: values.direccion || "",
               correo: values.correo || "",
-              fechaNacimiento: new Date(values.fechaNacimiento).toISOString()
+              fechaNacimiento: new Date(values.fechaNacimiento).toISOString(),
+              usuarioActualizacion:window.localStorage.getItem("username"),
+
             },
             especializaciones: values.especializaciones.map(e => ({
               idFrente: Number(e.idFrente),
@@ -623,69 +332,6 @@ const EditarConsultor = () => {
 
 
 
-  // const accionEditarCursos = (rowData) => {
-  //   return (
-  //     <div className="datatable-accion">
-  //       <div
-  //         className="accion-editar"
-  //         onClick={() =>
-  //           navigate(
-  //             "../Gestiontikets/Editar/" +
-  //               id +
-  //               "/AsignarCurso/" +
-  //               rowData.idPersonaCurso
-  //           )
-  //         }
-  //       >
-  //         <span>
-  //           <Iconsax.Eye color="#ffffff" />
-  //         </span>
-  //       </div>
-  //       <div
-  //         className="accion-eliminar"
-  //         onClick={() => {
-  //           confirmCurso(rowData.idPersonaCurso);
-  //         }}
-  //       >
-  //         <span>
-  //           <Iconsax.Trash color="#ffffff" />
-  //         </span>
-  //       </div>
-  //     </div>
-  //   );
-  // };
-
-  // const accionEditarPrograma = (rowData) => {
-  //   return (
-  //     <div className="datatable-accion">
-  //       <div
-  //         className="accion-editar"
-  //         onClick={() =>
-  //           navigate(
-  //             "../Gestiontikets/Editar/" +
-  //               id +
-  //               "/AsignarPrograma/" +
-  //               rowData.idPersonaPrograma
-  //           )
-  //         }
-  //       >
-  //         <span>
-  //           <Iconsax.Eye color="#ffffff" />
-  //         </span>
-  //       </div>
-  //       <div
-  //         className="accion-eliminar"
-  //         onClick={() => {
-  //           confirmPrograma(rowData.idPersonaPrograma);
-  //         }}
-  //       >
-  //         <span>
-  //           <Iconsax.Trash color="#ffffff" />
-  //         </span>
-  //       </div>
-  //     </div>
-  //   );
-  // };
   const dateBodyTemplateFechaActivacion = (rowData) => {
     return rowData.fechaActivacion
       ? formatDate(new Date(rowData.fechaActivacion))
@@ -695,80 +341,6 @@ const EditarConsultor = () => {
     console.log(rowData);
     return rowData.fechaVigencia ? formatDate(new Date(rowData.fechaVigencia)) : "";
   };
-  // const EliminarCurso = (id) => {
-  //   let jwt = window.localStorage.getItem("jwt");
-  //   EliminarPersonaCurso({ jwt, id })
-  //     .then((data) => {
-  //       //formik.setSubmitting(false)
-  //       toast.current.show({
-  //         severity: "success",
-  //         summary: "Éxito",
-  //         detail: "Registro eliminado.",
-  //         life: 7000,
-  //       });
-
-  //       setTimeout(() => {
-  //         window.location.reload();
-  //       }, 1000);
-  //     })
-  //     .catch((errors) => {
-  //       toast.current.show({
-  //         severity: "error",
-  //         summary: "Error",
-  //         detail: errors.message,
-  //         life: 7000,
-  //       });
-  //       //formik.setSubmitting(false)
-  //     });
-  // };
-
-  // const EliminarPrograma = (id) => {
-  //   let jwt = window.localStorage.getItem("jwt");
-  //   EliminarPersonaPrograma({ jwt, id })
-  //     .then((data) => {
-  //       //formik.setSubmitting(false)
-  //       toast.current.show({
-  //         severity: "success",
-  //         summary: "Éxito",
-  //         detail: "Registro eliminado.",
-  //         life: 7000,
-  //       });
-
-  //       setTimeout(() => {
-  //         window.location.reload();
-  //       }, 1000);
-  //     })
-  //     .catch((errors) => {
-  //       toast.current.show({
-  //         severity: "error",
-  //         summary: "Error",
-  //         detail: errors.message,
-  //         life: 7000,
-  //       });
-  //       //formik.setSubmitting(false)
-  //     });
-  // };
-
-  // const confirmCurso = (id) => {
-  //   confirmDialog({
-  //     message: "Seguro de eliminar curso?",
-  //     header: "Eliminar",
-  //     icon: "pi pi-info-circle",
-  //     acceptClassName: "p-button-danger",
-  //     acceptLabel: "Aceptar",
-  //     accept: () => EliminarCurso(id),
-  //   });
-  // };
-  // const confirmPrograma = (id) => {
-  //   confirmDialog({
-  //     message: "Seguro de eliminar programa?",
-  //     header: "Eliminar",
-  //     icon: "pi pi-info-circle",
-  //     acceptClassName: "p-button-danger",
-  //     acceptLabel: "Aceptar",
-  //     accept: () => EliminarPrograma(id),
-  //   });
-  // };
   const programaTemplate = (rowData) => {
     console.log(rowData);
     return (
@@ -1083,7 +655,9 @@ const EditarConsultor = () => {
                   formik.handleChange(e);
                 }}
                 onBlur={formik.handleBlur}
-                options={modalidad}
+                // options={modalidad}
+                options={parametros?.filter((item) => item.tipoParametro === "ModalidadLaboral")}
+
                 optionLabel="nombre"
                 optionValue="id"
               ></DropdownDefault>

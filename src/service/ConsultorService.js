@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
 const ENDPOINT = constantes.URLAPICONECTA;
-
+const idSocio= window.localStorage.getItem("idsocio")
 // export const ListarConsultores = async({jwt})=> {
 //     return await fetch(`${ENDPOINT}/api/Consultor`,{
 //         method: "GET",

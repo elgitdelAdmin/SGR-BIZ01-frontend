@@ -30,7 +30,7 @@ import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { Calendar } from 'primereact/calendar';
 import DataTable from 'react-data-table-component';
-import {RegistrarEmpresa,ListarFrentes,ListarParametros,ObtenerEmpresa,ActualizarEmpresa,ObtenerPersona} from "../../service/EmpresaService";
+import {RegistrarEmpresa,ListarFrentes,ListarParametros,ObtenerEmpresa,ActualizarEmpresa,ObtenerPersona,ObtenerPersonaResponsable} from "../../service/EmpresaService";
 import { ListarPais} from "../../service/TiketService";
 import {ListarGestores} from "../../service/GestorService";
 
@@ -44,17 +44,11 @@ const EditarConsultor = () => {
   const [persona, setPersona] = useState(null);
   const [tituloPagina, setTituloPagina] = useState("Crear Empresa");
   const [modoEdicion, setModoEdicion] = useState(false);
+  const [usuariosDropdown, setUsuariosDropdown] = useState([]);
+  const [user, setUser] = useState([]);
 
-  const [tipoDocumento, setTipoDocumento] = useState(null);
-  const [modalidad, setModalidad] = useState(null);
-  const [socio, setSocio] = useState(null);
+const [soloUnUsuario, setSoloUnUsuario] = useState(false);
 
-  const [nivelExperiencia, setnivelExperiencia] = useState(null);
-  const [loadingCurso, setLoadingCurso] = useState(true);
-  const [loadingPrograma, setLoadingPrograma] = useState(true);
-  const [frentes, setFrentes] = useState(null);
-  const [subfrentes, setSubfrentes] = useState(null);
-  
   let { id } = useParams();
   let { IdEmpresa } = useParams();
   const toast = useRef(null);
@@ -73,13 +67,14 @@ const EditarConsultor = () => {
       setEmpresa(empresaData);
       setTituloPagina("Datos de la Empresa");
       setModoEdicion(true);
+       const idTipoDocumento = empresaData.personaResponsable.tipoDocumento;
+      const numeroDocumento = empresaData.personaResponsable.numeroDocumento;
+       await ObtenerPersonaResponsable({idTipoDocumento,numeroDocumento}).then(data=>{
+        console.log("Data",data)
+              setUser(data.users)
 
-      const idPersonaResponsable = empresaData.idPersonaResponsable;
-      if (idPersonaResponsable) {
-        const personaData = await ObtenerPersona({ idPersona: idPersonaResponsable });
-        console.log("Persona:", personaData);
-        setPersona(personaData);
-      }
+       })
+
 
     } catch (error) {
       console.error("Error al obtener empresa o persona", error);
@@ -89,73 +84,6 @@ const EditarConsultor = () => {
   getEmpresaYPersona();
 }, [id]);
 
-  // useEffect(() => {
-  //   const getEmpresa = async () => {
-  //     // let jwt = window.localStorage.getItem("jwt");
-
-  //     let idEmpresa = id;
-  //     await ObtenerEmpresa({idEmpresa}).then((data) => {
-  //       console.log("data",data);
-  //       setTituloPagina("Datos de la Empresa");
-  //       setEmpresa(data);
-  //       setModoEdicion(true);
-  //     });
-  //   };
-  //   if (id) getEmpresa();
-  // }, [id]);
-
-  
-  // useEffect(() => {
-  //   const getPersona = async () => {
-  //     // let jwt = window.localStorage.getItem("jwt");
-
-  //     let idPersona = id;
-  //     await ObtenerPersona({idPersona}).then((data) => {
-  //       console.log("data",data);
-  //       setTituloPagina("Datos de la persona");
-  //       setPersona(data);
-  //       setModoEdicion(true);
-  //     });
-  //   };
-  //   if (id) getPersona();
-  // }, [id]);
-
-  useEffect(() => {
-    const getTipoDoc = async () => {
-      const data=[{id: 1,nombre: 'DNI'},
-       {id: 2, nombre:'Pasaporte'},
-       {id: 3,nombre:'Carnet de extranjeria'}
-      ]
-      setTipoDocumento(data);
-    };
-    getTipoDoc();
-  }, []);
-  
-    useEffect(() => {
-    const getModalidad = async () => {
-
-      const data=[{id: 1,nombre: 'Interno'},
-       {id: 2, nombre:'Externo'},
-      ]
-      setModalidad(data);
-
-
-    };
-    getModalidad();
-  }, []);
-
-    useEffect(() => {
-    const getSocio = async () => {
-
-      const data=[{id: 1,nombre: 'CSTI'},
-      //  {id: 2, nombre:'Socio2'},
-      ]
-      setSocio(data);
-
-
-    };
-    getSocio();
-  }, []);
     useEffect(() => {
       const getPais = async () => {
        await ListarPais().then(data=>{setPais(data)})
@@ -168,32 +96,13 @@ const EditarConsultor = () => {
       };
       getGestor();
     }, []);
-   useEffect(() => {
-    const getnivelExperiencia = async () => {
-      const data=[{id: 1,nombre: 'Básico'},
-       {id: 2, nombre:'intermedio'},
-       {id: 3,nombre:'Avanzado'}
-      ]
-      setnivelExperiencia(data);
-
-
-    };
-    getnivelExperiencia();
-  }, []);
   
-
   useEffect(() => {
-    const getFrentes = async () => {
-       await ListarFrentes().then(data=>{setFrentes(data)})
-     };
-    getFrentes();
-  }, []);
- useEffect(() => {
-    const getParametro = async () => {
-      await ListarParametros().then(data=>{setParametro(data)})
-   };
-    getParametro();
-  }, []);
+      const getParametro = async () => {
+        await ListarParametros().then(data=>{setParametro(data)})
+    };
+      getParametro();
+    }, []);
 
    useEffect(() => {
       const getPais = async () => {
@@ -201,125 +110,194 @@ const EditarConsultor = () => {
       };
       getPais();
     }, []);
-
-const schema = Yup.object().shape({
-  razonSocial: Yup.string().required("La razón social es obligatoria"),
-  nombreComercial: Yup.string().required("El nombre comercial es obligatorio"),
-  numDocContribuyente: Yup.string()
-    .required("El RUC es obligatorio")
-    .matches(/^\d+$/, "El RUC debe contener solo números")
-    .length(11, "El RUC debe tener exactamente 11 dígitos"),
-  direccion: Yup.string().required("La dirección es obligatoria"),
-  telefono: Yup.string()
-    .required("El teléfono es obligatorio")
-    .matches(/^\d+$/, "El teléfono debe contener solo números")
-    .min(8, "El teléfono debe tener al menos 8 dígitos")
-    .max(15, "El teléfono no puede exceder 15 dígitos"),
-  email: Yup.string()
-    .required("El correo es obligatorio")
-    .email("Debe ser un correo válido"),
-  usuarioRegistro: Yup.string().required("El usuario de registro es obligatorio"),
-  idPais: Yup.number()
-    .required("El país es obligatorio")
-    .min(1, "Debe seleccionar un país válido"),
-  idGestor: Yup.number()
-    .required("El gestor es obligatorio")
-    .min(1, "Debe seleccionar un gestor válido"),
-  cargoResponsable: Yup.string().required("Cargo es un campo obligatorio"),
-   nombres: Yup.string().required("Nombres es un campo obligatorio"),
-    apellidoPaterno: Yup.string().required("Apellido Paterno es un campo obligatorio"),
-    apellidoMaterno: Yup.string().required("Apellido Materno es un campo obligatorio"),
-    numeroDocumento: Yup.string()
-      .required("Documento de Identidad es un campo obligatorio")
-      .matches(/^\d+$/, "Documento debe contener solo números")
-      .min(8, "Documento debe tener mínimo 8 números")
-      .test("no-es-ceros", "Documento no puede ser igual a '00000000'", value => value !== "00000000"),
-    tipoDocumento: Yup.number().required("Tipo de documento es un campo obligatorio"),
-    telefonopersona: Yup.string()
-      .required("Teléfono es un campo obligatorio")
-      .matches(/^\d+$/, "El teléfono solo debe contener números")
-      .min(8, "El teléfono debe tener al menos 8 dígitos")
-      .max(15, "El teléfono no puede exceder 15 dígitos"),
-    telefono2: Yup.string()
-      .required("Teléfono es un campo obligatorio")
-      .matches(/^\d+$/, "El teléfono solo debe contener números")
-      .min(8, "El teléfono debe tener al menos 8 dígitos")
-      .max(15, "El teléfono no puede exceder 15 dígitos"),
-    direccionpersona: Yup.string(),
-    correopersona: Yup.string(),
-  
-});
-
- const formik = useFormik({
-  enableReinitialize: true,
-  initialValues: {
-    razonSocial: empresa?.razonSocial || "",
-    nombreComercial: empresa?.nombreComercial || "",
-    numDocContribuyente: empresa?.numDocContribuyente || "",
-    direccion: empresa?.direccion || "",
-     telefono: empresa?.telefono?.replace(/\D/g, "") || "",
-    email: empresa?.email || "",
-    usuarioRegistro:empresa?.usuarioRegistro|| window.localStorage.getItem("username"), 
-    idPais: empresa?.idPais || 0,
-    idGestor: empresa?.idGestor || 0,
-    idSocio: empresa?.idSocio || Number(window.localStorage.getItem("idsocio")),
-    activo:empresa?.activo|| true,
-    cargoResponsable:empresa?.cargoResponsable|| "",
-    nombres: persona?.nombres || "",
-    apellidoPaterno: persona?.apellidoPaterno || "",
-    apellidoMaterno: persona?.apellidoMaterno || "",
-    numeroDocumento: persona?.numeroDocumento || "",
-    tipoDocumento: persona?.tipoDocumento || "",
-    telefonopersona: persona?.telefono || "",
-    telefono2: persona?.telefono2 || "",
-    direccionpersona: persona?.direccion || "",
-    correopersona: persona?.correo || "",
-    fechaNacimiento: null,
-  },
-  validationSchema:schema,
- onSubmit: (values) => {
-  const data = {
-    razonSocial: values.razonSocial,
-    nombreComercial: values.nombreComercial,
-    numDocContribuyente: values.numDocContribuyente,
-    direccion: values.direccion,
-    telefono: values.telefono,
-    email: values.email,
-    usuarioRegistro: values.usuarioRegistro,
-    idPais: values.idPais,
-    idGestor: values.idGestor,
-    idSocio:values.idSocio,
-    activo:true,
-    cargoResponsable:values.cargoResponsable,
-    ...(modoEdicion && { usuarioModificacion:  window.localStorage.getItem("username") }), 
-    persona: {
-       ...(modoEdicion && { id: persona?.id }), 
-              nombres: values.nombres,
-              apellidoMaterno: values.apellidoMaterno,
-              apellidoPaterno: values.apellidoPaterno,
-              numeroDocumento: values.numeroDocumento,
-              tipoDocumento: Number(values.tipoDocumento),
-              telefono: values.telefonopersona,
-              telefono2: values.telefono2,
-              direccion: values.direccionpersona || "",
-              correo: values.correopersona || "",
-              fechaNacimiento:null
-            },
-  };
-  const jsonData = JSON.stringify(data, null, 2);
-
-  if (modoEdicion) {
-    const idEmpresa = empresa?.id;
-    console.log(idEmpresa)
     
-    Actualizar({ jsonData, idEmpresa });
-  } else {
+    useEffect(() => {
+    if (user?.length === 1) {
+      const unicoUsuario = user[0];
+      formik.setFieldValue("idUser", unicoUsuario.id); 
+            setSoloUnUsuario(true); 
 
-    Registrar({ jsonData });
+    }
+  }, [user]);
+
+  const handleBuscar = async () => {
+    console.log("Datos recibidos:");
+    const tipoDocumento = formik.values.tipoDocumento;
+    const numeroDocumento = formik.values.numeroDocumento;
+
+    if (!tipoDocumento || !numeroDocumento) {
+      console.warn("Debe completar tipo y número de documento");
+      return;
+    }
+
+    try {
+      const data = await ObtenerPersonaResponsable({
+        idTipoDocumento: tipoDocumento,
+        numeroDocumento: numeroDocumento
+      });
+
+      console.log("Datos recibidos:", data);
+
+      formik.setFieldValue("nombres", data.nombres || "");
+      formik.setFieldValue("apellidoPaterno", data.apellidoPaterno || "");
+      formik.setFieldValue("apellidoMaterno", data.apellidoMaterno || "");
+      formik.setFieldValue("telefonopersona", data.telefono || "");
+      formik.setFieldValue("telefono2", data.telefono2 || "");
+      formik.setFieldValue("direccionpersona", data.direccion || "");
+      formik.setFieldValue("correopersona", data.correo || "");
+      formik.setFieldValue("fechaNacimiento", data.fechaNacimiento || "");
+
+      setUser(data.users)
+    //   if (data.users.length === 1) {
+    //   const unicoUsuario = data.users[0];
+    //   formik.setFieldValue("user", unicoUsuario.id);
+    //   setUsuariosDropdown([{ label: unicoUsuario.username, value: unicoUsuario.id }]);
+    //   setSoloUnUsuario(true); // estado para deshabilitar el dropdown si es solo uno
+    // } else if (data.users.length > 1) {
+    //   const opciones = data.users.map((u) => ({
+    //     label: u.username,
+    //     value: u.id,
+    //   }));
+    //   setUsuariosDropdown(opciones);
+    //   setSoloUnUsuario(false);
+    // }
+
+    } catch (error) {
+      console.error("Error al buscar responsable:", error.message);
+    }
+  };
+
+  const schema = Yup.object().shape({
+    razonSocial: Yup.string().required("La razón social es obligatoria"),
+    nombreComercial: Yup.string().required("El nombre comercial es obligatorio"),
+    numDocContribuyente: Yup.string()
+      .required("El RUC es obligatorio")
+      .matches(/^\d+$/, "El RUC debe contener solo números")
+      .length(11, "El RUC debe tener exactamente 11 dígitos"),
+    direccion: Yup.string().required("La dirección es obligatoria"),
+    telefono: Yup.string()
+      .required("El teléfono es obligatorio")
+      .matches(/^\d+$/, "El teléfono debe contener solo números")
+      .min(8, "El teléfono debe tener al menos 8 dígitos")
+      .max(15, "El teléfono no puede exceder 15 dígitos"),
+    email: Yup.string()
+      .required("El correo es obligatorio")
+      .email("Debe ser un correo válido"),
+    usuarioRegistro: Yup.string().required("El usuario de registro es obligatorio"),
+    idPais: Yup.number()
+      .required("El país es obligatorio")
+      .min(1, "Debe seleccionar un país válido"),
+    idGestor: Yup.number()
+      .required("El gestor es obligatorio")
+      .min(1, "Debe seleccionar un gestor válido"),
+    cargoResponsable: Yup.string().required("Cargo es un campo obligatorio"),
+    nombres: Yup.string().required("Nombres es un campo obligatorio"),
+      apellidoPaterno: Yup.string().required("Apellido Paterno es un campo obligatorio"),
+      apellidoMaterno: Yup.string().required("Apellido Materno es un campo obligatorio"),
+      numeroDocumento: Yup.string()
+        .required("Documento de Identidad es un campo obligatorio")
+        .matches(/^\d+$/, "Documento debe contener solo números")
+        .min(8, "Documento debe tener mínimo 8 números")
+        .test("no-es-ceros", "Documento no puede ser igual a '00000000'", value => value !== "00000000"),
+      tipoDocumento: Yup.number().required("Tipo de documento es un campo obligatorio"),
+      telefonopersona: Yup.string()
+        .required("Teléfono es un campo obligatorio")
+        .matches(/^\d+$/, "El teléfono solo debe contener números")
+        .min(8, "El teléfono debe tener al menos 8 dígitos")
+        .max(15, "El teléfono no puede exceder 15 dígitos"),
+      telefono2: Yup.string()
+        .required("Teléfono es un campo obligatorio")
+        .matches(/^\d+$/, "El teléfono solo debe contener números")
+        .min(8, "El teléfono debe tener al menos 8 dígitos")
+        .max(15, "El teléfono no puede exceder 15 dígitos"),
+      direccionpersona: Yup.string(),
+      correopersona: Yup.string(),
+      fechaNacimiento: Yup.date()
+              .required("Fecha de nacimiento es obligatoria")
+              .max(new Date(), "La fecha de nacimiento no puede ser en el futuro"),
+    
+  });
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      razonSocial: empresa?.razonSocial || "",
+      nombreComercial: empresa?.nombreComercial || "",
+      numDocContribuyente: empresa?.numDocContribuyente || "",
+      direccion: empresa?.direccion || "",
+      telefono: empresa?.telefono?.replace(/\D/g, "") || "",
+      email: empresa?.email || "",
+      usuarioRegistro:empresa?.usuarioRegistro|| window.localStorage.getItem("username"), 
+      usuarioModificacion:empresa?.usuarioModificacion|| window.localStorage.getItem("username"), 
+      idPais: empresa?.idPais || 0,
+      idGestor: empresa?.idGestor || 0,
+      idSocio: empresa?.idSocio || Number(window.localStorage.getItem("idsocio")),
+      activo:empresa?.activo|| true,
+      cargoResponsable:empresa?.cargoResponsable|| "",
+      nombres: empresa?.personaResponsable.nombres || "",
+      apellidoPaterno: empresa?.personaResponsable.apellidoPaterno || "",
+      apellidoMaterno:empresa?.personaResponsable.apellidoMaterno || "",
+      numeroDocumento: empresa?.personaResponsable.numeroDocumento || "",
+      tipoDocumento: empresa?.personaResponsable.tipoDocumento || "",
+      telefonopersona: empresa?.personaResponsable.telefono || "",
+      telefono2: empresa?.personaResponsable.telefono2 || "",
+      direccionpersona: empresa?.personaResponsable.direccion || "",
+      correopersona: empresa?.personaResponsable.correo || "",
+      fechaNacimiento: empresa?.personaResponsable.fechaNacimiento || "",
+      usuarioCreacionpersona:empresa?.personaResponsable.usuarioCreacion|| window.localStorage.getItem("username"), 
+      idUser: empresa?.idUser||"",
+      usuarioActualizacion:empresa?.personaResponsable.usuarioActualizacion||window.localStorage.getItem("username"), 
+
+    },
+    validationSchema:schema,
+  onSubmit: (values) => {
+    const data = {
+      razonSocial: values.razonSocial,
+      nombreComercial: values.nombreComercial,
+      numDocContribuyente: values.numDocContribuyente,
+      direccion: values.direccion,
+      telefono: values.telefono,
+      email: values.email,
+      cargoResponsable:values.cargoResponsable,
+      activo:true,
+        ...(modoEdicion
+      ? { usuarioModificacion: values.usuarioModificacion }
+      : { usuarioRegistro: values.usuarioRegistro }),
+      idPais: values.idPais,
+      idGestor: values.idGestor,
+      idSocio:values.idSocio,
+      idUser:values.idUser,
+      persona: {
+        ...(modoEdicion && { id: persona?.id }), 
+                nombres: values.nombres,
+                apellidoMaterno: values.apellidoMaterno,
+                apellidoPaterno: values.apellidoPaterno,
+                numeroDocumento: values.numeroDocumento,
+                tipoDocumento: Number(values.tipoDocumento),
+                telefono: values.telefonopersona,
+                telefono2: values.telefono2,
+                direccion: values.direccionpersona || "",
+                correo: values.correopersona || "",
+                fechaNacimiento:values.fechaNacimiento,
+                  ...(modoEdicion
+                ? { usuarioActualizacion: values.usuarioActualizacion }
+                : { usuarioCreacion: values.usuarioCreacionpersona }),
+              },
+    };
+    const jsonData = JSON.stringify(data, null, 2);
+
+    if (modoEdicion) {
+      const idEmpresa = empresa?.id;
+      console.log(idEmpresa)
+      
+      Actualizar({ jsonData, idEmpresa });
+    } else {
+
+      Registrar({ jsonData });
+    }
   }
-}
 
-});
+  });
 
   const Registrar = ({ jsonData }) => {
     RegistrarEmpresa({ jsonData})
@@ -371,74 +349,6 @@ const schema = Yup.object().shape({
           formik.setSubmitting(false);
         });
     };
-
-
-
-  const dateBodyTemplateFechaActivacion = (rowData) => {
-    return rowData.fechaActivacion
-      ? formatDate(new Date(rowData.fechaActivacion))
-      : "";
-  };
-  const dateBodyTemplate = (rowData) => {
-    console.log(rowData);
-    return rowData.fechaVigencia ? formatDate(new Date(rowData.fechaVigencia)) : "";
-  };
-  const programaTemplate = (rowData) => {
-    console.log(rowData);
-    return (
-      <span>
-        {rowData.programa && rowData.idPersonaPrograma
-          ? rowData.programa
-          : "No"}
-      </span>
-    );
-  };
-
-  const headerPass = <div className="font-bold mb-3">Ingrese password</div>;
-  const footerPass = (
-    <>
-      <Divider />
-      <p className="mt-2">Sugerencias</p>
-      <ul className="pl-2 ml-2 mt-0 line-height-3">
-        <li>Al menos una minúscula</li>
-        <li>Al menos una mayúscula</li>
-        <li>Al menos un número</li>
-        <li>Mínimo 8 caracteres</li>
-      </ul>
-    </>
-  );
- 
-
-   const confirmarEliminacion = (rowData) => {
-        confirmDialog({
-          message: '¿Esta seguro de eliminar esta especialización?',
-          header: 'Confirmación',
-          icon: 'pi pi-exclamation-triangle',
-          acceptClassName: 'p-button-danger',
-          acceptLabel: 'Eliminar',
-          rejectLabel: 'Cancelar',
-          accept: () => {
-            const nuevasEspecializaciones = formik.values.especializaciones.filter(
-              (esp) => esp !== rowData
-            );
-            formik.setFieldValue('especializaciones', nuevasEspecializaciones);
-          }
-        });
-      };
-
-      const accion = (rowData) => {
-        return (
-          <div className="profesor-datatable-accion">
-            <div className="accion-eliminar" onClick={() => confirmarEliminacion(rowData)}>
-              <span>
-                <Iconsax.Trash color="#ffffff" />
-              </span>
-            </div>
-          </div>
-        );
-      };
-      
-     
 
   return (
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
@@ -621,58 +531,8 @@ const schema = Yup.object().shape({
                   Persona Responsable
                 </label>
             </div>
-             <div className="field col-12 md:col-6">
-              <label className="label-form">Nombres</label>
-              <InputText
-                type={"text"}
-                id="nombres"
-                name="nombres"
-                placeholder="Escribe aquí"
-                value={formik.values.nombres}
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
 
-                // onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
-              ></InputText>
-              <div className="p-error">
-                {formik.touched.nombres && formik.errors.nombres}
-              </div>
-            </div>
-            <div className="field col-12 md:col-6">
-              <label className="label-form">Apellido Paterno</label>
-              <InputText
-                type={"text"}
-                id="apellidoPaterno"
-                name="apellidoPaterno"
-                placeholder="Escribe aquí"
-                value={formik.values.apellidoPaterno}
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-                // onChange={(e)=>handleSoloLetras(e,formik,"apellidoPaterno")}
-              ></InputText>
-              <div className="p-error">
-                {formik.touched.apellidoPaterno && formik.errors.apellidoPaterno}
-              </div>
-            </div>      
-            <div className="field col-12 md:col-6">
-              <label className="label-form">Apellido Materno</label>
-              <InputText
-                type={"text"}
-                id="apellidoMaterno"
-                name="apellidoMaterno"
-                placeholder="Escribe aquí"
-                value={formik.values.apellidoMaterno}
-                onChange={formik.handleChange}
-                // onChange={(e) => handleSoloLetras(e, formik, "apellidoMaterno")}
-                onBlur={formik.handleBlur}
-              ></InputText>
-              <small className="p-error">
-                {formik.touched.apellidoMaterno &&
-                  formik.errors.apellidoMaterno}
-              </small>
-            </div>
-
-              <div className="field col-12 md:col-6">
+            <div className="field col-12 md:col-4">
               <label className="label-form">Tipo documento de Identidad</label>
               <DropdownDefault
                 type={"text"}
@@ -694,8 +554,7 @@ const schema = Yup.object().shape({
                 {formik.touched.tipoDocumento && formik.errors.tipoDocumento}
               </small>
             </div>
-            
-            <div className="field col-12 md:col-6">
+            <div className="field col-12 md:col-4">
               <label className="label-form"> N° Documento de Identidad </label>
               <InputText
                 type={"numeric"}
@@ -723,6 +582,91 @@ const schema = Yup.object().shape({
                 {formik.touched.numeroDocumento && formik.errors.numeroDocumento}
               </small>
             </div>
+            <div className="field col-12 md:col-4">
+                <Boton
+                type="button"
+                label="Buscar"
+                style={{ fontSize: 13, borderRadius: 15 }}
+                onClick={handleBuscar}
+              />
+            </div>
+            
+              <div className="field col-12 md:col-6">
+              <label className="label-form">Users</label>
+              <DropdownDefault
+                type={"text"}
+                id="idUser"
+                name="idUser"
+                placeholder="Seleccione"
+                value={formik.values.idUser}
+                onChange={(e) => {
+                  formik.setFieldValue("idUser", "");
+                  formik.handleChange(e);
+                }}
+                onBlur={formik.handleBlur}
+                options={user}
+                optionLabel="username"
+                optionValue="id"
+                itemTemplate={(option) => `${option.username} - ${option.email}`}
+                valueTemplate={(option) => option ? `${option.username} - ${option.email}` : ""}
+                disabled={soloUnUsuario}
+
+              ></DropdownDefault>
+              <small className="p-error">
+                {formik.touched.idUser && formik.errors.idUser}
+              </small>
+             </div>
+             <div className="field col-12 md:col-6">
+              <label className="label-form">Nombres</label>
+              <InputText
+                type={"text"}
+                id="nombres"
+                name="nombres"
+                placeholder="Escribe aquí"
+                value={formik.values.nombres}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                disabled={true}
+                // onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
+              ></InputText>
+              <div className="p-error">
+                {formik.touched.nombres && formik.errors.nombres}
+              </div>
+            </div>
+            <div className="field col-12 md:col-6">
+              <label className="label-form">Apellidos</label>
+              <InputText
+                type={"text"}
+                id="apellidoPaterno"
+                name="apellidoPaterno"
+                placeholder="Escribe aquí"
+                value={`${formik.values.apellidoPaterno || ""} ${formik.values.apellidoMaterno || ""}`}              
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                disabled={true}
+                // onChange={(e)=>handleSoloLetras(e,formik,"apellidoPaterno")}
+              ></InputText>
+              <div className="p-error">
+                {formik.touched.apellidoPaterno && formik.errors.apellidoPaterno}
+              </div>
+            </div>      
+            {/* <div className="field col-12 md:col-6">
+              <label className="label-form">Apellido Materno</label>
+              <InputText
+                type={"text"}
+                id="apellidoMaterno"
+                name="apellidoMaterno"
+                placeholder="Escribe aquí"
+                value={formik.values.apellidoMaterno}
+                onChange={formik.handleChange}
+                // onChange={(e) => handleSoloLetras(e, formik, "apellidoMaterno")}
+                onBlur={formik.handleBlur}
+              ></InputText>
+              <small className="p-error">
+                {formik.touched.apellidoMaterno &&
+                  formik.errors.apellidoMaterno}
+              </small>
+            </div> */}
              <div className="field col-12 md:col-6">
               <label className="label-form">Cargo del Responsable</label>
               <InputText
@@ -753,6 +697,7 @@ const schema = Yup.object().shape({
                     }
                   }}
                   onBlur={formik.handleBlur}
+                  disabled={true}
                   useGrouping={false}
                   maxLength={9}
                   autoComplete={false}
@@ -776,6 +721,7 @@ const schema = Yup.object().shape({
                     }
                   }}
                   onBlur={formik.handleBlur}
+                  disabled={true}
                   useGrouping={false}
                   maxLength={9}
                   autoComplete={false}
@@ -794,6 +740,7 @@ const schema = Yup.object().shape({
                 value={formik.values.direccionpersona}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
+                disabled={true}
               ></InputText>
               <div className="p-error">
                 {formik.touched.direccionpersona && formik.errors.direccionpersona}
@@ -809,11 +756,28 @@ const schema = Yup.object().shape({
                 value={formik.values.correopersona}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
+                disabled={true}
               ></InputText>
               <div className="p-error">
                 {formik.touched.correopersona && formik.errors.correopersona}
               </div>
             </div>
+            {/* <div className="field col-12 md:col-6">
+              <label className="label-form">Fecha de nacimiento</label>
+              <Calendar
+                id="fechaNacimiento"
+                name="fechaNacimiento"
+                value={formik.values.fechaNacimiento}
+                onChange={(e) => formik.setFieldValue('fechaNacimiento', e.value)}
+                onBlur={formik.handleBlur}
+                dateFormat="dd/mm/yy"
+                placeholder="Selecciona la fecha"
+                showIcon
+              />
+                <div className="p-error">
+                  {formik.touched.fechaNacimiento && formik.errors.fechaNacimiento}
+                </div>
+              </div>   */}
             
           
           </div>

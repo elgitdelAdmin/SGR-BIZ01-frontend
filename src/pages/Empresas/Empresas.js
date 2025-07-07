@@ -78,7 +78,7 @@ const loadLazyData = () => {
                     );
                 }
                  //Agrego
-filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
+filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
                 const paginatedData = filteredData.slice(start, end);
 
                 setListaPersonasTotal(paginatedData);
@@ -137,29 +137,6 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
     };
     const header = renderHeader();
 
-
-
-    // useEffect(()=>{
-       
-    //     if(permisos.length >0)
-    //     {
-    //         permisos.indexOf("editarUsuarioAdmin") > -1 && setIsAdmin(true)
-    //     }
-
-    // },[permisos])
-
-    // useEffect(()=>{
-    //     const GetEmpresa = async ()=>
-    //     {
-    //         let jwt = window.localStorage.getItem("jwt");
-
-    //         await ObtenerListaEmpresas({jwt}).then(data=>{
-    //             setListaEmpresa(data);
-    //         })
-    //     }
-    //     if(!listaEmpresa)GetEmpresa();
-        
-    // },[])
     useEffect(() => {
               setListaPersonas(listaPersonasTotal)
     }, [listaPersonasTotal]);

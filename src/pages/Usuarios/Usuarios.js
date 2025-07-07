@@ -67,7 +67,6 @@ const loadLazyData = () => {
 
         ListarUsuarios()
             .then((data) => {
-                console.log("DATA",data)
                 setTotalRecords(data.length);
                 const pageNumber = lazyState?.page ?? 0;
                 const pageSize = lazyState?.rows ?? 10;
@@ -82,8 +81,13 @@ const loadLazyData = () => {
                     );
                 }
                  //Agrego
-               filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
-                const paginatedData = filteredData.slice(start, end);
+                // filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
+            filteredData.sort((a, b) => {
+                        const fechaA = new Date(a.persona?.fechaCreacion);
+                        const fechaB = new Date(b.persona?.fechaCreacion);
+                        return fechaB - fechaA; // más reciente primero
+            });
+                             const paginatedData = filteredData.slice(start, end);
 
                 setListaPersonasTotal(paginatedData);
                 setLoading(false);
@@ -303,9 +307,11 @@ const loadLazyData = () => {
                             header = {header}
                             totalRecords ={totalRecords}
                         >
-                            <Column field="nombres" header="Nombres" />
-                            <Column field="apellidoPaterno" header="Apellido Paterno" />
-                            <Column field="apellidoMaterno" header="Apellido Materno" />
+                            <Column field="persona.nombres" header="Nombres" />
+                            <Column field="persona.apellidoPaterno" header="Apellido Paterno" />
+                            <Column field="persona.apellidoMaterno" header="Apellido Materno" />
+                            <Column field="persona.numeroDocumento" header="N° Documento" />
+
                             <Column field="username" header="Username" />
                             <Column field="email" header="Email" />
                             <Column
@@ -313,10 +319,10 @@ const loadLazyData = () => {
                                 header="Estado"
                                 body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
                             />
-                            <Column
+                            {/* <Column
                                 header="Acciones"
                                 body={accion} 
-                            />
+                            /> */}
                         </DatatableDefault>
                        
                     </div>

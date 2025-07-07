@@ -169,9 +169,9 @@ function App() {
               <Route path="Consultores/CrearConsultor" element={<EditarConsultor/>}></Route>
               <Route path="Consultores/Editar/:id" element={<EditarConsultor />}></Route>
 
-              <Route path="Gestiontikets" element={<Gestiontikets />}></Route>
-              <Route path="Gestiontikets/Crear" element={<Editar/>}></Route>
-              <Route path="Gestiontikets/Editar/:id" element={<Editar />}></Route>
+              <Route path="Tickets/user/:idUser/rol/:codRol" element={<Gestiontikets />}></Route>
+              <Route path="Tickets/user/:idUser/rol/:codRol/Crear" element={<Editar/>}></Route>
+              <Route path="Tickets/user/:idUser/rol/:codRol/Editar/:id" element={<Editar />}></Route>
 
               <Route path="Gestores" element={<Gestores/>}></Route>
               <Route path="Gestores/CrearGestor" element={<EditarGestor/>}></Route>
@@ -183,6 +183,7 @@ function App() {
 
               <Route path="Usuarios" element={<Usuarios/>}></Route>
               <Route path="Usuarios/CrearUsuario" element={<EditarUsuario/>}></Route>
+
               <Route path="Usuarios/EditarUsuario/:id" element={<EditarUsuario />}></Route>
 
 

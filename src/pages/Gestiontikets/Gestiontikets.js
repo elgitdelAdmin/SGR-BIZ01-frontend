@@ -5,7 +5,7 @@ import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Gestiontikets.scss"
-import { Navigate, useLocation,useNavigate } from "react-router-dom";
+import { Navigate, useLocation,useNavigate,useParams } from "react-router-dom";
 import { Loader, Placeholder } from 'rsuite';
 import Boton from "../../components/Boton/Boton";
 import { Toast } from 'primereact/toast';
@@ -16,6 +16,8 @@ import {ListarTicket,EliminarTicket} from "../../service/TiketService";
 
 const Gestiontikets = () => {
     const navigate = useNavigate();
+  let { idUser } = useParams();
+  let { codRol } = useParams();
 
     const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
     const [listaEmpresa, setListaEmpresa] = useState(null);
@@ -29,6 +31,11 @@ const Gestiontikets = () => {
     const [paginaReinicio, setpaginaReinicio] = useState(null);
     
     const {permisos} = useUsuario();
+    const permisosActual = permisos["/tickets"] || {
+    divsOcultos: [],
+    controlesBloqueados: [],
+    controlesOcultos: []
+    };
     // const listaEmpresas =
     // [{value:1,name:"Zegel Virtual"}]
     const toast = useRef(null);
@@ -54,61 +61,19 @@ const Gestiontikets = () => {
 }, [lazyState, globalFilterValue]);
 
 
-    
-
-    // const loadLazyData = () => {
-    //    const idEmpresa= 1
-    //     console.log("lazy state = >", lazyState)
-    //     if (networkTimeout) {
-    //         clearTimeout(networkTimeout);
-    //     }
-    //     networkTimeout = setTimeout(() => {
-    //         setLoading(true);
-    //         let jwt = window.localStorage.getItem("jwt");
-    //         let pageNumber = (lazyState?.page?? 0 ) +1;
-    //         let pageSize  = lazyState?.rows??10;
-    //         let search = globalFilterValue ? globalFilterValue : "%20"
-
-    //         console.log(pageSize);
-
-    //         if(paginaReinicio == 1/* search.trim() != "%20" */)
-    //         {
-    //             setpaginaReinicio(null)
-    //             pageNumber = 1
-    //         } 
-
-    //         console.log(pageSize);
-
-    //         ObtenerListaPersonasV2({jwt,idEmpresa,pageNumber,pageSize,search}).then(data=>{
-    //             if(data.length >0)
-    //             {
-    //                 setTotalRecords(data[0].countReg)
-    //             }
-    //             setListaPersonasTotal(data)
-    //             setLoading(false)
-    //         })
-    //     }, Math.random() * 1000 + 250);
-    // } 
 const loadLazyData = () => {
     if (networkTimeout) clearTimeout(networkTimeout);
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
-
-        ListarTicket()
+        ListarTicket({idUser,codRol})
             .then((data) => {
-                // Total de registros
                 setTotalRecords(data.length);
-
-                // Parámetros de paginación del estado
                 const pageNumber = lazyState?.page ?? 0;
                 const pageSize = lazyState?.rows ?? 10;
-
-                // Calcula el índice de inicio y fin
                 const start = pageNumber * pageSize;
                 const end = start + pageSize;
 
-                // Filtrado (opcional, si usas globalFilterValue)
                 let filteredData = data;
                 if (globalFilterValue) {
                     const search = globalFilterValue.toLowerCase();
@@ -117,10 +82,8 @@ const loadLazyData = () => {
                         ticket.descripcion?.toLowerCase().includes(search)
                     );
                 }
-                //Agrego
-filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
+                filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
 
-                // Pagina localmente los datos
                 const paginatedData = filteredData.slice(start, end);
 
                 setListaPersonasTotal(paginatedData);
@@ -133,9 +96,6 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
     }, Math.random() * 1000 + 250);
 };
 
-    // const onPage = (event) => {
-    //     setlazyState(event);
-    // };
     const onPage = (event) => {
     setlazyState((prevState) => ({
         ...prevState,
@@ -190,35 +150,31 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
 
     // },[permisos])
 
-    // useEffect(()=>{
-    //     const GetEmpresa = async ()=>
-    //     {
-    //         let jwt = window.localStorage.getItem("jwt");
-
-    //         await ObtenerListaEmpresas({jwt}).then(data=>{
-    //             setListaEmpresa(data);
-    //         })
-    //     }
-    //     if(!listaEmpresa)GetEmpresa();
-        
-    // },[])
     useEffect(() => {
               setListaPersonas(listaPersonasTotal)
     }, [listaPersonasTotal]);
    
 
     const accion =(rowData)=>{
+  const eliminarOculto = permisosActual.controlesOcultos.includes("btnEliminar");
+
         return  <div className="profesor-datatable-accion">
             <div className="accion-editar" onClick={()=>navigate("Editar/"+rowData.id)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
-             <div className="accion-eliminar" onClick={()=>{
-                setUsuarioSeleccionado(rowData.id)
-                confirm2(rowData.id)
-                
-             }}>
-                <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> 
+
+           
+               {/* {!eliminarOculto && (
+        <div
+          className="accion-eliminar"
+          onClick={() => {
+            setUsuarioSeleccionado(rowData.id);
+            confirm2(rowData.id);
+          }}
+        >
+          <span><Iconsax.Trash color="#ffffff" /></span>
+        </div>
+      )} */}
         </div>
         
     }

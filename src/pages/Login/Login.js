@@ -52,26 +52,12 @@ export default function Login() {
         setpasswordType("password");
     };
 
-    // const Logarse = async(userName,password,setSubmitting)=>{
-    //     await login({ userName, password},()=>setSubmitting(false));
-    // }
-
     const Logarse = async (userName, password, setSubmitting) => {
     await login({ userName, password }, (success) => {
         setSubmitting(false);
         if (success) navigate("/Dashboard/Dashboard"); 
     });
 }
-
-// const Logarse = async (userName, password, setSubmitting) => {
-//   setSubmitting(false);
-  
-//   localStorage.setItem("token", "demo-token"); 
-//   localStorage.setItem("user", JSON.stringify({ userName }));
-
-//   navigate("/Dashboard/Dashboard");
-// };
-
 
 
     return (

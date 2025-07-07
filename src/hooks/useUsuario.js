@@ -3,7 +3,7 @@ import Context from "../context/usuarioContext"
 import loginService from "../service/LoginService";
 export default function useUsuario(){
     // const {jwt,setJwt,permisos,configuraciones,estadoCursoGeneral, setEstadoCursoGeneral} = useContext(Context)
-    const {jwt,setJwt} = useContext(Context)
+    const {jwt,setJwt,permisos} = useContext(Context)
 
     const [state,setState] = useState({loading:false,error:false})
     const [stateCreate,setStateCreate] = useState({loading:false,error:false,success:false})
@@ -11,25 +11,7 @@ export default function useUsuario(){
     const [stateDelete,setStateDelete] = useState({loading:false,error:false,success:false})
     const [usuariosTotal, setUsuariosTotal] = useState([]);
     const [usersGerencias,setUsersGerencias] = useState([]);
-    // const login = useCallback(async({userName,password},onSuccess) => {
-    //     await loginService({userName,password})
-    //     .then(res=> {
-    //         const {token,change} = res
-    //         console.log("success: "+token);
-    //         window.localStorage.setItem('jwt',token)
-    //         window.localStorage.setItem('reset',change)
-    //         setState({loading:false,error:false})
-    //         setJwt(token)
-    //     })
-    //     .catch(err=>{
-    //         window.localStorage.removeItem('jwt')
-    //         window.localStorage.removeItem('reset')
-    //         setState({loading:false,error:true})
-    //         logout();
-    //         console.error("error: "+err);
-    //         onSuccess()
-    //     })
-    // },[setJwt])
+  
 const login = useCallback(async({userName,password},onSuccess) => {
     await loginService({userName,password})
     .then(res => {
@@ -43,6 +25,10 @@ const login = useCallback(async({userName,password},onSuccess) => {
         window.localStorage.setItem('username', user.username);
         window.localStorage.setItem('nombreSocio', user.socio.nombreComercial);
         window.localStorage.setItem('idsocio', user.socio.id);
+        window.localStorage.setItem('idRol', user.idRol);
+        window.localStorage.setItem('idUser', user.id);
+        window.localStorage.setItem('codRol', user.rol.codigo);
+
 
 
         setState({ loading: false, error: false });
@@ -55,6 +41,9 @@ const login = useCallback(async({userName,password},onSuccess) => {
         window.localStorage.removeItem('username');
         window.localStorage.removeItem('nombreSocio');
         window.localStorage.removeItem('idsocio');
+        window.localStorage.removeItem('idRol');
+        window.localStorage.removeItem('idUser');
+        window.localStorage.removeItem('codRol');
 
 
         setState({ loading: false, error: true });
@@ -76,7 +65,7 @@ const login = useCallback(async({userName,password},onSuccess) => {
         isLogged: Boolean(jwt),
         isloginLoading : state.loading,
         hasLoginError : state.error,
-        // permisos,
+        permisos,
         // configuraciones,
         login,
         logout,

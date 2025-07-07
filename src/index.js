@@ -28,7 +28,7 @@ root.render(
           }
         ></Route>
         <Route path="/Login" element={<Login />} />
-        <Route path="/Dashboard/*" element={<App />} />
+        <Route path="/*" element={<App />} />
         {/* <Route path="/Dashboard/*" element={<App/>} />
          <Route path="/PreviewPdf/:nombrePdf" element={<PdfViewer/>} /> */}
       </Routes>

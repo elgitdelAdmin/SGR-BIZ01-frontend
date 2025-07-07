@@ -33,6 +33,7 @@ const TopBar = (props) => {
           src="/images/bizlogo.jpg"
           style={{ height: '40px', objectFit: 'contain' }}
           alt="Logo"
+          onClick={() => navigate("/Dashboard/Dashboard")}
         />
         <img
           src="/images/bizletra.png"
@@ -68,7 +69,8 @@ const TopBar = (props) => {
             fontSize: '25px' 
         }}
         >
-        Hola, Leysi
+        Hola,{window.localStorage.getItem("username")}
+
       </div>
 
       <div

@@ -28,32 +28,21 @@ import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { Calendar } from 'primereact/calendar';
-import DataTable from 'react-data-table-component';
-import {RegistrarGestor,ListarFrentes,ListarParametros,ObtenerGestor,ActualizarGestor} from "../../service/GestorService";
+import {ListarParametros,ObtenerGestor,ActualizarGestor} from "../../service/GestorService";
+import {RegistrarUsuario,ListaRoles,ListaSocio} from "../../service/UsuarioService";
 
-const EditarGestor = () => {
+const EditarUsuario = () => {
+  // console.log("Render de EditarUsuario");
   const navigate = useNavigate();
-  const { isLogged } = useUsuario();
   const [parametros, setParametro] = useState([]);
-
-  const [consultor, setConsultor] = useState(null);
+  const [usuario, setUsuario] = useState(null);
+    // const [usuario, setUsuario] = useState([]);
   const [tituloPagina, setTituloPagina] = useState("Crear Usuario");
   const [modoEdicion, setModoEdicion] = useState(false);
-  const [listaCursos, setListaCursos] = useState(null);
-  const [listaPrograma, setListaPrograma] = useState(null);
-  const [tipoDocumento, setTipoDocumento] = useState(null);
-  const [modalidad, setModalidad] = useState(null);
-  const [nivelExperiencia, setnivelExperiencia] = useState(null);
-  const [loadingCurso, setLoadingCurso] = useState(true);
-  const [loadingPrograma, setLoadingPrograma] = useState(true);
-  const [frentes, setFrentes] = useState(null);
-  const [subfrentes, setSubfrentes] = useState(null);
+  const [rol, setRol] = useState(null);
   let { id } = useParams();
-  let { IdEmpresa } = useParams();
   const toast = useRef(null);
-  const [empresa, setEmpresa] = useState(null);
-
-  const [checked, setChecked] = useState(false);
+  const [socio, setSocio] = useState(null);
 
   useEffect(() => {
     const getPersona = async () => {
@@ -61,168 +50,125 @@ const EditarGestor = () => {
       await ObtenerGestor({idGestor}).then((data) => {
         console.log("data",data);
         setTituloPagina("Datos del Usuario");
-        setConsultor(data);
+        setUsuario(data);
         setModoEdicion(true);
       });
     };
     if (id) getPersona();
   }, [id]);
 
-
-  useEffect(() => {
-    const getTipoDoc = async () => {
-      const data=[{id: 1,nombre: 'DNI'},
-       {id: 2, nombre:'Pasaporte'},
-       {id: 3,nombre:'Carnet de extranjeria'}
-      ]
-      setTipoDocumento(data);
-    };
-    getTipoDoc();
-  }, []);
-  
     useEffect(() => {
-    const getModalidad = async () => {
-
-      const data=[{id: 1,nombre: 'Interno'},
-       {id: 2, nombre:'Externo'},
-      ]
-      setModalidad(data);
-
-
+      const getRol = async () => {
+      await ListaRoles().then(data=>{setRol(data)})
     };
-    getModalidad();
-  }, []);
+      getRol();
+    }, []);
+
    useEffect(() => {
-    const getnivelExperiencia = async () => {
-      const data=[{id: 1,nombre: 'Básico'},
-       {id: 2, nombre:'intermedio'},
-       {id: 3,nombre:'Avanzado'}
-      ]
-      setnivelExperiencia(data);
+      const getSocio = async () => {
+        // const data=[{id: 1,nombre: 'CSTI'},
+        // ]
+        // setSocio(data);
+          await ListaSocio().then(data=>{setSocio(data)})
 
+      };
+      getSocio();
+    }, []);
+   
+    useEffect(() => {
+        const getParametro = async () => {
+          await ListarParametros().then(data=>{setParametro(data)})
+      };
+        getParametro();
+      }, []);
 
-    };
-    getnivelExperiencia();
-  }, []);
-  
-
-  useEffect(() => {
-    const getFrentes = async () => {
-
-       await ListarFrentes().then(data=>{setFrentes(data)})
- };
-    getFrentes();
-  }, []);
- useEffect(() => {
-    const getParametro = async () => {
-      await ListarParametros().then(data=>{setParametro(data)})
-   };
-    getParametro();
-  }, []);
-  
-  // useEffect(() => {
-  //   const getEmpresa = async () => {
-  //     await ListarEmpresas().then(data=>{setEmpresa(data)})
-  //     // let jwt = window.localStorage.getItem("jwt");
-  //     // await ObtenerTipoDocumento({ jwt }).then((data) => {
-  //     //   setTipoDocumento(data);
-  //     // });
-  //     // const data=[{id: 1,nombre: 'Empresa1'},
-  //     //  {id: 2, nombre:'Empresa2'},
-  //     //  {id: 3,nombre:'Empresa3'}
-  //     // ]
-  //     // setEmpresa(data);
-  //   };
-  //   getEmpresa();
-  // }, []);
-
-  const schema = Yup.object().shape({
-  nombres: Yup.string().required("Nombres es un campo obligatorio"),
-  apellidoPaterno: Yup.string().required("Apellido Paterno es un campo obligatorio"),
-  apellidoMaterno: Yup.string().required("Apellido Materno es un campo obligatorio"),
-  numeroDocumento: Yup.string()
-    .required("Documento de Identidad es un campo obligatorio")
-    .matches(/^\d+$/, "Documento debe contener solo números")
-    .min(8, "Documento debe tener mínimo 8 números")
-    .test("no-es-ceros", "Documento no puede ser igual a '00000000'", value => value !== "00000000"),
-  tipoDocumento: Yup.number().required("Tipo de documento es un campo obligatorio"),
-  telefono: Yup.string()
-    .required("Teléfono es un campo obligatorio")
-    .matches(/^\d+$/, "El teléfono solo debe contener números")
-    .min(8, "El teléfono debe tener al menos 8 dígitos")
-    .max(15, "El teléfono no puede exceder 15 dígitos"),
-  telefono2: Yup.string()
-    .required("Teléfono es un campo obligatorio")
-    .matches(/^\d+$/, "El teléfono solo debe contener números")
-    .min(8, "El teléfono debe tener al menos 8 dígitos")
-    .max(15, "El teléfono no puede exceder 15 dígitos"),
-  direccion: Yup.string(),
-  correo: Yup.string(),
-  fechaNacimiento: Yup.date()
-    .required("Fecha de nacimiento es obligatoria")
-    .max(new Date(), "La fecha de nacimiento no puede ser en el futuro"),
-  username: Yup.string().required("username es un campo obligatorio"),
-  password: Yup.string().required("password es un campo obligatorio"),
-  idRol: Yup.number().required("Rol es un campo obligatorio"),
-  email: Yup.string(),
+    const schema = Yup.object().shape({
+      nombres: Yup.string().required("Nombres es un campo obligatorio"),
+      apellidoPaterno: Yup.string().required("Apellido Paterno es un campo obligatorio"),
+      apellidoMaterno: Yup.string().required("Apellido Materno es un campo obligatorio"),
+      numeroDocumento: Yup.string()
+        .required("Documento de Identidad es un campo obligatorio")
+        .matches(/^\d+$/, "Documento debe contener solo números")
+        .min(8, "Documento debe tener mínimo 8 números")
+        .test("no-es-ceros", "Documento no puede ser igual a '00000000'", value => value !== "00000000"),
+      tipoDocumento: Yup.number().required("Tipo de documento es un campo obligatorio"),
+      telefono: Yup.string()
+        .required("Teléfono es un campo obligatorio")
+        .matches(/^\d+$/, "El teléfono solo debe contener números")
+        .min(8, "El teléfono debe tener al menos 8 dígitos")
+        .max(15, "El teléfono no puede exceder 15 dígitos"),
+      telefono2: Yup.string()
+        .required("Teléfono es un campo obligatorio")
+        .matches(/^\d+$/, "El teléfono solo debe contener números")
+        .min(8, "El teléfono debe tener al menos 8 dígitos")
+        .max(15, "El teléfono no puede exceder 15 dígitos"),
+      direccion: Yup.string(),
+      correo: Yup.string(),
+      fechaNacimiento: Yup.date()
+        .required("Fecha de nacimiento es obligatoria")
+        .max(new Date(), "La fecha de nacimiento no puede ser en el futuro"),
+      username: Yup.string().required("username es un campo obligatorio"),
+      password: Yup.string().required("password es un campo obligatorio"),
+      idRol: Yup.number().required("Rol es un campo obligatorio"),
+      email: Yup.string(),
 
 
 
-});
+    });
+
 
     const formik = useFormik({
       enableReinitialize: true,
       initialValues: {
-        nombres: consultor?.nombres || "",
-        apellidoPaterno: consultor?.apellidoPaterno || "",
-        apellidoMaterno: consultor?.apellidoMaterno || "",
-        numeroDocumento: consultor?.numeroDocumento || "",
-        tipoDocumento: consultor?.tipoDocumento || "",
-        telefono: consultor?.telefono || "",
-        telefono2: consultor?.telefono2 || "",
-        direccion: consultor?.direccion || "",
-        correo: consultor?.correo || "",
-        fechaNacimiento: consultor?.fechaNacimiento ? new Date(consultor.fechaNacimiento) : "",
-        username: consultor?.username || "",
-        password: consultor?.password || "",
-        email: consultor?.email || "",
-        idSocio: empresa?.idSocio ||  Number(window.localStorage.getItem("idsocio")),
-        idRol: consultor?.idRol || "",
+        nombres:usuario ? usuario.persona.apellidoPaterno : "",
+        apellidoPaterno: usuario?.persona.apellidoPaterno || "",
+        apellidoMaterno: usuario?.persona.apellidoMaterno || "",
+        numeroDocumento: usuario?.persona.numeroDocumento || "",
+        tipoDocumento: usuario?.persona.tipoDocumento || "",
+        telefono: usuario?.persona.telefono || "",
+        telefono2: usuario?.persona.telefono2 || "",
+        direccion: usuario?.persona.direccion || "",
+        correo: usuario?.persona.correo || "",
+        fechaNacimiento: usuario?.persona.fechaNacimiento ? new Date(usuario.persona.fechaNacimiento) : "",
+        usuarioCreacionPersona:usuario?.persona.usuarioCreacion|| window.localStorage.getItem("username"), 
+        username: usuario?.username || "",
+        password: usuario?.password || "",
+        email: usuario?.email || "",
+        idSocio: usuario?.idSocio || ( window.localStorage.getItem("idRol") == 1? "": Number(window.localStorage.getItem("idsocio"))),
+        idRol: usuario?.idRol || "",
+        usuarioCreacion:usuario?.usuarioCreacion|| window.localStorage.getItem("username"), 
+        // fechaCreacion: usuario?.fechaCreacion ? new Date(usuario.fechaCreacion) : new Date(),
       },
       validationSchema: schema,
-
       onSubmit: (values) => {
       
           const data = {
-            // ...(modoEdicion && { id: consultor.id }), 
+            // ...(modoEdicion && { id: usuario.id }), 
             username: values.username ,
             email: values.password,
             password: values.password,
-            idSocio: Number(window.localStorage.getItem("idsocio")),
+            idSocio: values.idSocio,
             idRol:values.idRol,
+            usuarioCreacion:values.usuarioCreacion,
+            fechaCreacion:new Date(),
             persona:{
-            nombres: values.nombres,
-            apellidoMaterno: values.apellidoMaterno,
-            apellidoPaterno: values.apellidoPaterno,
-            numeroDocumento: values.numeroDocumento,
-            tipoDocumento: Number(values.tipoDocumento),
-            telefono: values.telefono,
-            telefono2: values.telefono2,
-            direccion: values.direccion || "",
-            correo: values.correo || "",
-            fechaNacimiento: new Date(values.fechaNacimiento).toISOString(),
-            },
-            
-            
-            // ...(modoEdicion
-            //   ? { usuarioActualizacion:window.localStorage.getItem("username")}
-            //   : { usuarioCreacion: values.usuarioCreacion||window.localStorage.getItem("username")}),            
+                nombres: values.nombres,
+                apellidoMaterno: values.apellidoMaterno,
+                apellidoPaterno: values.apellidoPaterno,
+                numeroDocumento: values.numeroDocumento,
+                tipoDocumento: Number(values.tipoDocumento),
+                telefono: values.telefono,
+                telefono2: values.telefono2,
+                direccion: values.direccion || "",
+                correo: values.correo || "",
+                fechaNacimiento: new Date(values.fechaNacimiento).toISOString(),
+                usuarioCreacion:values.usuarioCreacionPersona
+            },        
           };
            let jsonData = JSON.stringify(data,null,2);
-
         if (modoEdicion) {
-          const idGestor = consultor.id;
-          Actualizar({ jsonData, idGestor });
+          const idUsuario = usuario.id;
+          // Actualizar({ jsonData, idUsuario });
         } else {
           Registrar({ jsonData });
         }
@@ -231,8 +177,7 @@ const EditarGestor = () => {
  
   const Registrar = ({ jsonData }) => {
     console.log("RegistrarUsuario",jsonData)
-
-    RegistrarGestor({ jsonData})
+    RegistrarUsuario({ jsonData})
       .then((data) => {
         formik.setSubmitting(false);
         toast.current.show({
@@ -257,100 +202,33 @@ const EditarGestor = () => {
       });
   };
 
-   const Actualizar = ({ jsonData,idGestor }) => {
-      ActualizarGestor({ jsonData, idGestor })
-        .then((data) => {
-          formik.setSubmitting(false);
-          toast.current.show({
-            severity: "success",
-            summary: "Éxito",
-            detail: "Registro actualizado exitosamente.",
-            life: 7000,
-          });
+  //  const Actualizar = ({ jsonData,idUsuario }) => {
+  //     ActualizarGestor({ jsonData, idGestor })
+  //       .then((data) => {
+  //         formik.setSubmitting(false);
+  //         toast.current.show({
+  //           severity: "success",
+  //           summary: "Éxito",
+  //           detail: "Registro actualizado exitosamente.",
+  //           life: 7000,
+  //         });
 
-          setTimeout(() => {
-          navigate(-1);
-        }, 1000);
+  //         setTimeout(() => {
+  //         navigate(-1);
+  //       }, 1000);
   
-        })
-        .catch((errors) => {
-          toast.current.show({
-            severity: "error",
-            summary: "Error",
-            detail: errors.message,
-            life: 7000,
-          });
-          formik.setSubmitting(false);
-        });
-    };
+  //       })
+  //       .catch((errors) => {
+  //         toast.current.show({
+  //           severity: "error",
+  //           summary: "Error",
+  //           detail: errors.message,
+  //           life: 7000,
+  //         });
+  //         formik.setSubmitting(false);
+  //       });
+  //   };
 
-
-
-  const dateBodyTemplateFechaActivacion = (rowData) => {
-    return rowData.fechaActivacion
-      ? formatDate(new Date(rowData.fechaActivacion))
-      : "";
-  };
-  const dateBodyTemplate = (rowData) => {
-    console.log(rowData);
-    return rowData.fechaVigencia ? formatDate(new Date(rowData.fechaVigencia)) : "";
-  };
-
-  const programaTemplate = (rowData) => {
-    console.log(rowData);
-    return (
-      <span>
-        {rowData.programa && rowData.idPersonaPrograma
-          ? rowData.programa
-          : "No"}
-      </span>
-    );
-  };
-
-  const headerPass = <div className="font-bold mb-3">Ingrese password</div>;
-  const footerPass = (
-    <>
-      <Divider />
-      <p className="mt-2">Sugerencias</p>
-      <ul className="pl-2 ml-2 mt-0 line-height-3">
-        <li>Al menos una minúscula</li>
-        <li>Al menos una mayúscula</li>
-        <li>Al menos un número</li>
-        <li>Mínimo 8 caracteres</li>
-      </ul>
-    </>
-  );
- 
-   const confirmarEliminacion = (rowData) => {
-        confirmDialog({
-          message: '¿Esta seguro de eliminar esta especialización?',
-          header: 'Confirmación',
-          icon: 'pi pi-exclamation-triangle',
-          acceptClassName: 'p-button-danger',
-          acceptLabel: 'Eliminar',
-          rejectLabel: 'Cancelar',
-          accept: () => {
-            const nuevasEspecializaciones = formik.values.especializaciones.filter(
-              (esp) => esp !== rowData
-            );
-            formik.setFieldValue('especializaciones', nuevasEspecializaciones);
-          }
-        });
-      };
-
-      const accion = (rowData) => {
-        return (
-          <div className="profesor-datatable-accion">
-            <div className="accion-eliminar" onClick={() => confirmarEliminacion(rowData)}>
-              <span>
-                <Iconsax.Trash color="#ffffff" />
-              </span>
-            </div>
-          </div>
-        );
-      };
-      
-     
 
   return (
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
@@ -377,8 +255,6 @@ const EditarGestor = () => {
                 value={formik.values.nombres}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-
-                // onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
               ></InputText>
               <div className="p-error">
                 {formik.touched.nombres && formik.errors.nombres}
@@ -468,7 +344,6 @@ const EditarGestor = () => {
                 {formik.touched.numeroDocumento && formik.errors.numeroDocumento}
               </small>
             </div>
-       
             <div className="field col-12 md:col-6">
                 <label className="label-form">Teléfono</label>
                 <InputNumber
@@ -476,7 +351,6 @@ const EditarGestor = () => {
                   name="telefono"
                   placeholder="Escribe aquí"
                   value={formik.values.telefono}
-                  //onValueChange={formik.handleChange}
                   onValueChange={(e) => handleSoloNumeros(e, formik, "telefono")}
                   onChange={(e) => {
                     if (e.value == "-") {
@@ -499,7 +373,6 @@ const EditarGestor = () => {
                   name="telefono2"
                   placeholder="Escribe aquí"
                   value={formik.values.telefono2}
-                  //onValueChange={formik.handleChange}
                   onValueChange={(e) => handleSoloNumeros(e, formik, "telefono2")}
                   onChange={(e) => {
                     if (e.value == "-") {
@@ -576,8 +449,6 @@ const EditarGestor = () => {
               {formik.touched.username && formik.errors.username}
             </div>
           </div>
-
-
           <div className="field col-12 md:col-6">
             <label className="label-form">Contraseña</label>
             <Password
@@ -594,15 +465,56 @@ const EditarGestor = () => {
               {formik.touched.password && formik.errors.password}
             </div>
           </div>
+          <div className="field col-12 md:col-6">
+              <label className="label-form">Rol</label>
+              <DropdownDefault
+                type={"text"}
+                id="idRol"
+                name="idRol"
+                placeholder="Seleccione"
+                value={formik.values.idRol}
+                onChange={(e) => {
+                  formik.setFieldValue("idRol", "");
+                  formik.handleChange(e);
+                }}
+                onBlur={formik.handleBlur}
+                // options={parametros?.filter((item) => item.tipoParametro === "TipoDocumento")}
+                 options={rol}
+                optionLabel="nombre"
+                optionValue="id"
+              ></DropdownDefault>
+              <small className="p-error">
+                {formik.touched.idRol && formik.errors.idRol}
+              </small>
           </div>
 
+            {window.localStorage.getItem("idRol") == 1 && (
+            <div className="field col-12 md:col-6">
+              <label className="label-form">Socio</label>
+              <DropdownDefault
+                id="idSocio"
+                name="idSocio"
+                placeholder="Seleccione"
+                value={formik.values.idSocio}
+                onChange={(e) => {
+                  formik.setFieldValue("idSocio", e.value); 
+                }}
+                onBlur={formik.handleBlur}
+                options={socio}
+                optionLabel="nombre"
+                optionValue="id"
+              />
+              <small className="p-error">
+                {formik.touched.idSocio && formik.errors.idSocio}
+              </small>
+            </div>
+          )}
 
-        
+        </div>
 
-
-          {/* <button type="button" onClick={() => console.log("VALUES", formik.values)}>
+          <button type="button" onClick={() => console.log("VALUES", formik.values)}>
             Ver valores
-          </button>  */}
+          </button> 
           <div className="zv-editarUsuario-footer">
             <Boton
               label="Guardar cambios"
@@ -611,13 +523,11 @@ const EditarGestor = () => {
               type="submit"
               loading={formik.isSubmitting}
             ></Boton>
-          </div>
-
-         
+          </div>  
         </form>
       </div>
     </div>
   );
 };
 
-export default EditarGestor;
+export default EditarUsuario;

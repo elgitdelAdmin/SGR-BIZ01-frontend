@@ -156,6 +156,21 @@ export const ObtenerPersona = async ({idPersona}) =>{
     
 }
 
+export const ObtenerPersonaResponsable = async ({idTipoDocumento,numeroDocumento}) =>{
+  console.log(idTipoDocumento,numeroDocumento)
+    return await fetch(`${ENDPOINT}/api/Empresas/UsuarioResponsable/tipoDocumento/${idTipoDocumento}numeroDocumento/${numeroDocumento}`,{
+        method: "GET",
+        headers:{
+            "accept": "text/plain"
+        },
+    })
+    .then(res => {
+    if (!res.ok) throw new Error("Error al obtener la persona");
+    return res.json();
+  });
+    
+}
+
 
 
 

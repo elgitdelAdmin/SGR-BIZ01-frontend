@@ -232,7 +232,7 @@ const loadLazyData = () => {
             <Toast ref={toast} position="top-center"></Toast>
             <div className="header-titulo">Gestión de Gestores</div>
             <div className="zv-usuario-body" style={{marginTop:16}}>
-                   <div className="zv-usuario-body-filtro">
+                   {/* <div className="zv-usuario-body-filtro">
                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                  <div style={{ marginLeft: "auto" }}>
                                      <Boton
@@ -243,7 +243,7 @@ const loadLazyData = () => {
                                      ></Boton>
                                  </div>
                              </div>                        
-                     </div>
+                     </div> */}
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy

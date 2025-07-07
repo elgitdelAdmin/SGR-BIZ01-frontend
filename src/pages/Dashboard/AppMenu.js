@@ -7,9 +7,15 @@ import { Badge } from 'primereact/badge';
 import {Ripple} from "primereact/ripple";
 import "./AppMenu.scss"
 import useUsuario from '../../hooks/useUsuario';
+import * as constantes from "../../constants/constantes.js";
+import {ObtenerMenu} from "../../service/MenuService.js";
+import Context from "../../context/usuarioContext.js";
+import { useContext } from "react";
+const ENDPOINT = constantes.URLAPICONECTA;
+
+
 const AppSubmenu = (props) => {
     const [activeIndex, setActiveIndex] = useState(null)
-    
     const onMenuItemClick = (event, item, index) => {
         //avoid processing disabled items
         if (item.disabled) {
@@ -115,11 +121,14 @@ const AppSubmenu = (props) => {
     return items?  <ul className={props.className} role="menu">{items}</ul> : null;
 }
 export const AppMenu = (props) => {
+     const { setPermisos } = useContext(Context);
     const [menuZegel, seMenuZegel] = useState([{label: "", items:  []}]);
     const { permisos} = useUsuario();
-    // useEffect(()=>{
-    //     if(permisos.length >0)
-    //     {
+    const idUser = localStorage.getItem("idUser");
+    const codRol = localStorage.getItem("codRol");
+
+    //    useEffect(()=>{
+      
     //         const menuitems = [
     //             {
     //                 label: "",
@@ -153,9 +162,24 @@ export const AppMenu = (props) => {
     //                         permiso:"verHome"
     //                     },
     //                     {
-    //                         label: "Gestión de Tikets",
+    //                         label: "Gestión de Tickets",
     //                         icon: <Iconsax.Grid7 set="light" />,
-    //                         to: "Gestiontikets",
+    //                         // to: "Gestiontikets",
+    //                         to: `Gestiontikets/user/${idUser}/rol/${codRol}`,
+    //                         visible:true,
+    //                         permiso:"verHome"
+    //                     },
+    //                     {
+    //                         label: "Gestión de Usuarios",
+    //                         icon: <Iconsax.Grid7 set="light" />,
+    //                         to: "Usuarios",
+    //                         visible:true,
+    //                         permiso:"verHome"
+    //                     },
+    //                      {
+    //                         label: "Cargabilidad",
+    //                         icon: <Iconsax.Grid7 set="light"/>,
+    //                         to: "Cargabilidad",
     //                         visible:true,
     //                         permiso:"verHome"
     //                     },
@@ -208,232 +232,77 @@ export const AppMenu = (props) => {
     //                         visible:true,
     //                         permiso:"verHome"
     //                     },
-    //                     // {
-    //                     //     label: "Usuarios",
-    //                     //     // icon: <Iconly.Home set="light" />,
-    //                     //     icon: <Iconsax.User set="light"variant="Bold" />,
-    //                     //     to: "Usuario",
-    //                     //     visible: permisos.indexOf("verUsuario") > -1 ? true:false,
-    //                     //     permiso:"verHome"
-    //                     // },
-    //                     // {
-    //                     //     label: "Importar Usuarios",
-    //                     //     // icon: <Iconly.Home set="light" />,
-    //                     //     icon: <Iconsax.User set="light" variant="Bold"/>,
-    //                     //     to: "ImportarUsuario",
-    //                     //     visible: true,
-    //                     //     permiso:"verHome"
-    //                     // },
-    //                     // {
-    //                     //     label: "Docentes",
-    //                     //     // icon: <Iconly.Home set="light" />,
-    //                     //     icon: <Iconsax.Teacher set="light" variant="Bold"/>,
-    //                     //     to: "Profesor",
-    //                     //     visible: permisos.indexOf("editarUsuarioDocente") > -1 ? true:false,
-    //                     // },
-    
-    //                     // {
-    //                     //     label: "Cursos",
-    //                     //     // icon: <Iconly.Home set="light" />,
-    //                     //     icon: <Iconsax.Book set="light" variant="Bold"/>,
-    //                     //     to: "Curso",
-    //                     //     visible: permisos.indexOf("verCursos") > -1 ? true:false,
-    //                     // },
-    //                     // {
-    //                     //     label: "Programas",
-    //                     //     // icon: <Iconly.Home set="light" />,
-    //                     //     icon: <Iconsax.I3Dcube set="light" variant="Bold"/>,
-    //                     //     to: "Programa",
-    //                     //     visible: true
-    //                     // },
-    //                     /* {
-    //                         label: "Marketing",
-    //                         // icon: <Iconly.Home set="light" />,
-    //                         icon: <Iconsax.ShoppingCart set="light" variant="Bold"/>,
-    //                         //to: "Programa",
-    //                         visible: true,
-    //                         items:[
-    //                             {
-    //                                 label:"Cupones",
-    //                                 to:"Marketing/Cupones",
-    //                                 visible:true,
-    //                                 icon:<Iconsax.Tag set="light" variant="Bold"/>
-    //                             }
-    //                         ]
-    //                     }, */
-                       
+                        
     //                 ],
     //             },
     //         ];
     //         seMenuZegel(menuitems)
-    //     }
-        
-    // },[permisos])
-       useEffect(()=>{
-      
-            const menuitems = [
-                {
-                    label: "",
-                    items: [
-                         {
-                            label: "Dashboard",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            to: "Dashboard",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                        {
-                            label: "Gestión de Consultores",
-                            icon: <Iconsax.Grid7 set="light"/>,
-                            to: "Consultores",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                         {
-                            label: "Gestión de Gestores",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            to: "Gestores",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                         {
-                            label: "Gestión de Empresas",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            to: "Empresas",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                        {
-                            label: "Gestión de Tickets",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            to: "Gestiontikets",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                        {
-                            label: "Gestión de Usuarios",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            to: "Usuarios",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                         {
-                            label: "Cargabilidad",
-                            icon: <Iconsax.Grid7 set="light"/>,
-                            to: "Cargabilidad",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                        {
-                            label: "Oportunidades",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            // to: "Dashboard",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                         {
-                            label: "Proyectos",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            // to: "Dashboard",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                         {
-                            label: "Planificación",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            // to: "Dashboard",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                         {
-                            label: "Horas Extras",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            // to: "Dashboard",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                        {
-                            label: "Seguimiento",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            // to: "Dashboard",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                         {
-                            label: "Ingreso Horas",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            // to: "Dashboard",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                          {
-                            label: "Cargabilidad",
-                            icon: <Iconsax.Grid7 set="light" />,
-                            // to: "Dashboard",
-                            visible:true,
-                            permiso:"verHome"
-                        },
-                        // {
-                        //     label: "Usuarios",
-                        //     // icon: <Iconly.Home set="light" />,
-                        //     icon: <Iconsax.User set="light"variant="Bold" />,
-                        //     to: "Usuario",
-                        //     visible: permisos.indexOf("verUsuario") > -1 ? true:false,
-                        //     permiso:"verHome"
-                        // },
-                        // {
-                        //     label: "Importar Usuarios",
-                        //     // icon: <Iconly.Home set="light" />,
-                        //     icon: <Iconsax.User set="light" variant="Bold"/>,
-                        //     to: "ImportarUsuario",
-                        //     visible: true,
-                        //     permiso:"verHome"
-                        // },
-                        // {
-                        //     label: "Docentes",
-                        //     // icon: <Iconly.Home set="light" />,
-                        //     icon: <Iconsax.Teacher set="light" variant="Bold"/>,
-                        //     to: "Profesor",
-                        //     visible: permisos.indexOf("editarUsuarioDocente") > -1 ? true:false,
-                        // },
-    
-                        // {
-                        //     label: "Cursos",
-                        //     // icon: <Iconly.Home set="light" />,
-                        //     icon: <Iconsax.Book set="light" variant="Bold"/>,
-                        //     to: "Curso",
-                        //     visible: permisos.indexOf("verCursos") > -1 ? true:false,
-                        // },
-                        // {
-                        //     label: "Programas",
-                        //     // icon: <Iconly.Home set="light" />,
-                        //     icon: <Iconsax.I3Dcube set="light" variant="Bold"/>,
-                        //     to: "Programa",
-                        //     visible: true
-                        // },
-                        /* {
-                            label: "Marketing",
-                            // icon: <Iconly.Home set="light" />,
-                            icon: <Iconsax.ShoppingCart set="light" variant="Bold"/>,
-                            //to: "Programa",
-                            visible: true,
-                            items:[
-                                {
-                                    label:"Cupones",
-                                    to:"Marketing/Cupones",
-                                    visible:true,
-                                    icon:<Iconsax.Tag set="light" variant="Bold"/>
-                                }
-                            ]
-                        }, */
-                       
-                    ],
-                },
-            ];
-            seMenuZegel(menuitems)
         
         
-    },[])
+    // },[])
+
+
+//     useEffect(() => {
+//     const idRol = localStorage.getItem("idRol");
+
+//     const fetchMenu = async () => {
+//         try {
+//             const data= await ObtenerMenu();
+//             const permisosPorRuta = {};
+
+//             const formattedMenuItems = data.menu.map(item => ({
+
+//                 label: item.nombre,
+//                 // icon: <i className={item.icono}></i>, 
+//                 icon: <Iconsax.Grid7 set="light" />,
+//                 to: item.ruta.includes("tickets") ? `${item.ruta}/user/${idUser}/rol/${codRol}` : item.ruta,
+//                 visible: true,
+//                 permiso: "verHome" // esto puedes cambiar si tu backend manda permisos
+//             }));
+
+//             const menuFormatted = [{
+//                 label: "",
+//                 items: formattedMenuItems
+//             }];
+//             seMenuZegel(menuFormatted);
+            
+//         } catch (error) {
+//             console.error("Error al cargar el menú", error);
+//         }
+//     };
+
+//     fetchMenu();
+// }, []);
+
+
+
+useEffect(() => {
+  const cargarMenu = async () => {
+    const data = await ObtenerMenu();
+   console.log(data)
+
+    const permisosPorRuta = {};
+    const formattedMenuItems = data.menu.map((item) => {
+      permisosPorRuta[item.ruta] = {
+        divsOcultos: item.divsOcultos || [],
+        controlesBloqueados: item.controlesBloqueados || [],
+        controlesOcultos: item.controlesOcultos || []
+      };
+      return {
+        label: item.nombre,
+        icon: <Iconsax.Grid7 set="light" />,
+         to: item.ruta.includes("tickets") ? `${item.ruta}/user/${idUser}/rol/${codRol}` : item.ruta,
+        visible: true,
+        permiso: "verHome"
+      };
+    });
+
+    seMenuZegel([{ label: "", items: formattedMenuItems }]);
+    setPermisos(permisosPorRuta); // <-- guardas en el contexto global
+  };
+
+  cargarMenu();
+}, []);
 
     
     return ( 

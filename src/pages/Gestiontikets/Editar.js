@@ -43,15 +43,10 @@ const Editar = () => {
   const { isLogged } = useUsuario();
   const [persona, setTicket] = useState(null);
   const [modoEdicion, setModoEdicion] = useState(false);
-  const [listaCursos, setListaCursos] = useState(null);
-  const [listaPrograma, setListaPrograma] = useState(null);
-  const [loadingCurso, setLoadingCurso] = useState(true);
-  const [loadingPrograma, setLoadingPrograma] = useState(true);
-  const [checked, setChecked] = useState(false);
 
   //OK
   const [tituloPagina, setTituloPagina] = useState("Crear Tickets");
-  const [frentes, setFrentes] = useState(null);
+  const [frentes, setFrentes] = useState([]);
   const [subfrentes, setSubfrentes] = useState(null);
   const [empresa, setEmpresa] = useState(null);
   const [pais, setPais] = useState(null);
@@ -62,21 +57,34 @@ const Editar = () => {
   const [mostrarSeccion, setMostrarSeccion] = useState(false);
   const [gestores, setGestores] = useState(null);
   const [consultores, setConsultores] = useState(null);
-  const [nombreResponsable, setnombreResponsable] = useState(null);
 
-
+ const {permisos} = useUsuario();
+    const permisosActual = permisos["/tickets"] || {
+    divsOcultos: [],
+    controlesBloqueados: [],
+    controlesOcultos: []
+    };
 
   //
+const [opcionesEstadoTicket, setOpcionesEstadoTicket] = useState([]);
+ useEffect(() => {
+    const getParametro = async () => {
+      await ListarParametros().then(data=>{setParametro(data)})
+      };
+    getParametro();
+  }, []);
+
 
   let { id } = useParams();
-  let { IdEmpresa } = useParams();
   const toast = useRef(null);
-useEffect(() => {
-    const getEmpresa = async () => {
-      await ListarEmpresas().then(data=>{setEmpresa(data)})
-    };
-    getEmpresa();
-  }, []);
+  useEffect(() => {
+      const getEmpresa = async () => {
+        await ListarEmpresas().then(data=>{setEmpresa(data)})
+      };
+      getEmpresa();
+    }, []);
+
+
    useEffect(() => {
       const getFrentes = async () => {
        await ListarFrentes().then(data=>{setFrentes(data)})
@@ -97,6 +105,29 @@ useEffect(() => {
     }, [id]);
 
 
+  useEffect(() => {
+    if (!parametros?.length) return;
+
+    const estadoActual = parametros.find(
+      (item) => item.id === formik.values.idEstadoTicket
+    );
+
+    const codigosPermitidos = estadoActual?.valor1?.split(",") || [];
+
+    let opciones = parametros.filter(
+      (item) =>
+        item.tipoParametro === "EstadoTicket" &&
+        codigosPermitidos.includes(item.codigo)
+    );
+
+    // Asegúrate de incluir el estado actual
+    const yaIncluido = opciones.some(item => item.id === estadoActual?.id);
+    if (!yaIncluido && estadoActual) {
+      opciones = [estadoActual, ...opciones];
+    }
+
+    setOpcionesEstadoTicket(opciones);
+  }, [parametros]); 
 
 
 
@@ -142,12 +173,7 @@ useEffect(() => {
     };
     getUsuario();
   }, []);
-   useEffect(() => {
-    const getParametro = async () => {
-      await ListarParametros().then(data=>{setParametro(data)})
-      };
-    getParametro();
-  }, []);
+  
    
    useEffect(() => {
     const getPrueba = async () => {
@@ -238,7 +264,7 @@ useEffect(() => {
       titulo: persona ? persona.titulo : "",
       fechaSolicitud: persona ? new Date(persona.fechaSolicitud) : null,
       idTipoTicket: persona ? persona.idTipoTicket : null,
-      idEstadoTicket: persona ? persona.idEstadoTicket : 1,
+      idEstadoTicket: persona ? persona.idEstadoTicket : 54,
       idEmpresa: persona ? persona.idEmpresa : null,
       idUsuarioResponsableCliente: persona ? persona.idUsuarioResponsableCliente : null,
       idPrioridad: persona ? persona.idPrioridad : null,
@@ -481,15 +507,6 @@ useEffect(() => {
   }
 };
 
-
-
-
-
-//   const handleChangeAsignacion = (index, field, value) => {
-//   const nuevasAsignaciones = [...formik.values.asignaciones];
-//   nuevasAsignaciones[index][field] = value;
-//   formik.setFieldValue('asignaciones', nuevasAsignaciones);
-// };
  const handleChange = (index, field, value) => {
     const newAsignaciones = [...formik.values.asignaciones];
     newAsignaciones[index][field] = value;
@@ -538,7 +555,7 @@ useEffect(() => {
                   value={formik.values.titulo}
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
-
+                  disabled={permisosActual.controlesOcultos.includes("txtTitulo")}
                   // onChange={(e)=>handleSoloLetras(e,formik,"titulo")}
                 ></InputText>
                 <div className="p-error">
@@ -556,6 +573,8 @@ useEffect(() => {
                   dateFormat="dd/mm/yy"
                   placeholder="Selecciona la fecha"
                   showIcon
+                  disabled={permisosActual.controlesOcultos.includes("dateFechaSolicitud")}
+
                 />
                 <div className="p-error">
                   {formik.touched.fechaSolicitud && formik.errors.fechaSolicitud}
@@ -578,6 +597,8 @@ useEffect(() => {
                  options={parametros?.filter((item) => item.tipoParametro === "TipoTicket")}
                 optionLabel="nombre"
                 optionValue="id"
+                disabled={permisosActual.controlesOcultos.includes("cboTipo")}
+
               />
               <small className="p-error">
                 {formik.touched.idTipoTicket && formik.errors.idTipoTicket}
@@ -598,7 +619,8 @@ useEffect(() => {
                 disabled={!modoEdicion}
                 onBlur={formik.handleBlur}
                 // options={estadoTiket}
-                options={parametros?.filter((item) => item.tipoParametro === "EstadoTicket")}
+                // options={parametros?.filter((item) => item.tipoParametro === "EstadoTicket")}
+                  options={opcionesEstadoTicket}
 
                 optionLabel="nombre"
                 optionValue="id"
@@ -620,14 +642,14 @@ useEffect(() => {
                 options={empresa}
                 optionLabel="nombreComercial"
                 optionValue="id"
+                disabled={permisosActual.controlesOcultos.includes("cboEmpresa")}
+
               />
               <small className="p-error">
                 {formik.touched.idEmpresa && formik.errors.idEmpresa}
               </small>
               </div>
-
-            
-                <div className="field col-12 md:col-6">
+              <div className="field col-12 md:col-6">
                 <label className="label-form">Usuario Responsable del Cliente</label>
                 <InputText
                   type={"text"}
@@ -661,7 +683,7 @@ useEffect(() => {
                 onBlur={formik.handleBlur}
                 // options={prueba}
                 options={parametros?.filter((item) => item.tipoParametro === "Prioridad")}
-
+                disabled={permisosActual.controlesOcultos.includes("cboPrioridad")}
                 optionLabel="nombre"
                 optionValue="id"
               />
@@ -679,6 +701,7 @@ useEffect(() => {
                   value={formik.values.codTicketInterno}
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
+                 disabled={permisosActual.controlesOcultos.includes("textCodigoInterno")}
 
                   // onChange={(e)=>handleSoloLetras(e,formik,"codTicketInterno")}
                 ></InputText>
@@ -695,7 +718,8 @@ useEffect(() => {
                   placeholder="Escribe aquí"
                   value={formik.values.descripcion}
                   onBlur={formik.handleBlur}
-                    onChange={formik.handleChange}
+                  onChange={formik.handleChange}
+                 disabled={permisosActual.controlesOcultos.includes("cboDescripcion")}
 
                   // onChange={(e)=>handleSoloLetras(e,formik,"descripcion")}   
                 ></InputText>
@@ -708,8 +732,8 @@ useEffect(() => {
                 <div className="custom-file-upload">
                   <label htmlFor="urlArchivos" className="upload-label">
                     {formik.values.urlArchivos
-  ? "Archivo cargado correctamente"
-  : "Seleccionar archivo .zip"}
+                    ? "Archivo cargado correctamente"
+                    : "Seleccionar archivo .zip"}
 
                     {/* {formik.values.urlArchivos ? formik.values.urlArchivos.name : "Seleccionar archivo .zip"} */}
                   </label>
@@ -736,6 +760,7 @@ useEffect(() => {
                         formik.setFieldValue("urlArchivos", null);
                       }
                     }}
+                 disabled={permisosActual.controlesOcultos.includes("fileArchivo")}
 
                     onBlur={formik.handleBlur}
                     className="hidden-input"
@@ -746,6 +771,8 @@ useEffect(() => {
                 </small>
               </div>
                { modoEdicion && (
+             <>
+             {!permisosActual.divsOcultos.includes("divFrentes") && (
              <>
               <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
 
@@ -842,6 +869,9 @@ useEffect(() => {
 
               </div>
               <div className="field col-12 md:col-12">
+                 {frentes.length === 0 ? (
+                <p>Cargando frentes...</p> 
+              ) : (
               <DatatableDefault showSearch={false} paginator={false} value={formik.values.frenteSubFrentes}>
                   <Column
                     field="idFrente"
@@ -875,10 +905,14 @@ useEffect(() => {
                         body={accion} 
                       />   
               </DatatableDefault>
+              )}
               </div>
-            
-              <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
+              </>
+             )}
 
+              {!permisosActual.divsOcultos.includes("divAsignacionConsultor") && (
+             <>
+              <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
               <div className="field col-12">
                   <label style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "10px", display: "block" }}>
                     Asignaciones
@@ -1029,15 +1063,17 @@ useEffect(() => {
                 Agregar fila
               </button>
               </div>
+              </>
+             )}
               <div  className="field col-12 md:col-12">
 
               </div>
               </>)}
             </div>
            <div className="zv-editarUsuario-footer">
-          <button type="button" onClick={() => console.log("VALUES", formik.values)}>
+          {/* <button type="button" onClick={() => console.log("VALUES", formik.values)}>
             Ver valores
-          </button> *
+          </button> * */}
            <Boton
               label="Guardar cambios"
               style={{ fontSize: 12 }}
