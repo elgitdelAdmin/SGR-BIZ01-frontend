@@ -10,7 +10,7 @@ import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import useUsuario from "../../hooks/useUsuario";
 import { InputText } from "primereact/inputtext";
-import {ListarConsultores} from "../../service/ConsultorService";
+import {ListarConsultores,ListarConsultoresPorSocio} from "../../service/ConsultorService";
 import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
 import {EliminarConsultor} from "../../service/ConsultorService";
@@ -32,7 +32,7 @@ const Consultores = () => {
     const {permisos} = useUsuario();
     const toast = useRef(null);
     const [isAdmin, setIsAdmin] = useState(false);
-
+    const codRol = localStorage.getItem("codRol");
     const [lazyState, setlazyState] = useState({
         first: 0,
         rows: 10,
@@ -59,9 +59,11 @@ const loadLazyData = () => {
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
-
-        ListarConsultores()
+         const fetchFunction = codRol === "SUPERADMIN" ? ListarConsultores : ListarConsultoresPorSocio;
+         fetchFunction()
+        // ListarConsultoresPorSocio()
             .then((data) => {
+                console.log("DATA")
                 setTotalRecords(data.length);
                 const pageNumber = lazyState?.page ?? 0;
                 const pageSize = lazyState?.rows ?? 10;

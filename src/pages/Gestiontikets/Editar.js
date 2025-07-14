@@ -24,7 +24,7 @@ import { Checkbox } from "primereact/checkbox";
 import { TabView, TabPanel } from "primereact/tabview";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
-import {ListarConsultores} from "../../service/ConsultorService";
+import {ListarConsultores,ListarConsultoresPorSocio} from "../../service/ConsultorService";
 
 
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog"; // For confirmDialog method
@@ -35,8 +35,9 @@ import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { InputSwitch } from 'primereact/inputswitch';
 import { FileUpload } from "primereact/fileupload";
-import { ListarParametros,ListarEmpresas,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket} from "../../service/TiketService";
-import {ListarGestores} from "../../service/GestorService";
+import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket} from "../../service/TiketService";
+import {ListarGestoresPorSocio,ListarGestores} from "../../service/GestorService";
+import {ListarEmpresasPorSocio,ListarEmpresas} from "../../service/EmpresaService";
 
 const Editar = () => {
   const navigate = useNavigate();
@@ -57,6 +58,7 @@ const Editar = () => {
   const [mostrarSeccion, setMostrarSeccion] = useState(false);
   const [gestores, setGestores] = useState(null);
   const [consultores, setConsultores] = useState(null);
+  const codRol = localStorage.getItem("codRol");
 
  const {permisos} = useUsuario();
     const permisosActual = permisos["/tickets"] || {
@@ -67,6 +69,9 @@ const Editar = () => {
 
   //
 const [opcionesEstadoTicket, setOpcionesEstadoTicket] = useState([]);
+const [bloquearDropdown, setBloquearDropdown] = useState([]);
+
+
  useEffect(() => {
     const getParametro = async () => {
       await ListarParametros().then(data=>{setParametro(data)})
@@ -79,7 +84,9 @@ const [opcionesEstadoTicket, setOpcionesEstadoTicket] = useState([]);
   const toast = useRef(null);
   useEffect(() => {
       const getEmpresa = async () => {
-        await ListarEmpresas().then(data=>{setEmpresa(data)})
+        const fetchFunction = codRol === "SUPERADMIN" ? ListarEmpresas : ListarEmpresasPorSocio;
+
+        await fetchFunction().then(data=>{setEmpresa(data)})
       };
       getEmpresa();
     }, []);
@@ -120,13 +127,14 @@ const [opcionesEstadoTicket, setOpcionesEstadoTicket] = useState([]);
         codigosPermitidos.includes(item.codigo)
     );
 
-    // Asegúrate de incluir el estado actual
     const yaIncluido = opciones.some(item => item.id === estadoActual?.id);
     if (!yaIncluido && estadoActual) {
       opciones = [estadoActual, ...opciones];
     }
 
     setOpcionesEstadoTicket(opciones);
+      const rolesPermitidos = estadoActual?.valor2?.split(",") || [];
+  setBloquearDropdown(!rolesPermitidos.includes(codRol));
   }, [parametros]); 
 
 
@@ -187,7 +195,8 @@ const [opcionesEstadoTicket, setOpcionesEstadoTicket] = useState([]);
   }, []);
    useEffect(() => {
     const getGestores = async () => {
-          await  ListarGestores().then(data=>{setGestores(data)})
+        const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
+        await  fetchFunction().then(data=>{setGestores(data)})
     };
     getGestores();
   }, []);
@@ -206,7 +215,9 @@ const [opcionesEstadoTicket, setOpcionesEstadoTicket] = useState([]);
   
 useEffect(() => {
   const getConsultores = async () => {
-    await ListarConsultores().then((data) => {
+     const fetchFunction = codRol === "SUPERADMIN" ? ListarConsultores : ListarConsultoresPorSocio;
+
+    await fetchFunction().then((data) => {
       const consultoresFormateados = data.map((item) => ({
         id: item.id,
         nombre: `${item.persona.nombres} ${item.persona.apellidoPaterno}`
@@ -231,7 +242,7 @@ useEffect(() => {
       idPrioridad: Yup.number().required("Prioridad es obligatoria"),
       descripcion: Yup.string().required("Descripción es obligatoria"),
       urlArchivos: Yup.string().nullable(),
-      urlArchivos: Yup.string(),
+      // urlArchivos: Yup.string(),
       idGestorAsignado: Yup.number().nullable(),
       nuevaEspecializacion: Yup.object().shape({
         idFrente: Yup.number().nullable().transform((v, o) => o === "" ? null : v),
@@ -573,6 +584,7 @@ useEffect(() => {
                   dateFormat="dd/mm/yy"
                   placeholder="Selecciona la fecha"
                   showIcon
+                   minDate={new Date()} 
                   disabled={permisosActual.controlesOcultos.includes("dateFechaSolicitud")}
 
                 />
@@ -616,7 +628,7 @@ useEffect(() => {
                   formik.setFieldValue("idEstadoTicket", "");
                   formik.handleChange(e);
                 }}
-                disabled={!modoEdicion}
+                disabled={!modoEdicion || bloquearDropdown}
                 onBlur={formik.handleBlur}
                 // options={estadoTiket}
                 // options={parametros?.filter((item) => item.tipoParametro === "EstadoTicket")}
@@ -727,33 +739,27 @@ useEffect(() => {
                   {formik.touched.descripcion && formik.errors.descripcion}
                 </div>
               </div>           
-              <div className="field col-12 md:col-6">
+              {/* <div className="field col-12 md:col-6">
                 <label className="label-form">Subir archivo ZIP</label>
                 <div className="custom-file-upload">
                   <label htmlFor="urlArchivos" className="upload-label">
                     {formik.values.urlArchivos
                     ? "Archivo cargado correctamente"
                     : "Seleccionar archivo .zip"}
-
-                    {/* {formik.values.urlArchivos ? formik.values.urlArchivos.name : "Seleccionar archivo .zip"} */}
                   </label>
                   <input
                     type="file"
                     id="urlArchivos"
                     name="urlArchivos"
                     accept=".zip"
-                    // onChange={(event) => {
-                    //   formik.setFieldValue("urlArchivos", event.currentTarget.files[0]);
-                    // }}
                     onChange={async (event) => {
                       const file = event.currentTarget.files[0];
 
                       if (file) {
-                        // Leer como base64
                         const reader = new FileReader();
                         reader.onloadend = () => {
-                          const base64String = reader.result; // esto ya incluye "data:application/zip;base64,..."
-                          formik.setFieldValue("urlArchivos", base64String); // lo enviamos ya convertido
+                          const base64String = reader.result; 
+                          formik.setFieldValue("urlArchivos", base64String); 
                         };
                         reader.readAsDataURL(file);
                       } else {
@@ -769,7 +775,7 @@ useEffect(() => {
                 <small className="p-error">
                   {formik.touched.urlArchivos && formik.errors.urlArchivos}
                 </small>
-              </div>
+              </div> */}
                { modoEdicion && (
              <>
              {!permisosActual.divsOcultos.includes("divFrentes") && (

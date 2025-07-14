@@ -12,7 +12,7 @@ import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import useUsuario from "../../hooks/useUsuario";
 import { InputText } from "primereact/inputtext";
-import {ListarGestores,EliminarGestor} from "../../service/GestorService";
+import {ListarGestores,EliminarGestor,ListarGestoresPorSocio} from "../../service/GestorService";
 import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
 
@@ -29,7 +29,8 @@ const Gestores = () => {
     const [globalFilterValue, setGlobalFilterValue] = useState("");
     const [totalRecords, setTotalRecords] = useState(0);
     const [paginaReinicio, setpaginaReinicio] = useState(null);
-    
+    const codRol = localStorage.getItem("codRol");
+
     const {permisos} = useUsuario();
     // const listaEmpresas =
     // [{value:1,name:"Zegel Virtual"}]
@@ -62,8 +63,9 @@ const loadLazyData = () => {
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
-
-        ListarGestores()
+         const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
+         fetchFunction()
+        // ListarGestoresPorSocio()
             .then((data) => {
                 setTotalRecords(data.length);
                 const pageNumber = lazyState?.page ?? 0;

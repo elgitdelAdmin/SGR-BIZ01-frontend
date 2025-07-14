@@ -16,19 +16,6 @@ export const ListarParametros = async () => {
     return res.json();
   });
 };
-export const ListarEmpresas = async () => {
-  return await fetch(`${ENDPOINT}/api/Empresas`, {
-    method: "GET",
-    headers: {
-      "Accept": "application/json"
-    },
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("Error al obtener las empresas");
-    return res.json();
-  });
-};
-
 export const ListarPais = async () => {
   return await fetch(`${ENDPOINT}/api/Paises`, {
     method: "GET",
@@ -57,18 +44,18 @@ export const ListarFrentes = async () => {
 };
 
 
-export const ListarConsultores = async () => {
-  return await fetch(`${ENDPOINT}/api/Consultor`, {
-    method: "GET",
-    headers: {
-      "Accept": "application/json"
-    },
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los consultores");
-    return res.json();
-  });
-};
+// export const ListarConsultores = async () => {
+//   return await fetch(`${ENDPOINT}/api/Consultor`, {
+//     method: "GET",
+//     headers: {
+//       "Accept": "application/json"
+//     },
+//   })
+//   .then(res => {
+//     if (!res.ok) throw new Error("Error al obtener los consultores");
+//     return res.json();
+//   });
+// };
 
 
 export const RegistrarTiket = ({ jsonData }) => {

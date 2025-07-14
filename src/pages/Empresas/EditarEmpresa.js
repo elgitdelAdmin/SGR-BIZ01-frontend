@@ -32,7 +32,7 @@ import { Calendar } from 'primereact/calendar';
 import DataTable from 'react-data-table-component';
 import {RegistrarEmpresa,ListarFrentes,ListarParametros,ObtenerEmpresa,ActualizarEmpresa,ObtenerPersona,ObtenerPersonaResponsable} from "../../service/EmpresaService";
 import { ListarPais} from "../../service/TiketService";
-import {ListarGestores} from "../../service/GestorService";
+import {ListarGestoresPorSocio,ListarGestores} from "../../service/GestorService";
 
 const EditarConsultor = () => {
   const navigate = useNavigate();
@@ -46,6 +46,7 @@ const EditarConsultor = () => {
   const [modoEdicion, setModoEdicion] = useState(false);
   const [usuariosDropdown, setUsuariosDropdown] = useState([]);
   const [user, setUser] = useState([]);
+  const codRol = localStorage.getItem("codRol");
 
 const [soloUnUsuario, setSoloUnUsuario] = useState(false);
 
@@ -92,7 +93,9 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
     }, []);
      useEffect(() => {
       const getGestor = async () => {
-       await ListarGestores().then(data=>{setGestor(data)})
+      const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
+        
+       await fetchFunction().then(data=>{setGestor(data)})
       };
       getGestor();
     }, []);
@@ -145,7 +148,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
       formik.setFieldValue("telefono2", data.telefono2 || "");
       formik.setFieldValue("direccionpersona", data.direccion || "");
       formik.setFieldValue("correopersona", data.correo || "");
-      formik.setFieldValue("fechaNacimiento", data.fechaNacimiento || "");
+      formik.setFieldValue("fechaNacimiento", new Date(data.fechaNacimiento) || "");
 
       setUser(data.users)
     //   if (data.users.length === 1) {

@@ -12,7 +12,7 @@ import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import useUsuario from "../../hooks/useUsuario";
 import { InputText } from "primereact/inputtext";
-import {ListarEmpresas,EliminarEmpresa} from "../../service/EmpresaService";
+import {ListarEmpresasPorSocio,ListarEmpresas,EliminarEmpresa} from "../../service/EmpresaService";
 import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
 
@@ -34,6 +34,7 @@ const Empresas = () => {
     const {permisos} = useUsuario();
     const toast = useRef(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const codRol = localStorage.getItem("codRol");
 
     const [lazyState, setlazyState] = useState({
         first: 0,
@@ -61,8 +62,9 @@ const loadLazyData = () => {
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
-
-        ListarEmpresas()
+         const fetchFunction = codRol === "SUPERADMIN" ? ListarEmpresas : ListarEmpresasPorSocio;
+         fetchFunction()
+        // ListarEmpresasPorSocio()
             .then((data) => {
                 setTotalRecords(data.length);
                 const pageNumber = lazyState?.page ?? 0;

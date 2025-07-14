@@ -28,8 +28,9 @@ import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { Calendar } from 'primereact/calendar';
-import {ListarParametros,ObtenerGestor,ActualizarGestor} from "../../service/GestorService";
-import {RegistrarUsuario,ListaRoles,ListaSocio} from "../../service/UsuarioService";
+import {ListarParametros} from "../../service/GestorService";
+import {RegistrarUsuario,ListaRoles,ListaSocio,ObtenerUsuario,ActualizarUsuario} from "../../service/UsuarioService";
+import {ObtenerPersonaResponsable} from "../../service/EmpresaService";
 
 const EditarUsuario = () => {
   // console.log("Render de EditarUsuario");
@@ -43,11 +44,12 @@ const EditarUsuario = () => {
   let { id } = useParams();
   const toast = useRef(null);
   const [socio, setSocio] = useState(null);
+  const [mostrarInputPassword, setMostrarInputPassword] = useState(false);
 
   useEffect(() => {
     const getPersona = async () => {
-      let idGestor = id;
-      await ObtenerGestor({idGestor}).then((data) => {
+      let idUsuario = id;
+      await ObtenerUsuario({idUsuario}).then((data) => {
         console.log("data",data);
         setTituloPagina("Datos del Usuario");
         setUsuario(data);
@@ -134,7 +136,7 @@ const EditarUsuario = () => {
         username: usuario?.username || "",
         password: usuario?.password || "",
         email: usuario?.email || "",
-        idSocio: usuario?.idSocio || ( window.localStorage.getItem("idRol") == 1? "": Number(window.localStorage.getItem("idsocio"))),
+        idSocio: usuario?.socio.id || ( window.localStorage.getItem("idRol") == 1? "": Number(window.localStorage.getItem("idsocio"))),
         idRol: usuario?.idRol || "",
         usuarioCreacion:usuario?.usuarioCreacion|| window.localStorage.getItem("username"), 
         // fechaCreacion: usuario?.fechaCreacion ? new Date(usuario.fechaCreacion) : new Date(),
@@ -143,13 +145,16 @@ const EditarUsuario = () => {
       onSubmit: (values) => {
       
           const data = {
-            // ...(modoEdicion && { id: usuario.id }), 
+            ...(modoEdicion && { id: usuario.id }), 
             username: values.username ,
             email: values.password,
             password: values.password,
             idSocio: values.idSocio,
             idRol:values.idRol,
-            usuarioCreacion:values.usuarioCreacion,
+            // usuarioCreacion:values.usuarioCreacion,
+             ...(modoEdicion
+              ? { usuarioActualizacion:window.localStorage.getItem("username")}
+              : { usuarioCreacion: values.usuarioCreacion||window.localStorage.getItem("username")}),         
             fechaCreacion:new Date(),
             persona:{
                 nombres: values.nombres,
@@ -162,13 +167,16 @@ const EditarUsuario = () => {
                 direccion: values.direccion || "",
                 correo: values.correo || "",
                 fechaNacimiento: new Date(values.fechaNacimiento).toISOString(),
-                usuarioCreacion:values.usuarioCreacionPersona
-            },        
+                // usuarioCreacion:values.usuarioCreacionPersona,
+                  ...(modoEdicion
+                ? { usuarioActualizacion: window.localStorage.getItem("username") }
+                : { usuarioCreacion: values.usuarioCreacionPersona }),
+                    },        
           };
            let jsonData = JSON.stringify(data,null,2);
         if (modoEdicion) {
           const idUsuario = usuario.id;
-          // Actualizar({ jsonData, idUsuario });
+          Actualizar({ jsonData, idUsuario });
         } else {
           Registrar({ jsonData });
         }
@@ -202,34 +210,64 @@ const EditarUsuario = () => {
       });
   };
 
-  //  const Actualizar = ({ jsonData,idUsuario }) => {
-  //     ActualizarGestor({ jsonData, idGestor })
-  //       .then((data) => {
-  //         formik.setSubmitting(false);
-  //         toast.current.show({
-  //           severity: "success",
-  //           summary: "Éxito",
-  //           detail: "Registro actualizado exitosamente.",
-  //           life: 7000,
-  //         });
+   const Actualizar = ({ jsonData,idUsuario }) => {
+      ActualizarUsuario({ jsonData, idUsuario })
+        .then((data) => {
+          formik.setSubmitting(false);
+          toast.current.show({
+            severity: "success",
+            summary: "Éxito",
+            detail: "Registro actualizado exitosamente.",
+            life: 7000,
+          });
 
-  //         setTimeout(() => {
-  //         navigate(-1);
-  //       }, 1000);
+          setTimeout(() => {
+          navigate(-1);
+        }, 1000);
   
-  //       })
-  //       .catch((errors) => {
-  //         toast.current.show({
-  //           severity: "error",
-  //           summary: "Error",
-  //           detail: errors.message,
-  //           life: 7000,
-  //         });
-  //         formik.setSubmitting(false);
-  //       });
-  //   };
+        })
+        .catch((errors) => {
+          toast.current.show({
+            severity: "error",
+            summary: "Error",
+            detail: errors.message,
+            life: 7000,
+          });
+          formik.setSubmitting(false);
+        });
+    };
 
+ const handleBuscar = async () => {
+    console.log("Datos recibidos:");
+    const tipoDocumento = formik.values.tipoDocumento;
+    const numeroDocumento = formik.values.numeroDocumento;
 
+    if (!tipoDocumento || !numeroDocumento) {
+      console.warn("Debe completar tipo y número de documento");
+      return;
+    }
+
+    try {
+      const data = await ObtenerPersonaResponsable({
+        idTipoDocumento: tipoDocumento,
+        numeroDocumento: numeroDocumento
+      });
+
+      console.log("Datos recibidos:", data);
+
+      formik.setFieldValue("nombres", data.nombres || "");
+      formik.setFieldValue("apellidoPaterno", data.apellidoPaterno || "");
+      formik.setFieldValue("apellidoMaterno", data.apellidoMaterno || "");
+      formik.setFieldValue("telefono", data.telefono || "");
+      formik.setFieldValue("telefono2", data.telefono2 || "");
+      formik.setFieldValue("direccion", data.direccion || "");
+      formik.setFieldValue("correo", data.correo || "");
+      formik.setFieldValue("fechaNacimiento", new Date(data.fechaNacimiento) || "");
+   
+    } catch (error) {
+      console.error("Error al buscar responsable:", error.message);
+    }
+  };
   return (
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
       <ConfirmDialog />
@@ -245,6 +283,68 @@ const EditarUsuario = () => {
       <div className="zv-editarUsuario-body" style={{ marginTop: 16 }}>
         <form onSubmit={formik.handleSubmit}>
           <div className="p-fluid formgrid grid">
+             <div className="field col-12 md:col-6">
+              <label className="label-form">Tipo documento de Identidad</label>
+              <DropdownDefault
+                type={"text"}
+                id="tipoDocumento"
+                name="tipoDocumento"
+                placeholder="Seleccione"
+                value={formik.values.tipoDocumento}
+                onChange={(e) => {
+                  formik.setFieldValue("tipoDocumento", "");
+                  formik.handleChange(e);
+                }}
+                onBlur={formik.handleBlur}
+                options={parametros?.filter((item) => item.tipoParametro === "TipoDocumento")}
+
+                // options={tipoDocumento}
+                optionLabel="nombre"
+                optionValue="id"
+                disabled={modoEdicion}
+
+              ></DropdownDefault>
+              <small className="p-error">
+                {formik.touched.tipoDocumento && formik.errors.tipoDocumento}
+              </small>
+            </div>
+            <div className="field col-12 md:col-6">
+              <label className="label-form"> N° Documento de Identidad </label>
+              <InputText
+                type={"numeric"}
+                id="numeroDocumento"
+                name="numeroDocumento"
+                placeholder="Escribe aquí"
+                value={formik.values.numeroDocumento}
+                onChange={formik.handleChange}
+                // onBlur={formik.handleBlur}
+                onBlur={(e) => {
+                    formik.handleBlur(e);
+                    const tipoDocumento = formik.values.tipoDocumento;
+                    const numeroDocumento = e.target.value;
+
+                    if (tipoDocumento && numeroDocumento) {
+                      handleBuscar();
+                    }
+                  }}
+                maxLength={
+                  formik.values.tipoDocumento &&
+                  formik.values.tipoDocumento == 1
+                    ? 8
+                    : 12
+                }
+                keyfilter={
+                  formik.values.tipoDocumento &&
+                  formik.values.tipoDocumento == 1
+                    ? /^\d+$/
+                    : /^[0-9a-zA-Z||-]+$/gi
+                }
+                disabled={!formik.values.tipoDocumento||modoEdicion}
+              ></InputText>
+              <small className="p-error">
+                {formik.touched.numeroDocumento && formik.errors.numeroDocumento}
+              </small>
+            </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Nombres</label>
               <InputText
@@ -293,57 +393,7 @@ const EditarUsuario = () => {
                   formik.errors.apellidoMaterno}
               </small>
             </div>
-            <div className="field col-12 md:col-6">
-              <label className="label-form">Tipo documento de Identidad</label>
-              <DropdownDefault
-                type={"text"}
-                id="tipoDocumento"
-                name="tipoDocumento"
-                placeholder="Seleccione"
-                value={formik.values.tipoDocumento}
-                onChange={(e) => {
-                  formik.setFieldValue("tipoDocumento", "");
-                  formik.handleChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                options={parametros?.filter((item) => item.tipoParametro === "TipoDocumento")}
-
-                // options={tipoDocumento}
-                optionLabel="nombre"
-                optionValue="id"
-              ></DropdownDefault>
-              <small className="p-error">
-                {formik.touched.tipoDocumento && formik.errors.tipoDocumento}
-              </small>
-            </div>
-            <div className="field col-12 md:col-6">
-              <label className="label-form"> N° Documento de Identidad </label>
-              <InputText
-                type={"numeric"}
-                id="numeroDocumento"
-                name="numeroDocumento"
-                placeholder="Escribe aquí"
-                value={formik.values.numeroDocumento}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                maxLength={
-                  formik.values.tipoDocumento &&
-                  formik.values.tipoDocumento == 1
-                    ? 8
-                    : 12
-                }
-                keyfilter={
-                  formik.values.tipoDocumento &&
-                  formik.values.tipoDocumento == 1
-                    ? /^\d+$/
-                    : /^[0-9a-zA-Z||-]+$/gi
-                }
-                disabled={formik.values.tipoDocumento != null ? false : true}
-              ></InputText>
-              <small className="p-error">
-                {formik.touched.numeroDocumento && formik.errors.numeroDocumento}
-              </small>
-            </div>
+           
             <div className="field col-12 md:col-6">
                 <label className="label-form">Teléfono</label>
                 <InputNumber
@@ -444,12 +494,14 @@ const EditarUsuario = () => {
               value={formik.values.username}
               onBlur={formik.handleBlur}
               onChange={formik.handleChange}
+              disabled={modoEdicion}
+
             />
             <div className="p-error">
               {formik.touched.username && formik.errors.username}
             </div>
           </div>
-          <div className="field col-12 md:col-6">
+          {/* <div className="field col-12 md:col-6">
             <label className="label-form">Contraseña</label>
             <Password
               id="password"
@@ -464,7 +516,56 @@ const EditarUsuario = () => {
             <div className="p-error">
               {formik.touched.password && formik.errors.password}
             </div>
-          </div>
+          </div> */}
+        <div className="field col-12 md:col-6">
+        <label className="label-form">Contraseña</label>
+
+          {modoEdicion ? (
+            !mostrarInputPassword ? (
+              <button
+                type="button"
+                className="p-button p-component"
+                onClick={() => setMostrarInputPassword(true)}
+              >
+                Resetear contraseña
+              </button>
+            ) : (
+              <>
+                <Password
+                  id="password"
+                  name="password"
+                  placeholder="Escribe tu nueva contraseña"
+                  value={formik.values.password}
+                  onBlur={formik.handleBlur}
+                  onChange={(e) => formik.setFieldValue('password', e.target.value)}
+                  toggleMask
+                  feedback={false}
+                />
+                <div className="p-error">
+                  {formik.touched.password && formik.errors.password}
+                </div>
+              </>
+            )
+          ) : (
+            <>
+              <Password
+                id="password"
+                name="password"
+                placeholder="Escribe tu contraseña"
+                value={formik.values.password}
+                onBlur={formik.handleBlur}
+                onChange={(e) => formik.setFieldValue('password', e.target.value)}
+                toggleMask
+                feedback={false}
+              />
+              <div className="p-error">
+                {formik.touched.password && formik.errors.password}
+              </div>
+            </>
+          )}
+        </div>
+
+
           <div className="field col-12 md:col-6">
               <label className="label-form">Rol</label>
               <DropdownDefault
@@ -482,6 +583,7 @@ const EditarUsuario = () => {
                  options={rol}
                 optionLabel="nombre"
                 optionValue="id"
+                disabled={modoEdicion}
               ></DropdownDefault>
               <small className="p-error">
                 {formik.touched.idRol && formik.errors.idRol}
@@ -503,6 +605,8 @@ const EditarUsuario = () => {
                 options={socio}
                 optionLabel="nombre"
                 optionValue="id"
+                disabled={modoEdicion}
+
               />
               <small className="p-error">
                 {formik.touched.idSocio && formik.errors.idSocio}
@@ -512,9 +616,9 @@ const EditarUsuario = () => {
 
         </div>
 
-          <button type="button" onClick={() => console.log("VALUES", formik.values)}>
+          {/* <button type="button" onClick={() => console.log("VALUES", formik.values)}>
             Ver valores
-          </button> 
+          </button>  */}
           <div className="zv-editarUsuario-footer">
             <Boton
               label="Guardar cambios"

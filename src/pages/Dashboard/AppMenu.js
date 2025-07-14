@@ -298,7 +298,7 @@ useEffect(() => {
     });
 
     seMenuZegel([{ label: "", items: formattedMenuItems }]);
-    setPermisos(permisosPorRuta); // <-- guardas en el contexto global
+    setPermisos(permisosPorRuta); 
   };
 
   cargarMenu();

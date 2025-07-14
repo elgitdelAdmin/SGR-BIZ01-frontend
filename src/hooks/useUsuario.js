@@ -57,6 +57,14 @@ const login = useCallback(async({userName,password},onSuccess) => {
     const logout = useCallback(()=>{
         window.localStorage.removeItem('jwt')
         window.localStorage.removeItem('reset')
+         window.localStorage.removeItem('refreshToken');
+        window.localStorage.removeItem('expiresAt');
+        window.localStorage.removeItem('username');
+        window.localStorage.removeItem('nombreSocio');
+        window.localStorage.removeItem('idsocio');
+        window.localStorage.removeItem('idRol');
+        window.localStorage.removeItem('idUser');
+        window.localStorage.removeItem('codRol');
         setJwt(null)
     },[setJwt])
 

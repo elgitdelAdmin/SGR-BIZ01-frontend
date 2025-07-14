@@ -112,3 +112,25 @@ button{
 
     
 }
+.menu-lateral {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 250px;
+  height: 100vh;
+  background-color: white;
+  transition: left 0.3s ease-in-out;
+  z-index: 1001;
+
+  &.activo {
+    left: 0;
+  }
+
+  @media (min-width: 992px) {
+    position: static;
+    left: 0;
+    height: auto;
+    background-color: transparent;
+    transition: none;
+  }
+}

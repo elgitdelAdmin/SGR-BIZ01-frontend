@@ -153,7 +153,12 @@ function App() {
           onMobileTopbarMenuClick={onMobileTopbarMenuClick}
           onMobileSubTopbarMenuClick={onMobileSubTopbarMenuClick}
         ></TopBar>
-        <div className="layout-sidebar zv-slider-left" onClick={onSidebarClick}>
+        {/* <div className="layout-sidebar zv-slider-left" onClick={onSidebarClick}> */}
+        <div
+  className={`menu-lateral layout-sidebar zv-slider-left ${!isDesktop() && mobileMenuActive ? "activo" : ""}`}
+  onClick={onSidebarClick}
+>
+
           <AppMenu
             model={[]}
             onMenuItemClick={onMenuItemClick}

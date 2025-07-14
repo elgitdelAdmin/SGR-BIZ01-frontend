@@ -12,7 +12,7 @@ import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import useUsuario from "../../hooks/useUsuario";
 import { InputText } from "primereact/inputtext";
-import {ListarTicket,EliminarTicket} from "../../service/TiketService";
+import {ListarTicket,EliminarTicket,ListarParametros} from "../../service/TiketService";
 
 const Gestiontikets = () => {
     const navigate = useNavigate();
@@ -29,6 +29,7 @@ const Gestiontikets = () => {
     const [globalFilterValue, setGlobalFilterValue] = useState("");
     const [totalRecords, setTotalRecords] = useState(0);
     const [paginaReinicio, setpaginaReinicio] = useState(null);
+    const [parametros, setParametro] = useState([]);
     
     const {permisos} = useUsuario();
     const permisosActual = permisos["/tickets"] || {
@@ -154,6 +155,14 @@ const loadLazyData = () => {
               setListaPersonas(listaPersonasTotal)
     }, [listaPersonasTotal]);
    
+useEffect(() => {
+  const getParametro = async () => {
+    const data = await ListarParametros();
+    const estadoTickets = data.filter(p => p.tipoParametro === "EstadoTicket");
+    setParametro(estadoTickets);
+  };
+  getParametro();
+}, []);
 
     const accion =(rowData)=>{
   const eliminarOculto = permisosActual.controlesOcultos.includes("btnEliminar");
@@ -187,6 +196,10 @@ const loadLazyData = () => {
             <span>{rowData.activo ? "Activo":"Inactivo"}</span>
         )
     }
+        const estadoTicketTemplate = (rowData) => {
+        const estado = parametros.find(p => p.id === rowData.idEstadoTicket);
+        return estado ? estado.nombre : "Sin estado";
+        };
 
 
 
@@ -247,7 +260,8 @@ const loadLazyData = () => {
                             <Column field="titulo" header="Titulo" ></Column>
                             <Column field="fechaSolicitud" header="Fecha de Solicitud" ></Column>
                             <Column field="descripcion" header="Descripcion" ></Column>
-                            <Column field="activo" header="Estado"dataType="boolean"  body={booleanTemplate}></Column>
+                            {/* <Column  field="activo" header="Estado"dataType="boolean"  body={booleanTemplate}></Column> */}
+                            <Column header="Estado" body={estadoTicketTemplate} />
                             <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column>
                         </DatatableDefault>
                     </div>

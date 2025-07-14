@@ -12,8 +12,7 @@ import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import useUsuario from "../../hooks/useUsuario";
 import { InputText } from "primereact/inputtext";
-import {ListarGestores,EliminarGestor} from "../../service/GestorService";
-import {ListarUsuarios} from "../../service/UsuarioService";
+import {ListarUsuariosPorSocio,ListarUsuarios,EliminarUsuario} from "../../service/UsuarioService";
 
 import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
@@ -37,6 +36,7 @@ const Gestores = () => {
     // [{value:1,name:"Zegel Virtual"}]
     const toast = useRef(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const codRol = localStorage.getItem("codRol");
 
     const [lazyState, setlazyState] = useState({
         first: 0,
@@ -64,8 +64,9 @@ const loadLazyData = () => {
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
-
-        ListarUsuarios()
+        const fetchFunction = codRol === "SUPERADMIN" ? ListarUsuarios : ListarUsuariosPorSocio;
+         fetchFunction()
+        // ListarUsuariosPorSocio()
             .then((data) => {
                 setTotalRecords(data.length);
                 const pageNumber = lazyState?.page ?? 0;
@@ -234,23 +235,24 @@ const loadLazyData = () => {
     }
 
 
-    const Eliminar =async ({id})=>{
-        const idGestor = id
-        await EliminarGestor({idGestor}).then(data=>{
-            console.log(data);
-            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
-  
-  
-            // setTimeout(() => {
-            //     window.location.reload();
-            // }, 3000)
-            loadLazyData(); // recarga solo la tabla
 
-        })
-        .catch(errors => {
-            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
-        })
-    }
+     const Eliminar =async ({id})=>{
+            let idUsuario = id
+            await EliminarUsuario({idUsuario}).then(data=>{
+                console.log(data);
+                toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
+      
+      
+                // setTimeout(() => {
+                //     window.location.reload();
+                // }, 3000)
+                loadLazyData(); // recarga solo la tabla
+    
+            })
+            .catch(errors => {
+                toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            })
+        }
 
     const confirm2 = (id) => {
         confirmDialog({
@@ -313,16 +315,16 @@ const loadLazyData = () => {
                             <Column field="persona.numeroDocumento" header="N° Documento" />
 
                             <Column field="username" header="Username" />
-                            <Column field="email" header="Email" />
-                            <Column
+                            <Column field="persona.correo" header="Correo" />
+                            {/* <Column
                                 field="activo"
                                 header="Estado"
                                 body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
-                            />
-                            {/* <Column
+                            /> */}
+                            <Column
                                 header="Acciones"
                                 body={accion} 
-                            /> */}
+                            />
                         </DatatableDefault>
                        
                     </div>

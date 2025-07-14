@@ -1,9 +1,23 @@
 import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
 const ENDPOINT = constantes.URLAPICONECTA;
+const idSocio= window.localStorage.getItem("idsocio")
 
 export const ListarEmpresas = async () => {
   return await fetch(`${ENDPOINT}/api/Empresas`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    },
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Error al obtener las Empresas");
+    return res.json();
+  });
+};
+
+export const ListarEmpresasPorSocio = async () => {
+  return await fetch(`${ENDPOINT}/api/Empresas/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
