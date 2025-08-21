@@ -92,18 +92,6 @@ const EditarGestor = () => {
     };
     getModalidad();
   }, []);
-   useEffect(() => {
-    const getnivelExperiencia = async () => {
-      const data=[{id: 1,nombre: 'Básico'},
-       {id: 2, nombre:'intermedio'},
-       {id: 3,nombre:'Avanzado'}
-      ]
-      setnivelExperiencia(data);
-
-
-    };
-    getnivelExperiencia();
-  }, []);
   
 
   useEffect(() => {
@@ -113,12 +101,25 @@ const EditarGestor = () => {
  };
     getFrentes();
   }, []);
- useEffect(() => {
-    const getParametro = async () => {
-      await ListarParametros().then(data=>{setParametro(data)})
-   };
-    getParametro();
-  }, []);
+//  useEffect(() => {
+//     const getParametro = async () => {
+//       await ListarParametros().then(data=>{setParametro(data)})
+//       setnivelExperiencia(data?.filter((item) => item.tipoParametro === "Seniority"));
+//    };
+//     getParametro();
+//   }, []);
+
+useEffect(() => {
+  const getParametro = async () => {
+    const data = await ListarParametros();
+    setParametro(data);
+    setnivelExperiencia(data?.filter((item) => item.tipoParametro === "NivelExperiencia"));
+  };
+
+  getParametro();
+}, []);
+
+  
   
   // useEffect(() => {
   //   const getEmpresa = async () => {
@@ -453,6 +454,7 @@ const EditarGestor = () => {
                 }}
                 onBlur={formik.handleBlur}
                 options={parametros?.filter((item) => item.tipoParametro === "TipoDocumento")}
+                disabled={modoEdicion}
 
                 // options={tipoDocumento}
                 optionLabel="nombre"
@@ -484,7 +486,7 @@ const EditarGestor = () => {
                     ? /^\d+$/
                     : /^[0-9a-zA-Z||-]+$/gi
                 }
-                disabled={formik.values.tipoDocumento != null ? false : true}
+                disabled={modoEdicion?true:(formik.values.tipoDocumento != null ? false : true)}
               ></InputText>
               <small className="p-error">
                 {formik.touched.numeroDocumento && formik.errors.numeroDocumento}
@@ -767,6 +769,7 @@ const EditarGestor = () => {
                   header="Nivel de experiencia"
                   body={(rowData) => {
                     if (!nivelExperiencia || !Array.isArray(nivelExperiencia)) return '';
+                    console.log("NIVEEEL ",nivelExperiencia)
                     const item = nivelExperiencia.find((n) => n.id === rowData?.idNivelExperiencia);
                     return item?.nombre || '';
                   }}

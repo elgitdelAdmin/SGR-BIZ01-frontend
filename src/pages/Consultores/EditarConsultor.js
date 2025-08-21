@@ -488,7 +488,7 @@ const EditarConsultor = () => {
                 onBlur={formik.handleBlur}
                 // options={tipoDocumento}
                 options={parametros?.filter((item) => item.tipoParametro === "TipoDocumento")}
-
+                disabled={modoEdicion}
                 optionLabel="nombre"
                 optionValue="id"
               ></DropdownDefault>
@@ -520,7 +520,7 @@ const EditarConsultor = () => {
                     ? /^\d+$/
                     : /^[0-9a-zA-Z||-]+$/gi
                 }
-                disabled={formik.values.tipoDocumento != null ? false : true}
+                disabled={modoEdicion?true:(formik.values.tipoDocumento != null ? false : true)}
               ></InputText>
               <small className="p-error">
                 {formik.touched.numeroDocumento && formik.errors.numeroDocumento}

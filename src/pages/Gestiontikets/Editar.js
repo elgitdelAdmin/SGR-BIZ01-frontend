@@ -265,7 +265,13 @@ useEffect(() => {
             fechaDesasignacion: Yup.string().nullable(),
          })
       ),
-     
+      // zipFile: Yup.mixed()
+      //     .required("El archivo ZIP es obligatorio")
+      //     .test("fileType", "El archivo debe ser un ZIP", (value) => {
+      //       return value && value.type === "application/zip";
+      //     })    
+       zipFile: Yup.mixed(),
+ 
   });
 
   const formik = useFormik({
@@ -290,66 +296,64 @@ useEffect(() => {
       frenteSubFrentes: persona ?persona.frenteSubFrentes:[],
       asignaciones:persona ? persona.consultorAsignaciones : [],
       usuarioCreacion:persona?.usuarioCreacion|| window.localStorage.getItem("username"), 
-      nombrePersonaResponsable:  ""
-  
+      nombrePersonaResponsable:  "",
+      zipFile: null
     },
     validationSchema: schema,
-  onSubmit: (values) => {
-    console.log(values.frenteSubFrentes)
 
-  //    if (values.frenteSubFrentes.length === 0) {
-  //             formik.setSubmitting(false);
+ onSubmit: (values) => {
+    const formData = new FormData();
+    formData.append("CodTicketInterno", values.codTicketInterno);
+    formData.append("titulo", values.titulo);
+    formData.append("fechaSolicitud", values.fechaSolicitud ? new Date(values.fechaSolicitud).toISOString() : null);
+    formData.append("idTipoTicket", values.idTipoTicket);
+    formData.append("idEstadoTicket", values.idEstadoTicket);
+    formData.append("idEmpresa", values.idEmpresa);
+    formData.append("idUsuarioResponsableCliente", values.idUsuarioResponsableCliente);
+    formData.append("idPrioridad", values.idPrioridad);
+    formData.append("Descripcion", values.descripcion);
+    formData.append("urlArchivos", "");
+    formData.append("codReqSgrCsti", "");
+    formData.append("idReqSgrCsti", "");
+    formData.append("consultorAsignaciones", JSON.stringify(values.asignaciones || []));
+    formData.append(
+      "frenteSubFrentes",
+      JSON.stringify(values.frenteSubFrentes.map(e => ({
+        idFrente: Number(e.idFrente),
+        idSubFrente: Number(e.idSubFrente),
+        cantidad: e.cantidad,
+      })))
+    );
 
-  //   confirmDialog({
-  //     message: 'Debes cargar al menos un frente/subfrente antes de continuar.',
-  //     header: 'Faltan datos',
-  //     icon: 'pi pi-exclamation-triangle',
-  //     acceptLabel: 'Entendido',
-  //     acceptClassName: 'p-button-danger',
-  //     accept: () => {}, // solo cierra el diálogo
-  //     reject: null // no hay botón de cancelar
-  //   });
-  //   return; // evita que continúe
-  // }
-    const data = {
-            // ...(modoEdicion && { id: persona.id }), 
-          codTicketInterno:values.codTicketInterno,
-          titulo: values.titulo,
-          fechaSolicitud : values.fechaSolicitud ? new Date(values.fechaSolicitud) : null,
-          idTipoTicket : values.idTipoTicket,
-          idEstadoTicket : values.idEstadoTicket,
-          idEmpresa : values.idEmpresa,
-          idUsuarioResponsableCliente : values.idUsuarioResponsableCliente,
-          idPrioridad : values.idPrioridad,
-          descripcion : values.descripcion,
-          urlArchivos : "",
-          consultorAsignaciones : values.asignaciones?values.asignaciones:[],
-           frenteSubFrentes: values.frenteSubFrentes.map(e => ({
-              idFrente: Number(e.idFrente),
-              idSubFrente: Number(e.idSubFrente),
-              cantidad: e.cantidad,
-            })),
-          ...(modoEdicion
-        ? { usuarioActualizacion: window.localStorage.getItem("username") }
-        : { usuarioCreacion: values.usuarioCreacion }),
-          // usuarioCreacion:values.usuarioCreacion,
-          // ...(modoEdicion && { usuarioActualizacion:  window.localStorage.getItem("username") }), 
-
+    if (modoEdicion) {
+      formData.append("usuarioActualizacion", window.localStorage.getItem("username"));
+    } else {
+      formData.append("UsuarioCreacion", values.usuarioCreacion);
     }
-       const jsonData = JSON.stringify(data, null, 2);
-      console.log("JSON",jsonData)
+    console.log("values.zipFile",values.zipFile)
+    if (values.zipFile) {
+        formData.append("zipFile", values.zipFile, values.zipFile.name);
 
-      if (modoEdicion) {
+      // formData.append("zipFile", values.zipFile);
+    }
+
+console.log("📦 Datos a enviar:");
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+    if (modoEdicion) {
         const idTicket = persona?.id;
         console.log(idTicket)
-        
-        Actualizar({ jsonData, idTicket });
+        Actualizar({ formData, idTicket });
       } else {
 
-        Registrar({ jsonData });
+        Registrar({ formData });
       }
+  },
+  
+ 
 
-      },
+
     });
   useEffect(() => {
   if (formik.submitCount > 0) {
@@ -374,8 +378,10 @@ useEffect(() => {
 
 
 
-  const Registrar = ({ jsonData }) => {
-    RegistrarTiket({ jsonData})
+  const Registrar = ({ formData }) => {
+            console.log("formData",formData)
+
+    RegistrarTiket({ formData})
       .then((data) => {
         formik.setSubmitting(false);
         toast.current.show({
@@ -739,18 +745,18 @@ useEffect(() => {
                   {formik.touched.descripcion && formik.errors.descripcion}
                 </div>
               </div>           
-              {/* <div className="field col-12 md:col-6">
+              <div className="field col-12 md:col-6">
                 <label className="label-form">Subir archivo ZIP</label>
                 <div className="custom-file-upload">
-                  <label htmlFor="urlArchivos" className="upload-label">
-                    {formik.values.urlArchivos
+                  <label htmlFor="zipFile" className="upload-label">
+                    {formik.values.zipFile
                     ? "Archivo cargado correctamente"
                     : "Seleccionar archivo .zip"}
                   </label>
-                  <input
+                  {/* <input
                     type="file"
-                    id="urlArchivos"
-                    name="urlArchivos"
+                    id="zipFile"
+                    name="zipFile"
                     accept=".zip"
                     onChange={async (event) => {
                       const file = event.currentTarget.files[0];
@@ -759,23 +765,42 @@ useEffect(() => {
                         const reader = new FileReader();
                         reader.onloadend = () => {
                           const base64String = reader.result; 
-                          formik.setFieldValue("urlArchivos", base64String); 
+                          formik.setFieldValue("zipFile", base64String); 
                         };
                         reader.readAsDataURL(file);
                       } else {
-                        formik.setFieldValue("urlArchivos", null);
+                        formik.setFieldValue("zipFile", null);
                       }
                     }}
                  disabled={permisosActual.controlesOcultos.includes("fileArchivo")}
 
                     onBlur={formik.handleBlur}
                     className="hidden-input"
-                  />
+                  /> */}
+                   <input
+                type="file"
+                id="zipFile"
+                name="zipFile"
+                accept=".zip"
+                onChange={(event) => {
+                  const file = event.currentTarget.files[0];
+                  if (file) {
+                    formik.setFieldValue("zipFile", file);
+                  } else {
+                    formik.setFieldValue("zipFile", null);
+                  }
+                }}
+                disabled={permisosActual.controlesOcultos.includes("fileArchivo")}
+                onBlur={formik.handleBlur}
+                className="hidden-input"
+              />
                 </div>
                 <small className="p-error">
                   {formik.touched.urlArchivos && formik.errors.urlArchivos}
                 </small>
-              </div> */}
+              </div>
+             
+
                { modoEdicion && (
              <>
              {!permisosActual.divsOcultos.includes("divFrentes") && (

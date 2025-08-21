@@ -110,7 +110,13 @@ const EditarUsuario = () => {
         .required("Fecha de nacimiento es obligatoria")
         .max(new Date(), "La fecha de nacimiento no puede ser en el futuro"),
       username: Yup.string().required("username es un campo obligatorio"),
-      password: Yup.string().required("password es un campo obligatorio"),
+      // password: Yup.string().required("password es un campo obligatorio"),
+
+      password: Yup.string().when([], {
+        is: () => !modoEdicion, // si NO está en modo edición → requerido
+        then: (schema) => schema.required("password es un campo obligatorio"),
+        otherwise: (schema) => schema.notRequired()
+      }),
       idRol: Yup.number().required("Rol es un campo obligatorio"),
       email: Yup.string(),
 
@@ -182,6 +188,11 @@ const EditarUsuario = () => {
         }
       }
     });
+      useEffect(() => {
+      if (formik.submitCount > 0) {
+        console.log("Errores actuales:", formik.errors);
+      }
+    }, [formik.submitCount]);
  
   const Registrar = ({ jsonData }) => {
     console.log("RegistrarUsuario",jsonData)
@@ -211,6 +222,8 @@ const EditarUsuario = () => {
   };
 
    const Actualizar = ({ jsonData,idUsuario }) => {
+        console.log("RegistrarUsuario",jsonData)
+
       ActualizarUsuario({ jsonData, idUsuario })
         .then((data) => {
           formik.setSubmitting(false);

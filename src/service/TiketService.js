@@ -58,14 +58,14 @@ export const ListarFrentes = async () => {
 // };
 
 
-export const RegistrarTiket = ({ jsonData }) => {
+export const RegistrarTiket = ({ formData }) => {
   return fetch(`${ENDPOINT}/api/Ticket`, {
     method: "POST",
     headers: {
       "Accept": "application/json",
-      "Content-Type": "application/json", 
+      //"Content-Type": "application/json", 
     },
-    body: jsonData,
+    body: formData,
   })
     .then((res) => {
       if (!res.ok) {
