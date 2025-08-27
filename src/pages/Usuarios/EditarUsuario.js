@@ -128,7 +128,7 @@ const EditarUsuario = () => {
     const formik = useFormik({
       enableReinitialize: true,
       initialValues: {
-        nombres:usuario ? usuario.persona.apellidoPaterno : "",
+        nombres:usuario ? usuario.persona.nombres : "",
         apellidoPaterno: usuario?.persona.apellidoPaterno || "",
         apellidoMaterno: usuario?.persona.apellidoMaterno || "",
         numeroDocumento: usuario?.persona.numeroDocumento || "",

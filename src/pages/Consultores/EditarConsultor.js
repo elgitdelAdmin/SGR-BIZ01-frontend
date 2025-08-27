@@ -825,7 +825,7 @@ const EditarConsultor = () => {
                   header="Nivel de experiencia"
                   body={(rowData) => {
                     if (!nivelExperiencia || !Array.isArray(nivelExperiencia)) return '';
-                    const item = nivelExperiencia.find((n) => n.id === rowData?.idNivelExperiencia);
+                    const item = (parametros?.filter((item) => item.tipoParametro === "NivelExperiencia")).find((n) => n.id === rowData?.idNivelExperiencia);
                     return item?.nombre || '';
                   }}
                 />

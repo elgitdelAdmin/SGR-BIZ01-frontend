@@ -1,39 +1,44 @@
 
 import React, { useEffect, useState ,useRef} from "react";
+import DropdownDefault from "../../components/Dropdown/DropdownDefault";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
-import "./Consultores.scss"
+import "./Socios.scss"
 import { Navigate, useLocation,useNavigate } from "react-router-dom";
+import { Loader, Placeholder } from 'rsuite';
 import Boton from "../../components/Boton/Boton";
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import useUsuario from "../../hooks/useUsuario";
 import { InputText } from "primereact/inputtext";
-import {ListarConsultores,ListarConsultoresPorSocio,ListarParametros} from "../../service/ConsultorService";
+import {ListarSocios,EliminarSocio} from "../../service/SocioService";
+
+
 import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
-import {EliminarConsultor} from "../../service/ConsultorService";
 
-const Consultores = () => {
+const Gestores = () => {
     const navigate = useNavigate();
     const [especializaciones, setEspecializaciones] = useState([]);
 
     const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
     const [listaPersonas, setListaPersonas] = useState(null);
-    const [listaPersonasTotal, setListaPersonasTotal] = useState(null);
+    const [listaPersonasTotal, setListaSociosTotal] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+    const [socioSeleccionado, setSocioSeleccionado] = useState(null);
     const [visible, setVisible] = useState(false);
     const [globalFilterValue, setGlobalFilterValue] = useState("");
     const [totalRecords, setTotalRecords] = useState(0);
     const [paginaReinicio, setpaginaReinicio] = useState(null);
-      const [parametros, setParametro] = useState([]);
     
     const {permisos} = useUsuario();
+    // const listaEmpresas =
+    // [{value:1,name:"Zegel Virtual"}]
     const toast = useRef(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const codRol = localStorage.getItem("codRol");
+
     const [lazyState, setlazyState] = useState({
         first: 0,
         rows: 10,
@@ -60,11 +65,8 @@ const loadLazyData = () => {
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
-         const fetchFunction = codRol === "SUPERADMIN" ? ListarConsultores : ListarConsultoresPorSocio;
-         fetchFunction()
-        // ListarConsultoresPorSocio()
+         ListarSocios()
             .then((data) => {
-                console.log("DATA")
                 setTotalRecords(data.length);
                 const pageNumber = lazyState?.page ?? 0;
                 const pageSize = lazyState?.rows ?? 10;
@@ -78,11 +80,10 @@ const loadLazyData = () => {
                         ticket.descripcion?.toLowerCase().includes(search)
                     );
                 }
-                 //Agrego
-filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
+               
+                filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
                 const paginatedData = filteredData.slice(start, end);
-
-                setListaPersonasTotal(paginatedData);
+                setListaSociosTotal(paginatedData);
                 setLoading(false);
             })
             .catch((error) => {
@@ -92,6 +93,9 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
     }, Math.random() * 1000 + 250);
 };
 
+    // const onPage = (event) => {
+    //     setlazyState(event);
+    // };
     const onPage = (event) => {
     setlazyState((prevState) => ({
         ...prevState,
@@ -106,7 +110,7 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
         if (e.key === 'Enter') {
             onPage(1);
             setpaginaReinicio(1);
-            loadLazyData();
+            loadLazyData(empresaSeleccionada);
         }
     };
 
@@ -123,7 +127,7 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                         onKeyDown={handleKeyPress} 
                         placeholder="Buscar..." />
                 </span>
-                <div style={{marginLeft:"2%"}} className="accion-editar" onClick={()=>{onPage(1);setpaginaReinicio(1);loadLazyData()}}>
+                <div style={{marginLeft:"2%"}} className="accion-editar" onClick={()=>{onPage(1);setpaginaReinicio(1);loadLazyData(empresaSeleccionada)}}>
                 <span><Iconsax.SearchNormal color="#ffffff"/></span>
             </div>
             </div>
@@ -137,33 +141,21 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
 
 
 
-    // useEffect(()=>{
-       
-    //     if(permisos.length >0)
-    //     {
-    //         permisos.indexOf("editarUsuarioAdmin") > -1 && setIsAdmin(true)
-    //     }
-
-    // },[permisos])
-
+ 
     useEffect(() => {
-              setListaPersonas(listaPersonasTotal)
+    
+        setListaPersonas(listaPersonasTotal)
     }, [listaPersonasTotal]);
-    useEffect(() => {
-       const getParametro = async () => {
-         await ListarParametros().then(data=>{setParametro(data)})
-      };
-       getParametro();
-     }, []);
-     
+   
+
 
     const accion =(rowData)=>{
         return  <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("Editar/"+rowData.id)}>
+            <div className="accion-editar" onClick={()=>navigate("EditarSocio/"+rowData.id)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
              <div className="accion-eliminar" onClick={()=>{
-                setUsuarioSeleccionado(rowData.id)
+                setSocioSeleccionado(rowData.id)
                 confirm2(rowData.id)
                 
              }}>
@@ -183,27 +175,28 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
     }
 
 
-    const Eliminar =async ({id})=>{
-        let idConsultor = id
-        await EliminarConsultor({idConsultor}).then(data=>{
-            console.log(data);
-            toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
-  
-  
-            // setTimeout(() => {
-            //     window.location.reload();
-            // }, 3000)
-            loadLazyData(); // recarga solo la tabla
 
-        })
-        .catch(errors => {
-            toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
-        })
-    }
+     const Eliminar =async ({id})=>{
+            let idSocio = id
+            await EliminarSocio({idSocio}).then(data=>{
+                console.log(data);
+                toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
+      
+      
+                // setTimeout(() => {
+                //     window.location.reload();
+                // }, 3000)
+                loadLazyData(); // recarga solo la tabla
+    
+            })
+            .catch(errors => {
+                toast.current.show({severity:'error', summary: 'Error', detail:errors.message, life: 7000})
+            })
+        }
 
     const confirm2 = (id) => {
         confirmDialog({
-            message: 'Seguro de eliminar el Consultor?',
+            message: 'Seguro de eliminar el Usuario?',
             header: 'Eliminar',
             icon: 'pi pi-info-circle',
             acceptClassName: 'p-button-danger',
@@ -221,7 +214,8 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
         
     }
         const handleVerEspecializaciones = (persona) => {
-        setEspecializaciones(persona.especializaciones || []);
+        console.log("PERSON",persona)
+        setEspecializaciones(persona.frentesSubFrente || []);
         setVisible(true);
     };
       const modalFooter = (
@@ -231,39 +225,40 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
         <div className="zv-usuario" style={{paddingTop:16}}>
             <ConfirmDialog />
             <Toast ref={toast} position="top-center"></Toast>
-            <div className="header-titulo">Gestión de Consultores</div>
+            <div className="header-titulo">Gestión de Socios</div>
             <div className="zv-usuario-body" style={{marginTop:16}}>
-                   {/* <div className="zv-usuario-body-filtro">
+                   <div className="zv-usuario-body-filtro">
                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                  <div style={{ marginLeft: "auto" }}>
                                      <Boton
-                                     label="Crear Consultor"
+                                     label="Crear Socio"
                                      style={{ fontSize: 12,borderRadius:15 }}
                                      color="primary"
-                                     onClick = {()=>navigate("CrearConsultor/")}
+                                     onClick = {()=>navigate("CrearSocio/")}
                                      ></Boton>
                                  </div>
                              </div>                        
-                     </div> */}
+                     </div>
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
-                            // lazy
-                             globalFilter={globalFilterValue}   
-                            globalFilterFields={['persona.nombres','persona.apellidoPaterno','persona.apellidoMaterno']}
+                            lazy
+                            globalFilterFields={['nombres']}
                             loading={loading}
                             onPage={onPage}
                             first={lazyState.first}
                             header = {header}
                             totalRecords ={totalRecords}
+                            // resizableColumns columnResizeMode="expand"
                         >
-                              <Column field="persona.nombres" header="Nombres" />
-                             <Column field="persona.apellidoPaterno" header="Apellido Paterno" />
-                             <Column field="persona.apellidoMaterno" header="Apellido Materno" />
-                             <Column
-                                header="Especializaciones"
-                                body={verespecializaciones} 
-                            />
-                            <Column field="persona.telefono" header="Teléfono" />
+                            <Column field="razonSocial" header="Razon Social" />
+                            <Column field="codigo" header="Codigo" />
+                            <Column field="nombre" header="Nombre" />
+                            <Column field="nombreComercial" header="Nombre Comercial" />
+                            <Column field="numDocContribuyente" header="N° Documento Contribuyente" />
+                            <Column field="direccion" header="Direccion" />
+                            <Column field="telefono1" header="Telefono 1" />
+                            <Column field="telefono2" header="Telefono 2" />
+                            <Column field="email" header="Email" />
                             <Column
                                 field="activo"
                                 header="Estado"
@@ -274,33 +269,11 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                                 body={accion} 
                             />
                         </DatatableDefault>
-                         <Dialog
-                                header="Especializaciones"
-                                visible={visible}
-                                style={{ width: '40vw' }}
-                                footer={modalFooter}
-                                onHide={() => setVisible(false)}
-                            >
-                                <DataTable value={especializaciones} responsiveLayout="scroll">
-                                    <Column field="frente.nombre" header="Frente" />
-                                    <Column field="subFrente.nombre" header="SubFrente" />
-                                    <Column
-                                        header="Nivel de Experiencia"
-                                        body={(rowData) => {
-                                        const nivel = parametros
-                                            ?.filter((item) => item.tipoParametro === "NivelExperiencia")
-                                            .find((p) => p.id === rowData.idNivelExperiencia);
-                                        return nivel ? nivel.nombre : "-";
-                                        }}
-                                    />
-                                </DataTable>
-                            </Dialog>
+                       
                     </div>
             </div>
         </div>
      );
 }
  
-export default Consultores;
-
-
+export default Gestores;

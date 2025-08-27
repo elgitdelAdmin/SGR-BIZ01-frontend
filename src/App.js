@@ -29,6 +29,8 @@ import  Editar from "./pages/Gestiontikets/Editar";
 import  Cargabilidad from "./pages/Cargabilidad/Cargabilidad"
 import  Usuarios  from "./pages/Usuarios/Usuarios"
 import  EditarUsuario from "./pages/Usuarios/EditarUsuario";
+import  Socios  from "./pages/Socios/Socios"
+import  EditarSocio from "./pages/Socios/EditarSocio";
 
 function App() {
   const [layoutMode, setLayoutMode] = useState("static");
@@ -188,8 +190,11 @@ function App() {
 
               <Route path="Usuarios" element={<Usuarios/>}></Route>
               <Route path="Usuarios/CrearUsuario" element={<EditarUsuario/>}></Route>
-
               <Route path="Usuarios/EditarUsuario/:id" element={<EditarUsuario />}></Route>
+
+              <Route path="Socios" element={<Socios/>}></Route>
+              <Route path="Socios/CrearSocio" element={<EditarSocio/>}></Route>
+              <Route path="Socios/EditarSocio/:id" element={<EditarSocio />}></Route>
 
 
               <Route path="Cargabilidad" element={<Cargabilidad />}></Route>
