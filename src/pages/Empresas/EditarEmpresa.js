@@ -31,7 +31,7 @@ import { Divider } from "primereact/divider";
 import { Calendar } from 'primereact/calendar';
 import DataTable from 'react-data-table-component';
 import {RegistrarEmpresa,ListarFrentes,ListarParametros,ObtenerEmpresa,ActualizarEmpresa,ObtenerPersona,ObtenerPersonaResponsable} from "../../service/EmpresaService";
-import { ListarPais} from "../../service/TiketService";
+import { ListarPais,ListarGestorCuenta} from "../../service/TiketService";
 import {ListarGestoresPorSocio,ListarGestores} from "../../service/GestorService";
 
 const EditarConsultor = () => {
@@ -40,6 +40,7 @@ const EditarConsultor = () => {
   const [parametros, setParametro] = useState([]);
   const [pais, setPais] = useState(null);
   const [gestor, setGestor] = useState(null);
+
   const [empresa, setEmpresa] = useState(null);
   const [persona, setPersona] = useState(null);
   const [tituloPagina, setTituloPagina] = useState("Crear Empresa");
@@ -93,9 +94,9 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
     }, []);
      useEffect(() => {
       const getGestor = async () => {
-      const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
+      // const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
         
-       await fetchFunction().then(data=>{setGestor(data)})
+       await ListarGestorCuenta().then(data=>{setGestor(data)})
       };
       getGestor();
     }, []);
@@ -507,7 +508,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
               </small>
             </div>
              <div className="field col-12 md:col-6">
-              <label className="label-form">Gestor</label>
+              <label className="label-form">Gestor Cuenta</label>
               <DropdownDefault
                 type={"text"}
                 id="idGestor"

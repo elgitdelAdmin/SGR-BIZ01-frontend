@@ -16,6 +16,18 @@ export const ListarEmpresas = async () => {
   });
 };
 
+export const ListarEmpresasporRol = async ({idUser,codRol}) => {
+  return await fetch(`${ENDPOINT}/api/Empresas/user/${idUser}/rol/${codRol}`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    },
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Error al obtener las Empresas");
+    return res.json();
+  });
+};
 export const ListarEmpresasPorSocio = async () => {
   return await fetch(`${ENDPOINT}/api/Empresas/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",

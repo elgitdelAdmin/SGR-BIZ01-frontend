@@ -35,9 +35,9 @@ import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { InputSwitch } from 'primereact/inputswitch';
 import { FileUpload } from "primereact/fileupload";
-import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket} from "../../service/TiketService";
+import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria} from "../../service/TiketService";
 import {ListarGestoresPorSocio,ListarGestores} from "../../service/GestorService";
-import {ListarEmpresasPorSocio,ListarEmpresas} from "../../service/EmpresaService";
+import {ListarEmpresasPorSocio,ListarEmpresas,ListarEmpresasporRol} from "../../service/EmpresaService";
 
 const Editar = () => {
   const navigate = useNavigate();
@@ -50,6 +50,8 @@ const Editar = () => {
   const [frentes, setFrentes] = useState([]);
   const [subfrentes, setSubfrentes] = useState(null);
   const [empresa, setEmpresa] = useState(null);
+  const [gestorConsultoria, setgestorConsultoria] = useState(null);
+
   const [pais, setPais] = useState(null);
 
   const [usuario, setUsuario] = useState(null);
@@ -59,7 +61,7 @@ const Editar = () => {
   const [gestores, setGestores] = useState(null);
   const [consultores, setConsultores] = useState(null);
   const codRol = localStorage.getItem("codRol");
-
+ let { idUser } = useParams();
  const {permisos} = useUsuario();
     const permisosActual = permisos["/tickets"] || {
     divsOcultos: [],
@@ -84,13 +86,18 @@ const [bloquearDropdown, setBloquearDropdown] = useState([]);
   const toast = useRef(null);
   useEffect(() => {
       const getEmpresa = async () => {
-        const fetchFunction = codRol === "SUPERADMIN" ? ListarEmpresas : ListarEmpresasPorSocio;
-
-        await fetchFunction().then(data=>{setEmpresa(data)})
+        // const fetchFunction = codRol === "SUPERADMIN" ? ListarEmpresas : ListarEmpresasPorSocio;
+        await ListarEmpresasporRol({idUser,codRol}).then(data=>{setEmpresa(data)})
       };
       getEmpresa();
     }, []);
 
+      useEffect(() => {
+      const getgestorConsultoria = async () => {
+        await ListarGestorConsultoria().then(data=>{setgestorConsultoria(data)})
+      };
+      getgestorConsultoria();
+    }, []);
 
    useEffect(() => {
       const getFrentes = async () => {
@@ -271,6 +278,8 @@ useEffect(() => {
       //       return value && value.type === "application/zip";
       //     })    
        zipFile: Yup.mixed(),
+       idGestorConsultoria: Yup.number().required("Gestor Consultoria es obligatorio"),
+
  
   });
 
@@ -297,7 +306,9 @@ useEffect(() => {
       asignaciones:persona ? persona.consultorAsignaciones : [],
       usuarioCreacion:persona?.usuarioCreacion|| window.localStorage.getItem("username"), 
       nombrePersonaResponsable:  "",
-      zipFile: null
+      zipFile: null,
+      idGestorConsultoria: persona ? persona.idGestorConsultoria : null,
+
     },
     validationSchema: schema,
 
@@ -315,6 +326,7 @@ useEffect(() => {
     formData.append("urlArchivos", "");
     formData.append("codReqSgrCsti", "");
     formData.append("idReqSgrCsti", "");
+    formData.append("idGestorConsultoria", values.idGestorConsultoria);
     formData.append("consultorAsignaciones", JSON.stringify(values.asignaciones || []));
     formData.append(
       "frenteSubFrentes",
@@ -346,7 +358,6 @@ console.log("📦 Datos a enviar:");
         console.log(idTicket)
         Actualizar({ formData, idTicket });
       } else {
-
         Registrar({ formData });
       }
   },
@@ -406,8 +417,8 @@ console.log("📦 Datos a enviar:");
       });
   };
 
-  const Actualizar = ({ jsonData,idTicket }) => {
-        ActualizarTicket({ jsonData, idTicket })
+  const Actualizar = ({ formData,idTicket }) => {
+        ActualizarTicket({ formData, idTicket })
           .then((data) => {
             formik.setSubmitting(false);
             toast.current.show({
@@ -522,6 +533,12 @@ console.log("📦 Datos a enviar:");
 
 
   }
+};
+
+const handleGestorChange = (e) => {
+  const selectedGestorConsultoriaId = e.value;
+  formik.setFieldValue("idGestorConsultoria", selectedGestorConsultoriaId);
+
 };
 
  const handleChange = (index, field, value) => {
@@ -799,7 +816,23 @@ console.log("📦 Datos a enviar:");
                   {formik.touched.urlArchivos && formik.errors.urlArchivos}
                 </small>
               </div>
-             
+              <div className="field col-12 md:col-6">
+              <label className="label-form">Gestor Consultoria</label>
+              <DropdownDefault
+                id="idGestorConsultoria"
+                name="idGestorConsultoria"
+                placeholder="Seleccione"
+                value={formik.values.idGestorConsultoria}
+                onChange={handleGestorChange}
+                onBlur={formik.handleBlur}
+                options={gestorConsultoria}
+                optionLabel="nombres"
+                optionValue="id"
+              />
+              <small className="p-error">
+                {formik.touched.idGestorConsultoria && formik.errors.idGestorConsultoria}
+              </small>
+              </div>
 
                { modoEdicion && (
              <>
@@ -1030,6 +1063,8 @@ console.log("📦 Datos a enviar:");
                         onBlur={formik.handleBlur}
                         showTime
                         hourFormat="24"
+                        minDate={new Date()} 
+                        dateFormat="dd/mm/yy"   
                       />
 
                         <small className="p-error">
@@ -1062,6 +1097,15 @@ console.log("📦 Datos a enviar:");
                         }
                         onBlur={formik.handleBlur}
                         showTime 
+
+                        disabled={!formik.values.asignaciones[index].fechaAsignacion}
+                        minDate={
+                          formik.values.asignaciones[index].fechaAsignacion
+                            ? new Date(formik.values.asignaciones[index].fechaAsignacion)
+                            : new Date()
+                        }
+                       
+                        dateFormat="dd/mm/yy"  
                         hourFormat="24"
                       />
 
@@ -1104,7 +1148,7 @@ console.log("📦 Datos a enviar:");
            <div className="zv-editarUsuario-footer">
           {/* <button type="button" onClick={() => console.log("VALUES", formik.values)}>
             Ver valores
-          </button> * */}
+          </button> */}
            <Boton
               label="Guardar cambios"
               style={{ fontSize: 12 }}

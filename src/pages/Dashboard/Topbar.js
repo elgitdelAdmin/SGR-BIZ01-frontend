@@ -4,17 +4,31 @@ import { Link ,useNavigate} from "react-router-dom";
 import"./Topbar.scss"
 import useUsuario from "../../hooks/useUsuario";
 import * as Iconsax from "iconsax-react";
+import NotificationDropdown from "../../components/Notification/NotificationDropdown"
 
 
 const TopBar = (props) => {
     const navigate = useNavigate()
 
     const { logout, isLogged, perfil } = useUsuario();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    "Notificación 1",
+    "Notificación 2",
+    "Notificación 3",
+  ]);
+
+const notificacionTicket = JSON.parse(localStorage.getItem("notificacionTicket")) || [];
+
+      console.log("notifications",notificacionTicket)
 
     const cerrarSesion=(e)=>{
         e.preventDefault();
         logout();
     }
+    const toggleNotifications = () => {
+        setShowNotifications(!showNotifications);
+      };
 
     useEffect(() => {
         if (!isLogged) navigate("/Login")
@@ -79,14 +93,41 @@ const TopBar = (props) => {
         Hola,{window.localStorage.getItem("username")}
 
       </div>
-
       <div
-        className="topbar-salir lg:flex origin-top"
-        style={{ color: "#2D5B97", display: "flex", alignItems: "center", cursor: "pointer", gap: '5px' }}
-        onClick={cerrarSesion}
+        className="topbar-notifications"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          cursor: "pointer",
+          gap: "15px",
+        }}
       >
-        <span>Cerrar sesión</span>
-        <Iconsax.LogoutCurve />
+        <div onClick={toggleNotifications}>
+          <Iconsax.Notification />
+        </div>
+
+        {showNotifications && (
+          <NotificationDropdown
+            notifications={notificacionTicket}
+            onClose={toggleNotifications}
+          />
+        )}
+
+        {/* Cerrar sesión */}
+        <div
+          className="topbar-salir lg:flex origin-top"
+          style={{
+            color: "#2D5B97",
+            display: "flex",
+            alignItems: "center",
+            cursor: "pointer",
+            gap: "5px",
+          }}
+          onClick={cerrarSesion}
+        >
+          <span>Cerrar sesión</span>
+          <Iconsax.LogoutCurve />
+        </div>
       </div>
     </div>
      );

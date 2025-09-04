@@ -74,13 +74,26 @@ const loadLazyData = () => {
                 const start = pageNumber * pageSize;
                 const end = start + pageSize;
                 let filteredData = data;
+                // if (globalFilterValue) {
+                //     const search = globalFilterValue.toLowerCase();
+                //     filteredData = data.filter(ticket =>
+                //         ticket.titulo?.toLowerCase().includes(search) ||
+                //         ticket.descripcion?.toLowerCase().includes(search)
+                //     );
+                // }
+
                 if (globalFilterValue) {
                     const search = globalFilterValue.toLowerCase();
-                    filteredData = data.filter(ticket =>
-                        ticket.titulo?.toLowerCase().includes(search) ||
-                        ticket.descripcion?.toLowerCase().includes(search)
+                    filteredData = data.filter(usuario =>
+                        usuario.persona?.nombres?.toLowerCase().includes(search) ||
+                        usuario.persona?.apellidoPaterno?.toLowerCase().includes(search) ||
+                        usuario.persona?.apellidoMaterno?.toLowerCase().includes(search) ||
+                        usuario.persona?.numeroDocumento?.toLowerCase().includes(search) ||
+                        usuario.username?.toLowerCase().includes(search) ||
+                        usuario.persona?.correo?.toLowerCase().includes(search)
                     );
                 }
+
                  //Agrego
                 // filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
             filteredData.sort((a, b) => {
@@ -148,14 +161,7 @@ const loadLazyData = () => {
 
 
 
-    // useEffect(()=>{
-       
-    //     if(permisos.length >0)
-    //     {
-    //         permisos.indexOf("editarUsuarioAdmin") > -1 && setIsAdmin(true)
-    //     }
 
-    // },[permisos])
 
   
     useEffect(() => {
@@ -163,51 +169,6 @@ const loadLazyData = () => {
         setListaPersonas(listaPersonasTotal)
     }, [listaPersonasTotal]);
    
-
-    //  useEffect(() => {
-        
-    //          const list= { 
-    //             id: 4,
-    //             personaId: 38,
-    //             idNivelExperiencia: 3,
-    //             idModalidadLaboral: 1,
-    //             idSocio: 1,
-    //             usuarioCreacion: "",
-    //             fechaCreacion: "2025-06-10T18:31:50.071123",
-    //             usuarioActualizacion: null,
-    //             fechaActualizacion: null,
-    //             activo: true,
-    //             nombres: "Alonso Pablo",
-    //             apellidoPaterno: "Castro",
-    //             apellidoMaterno: "Tello",
-    //             numeroDocumento: "76543221",
-    //             tipoDocumento: 1,
-    //             telefono: "900887887",
-    //             telefono2: "975772456",
-    //             correo: "prueba@gmail",
-    //             direccion: "Direccion",
-    //             fechaNacimiento: "1989-05-04T05:00:00",
-    //             frentesSubFrente: [
-    //                 {
-    //                     id: 3,
-    //                     idGestor: 4,
-    //                     idFrente: 2,
-    //                     idSubFrente: 6,
-    //                     idNivelExperiencia: 1,
-    //                     esCertificado: true,
-    //                     fechaCreacion: "2025-06-10T18:31:50.54328",
-    //                     usuarioCreacion: "",
-    //                     fechaActualizacion: null,
-    //                     usuarioActualizacion: null,
-    //                     activo: true
-    //                 }
-    //             ]
-    //          }
-    //         setListaPersonas(list)
-    // }, []);
-    
-
-
 
     const accion =(rowData)=>{
         return  <div className="profesor-datatable-accion">
@@ -302,7 +263,16 @@ const loadLazyData = () => {
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy
-                            globalFilterFields={['nombres']}
+                            // globalFilterFields={['nombres']}
+                            globalFilterFields={[
+                                'persona.nombres',
+                                'persona.apellidoPaterno',
+                                'persona.apellidoMaterno',
+                                'persona.numeroDocumento',
+                                'username',
+                                'persona.correo'
+                                ]}
+
                             loading={loading}
                             onPage={onPage}
                             first={lazyState.first}

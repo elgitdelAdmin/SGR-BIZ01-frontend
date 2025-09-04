@@ -17,3 +17,21 @@
   background-color: #2D5B97; /* azul */
   color: white;
 }
+.notifications-dropdown {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notifications-dropdown ul {
+  margin: 0;
+  padding: 0;
+}
+
+.notifications-dropdown li {
+  padding: 10px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.notifications-dropdown li:hover {
+  background-color: #f9f9f9;
+}

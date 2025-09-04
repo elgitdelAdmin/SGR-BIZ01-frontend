@@ -15,7 +15,7 @@ export default function useUsuario(){
 const login = useCallback(async({userName,password},onSuccess) => {
     await loginService({userName,password})
     .then(res => {
-        const { accessToken, refreshToken, expiresAt, user } = res;
+        const { accessToken, refreshToken, expiresAt, user,notificacionTicket } = res;
 
         console.log("success: ", accessToken);
 
@@ -28,6 +28,7 @@ const login = useCallback(async({userName,password},onSuccess) => {
         window.localStorage.setItem('idRol', user.idRol);
         window.localStorage.setItem('idUser', user.id);
         window.localStorage.setItem('codRol', user.rol.codigo);
+        window.localStorage.setItem("notificacionTicket", JSON.stringify(notificacionTicket));
 
 
 
@@ -44,6 +45,8 @@ const login = useCallback(async({userName,password},onSuccess) => {
         window.localStorage.removeItem('idRol');
         window.localStorage.removeItem('idUser');
         window.localStorage.removeItem('codRol');
+        window.localStorage.removeItem('notificacionTicket');
+
 
 
         setState({ loading: false, error: true });
