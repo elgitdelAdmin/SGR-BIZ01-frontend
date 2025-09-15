@@ -79,6 +79,7 @@ const loadLazyData = () => {
                 if (globalFilterValue) {
                     const search = globalFilterValue.toLowerCase();
                     filteredData = data.filter(ticket =>
+                        ticket.codTicket?.toLowerCase().includes(search) ||
                         ticket.titulo?.toLowerCase().includes(search) ||
                         ticket.descripcion?.toLowerCase().includes(search)
                     );

@@ -72,13 +72,18 @@ const loadLazyData = () => {
                 const start = pageNumber * pageSize;
                 const end = start + pageSize;
                 let filteredData = data;
-                if (globalFilterValue) {
-                    const search = globalFilterValue.toLowerCase();
-                    filteredData = data.filter(ticket =>
-                        ticket.titulo?.toLowerCase().includes(search) ||
-                        ticket.descripcion?.toLowerCase().includes(search)
-                    );
-                }
+              if (globalFilterValue) {
+  const search = globalFilterValue.toLowerCase();
+  filteredData = data.filter(emp =>
+    emp.nombreComercial?.toLowerCase().includes(search) ||
+    emp.razonSocial?.toLowerCase().includes(search) ||
+    emp.ruc?.toString().includes(search) ||
+    emp.telefono?.toString().includes(search) ||
+    emp.direccion?.toLowerCase().includes(search) ||
+    emp.email?.toLowerCase().includes(search)
+  );
+}
+
                  //Agrego
 filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
                 const paginatedData = filteredData.slice(start, end);
@@ -236,8 +241,8 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy
-                            globalFilterFields={['codigo']}
-                            loading={loading}
+                            globalFilterFields={['nombreComercial', 'razonSocial', 'ruc', 'telefono', 'direccion', 'email']}                           
+                             loading={loading}
                             onPage={onPage}
                             first={lazyState.first}
                             header = {header}

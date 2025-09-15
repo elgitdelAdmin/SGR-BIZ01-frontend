@@ -71,13 +71,14 @@ const loadLazyData = () => {
                 const start = pageNumber * pageSize;
                 const end = start + pageSize;
                 let filteredData = data;
-                if (globalFilterValue) {
-                    const search = globalFilterValue.toLowerCase();
-                    filteredData = data.filter(ticket =>
-                        ticket.titulo?.toLowerCase().includes(search) ||
-                        ticket.descripcion?.toLowerCase().includes(search)
-                    );
-                }
+               if (globalFilterValue) {
+                        const search = globalFilterValue.toLowerCase();
+                        filteredData = data.filter(c =>
+                            c.persona?.nombres?.toLowerCase().includes(search) ||
+                            c.persona?.apellidoPaterno?.toLowerCase().includes(search) ||
+                            c.persona?.apellidoMaterno?.toLowerCase().includes(search) ||
+ (c.persona?.telefono && c.persona.telefono.toString().toLowerCase().includes(search))                          );
+                        }
                  //Agrego
 filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
                 const paginatedData = filteredData.slice(start, end);
@@ -249,7 +250,13 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                         <DatatableDefault value={listaPersonas} 
                             // lazy
                              globalFilter={globalFilterValue}   
-                            globalFilterFields={['persona.nombres','persona.apellidoPaterno','persona.apellidoMaterno']}
+                               globalFilterFields={[
+    'persona.nombres',
+    'persona.apellidoPaterno',
+    'persona.apellidoMaterno',
+    'persona.telefono'
+  ]}
+                            // globalFilterFields={['persona.nombres','persona.apellidoPaterno','persona.apellidoMaterno']}
                             loading={loading}
                             onPage={onPage}
                             first={lazyState.first}

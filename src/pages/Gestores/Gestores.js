@@ -73,13 +73,16 @@ const loadLazyData = () => {
                 const start = pageNumber * pageSize;
                 const end = start + pageSize;
                 let filteredData = data;
-                if (globalFilterValue) {
-                    const search = globalFilterValue.toLowerCase();
-                    filteredData = data.filter(ticket =>
-                        ticket.titulo?.toLowerCase().includes(search) ||
-                        ticket.descripcion?.toLowerCase().includes(search)
-                    );
-                }
+               if (globalFilterValue) {
+    const search = globalFilterValue.toLowerCase();
+    filteredData = data.filter(g =>
+        g.nombres?.toLowerCase().includes(search) ||
+        g.apellidoPaterno?.toLowerCase().includes(search) ||
+        g.apellidoMaterno?.toLowerCase().includes(search) ||
+        (g.telefono && g.telefono.toString().toLowerCase().includes(search))
+    );
+}
+
                  //Agrego
                filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
                 const paginatedData = filteredData.slice(start, end);
@@ -249,7 +252,7 @@ const loadLazyData = () => {
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy
-                            globalFilterFields={['nombres']}
+                            globalFilterFields={["nombres", "apellidoPaterno", "apellidoMaterno", "telefono"]}                           
                             loading={loading}
                             onPage={onPage}
                             first={lazyState.first}

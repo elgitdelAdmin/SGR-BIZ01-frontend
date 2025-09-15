@@ -73,13 +73,21 @@ const loadLazyData = () => {
                 const start = pageNumber * pageSize;
                 const end = start + pageSize;
                 let filteredData = data;
-                if (globalFilterValue) {
-                    const search = globalFilterValue.toLowerCase();
-                    filteredData = data.filter(ticket =>
-                        ticket.titulo?.toLowerCase().includes(search) ||
-                        ticket.descripcion?.toLowerCase().includes(search)
-                    );
-                }
+               if (globalFilterValue) {
+                const search = globalFilterValue.toLowerCase();
+                filteredData = data.filter(socio =>
+                    socio.razonSocial?.toLowerCase().includes(search) ||
+                    socio.codigo?.toLowerCase().includes(search) ||
+                    socio.nombre?.toLowerCase().includes(search) ||
+                    socio.nombreComercial?.toLowerCase().includes(search) ||
+                    socio.numDocContribuyente?.toString().includes(search) ||
+                    socio.direccion?.toLowerCase().includes(search) ||
+                    socio.telefono1?.toString().includes(search) ||
+                    socio.telefono2?.toString().includes(search) ||
+                    socio.email?.toLowerCase().includes(search)
+                );
+            }
+
                
                 filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
                 const paginatedData = filteredData.slice(start, end);
@@ -242,7 +250,17 @@ const loadLazyData = () => {
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy
-                            globalFilterFields={['nombres']}
+                            globalFilterFields={[
+                                    'razonSocial',
+                                    'codigo',
+                                    'nombre',
+                                    'nombreComercial',
+                                    'numDocContribuyente',
+                                    'direccion',
+                                    'telefono1',
+                                    'telefono2',
+                                    'email'
+                                ]}                            
                             loading={loading}
                             onPage={onPage}
                             first={lazyState.first}

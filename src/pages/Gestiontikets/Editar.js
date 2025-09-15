@@ -266,10 +266,10 @@ useEffect(() => {
       ),
       asignaciones: Yup.array().of(
           Yup.object().shape({
-            idConsultor: Yup.number(),
-            idTipoActividad:Yup.number(),
-            fechaAsignacion: Yup.string().nullable(),
-            fechaDesasignacion: Yup.string().nullable(),
+            IdConsultor: Yup.number(),
+            IdTipoActividad:Yup.number(),
+            FechaAsignacion: Yup.string().nullable(),
+            FechaDesasignacion: Yup.string().nullable(),
          })
       ),
       // zipFile: Yup.mixed()
@@ -303,7 +303,13 @@ useEffect(() => {
           cantidad:""
       },
       frenteSubFrentes: persona ?persona.frenteSubFrentes:[],
-      asignaciones:persona ? persona.consultorAsignaciones : [],
+       asignaciones: persona ?(persona.consultorAsignaciones.map((a) => ({
+      IdConsultor: a.idConsultor,
+      IdTipoActividad: a.idTipoActividad,
+      FechaAsignacion: a.fechaAsignacion,
+      FechaDesasignacion: a.fechaDesasignacion,
+    }))): [],
+      // asignaciones:persona ? persona.consultorAsignaciones : [],
       usuarioCreacion:persona?.usuarioCreacion|| window.localStorage.getItem("username"), 
       nombrePersonaResponsable:  "",
       zipFile: null,
@@ -331,9 +337,9 @@ useEffect(() => {
     formData.append(
       "frenteSubFrentes",
       JSON.stringify(values.frenteSubFrentes.map(e => ({
-        idFrente: Number(e.idFrente),
-        idSubFrente: Number(e.idSubFrente),
-        cantidad: e.cantidad,
+        IdFrente: Number(e.idFrente),
+        IdSubFrente: Number(e.idSubFrente),
+        Cantidad: e.cantidad,
       })))
     );
 
@@ -551,10 +557,10 @@ const handleGestorChange = (e) => {
     formik.setFieldValue("asignaciones", [
       ...formik.values.asignaciones,
       {
-        idConsultor: "",
-        idTipoActividad: "",
-        fechaAsignacion: null,
-        fechaDesasignacion: null,
+        IdConsultor: "",
+        IdTipoActividad: "",
+        FechaAsignacion: null,
+        FechaDesasignacion: null,
       },
     ]);
   };
@@ -999,66 +1005,66 @@ const handleGestorChange = (e) => {
                     <tr key={index} className="border-t">
                       <td className="p-2 border">
                         <DropdownDefault
-                          id={`idConsultor-${index}`}
-                          name={`asignaciones[${index}].idConsultor`}
+                          id={`IdConsultor-${index}`}
+                          name={`asignaciones[${index}].IdConsultor`}
                           placeholder="Seleccione"
-                          value={formik.values.asignaciones[index].idConsultor}
+                          value={formik.values.asignaciones[index].IdConsultor}
                           options={consultores}
                           optionLabel="nombre"
                           optionValue="id"
                           onChange={(e) =>
-                            formik.setFieldValue(`asignaciones[${index}].idConsultor`, e.value)
+                            formik.setFieldValue(`asignaciones[${index}].IdConsultor`, e.value)
                           }
                           onBlur={formik.handleBlur}
                         />
                         <small className="p-error">
                           {
-                            formik.touched.asignaciones?.[index]?.idConsultor &&
-                            formik.errors.asignaciones?.[index]?.idConsultor
+                            formik.touched.asignaciones?.[index]?.IdConsultor &&
+                            formik.errors.asignaciones?.[index]?.IdConsultor
                           }
                         </small>
                       </td>
 
                       <td className="p-2 border">
                         <DropdownDefault
-                          id={`idTipoActividad-${index}`}
-                          name={`asignaciones[${index}].idTipoActividad`}
+                          id={`IdTipoActividad-${index}`}
+                          name={`asignaciones[${index}].IdTipoActividad`}
                           placeholder="Seleccione"
-                          value={formik.values.asignaciones[index].idTipoActividad}
+                          value={formik.values.asignaciones[index].IdTipoActividad}
                           options={parametros?.filter((item) => item.tipoParametro === "TipoActividad")}
                           optionLabel="nombre"
                           optionValue="id"
                           onChange={(e) =>
-                            formik.setFieldValue(`asignaciones[${index}].idTipoActividad`, e.value)
+                            formik.setFieldValue(`asignaciones[${index}].IdTipoActividad`, e.value)
                           }
                           onBlur={formik.handleBlur}
                         />
                         <small className="p-error">
                           {
-                            formik.touched.asignaciones?.[index]?.idTipoActividad &&
-                            formik.errors.asignaciones?.[index]?.idTipoActividad
+                            formik.touched.asignaciones?.[index]?.IdTipoActividad &&
+                            formik.errors.asignaciones?.[index]?.IdTipoActividad
                           }
                         </small>
                       </td>
 
                       <td className="p-2 border">
                         <Calendar
-                        id={`fechaAsignacion-${index}`}
-                        name={`asignaciones[${index}].fechaAsignacion`}
+                        id={`FechaAsignacion-${index}`}
+                        name={`asignaciones[${index}].FechaAsignacion`}
                         value={
-                            formik.values.asignaciones[index].fechaAsignacion
-                              ? new Date(formik.values.asignaciones[index].fechaAsignacion)
+                            formik.values.asignaciones[index].FechaAsignacion
+                              ? new Date(formik.values.asignaciones[index].FechaAsignacion)
                               : null
                           }  
                         onChange={(e) =>
                           formik.setFieldValue(
-                            `asignaciones[${index}].fechaAsignacion`,
+                            `asignaciones[${index}].FechaAsignacion`,
                             e.value ? e.value.toISOString() : null
                           )
                         }
                       
                         //   onChange={(e) =>
-                        //   formik.setFieldValue(`asignaciones[${index}].fechaAsignacion`, e.value)
+                        //   formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, e.value)
                         // }
                         onBlur={formik.handleBlur}
                         showTime
@@ -1069,39 +1075,39 @@ const handleGestorChange = (e) => {
 
                         <small className="p-error">
                           {
-                            formik.touched.asignaciones?.[index]?.fechaAsignacion &&
-                            formik.errors.asignaciones?.[index]?.fechaAsignacion
+                            formik.touched.asignaciones?.[index]?.FechaAsignacion &&
+                            formik.errors.asignaciones?.[index]?.FechaAsignacion
                           }
                         </small>
                       </td>
 
                       <td className="p-2 border">
                         <Calendar
-                        id={`fechaDesasignacion-${index}`}
-                        name={`asignaciones[${index}].fechaDesasignacion`}
-                        // value={new Date(formik.values.asignaciones[index].fechaDesasignacion)}
+                        id={`FechaDesasignacion-${index}`}
+                        name={`asignaciones[${index}].FechaDesasignacion`}
+                        // value={new Date(formik.values.asignaciones[index].FechaDesasignacion)}
                         // onChange={(e) =>
-                        //   formik.setFieldValue(`asignaciones[${index}].fechaDesasignacion`, e.value)
+                        //   formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, e.value)
                         // }
 
                         value={
-                            formik.values.asignaciones[index].fechaDesasignacion
-                              ? new Date(formik.values.asignaciones[index].fechaDesasignacion)
+                            formik.values.asignaciones[index].FechaDesasignacion
+                              ? new Date(formik.values.asignaciones[index].FechaDesasignacion)
                               : null
                           }  
                         onChange={(e) =>
                           formik.setFieldValue(
-                            `asignaciones[${index}].fechaDesasignacion`,
+                            `asignaciones[${index}].FechaDesasignacion`,
                             e.value ? e.value.toISOString() : null
                           )
                         }
                         onBlur={formik.handleBlur}
                         showTime 
 
-                        disabled={!formik.values.asignaciones[index].fechaAsignacion}
+                        disabled={!formik.values.asignaciones[index].FechaAsignacion}
                         minDate={
-                          formik.values.asignaciones[index].fechaAsignacion
-                            ? new Date(formik.values.asignaciones[index].fechaAsignacion)
+                          formik.values.asignaciones[index].FechaAsignacion
+                            ? new Date(formik.values.asignaciones[index].FechaAsignacion)
                             : new Date()
                         }
                        
@@ -1111,8 +1117,8 @@ const handleGestorChange = (e) => {
 
                         <small className="p-error">
                           {
-                            formik.touched.asignaciones?.[index]?.fechaDesasignacion &&
-                            formik.errors.asignaciones?.[index]?.fechaDesasignacion
+                            formik.touched.asignaciones?.[index]?.FechaDesasignacion &&
+                            formik.errors.asignaciones?.[index]?.FechaDesasignacion
                           }
                         </small>
                       </td>
