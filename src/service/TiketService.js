@@ -58,12 +58,39 @@ export const ListarFrentes = async () => {
 // };
 
 
+// export const RegistrarTiket = ({ formData }) => {
+//   return fetch(`${ENDPOINT}/api/Ticket`, {
+//     method: "POST",
+//     headers: {
+//       "Accept": "application/json",
+//       //"Content-Type": "application/json", 
+//     },
+//     body: formData,
+//   })
+//     .then((res) => {
+//       if (!res.ok) {
+//         if (res.status === 401) {
+//           window.localStorage.removeItem("jwt");
+//           window.location.reload();
+//         } else {
+//           throw new Error("No se recibió respuesta del servidor");
+//         }
+//       }
+//       return res.json();
+
+//     })
+//     .then((res) => {
+//       if (res.errors) throw new Error(res.errors[0]);
+//       const { data } = res;
+//       return data;
+//     });
+// };
+
 export const RegistrarTiket = ({ formData }) => {
   return fetch(`${ENDPOINT}/api/Ticket`, {
     method: "POST",
     headers: {
       "Accept": "application/json",
-      //"Content-Type": "application/json", 
     },
     body: formData,
   })
@@ -76,15 +103,14 @@ export const RegistrarTiket = ({ formData }) => {
           throw new Error("No se recibió respuesta del servidor");
         }
       }
-      return res.json();
+      return res.json()
     })
-    .then((res) => {
-      if (res.errors) throw new Error(res.errors[0]);
-      const { data } = res;
-      return data;
+    .then((ticket) => {
+      if (ticket.errors) throw new Error(ticket.errors[0]);
+      return ticket;
+
     });
 };
-
 export const ActualizarTicket = ({ formData, idTicket }) => {
   return fetch(`${ENDPOINT}/api/Ticket/${idTicket}`, {
     method: "PUT",
@@ -94,6 +120,8 @@ export const ActualizarTicket = ({ formData, idTicket }) => {
     body: formData,
   })
     .then((res) => {
+                  console.log("res1",res)
+
       if (!res.ok) {
         if (res.status === 401) {
           window.localStorage.removeItem("jwt");
@@ -105,6 +133,8 @@ export const ActualizarTicket = ({ formData, idTicket }) => {
       return res.json();
     })
     .then((res) => {
+                        console.log("res1",res)
+
       if (res.errors) throw new Error(res.errors[0]);
       const { data } = res;
       return data;

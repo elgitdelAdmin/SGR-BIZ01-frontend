@@ -355,10 +355,10 @@ useEffect(() => {
       // formData.append("zipFile", values.zipFile);
     }
 
-console.log("📦 Datos a enviar:");
-  for (let [key, value] of formData.entries()) {
-    console.log(key, value);
-  }
+// console.log("📦 Datos a enviar:");
+//   for (let [key, value] of formData.entries()) {
+//     console.log(key, value);
+//   }
     if (modoEdicion) {
         const idTicket = persona?.id;
         console.log(idTicket)
@@ -396,10 +396,8 @@ console.log("📦 Datos a enviar:");
 
 
   const Registrar = ({ formData }) => {
-            console.log("formData",formData)
-
     RegistrarTiket({ formData})
-      .then((data) => {
+      .then((res) => {
         formik.setSubmitting(false);
         toast.current.show({
           severity: "success",
@@ -407,11 +405,18 @@ console.log("📦 Datos a enviar:");
           detail: "Registro exitoso.",
           life: 7000,
         });
+        console.log("res",res)
 
         setTimeout(() => {
-          navigate(-1);
+        navigate(`/tickets/user/${idUser}/rol/${codRol}/Editar/${res.id}`); 
+
         }, 1000);
-      })
+         })
+
+        // setTimeout(() => {
+          // navigate(-1);
+        // }, 1000);
+      // })
       .catch((errors) => {
         toast.current.show({
           severity: "error",
@@ -426,6 +431,8 @@ console.log("📦 Datos a enviar:");
   const Actualizar = ({ formData,idTicket }) => {
         ActualizarTicket({ formData, idTicket })
           .then((data) => {
+            console.log("data",data)
+
             formik.setSubmitting(false);
             toast.current.show({
               severity: "success",

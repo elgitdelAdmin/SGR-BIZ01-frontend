@@ -1,34 +1,60 @@
 import React, { useEffect, useState } from "react";
-import { Link ,useNavigate} from "react-router-dom";
+import { useNavigate,useParams } from "react-router-dom";
 
 import"./Topbar.scss"
 import useUsuario from "../../hooks/useUsuario";
 import * as Iconsax from "iconsax-react";
 import NotificationDropdown from "../../components/Notification/NotificationDropdown"
+import { MarcarNotificacionComoLeida } from "../../service/NotificationService";
 
 
 const TopBar = (props) => {
+    const idUser = localStorage.getItem("idUser");
     const navigate = useNavigate()
-
     const { logout, isLogged, perfil } = useUsuario();
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([
-    "Notificación 1",
-    "Notificación 2",
-    "Notificación 3",
-  ]);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [updateNotifications, setupdateNotifications] = useState(false);
+    const [lengthNotifications, setlengthNotifications] = useState(true);
 
-const notificacionTicket = JSON.parse(localStorage.getItem("notificacionTicket")) || [];
+const [notificacionTicket, setNotificacionTicket] = useState(() => {
+  try {
+    const stored = localStorage.getItem("notificacionTicket");
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    console.error("Error al leer notificacionTicket:", e);
+    return [];
+  }
+});
 
-      console.log("notifications",notificacionTicket)
+    // const [notificacionTicket, setNotificacionTicket] = useState(
+    //   JSON.parse(localStorage.getItem("notificacionTicket")) || []
+    // );
+// const notificacionTicket = JSON.parse(localStorage.getItem("notificacionTicket")) || [];
+
 
     const cerrarSesion=(e)=>{
         e.preventDefault();
         logout();
     }
-    const toggleNotifications = () => {
-        setShowNotifications(!showNotifications);
-      };
+;
+      const toggleNotifications = async () => {
+        try {
+          console.log("TOGLE")
+          setupdateNotifications(!updateNotifications)
+          const ids = notificacionTicket.filter(n => !n.leido).map(n => n.id); 
+          if (ids.length > 0 && updateNotifications) {
+            console.log("TOGLE Leido")
+            await MarcarNotificacionComoLeida(idUser, ids);
+            setupdateNotifications(!updateNotifications)
+            setlengthNotifications(false)
+            // localStorage.setItem("notificacionTicket", JSON.stringify(res.notificacionTicket));
+          }
+          setShowNotifications(!showNotifications);
+
+        } catch (error) {
+          console.error("Error al marcar notificaciones:", error);
+        }
+};
 
     useEffect(() => {
         if (!isLogged) navigate("/Login")
@@ -102,7 +128,7 @@ const notificacionTicket = JSON.parse(localStorage.getItem("notificacionTicket")
           gap: "15px",
         }}
       >
-        <div onClick={toggleNotifications}>
+        {/* <div onClick={toggleNotifications}>
           <Iconsax.Notification />
         </div>
 
@@ -111,9 +137,41 @@ const notificacionTicket = JSON.parse(localStorage.getItem("notificacionTicket")
             notifications={notificacionTicket}
             onClose={toggleNotifications}
           />
-        )}
+        )} */}
+  <div onClick={toggleNotifications} style={{ position: "relative" }}>
+    <Iconsax.Notification size="24" />
 
-        {/* Cerrar sesión */}
+    {notificacionTicket.filter(n => !n.leido).length > 0 && lengthNotifications && (
+      <span
+        style={{
+          position: "absolute",
+          top: "-5px",
+          right: "-5px",
+          background: "red",
+          color: "white",
+          borderRadius: "50%",
+          width: "18px",
+          height: "18px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "11px",
+          fontWeight: "bold",
+        }}
+      >
+        {notificacionTicket.filter(n => !n.leido).length}
+      </span>
+    )}
+  </div>
+
+  {showNotifications && (
+    <NotificationDropdown
+      notifications={notificacionTicket}
+      onClose={toggleNotifications}
+    />
+  )}
+
+
         <div
           className="topbar-salir lg:flex origin-top"
           style={{
