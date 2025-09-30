@@ -31,6 +31,8 @@ import  Usuarios  from "./pages/Usuarios/Usuarios"
 import  EditarUsuario from "./pages/Usuarios/EditarUsuario";
 import  Socios  from "./pages/Socios/Socios"
 import  EditarSocio from "./pages/Socios/EditarSocio";
+import  CargaMasiva from "./pages/CargaMasiva/CargaMasiva";
+
 
 function App() {
   const [layoutMode, setLayoutMode] = useState("static");
@@ -195,6 +197,8 @@ function App() {
               <Route path="Socios" element={<Socios/>}></Route>
               <Route path="Socios/CrearSocio" element={<EditarSocio/>}></Route>
               <Route path="Socios/EditarSocio/:id" element={<EditarSocio />}></Route>
+
+               <Route path="Cargamasiva" element={<CargaMasiva/>}></Route>
 
 
               <Route path="Cargabilidad" element={<Cargabilidad />}></Route>

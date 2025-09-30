@@ -521,7 +521,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 }}
                 onBlur={formik.handleBlur}
                 options={gestor}
-                optionLabel="nombres"
+                optionLabel={(option) => `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`}
                 optionValue="id"
               ></DropdownDefault>
               <small className="p-error">

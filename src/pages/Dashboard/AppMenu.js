@@ -286,7 +286,8 @@ useEffect(() => {
       permisosPorRuta[item.ruta] = {
         divsOcultos: item.divsOcultos || [],
         controlesBloqueados: item.controlesBloqueados || [],
-        controlesOcultos: item.controlesOcultos || []
+        controlesOcultos: item.controlesOcultos || [],
+        divsBloqueados:item.divsBloqueados || [],
       };
       return {
         label: item.nombre,

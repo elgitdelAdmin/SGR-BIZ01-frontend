@@ -6,7 +6,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { Calendar } from 'primereact/calendar';
-
+import { DataTable } from 'primereact/datatable';
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
 import * as Iconsax from "iconsax-react";
 import "./Gestiontikets.scss"
@@ -38,6 +38,8 @@ import { FileUpload } from "primereact/fileupload";
 import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria} from "../../service/TiketService";
 import {ListarGestoresPorSocio,ListarGestores} from "../../service/GestorService";
 import {ListarEmpresasPorSocio,ListarEmpresas,ListarEmpresasporRol} from "../../service/EmpresaService";
+import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
 
 const Editar = () => {
   const navigate = useNavigate();
@@ -66,12 +68,111 @@ const Editar = () => {
     const permisosActual = permisos["/tickets"] || {
     divsOcultos: [],
     controlesBloqueados: [],
+    divsBloqueados:[],
     controlesOcultos: []
     };
 
   //
 const [opcionesEstadoTicket, setOpcionesEstadoTicket] = useState([]);
 const [bloquearDropdown, setBloquearDropdown] = useState([]);
+const [visibleIndex, setVisibleIndex] = useState(null);
+const [tempData, setTempData] = useState({
+  FechaInicio: null,
+  FechaFin: null,
+  Horas: null,
+  Descripcion: "",
+  Activo:true,
+  IdTicketConsultorAsignacion:0,
+  Id:0
+});
+
+
+ const [visible, setVisible] = useState(false);
+  const [detalles, setDetalles] = useState([]);
+  const [nuevoDetalle, setNuevoDetalle] = useState({
+    FechaInicio: null,
+    FechaFin: null,
+    Horas: null,
+    Descripcion: "",
+    Activo:true,
+    IdTicketConsultorAsignacion:0,
+    Id:0
+  });
+
+
+  const agregarDetalle = () => {
+    console.log("agregarDetalle",visibleIndex)
+    if (visibleIndex === null) return;
+    if (nuevoDetalle.FechaInicio && nuevoDetalle.FechaFin && nuevoDetalle.Horas) {
+        const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
+
+          const fechaInicioDia = new Date(nuevoDetalle.FechaInicio);
+          fechaInicioDia.setHours(0, 0, 0, 0);
+
+          const horasEnDia = current.reduce((total, det) => {
+            const detDia = new Date(det.FechaInicio);
+            detDia.setHours(0, 0, 0, 0);
+
+            if (detDia.getTime() === fechaInicioDia.getTime()) {
+              return total + det.Horas;
+            }
+            return total;
+          }, 0);
+
+          if (horasEnDia + nuevoDetalle.Horas > 24) {
+              toast.current.show({
+                severity: "error",
+                summary: "Error",
+                detail: "No puedes asignar más de 24 horas en un mismo día",
+                life: 7000,
+              });
+            return;
+          }
+
+          const updated = [
+          ...current,
+          { 
+            ...nuevoDetalle, 
+            Activo: true,
+            IdTicketConsultorAsignacion: formik.values.asignaciones[visibleIndex].Id 
+          }
+        ];
+        console.log("updated",updated)
+
+        formik.setFieldValue(`asignaciones[${visibleIndex}].DetalleTareasConsultor`, updated);
+        console.log("FORMIK",formik.values.asignaciones[visibleIndex].DetalleTareasConsultor)
+        setDetalles(updated);
+        setNuevoDetalle({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true,IdTicketConsultorAsignacion:formik.values.asignaciones[visibleIndex].Id,Id:0 });
+    }
+  };
+
+
+  
+const handleAdd = () => {
+  if (visibleIndex === null) return;
+  const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
+  const updated = [...current, tempData];
+  formik.setFieldValue(`asignaciones[${visibleIndex}].DetalleTareasConsultor`, updated);
+
+  // limpiar y cerrar
+  setTempData({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true });
+  setVisibleIndex(null);
+};
+  const footer = (
+    <div className="w-full flex justify-end">
+        <Button label="Registrar"   
+        style={{ marginLeft: "auto" }} 
+        severity="secondary" 
+        onClick={() => {
+            formik.handleSubmit();   
+            setVisibleIndex(null);  
+          }}
+        // onClick={() => setVisibleIndex(null)} 
+        />
+
+    </div>
+  );
+
 
 
  useEffect(() => {
@@ -84,6 +185,12 @@ const [bloquearDropdown, setBloquearDropdown] = useState([]);
 
   let { id } = useParams();
   const toast = useRef(null);
+
+//   useEffect(() => {
+//   if (visibleIndex !== null) {
+//     setDetalles(formik.values.asignaciones[visibleIndex]?.DetalleTareasConsultor || []);
+//   }
+// }, [formik.values.asignaciones, visibleIndex]);
   useEffect(() => {
       const getEmpresa = async () => {
         // const fetchFunction = codRol === "SUPERADMIN" ? ListarEmpresas : ListarEmpresasPorSocio;
@@ -229,7 +336,6 @@ useEffect(() => {
         id: item.id,
         nombre: `${item.persona.nombres} ${item.persona.apellidoPaterno}`
       }));
-      console.log("Data",consultoresFormateados)
       setConsultores(consultoresFormateados);
     });
   };
@@ -266,10 +372,24 @@ useEffect(() => {
       ),
       asignaciones: Yup.array().of(
           Yup.object().shape({
+            Id: Yup.number(),
             IdConsultor: Yup.number(),
             IdTipoActividad:Yup.number(),
             FechaAsignacion: Yup.string().nullable(),
             FechaDesasignacion: Yup.string().nullable(),
+            DetalleTareasConsultor: Yup.array().of(
+            Yup.object().shape({
+              FechaInicio: Yup.date().required(),
+              FechaFin: Yup.date().required(),
+              Horas: Yup.string().required(),
+              Descripcion: Yup.string().required(),
+              Activo: Yup.boolean().required(),
+              IdTicketConsultorAsignacion:Yup.number(),
+              Id:Yup.number(),
+
+            })
+          )
+            // DetalleTareasConsultor:Yup.string().nullable(),
          })
       ),
       // zipFile: Yup.mixed()
@@ -303,11 +423,23 @@ useEffect(() => {
           cantidad:""
       },
       frenteSubFrentes: persona ?persona.frenteSubFrentes:[],
-       asignaciones: persona ?(persona.consultorAsignaciones.map((a) => ({
+      asignaciones: persona ?(persona.consultorAsignaciones.map((a) => ({
+      Id:a.id,
       IdConsultor: a.idConsultor,
       IdTipoActividad: a.idTipoActividad,
       FechaAsignacion: a.fechaAsignacion,
       FechaDesasignacion: a.fechaDesasignacion,
+      // DetalleTareasConsultor:a.detalleTareasConsultor
+      DetalleTareasConsultor: a.detalleTareasConsultor.map((d) => ({
+        FechaInicio: d.fechaInicio,
+        FechaFin: d.fechaFin,
+        Horas: d.horas,
+        Descripcion: d.descripcion,
+        Activo: d.activo,
+        IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion,
+        Id: d.id
+      }))
+
     }))): [],
       // asignaciones:persona ? persona.consultorAsignaciones : [],
       usuarioCreacion:persona?.usuarioCreacion|| window.localStorage.getItem("username"), 
@@ -355,10 +487,10 @@ useEffect(() => {
       // formData.append("zipFile", values.zipFile);
     }
 
-// console.log("📦 Datos a enviar:");
-//   for (let [key, value] of formData.entries()) {
-//     console.log(key, value);
-//   }
+console.log("📦 Datos a enviar:");
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
     if (modoEdicion) {
         const idTicket = persona?.id;
         console.log(idTicket)
@@ -564,10 +696,12 @@ const handleGestorChange = (e) => {
     formik.setFieldValue("asignaciones", [
       ...formik.values.asignaciones,
       {
+        Id:0,
         IdConsultor: "",
         IdTipoActividad: "",
         FechaAsignacion: null,
         FechaDesasignacion: null,
+        DetalleTareasConsultor:[]
       },
     ]);
   };
@@ -577,6 +711,8 @@ const handleGestorChange = (e) => {
     newAsignaciones.splice(index, 1);
     formik.setFieldValue("asignaciones", newAsignaciones);
   };
+
+  
   return (
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
       <ConfirmDialog />
@@ -602,7 +738,7 @@ const handleGestorChange = (e) => {
                   value={formik.values.titulo}
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
-                  disabled={permisosActual.controlesOcultos.includes("txtTitulo")}
+                  disabled={permisosActual.controlesBloqueados.includes("txtTitulo")}
                   // onChange={(e)=>handleSoloLetras(e,formik,"titulo")}
                 ></InputText>
                 <div className="p-error">
@@ -621,7 +757,7 @@ const handleGestorChange = (e) => {
                   placeholder="Selecciona la fecha"
                   showIcon
                    minDate={new Date()} 
-                  disabled={permisosActual.controlesOcultos.includes("dateFechaSolicitud")}
+                  disabled={permisosActual.controlesBloqueados.includes("dateFechaSolicitud")}
 
                 />
                 <div className="p-error">
@@ -645,7 +781,7 @@ const handleGestorChange = (e) => {
                  options={parametros?.filter((item) => item.tipoParametro === "TipoTicket")}
                 optionLabel="nombre"
                 optionValue="id"
-                disabled={permisosActual.controlesOcultos.includes("cboTipo")}
+                disabled={permisosActual.controlesBloqueados.includes("cboTipo")}
 
               />
               <small className="p-error">
@@ -690,7 +826,7 @@ const handleGestorChange = (e) => {
                 options={empresa}
                 optionLabel="nombreComercial"
                 optionValue="id"
-                disabled={permisosActual.controlesOcultos.includes("cboEmpresa")}
+                disabled={permisosActual.controlesBloqueados.includes("cboEmpresa")}
 
               />
               <small className="p-error">
@@ -731,7 +867,7 @@ const handleGestorChange = (e) => {
                 onBlur={formik.handleBlur}
                 // options={prueba}
                 options={parametros?.filter((item) => item.tipoParametro === "Prioridad")}
-                disabled={permisosActual.controlesOcultos.includes("cboPrioridad")}
+                disabled={permisosActual.controlesBloqueados.includes("cboPrioridad")}
                 optionLabel="nombre"
                 optionValue="id"
               />
@@ -749,7 +885,7 @@ const handleGestorChange = (e) => {
                   value={formik.values.codTicketInterno}
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
-                 disabled={permisosActual.controlesOcultos.includes("textCodigoInterno")}
+                 disabled={permisosActual.controlesBloqueados.includes("textCodigoInterno")}
 
                   // onChange={(e)=>handleSoloLetras(e,formik,"codTicketInterno")}
                 ></InputText>
@@ -767,7 +903,7 @@ const handleGestorChange = (e) => {
                   value={formik.values.descripcion}
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
-                 disabled={permisosActual.controlesOcultos.includes("cboDescripcion")}
+                 disabled={permisosActual.controlesBloqueados.includes("cboDescripcion")}
 
                   // onChange={(e)=>handleSoloLetras(e,formik,"descripcion")}   
                 ></InputText>
@@ -783,31 +919,7 @@ const handleGestorChange = (e) => {
                     ? "Archivo cargado correctamente"
                     : "Seleccionar archivo .zip"}
                   </label>
-                  {/* <input
-                    type="file"
-                    id="zipFile"
-                    name="zipFile"
-                    accept=".zip"
-                    onChange={async (event) => {
-                      const file = event.currentTarget.files[0];
-
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          const base64String = reader.result; 
-                          formik.setFieldValue("zipFile", base64String); 
-                        };
-                        reader.readAsDataURL(file);
-                      } else {
-                        formik.setFieldValue("zipFile", null);
-                      }
-                    }}
-                 disabled={permisosActual.controlesOcultos.includes("fileArchivo")}
-
-                    onBlur={formik.handleBlur}
-                    className="hidden-input"
-                  /> */}
-                   <input
+                <input
                 type="file"
                 id="zipFile"
                 name="zipFile"
@@ -820,7 +932,7 @@ const handleGestorChange = (e) => {
                     formik.setFieldValue("zipFile", null);
                   }
                 }}
-                disabled={permisosActual.controlesOcultos.includes("fileArchivo")}
+                disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
                 onBlur={formik.handleBlur}
                 className="hidden-input"
               />
@@ -839,8 +951,10 @@ const handleGestorChange = (e) => {
                 onChange={handleGestorChange}
                 onBlur={formik.handleBlur}
                 options={gestorConsultoria}
-                optionLabel="nombres"
+                optionLabel={(option) => `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`}
                 optionValue="id"
+                disabled={permisosActual.controlesBloqueados.includes("cboGestorConsultoria")}
+
               />
               <small className="p-error">
                 {formik.touched.idGestorConsultoria && formik.errors.idGestorConsultoria}
@@ -977,17 +1091,19 @@ const handleGestorChange = (e) => {
                     header="Cantidad"
                       body={(rowData) => rowData.cantidad ?? "—"}
                   />
+                  
                       <Column
                         header="Acciones"
                         body={accion} 
                       />   
+                     
               </DatatableDefault>
               )}
               </div>
               </>
              )}
 
-              {!permisosActual.divsOcultos.includes("divAsignacionConsultor") && (
+            {!permisosActual.divsOcultos.includes("divAsignacionConsultor") && (
              <>
               <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
               <div className="field col-12">
@@ -999,17 +1115,21 @@ const handleGestorChange = (e) => {
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100 text-left">
-                    {/* <th className="p-2 border">Gestor</th> */}
                     <th className="p-2 border">Consultor</th>
                     <th className="p-2 border">Tipo actividad</th>
                     <th className="p-2 border">Fecha Inicio</th>
                     <th className="p-2 border">Fecha Fin</th>
+                    <th className="p-2 border">Horas</th>
+                      {!permisosActual.controlesOcultos.includes("btnEliminar") && (
+                   <>
                     <th className="p-2 border">Acciones</th>
+                    </>)}
                   </tr>
                 </thead>
                 <tbody>
                   {formik.values.asignaciones.map((asignacion, index) => (
                     <tr key={index} className="border-t">
+                      
                       <td className="p-2 border">
                         <DropdownDefault
                           id={`IdConsultor-${index}`}
@@ -1023,6 +1143,8 @@ const handleGestorChange = (e) => {
                             formik.setFieldValue(`asignaciones[${index}].IdConsultor`, e.value)
                           }
                           onBlur={formik.handleBlur}
+                          disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
+
                         />
                         <small className="p-error">
                           {
@@ -1045,6 +1167,8 @@ const handleGestorChange = (e) => {
                             formik.setFieldValue(`asignaciones[${index}].IdTipoActividad`, e.value)
                           }
                           onBlur={formik.handleBlur}
+                          disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
+
                         />
                         <small className="p-error">
                           {
@@ -1069,11 +1193,8 @@ const handleGestorChange = (e) => {
                             e.value ? e.value.toISOString() : null
                           )
                         }
-                      
-                        //   onChange={(e) =>
-                        //   formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, e.value)
-                        // }
                         onBlur={formik.handleBlur}
+                        disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
                         showTime
                         hourFormat="24"
                         minDate={new Date()} 
@@ -1092,11 +1213,6 @@ const handleGestorChange = (e) => {
                         <Calendar
                         id={`FechaDesasignacion-${index}`}
                         name={`asignaciones[${index}].FechaDesasignacion`}
-                        // value={new Date(formik.values.asignaciones[index].FechaDesasignacion)}
-                        // onChange={(e) =>
-                        //   formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, e.value)
-                        // }
-
                         value={
                             formik.values.asignaciones[index].FechaDesasignacion
                               ? new Date(formik.values.asignaciones[index].FechaDesasignacion)
@@ -1111,7 +1227,8 @@ const handleGestorChange = (e) => {
                         onBlur={formik.handleBlur}
                         showTime 
 
-                        disabled={!formik.values.asignaciones[index].FechaAsignacion}
+                        disabled={!formik.values.asignaciones[index].FechaAsignacion ||
+                                   permisosActual.divsBloqueados.includes("divAsignaciones") }
                         minDate={
                           formik.values.asignaciones[index].FechaAsignacion
                             ? new Date(formik.values.asignaciones[index].FechaAsignacion)
@@ -1129,7 +1246,163 @@ const handleGestorChange = (e) => {
                           }
                         </small>
                       </td>
+                  
+                      <td className="p-2 border">
+                        <Button
+                           label={""}
+                           icon={
+                            !permisosActual.divsBloqueados.includes("divHorasTareo")
+                              ? "pi pi-plus"   
+                              : "pi pi-eye"    
+                          }
+                          //  icon={!permisosActual.divsBloqueados.includes("divHorasTareo") ? "pi pi-plus" : ""}
+                            onClick={() => setVisibleIndex(index)}
+                            className="w-full"
+                            type="button"
+                          />
+                        <Dialog
+                          header={!permisosActual.divsBloqueados.includes("divHorasTareo") ? "Asignar Horas" : "Ver Horas"}
+                          visible={visibleIndex === index}
+                          style={{ width: "60vw" }}   
+                          modal
+                          onHide={() => setVisibleIndex(null)}
+                         footer={!permisosActual.divsBloqueados.includes("divHorasTareo")? footer: null}
+                        >
+                          {!permisosActual.divsOcultos.includes("divHorasTareo") && (
+                           <>
+                          <div className="p-fluid formgrid grid">
+                            <div className="field col-12 md:col-6">
+                            <label>Fecha Inicio</label>
+                            <Calendar
+                              value={nuevoDetalle.FechaInicio}
+                              onChange={(e) => {
+                                const fechaInicio = e.value;
+                                let fechaFin = nuevoDetalle.FechaFin;
 
+                                if (fechaInicio && nuevoDetalle.Horas) {
+                                  fechaFin = new Date(fechaInicio);
+                                  fechaFin.setHours(fechaFin.getHours() + nuevoDetalle.Horas);
+                                }
+
+                                setNuevoDetalle({ ...nuevoDetalle, FechaInicio: fechaInicio, FechaFin: fechaFin });
+                              }}
+                              dateFormat="yy-mm-dd"
+                              showIcon
+                              className="w-full"
+                              minDate={formik.values.asignaciones[index].FechaAsignacion
+                              ? new Date(formik.values.asignaciones[index].FechaAsignacion)
+                              : null} 
+
+                            />
+                          </div>
+
+                          <div className="field col-12 md:col-6">
+                            <label>Fecha Fin</label>
+                            <Calendar
+                              value={nuevoDetalle.FechaFin}
+                              readOnlyInput
+                              disabled
+                              dateFormat="yy-mm-dd"
+                              showIcon
+                              className="w-full"
+                            />
+                          </div>
+
+                          <div className="field col-12 md:col-6">
+                            <label>Horas</label>
+                            <InputNumber
+                              value={nuevoDetalle.Horas}
+                              onValueChange={(e) => {
+                                const horas = e.value;
+                                let fechaFin = nuevoDetalle.FechaFin;
+
+                                if (nuevoDetalle.FechaInicio && horas) {
+                                  fechaFin = new Date(nuevoDetalle.FechaInicio);
+                                  fechaFin.setHours(fechaFin.getHours() + horas);
+                                }
+
+                                setNuevoDetalle({ ...nuevoDetalle, Horas: horas, FechaFin: fechaFin });
+                              }}
+                              min={1}
+                              className="w-full"
+                            />
+                          </div>
+
+                            <div className="field col-12 md:col-6">
+                              <label>Descripción</label>
+                              <InputText
+                                value={nuevoDetalle.Descripcion}
+                                onChange={(e) => setNuevoDetalle({ ...nuevoDetalle, Descripcion: e.target.value })}
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                          <div className="mb-4">
+                            <Button
+                              label="Añadir"
+                              icon="pi pi-plus"
+                              severity="success"
+                              onClick={agregarDetalle}
+                            />
+                          </div>
+                          </>)}
+                          <DataTable
+                           value={
+                              (formik.values.asignaciones[visibleIndex]?.DetalleTareasConsultor || [])
+                                .filter((d) => d.Activo) 
+                            }
+                           responsiveLayout="scroll"
+                            className="w-full"
+                          >
+                            <Column
+                              field="FechaInicio"
+                              header="Fecha Inicio"
+                                body={(row) => row.FechaInicio ? new Date(row.FechaInicio).toLocaleDateString() : ""}
+                            />
+                            <Column
+                              field="FechaFin"
+                              header="Fecha Fin"
+                              body={(row) => row.FechaFin ? new Date(row.FechaFin).toLocaleDateString() : ""}
+                            />
+                            <Column field="Horas" header="Horas" />
+                            <Column field="Descripcion" header="Descripción" />
+                             {!permisosActual.divsBloqueados.includes("divHorasTareo") && (
+                         
+                            <Column
+                              header="Acciones"
+                              body={(rowData) => (
+                                <Button
+                                  icon="pi pi-trash"
+                                  severity="danger"
+                                  text
+                                  onClick={() => {
+                                    const updated = [...formik.values.asignaciones[visibleIndex].DetalleTareasConsultor];
+                                    const index = updated.findIndex(
+                                      (d) =>
+                                        d.FechaInicio === rowData.FechaInicio &&
+                                        d.FechaFin === rowData.FechaFin &&
+                                        d.Horas === rowData.Horas &&
+                                        d.Descripcion === rowData.Descripcion
+                                    );
+                                    if (index !== -1) {
+                                      updated[index] = { ...updated[index], Activo: false };
+                                      formik.setFieldValue(
+                                        `asignaciones[${visibleIndex}].DetalleTareasConsultor`,
+                                        updated
+                                      );
+                                    }
+                                  }}
+                                />
+                              )}
+                            />
+                             )}
+                          </DataTable>
+                        </Dialog>
+                      </td>
+
+
+                 {!permisosActual.controlesOcultos.includes("btnEliminar") && (
+                   <>
                       <td className="p-2 border">
                         <button
                           type="button"
@@ -1139,17 +1412,22 @@ const handleGestorChange = (e) => {
                           Eliminar
                         </button>
                       </td>
+                    </>)}
                     </tr>
                   ))}
                 </tbody>
+             
+
+
               </table>
+              {!permisosActual.controlesOcultos.includes("btnEliminar") && (
               <button
                 type="button"
                 onClick={addRow}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 Agregar fila
-              </button>
+              </button>)}
               </div>
               </>
              )}
@@ -1162,6 +1440,7 @@ const handleGestorChange = (e) => {
           {/* <button type="button" onClick={() => console.log("VALUES", formik.values)}>
             Ver valores
           </button> */}
+          {!permisosActual.controlesOcultos.includes("btnEliminar") && (
            <Boton
               label="Guardar cambios"
               style={{ fontSize: 12 }}
@@ -1169,6 +1448,7 @@ const handleGestorChange = (e) => {
               type="submit"
               loading={formik.isSubmitting}
             ></Boton>
+          )}
            </div> 
         </form>
       </div>
