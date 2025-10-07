@@ -33,7 +33,8 @@ import DataTable from 'react-data-table-component';
 import {RegistrarEmpresa,ListarFrentes,ListarParametros,ObtenerEmpresa,ActualizarEmpresa,ObtenerPersona,ObtenerPersonaResponsable} from "../../service/EmpresaService";
 import { ListarPais,ListarGestorCuenta} from "../../service/TiketService";
 import {ListarGestoresPorSocio,ListarGestores} from "../../service/GestorService";
-
+import { Dialog } from "primereact/dialog";
+import { Button } from "primereact/button";
 const EditarConsultor = () => {
   const navigate = useNavigate();
   const { isLogged } = useUsuario();
@@ -56,6 +57,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
   const toast = useRef(null);
 
   const [checked, setChecked] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
 
   useEffect(() => {
@@ -72,8 +74,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
        const idTipoDocumento = empresaData.personaResponsable.tipoDocumento;
       const numeroDocumento = empresaData.personaResponsable.numeroDocumento;
        await ObtenerPersonaResponsable({idTipoDocumento,numeroDocumento}).then(data=>{
-        console.log("Data",data)
-              setUser(data.users)
+              setUser(data.data.users)
 
        })
 
@@ -125,7 +126,6 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
   }, [user]);
 
   const handleBuscar = async () => {
-    console.log("Datos recibidos:");
     const tipoDocumento = formik.values.tipoDocumento;
     const numeroDocumento = formik.values.numeroDocumento;
 
@@ -139,38 +139,42 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
         idTipoDocumento: tipoDocumento,
         numeroDocumento: numeroDocumento
       });
+      if (data.data) {
+      console.log("Datos recibidos:", data.data);
 
-      console.log("Datos recibidos:", data);
+      formik.setFieldValue("nombres", data.data.nombres || "");
+      formik.setFieldValue("apellidoPaterno", data.data.apellidoPaterno || "");
+      formik.setFieldValue("apellidoMaterno", data.data.apellidoMaterno || "");
+      formik.setFieldValue("telefonopersona", data.data.telefono || "");
+      formik.setFieldValue("telefono2", data.data.telefono2 || "");
+      formik.setFieldValue("direccionpersona", data.data.direccion || "");
+      formik.setFieldValue("correopersona", data.data.correo || "");
+      formik.setFieldValue("fechaNacimiento", new Date(data.data.fechaNacimiento) || "");
 
-      formik.setFieldValue("nombres", data.nombres || "");
-      formik.setFieldValue("apellidoPaterno", data.apellidoPaterno || "");
-      formik.setFieldValue("apellidoMaterno", data.apellidoMaterno || "");
-      formik.setFieldValue("telefonopersona", data.telefono || "");
-      formik.setFieldValue("telefono2", data.telefono2 || "");
-      formik.setFieldValue("direccionpersona", data.direccion || "");
-      formik.setFieldValue("correopersona", data.correo || "");
-      formik.setFieldValue("fechaNacimiento", new Date(data.fechaNacimiento) || "");
+      setUser(data.data.users)
 
-      setUser(data.users)
-    //   if (data.users.length === 1) {
-    //   const unicoUsuario = data.users[0];
-    //   formik.setFieldValue("user", unicoUsuario.id);
-    //   setUsuariosDropdown([{ label: unicoUsuario.username, value: unicoUsuario.id }]);
-    //   setSoloUnUsuario(true); // estado para deshabilitar el dropdown si es solo uno
-    // } else if (data.users.length > 1) {
-    //   const opciones = data.users.map((u) => ({
-    //     label: u.username,
-    //     value: u.id,
-    //   }));
-    //   setUsuariosDropdown(opciones);
-    //   setSoloUnUsuario(false);
-    // }
+    } else {
+    console.warn("No se encontró información de la persona.");
+          setShowModal(true);
 
+    // Opcional: limpiar campos o mostrar alerta
+  }
     } catch (error) {
       console.error("Error al buscar responsable:", error.message);
     }
   };
-
+  const footer = (
+    <div className="flex gap-2 justify-end" style={{ float: "right" }}>
+      <Button
+        label="Crear Usuario"
+        icon="pi pi-user-plus"
+        onClick={() => {
+          window.open("/usuarios/CrearUsuario/", "_blank"); // abre en nueva pestaña
+          setShowModal(false);
+        }}
+      />
+    </div>
+  );
   const schema = Yup.object().shape({
     razonSocial: Yup.string().required("La razón social es obligatoria"),
     nombreComercial: Yup.string().required("El nombre comercial es obligatorio"),
@@ -580,7 +584,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                     ? /^\d+$/
                     : /^[0-9a-zA-Z||-]+$/gi
                 }
-                disabled={formik.values.tipoDocumento != null ? false : true}
+                disabled={!formik.values.tipoDocumento}
               ></InputText>
               <small className="p-error">
                 {formik.touched.numeroDocumento && formik.errors.numeroDocumento}
@@ -593,7 +597,18 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 style={{ fontSize: 13, borderRadius: 15 }}
                 onClick={handleBuscar}
               />
+
             </div>
+             <Dialog
+                header="Usuario no encontrado"
+                visible={showModal}
+                style={{ width: "30vw" }}
+                modal
+                onHide={() => setShowModal(false)}
+                footer={footer}
+              >
+                <p>No se encontró el usuario, por favor créalo primero.</p>
+              </Dialog>
             
               <div className="field col-12 md:col-6">
               <label className="label-form">Users</label>

@@ -573,7 +573,9 @@ console.log("📦 Datos a enviar:");
               life: 7000,
             });
             setTimeout(() => {
-          navigate(-1);
+          // navigate(-1);
+
+        navigate(`/tickets/user/${idUser}/rol/${codRol}`); 
         }, 1000);
     
           })
@@ -1292,6 +1294,11 @@ const handleGestorChange = (e) => {
                               minDate={formik.values.asignaciones[index].FechaAsignacion
                               ? new Date(formik.values.asignaciones[index].FechaAsignacion)
                               : null} 
+                              // disabled={formik.values.idEstadoTicket==63}
+                                disabled={
+                                  formik.values.idEstadoTicket === 
+                                  parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                                }
 
                             />
                           </div>
@@ -1325,6 +1332,11 @@ const handleGestorChange = (e) => {
                               }}
                               min={1}
                               className="w-full"
+                              // disabled={formik.values.idEstadoTicket==63}
+                              disabled={
+                                  formik.values.idEstadoTicket === 
+                                  parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                                }
                             />
                           </div>
 
@@ -1334,6 +1346,12 @@ const handleGestorChange = (e) => {
                                 value={nuevoDetalle.Descripcion}
                                 onChange={(e) => setNuevoDetalle({ ...nuevoDetalle, Descripcion: e.target.value })}
                                 className="w-full"
+                                // disabled={formik.values.idEstadoTicket==63}
+                                 disabled={
+                                  formik.values.idEstadoTicket === 
+                                  parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                                }
+
                               />
                             </div>
                           </div>
@@ -1343,6 +1361,11 @@ const handleGestorChange = (e) => {
                               icon="pi pi-plus"
                               severity="success"
                               onClick={agregarDetalle}
+                              // disabled={formik.values.idEstadoTicket==63}
+                               disabled={
+                                  formik.values.idEstadoTicket === 
+                                  parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                                }
                             />
                           </div>
                           </>)}

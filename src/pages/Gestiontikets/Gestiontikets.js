@@ -78,11 +78,29 @@ const loadLazyData = () => {
                 let filteredData = data;
                 if (globalFilterValue) {
                     const search = globalFilterValue.toLowerCase();
-                    filteredData = data.filter(ticket =>
+                    filteredData = data.filter(ticket => {
+                    const search = globalFilterValue.toLowerCase();
+                    const estadoNombre = parametros.find(p => p.id === ticket.idEstadoTicket)?.nombre?.toLowerCase() || "";
+                    let estadoHorasTexto = "";
+                            if (ticket.horasTrabajadas === 0) {
+                                estadoHorasTexto = "pendiente";
+                            } else if (ticket.horasTrabajadas > 0 && ticket.horasTrabajadas < ticket.horasTotales) {
+                                estadoHorasTexto = "en proceso";
+                            } else if (ticket.horasTrabajadas >= ticket.horasTotales) {
+                                estadoHorasTexto = "finalizado";
+                            }
+                    return (
                         ticket.codTicket?.toLowerCase().includes(search) ||
                         ticket.titulo?.toLowerCase().includes(search) ||
-                        ticket.descripcion?.toLowerCase().includes(search)
+                        ticket.descripcion?.toLowerCase().includes(search) ||
+                        ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
+                        ticket.fechaSolicitud?.toLowerCase().includes(search) ||
+                        estadoNombre.includes(search)||
+                        estadoHorasTexto.includes(search)
+
                     );
+                    });
+
                 }
                 filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
 
@@ -201,6 +219,38 @@ useEffect(() => {
         const estado = parametros.find(p => p.id === rowData.idEstadoTicket);
         return estado ? estado.nombre : "Sin estado";
         };
+     const estadoHorasTemplate = (rowData) => {
+            const { horasTrabajadas, horasTotales } = rowData;
+
+            let color = "";
+            let texto = "";
+
+            if (horasTrabajadas === 0) {
+                color = "red";
+                texto = "Pendiente";
+            } else if (horasTrabajadas > 0 && horasTrabajadas < horasTotales) {
+                color = "orange";
+                texto = "En proceso";
+            } else if (horasTrabajadas >= horasTotales) {
+                color = "green";
+                texto = "Finalizado";
+            }
+
+            return (
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span
+                        style={{
+                            width: "10px",
+                            height: "10px",
+                            borderRadius: "50%",
+                            backgroundColor: color,
+                            display: "inline-block",
+                        }}
+                    ></span>
+                    <span style={{ color: color, fontWeight: 500 }}>{texto}</span>
+                </div>
+            );
+    };
 
 
 
@@ -249,7 +299,7 @@ useEffect(() => {
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy
-                            onGlobalFilterChange={['titulo', 'codTicket']}
+                            onGlobalFilterChange={['titulo', 'codTicket','fechaSolicitud','descripcion','estado','empresa.razonSocial']}
                             loading={loading}
                             onPage={onPage}
                             first={lazyState.first}
@@ -263,6 +313,12 @@ useEffect(() => {
                             <Column field="descripcion" header="Descripcion" ></Column>
                             {/* <Column  field="activo" header="Estado"dataType="boolean"  body={booleanTemplate}></Column> */}
                             <Column header="Estado" body={estadoTicketTemplate} />
+                            <Column field="empresa.razonSocial" header="Empresa" ></Column>
+                            <Column field="horasTrabajadas" header="Horas Trabajadas" ></Column>
+                            <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'}/>
+                            <Column header="EstadoHoras" body={estadoHorasTemplate}></Column>
+
+
                             <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column>
                         </DatatableDefault>
                     </div>

@@ -182,20 +182,37 @@ export const ObtenerPersona = async ({idPersona}) =>{
     
 }
 
-export const ObtenerPersonaResponsable = async ({idTipoDocumento,numeroDocumento}) =>{
-  console.log(idTipoDocumento,numeroDocumento)
-    return await fetch(`${ENDPOINT}/api/Empresas/UsuarioResponsable/tipoDocumento/${idTipoDocumento}numeroDocumento/${numeroDocumento}`,{
-        method: "GET",
-        headers:{
-            "accept": "text/plain"
-        },
-    })
-    .then(res => {
-    if (!res.ok) throw new Error("Error al obtener la persona");
-    return res.json();
-  });
+// export const ObtenerPersonaResponsable = async ({idTipoDocumento,numeroDocumento}) =>{
+//   console.log(idTipoDocumento,numeroDocumento)
+//     return await fetch(`${ENDPOINT}/api/Empresas/UsuarioResponsable/tipoDocumento/${idTipoDocumento}/numeroDocumento/${numeroDocumento}`,{
+//         method: "GET",
+//         headers:{
+//             "accept": "text/plain"
+//         },
+//     })
+//     .then(res => {
+//         console.log(res)
+//                 console.log(res.json())
+
+
+//     if (!res.ok) throw new Error("Error al obtener la persona");
+//     return res.json();
+//   });
     
-}
+// }
+export const ObtenerPersonaResponsable = async ({ idTipoDocumento, numeroDocumento }) => {
+  const res = await fetch(`${ENDPOINT}/api/Empresas/UsuarioResponsable/tipoDocumento/${idTipoDocumento}/numeroDocumento/${numeroDocumento}`, {
+    method: "GET",
+    headers: { accept: "text/plain" },
+  });
+
+  if (!res.ok) throw new Error("Error al obtener la persona");
+
+  const data = await res.json();
+  console.log("Respuesta API:", data);
+  return data;
+};
+
 
 
 

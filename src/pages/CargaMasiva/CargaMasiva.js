@@ -17,7 +17,12 @@ import { useFormik} from "formik";
 import { Toast } from "primereact/toast";
 import useUsuario from "../../hooks/useUsuario";
 import { ConfirmDialog } from "primereact/confirmdialog"; 
-import { ListarParametros,RegistrarTiket} from "../../service/TiketService";
+import { ListarParametros} from "../../service/TiketService";
+import { RegistrarCargaMasiva} from "../../service/CargaMasiva";
+
+
+
+import * as XLSX from "xlsx";
 const CargaMasiva = () => {
   const navigate = useNavigate();
   const [persona] = useState(null);
@@ -44,27 +49,51 @@ const CargaMasiva = () => {
   const toast = useRef(null);
 
   const schema = Yup.object().shape({
-      idTipoTicket: Yup.number().required("Tipo de ticket es obligatorio"),
+      TipoCarga: Yup.number().required("Tipo de varga es obligatorio"),
       excelFile: Yup.mixed(),
   });
 
-  const formik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      idTipoTicket: persona ? persona.idTipoTicket : null,
-      excelFile: null,
-    },
-    validationSchema: schema,
-        onSubmit: (values) => {
-            const formData = new FormData();
-            formData.append("idTipoTicket", values.idTipoTicket);
-            console.log("values.excelFile",values.excelFile)
-            if (values.excelFile) {
-                formData.append("excelFile", values.excelFile, values.excelFile.name);
-            }
-            Registrar({ formData });
-        },
-  });
+    const formik = useFormik({
+      enableReinitialize: true,
+      initialValues: {
+        TipoCarga: persona ? persona.TipoCarga : null,
+        excelFile: null,
+      },
+      validationSchema: schema,
+      onSubmit: (values) => {
+        const formData = new FormData();
+
+        const tipoSeleccionado = parametros.find(
+          (p) => p.id === values.TipoCarga
+        );
+
+        if (!tipoSeleccionado) {
+          toast.current.show({
+            severity: "warn",
+            summary: "Atención",
+            detail: "Debe seleccionar un tipo de carga válido.",
+            life: 7000,
+          });
+          return;
+        }
+
+        formData.append("TipoCarga", tipoSeleccionado.codigo);
+
+        if (values.excelFile) {
+              console.log("values.excelFile",values.excelFile)
+          formData.append("excel", values.excelFile, values.excelFile.name);
+        }
+
+        console.log("📦 Datos a enviar:");
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+  
+         Registrar({ formData });
+      },
+    });
+
+
   useEffect(() => {
     if (formik.submitCount > 0) {
         console.log("Errores actuales:", formik.errors);
@@ -74,7 +103,7 @@ const CargaMasiva = () => {
 
 
   const Registrar = ({ formData }) => {
-    RegistrarTiket({ formData})
+    RegistrarCargaMasiva({ formData})
       .then((res) => {
         formik.setSubmitting(false);
         toast.current.show({
@@ -84,6 +113,8 @@ const CargaMasiva = () => {
           life: 7000,
         });
            console.log("res",res)
+        formik.resetForm(); 
+         document.getElementById("excelFile").value = ""; 
        })
       .catch((errors) => {
         toast.current.show({
@@ -115,12 +146,12 @@ const CargaMasiva = () => {
               <label className="label-form">Tipo</label>
                <DropdownDefault
                 type="text"
-                id="idTipoTicket"
-                name="idTipoTicket"
+                id="TipoCarga"
+                name="TipoCarga"
                 placeholder="Seleccione"
-                value={formik.values.idTipoTicket}
+                value={formik.values.TipoCarga}
                 onChange={(e) => {
-                  formik.setFieldValue("idTipoTicket", "");
+                  formik.setFieldValue("TipoCarga", "");
                   formik.handleChange(e);
                 }}
                 onBlur={formik.handleBlur}
@@ -132,10 +163,9 @@ const CargaMasiva = () => {
 
               />
               <small className="p-error">
-                {formik.touched.idTipoTicket && formik.errors.idTipoTicket}
+                {formik.touched.TipoCarga && formik.errors.TipoCarga}
               </small>
               </div>
-            
 
               <div className="field col-12 md:col-6">
                 <label className="label-form">Subir archivo Excel</label>
@@ -145,7 +175,7 @@ const CargaMasiva = () => {
                         ? "Archivo cargado correctamente"
                         : "Seleccionar archivo Excel"}
                     </label>
-                    <input
+                    {/* <input
                     type="file"
                     id="excelFile"
                     name="excelFile"
@@ -161,7 +191,86 @@ const CargaMasiva = () => {
                     disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
                     onBlur={formik.handleBlur}
                     className="hidden-input"
+                    /> */}
+                    <input
+                      type="file"
+                      id="excelFile"
+                      name="excelFile"
+                      accept=".xls,.xlsx"
+                      onChange={async (event) => {
+                        const file = event.currentTarget.files[0];
+                        if (!file) {
+                          formik.setFieldValue("excelFile", null);
+                          return;
+                        }
+
+                        try {
+                          const data = await file.arrayBuffer();
+                          const workbook = XLSX.read(data, { type: "array" });
+                          const sheetName = workbook.SheetNames[0];
+                          const sheet = workbook.Sheets[sheetName];
+
+                          // Obtener la primera fila (encabezados)
+                          const headers = XLSX.utils.sheet_to_json(sheet, { header: 1 })[0] || [];
+
+                          //  Parsear el valor1 del parámetro seleccionado
+                          const tipoSeleccionado = parametros.find(
+                            (p) => p.id === formik.values.TipoCarga
+                          );
+                          const columnasRequeridas = tipoSeleccionado
+                            ? JSON.parse(tipoSeleccionado.valor1)
+                            : [];
+                            const normalizar = (texto) =>
+                                    texto
+                                      ?.toString()
+                                      .normalize("NFD") // separa tildes
+                                      .replace(/[\u0300-\u036f]/g, "") // elimina tildes
+                                      .replace(/\s+/g, "") // quita espacios
+                                      .toLowerCase(); // convierte a minúsculas
+                             // 🔹 Normalizar encabezados y columnas requeridas
+                            const headersNormalizados = headers.map(normalizar);
+                            const requeridasNormalizadas = columnasRequeridas.map(normalizar);
+
+                            // 🔹 Verificar columnas faltantes sin importar tildes, espacios o mayúsculas
+                            const faltantes = columnasRequeridas.filter(
+                              (col) => !headersNormalizados.includes(normalizar(col))
+                            );
+
+
+                          if (faltantes.length > 0) {
+                            toast.current.show({
+                              severity: "warn",
+                              summary: "Campos faltantes",
+                              detail: `El archivo Excel no contiene las siguientes columnas requeridas: ${faltantes.join(
+                                ", "
+                              )}`,
+                              life: 9000,
+                            });
+                            formik.setFieldValue("excelFile", null); // No guardar archivo si no pasa validación
+                          } else {
+                            formik.setFieldValue("excelFile", file);
+                            toast.current.show({
+                              severity: "success",
+                              summary: "Archivo válido",
+                              detail: "El archivo contiene todas las columnas requeridas.",
+                              life: 4000,
+                            });
+                          }
+                        } catch (error) {
+                          console.error("Error al leer el archivo Excel:", error);
+                          toast.current.show({
+                            severity: "error",
+                            summary: "Error",
+                            detail: "No se pudo leer el archivo Excel.",
+                            life: 7000,
+                          });
+                        }
+                      }}
+                      disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
+                      onBlur={formik.handleBlur}
+                      className="hidden-input"
                     />
+
                 </div>
                 <small className="p-error">
                     {formik.touched.excelFile && formik.errors.excelFile}
