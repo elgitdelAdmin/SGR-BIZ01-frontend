@@ -103,7 +103,7 @@ const [tempData, setTempData] = useState({
   const agregarDetalle = () => {
     console.log("agregarDetalle",visibleIndex)
     if (visibleIndex === null) return;
-    if (nuevoDetalle.FechaInicio && nuevoDetalle.FechaFin && nuevoDetalle.Horas) {
+    if (nuevoDetalle.FechaInicio && nuevoDetalle.FechaFin && nuevoDetalle.Horas &&  nuevoDetalle.Descripcion ) {
         const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
 
           const fechaInicioDia = new Date(nuevoDetalle.FechaInicio);
@@ -1259,6 +1259,7 @@ const handleGestorChange = (e) => {
                           }
                           //  icon={!permisosActual.divsBloqueados.includes("divHorasTareo") ? "pi pi-plus" : ""}
                             onClick={() => setVisibleIndex(index)}
+                            disabled={!(formik.values.asignaciones[index].IdConsultor == window.localStorage.getItem("idConsultor"))}
                             className="w-full"
                             type="button"
                           />
@@ -1294,6 +1295,7 @@ const handleGestorChange = (e) => {
                               minDate={formik.values.asignaciones[index].FechaAsignacion
                               ? new Date(formik.values.asignaciones[index].FechaAsignacion)
                               : null} 
+                              maxDate={ new Date()}
                               // disabled={formik.values.idEstadoTicket==63}
                                 disabled={
                                   formik.values.idEstadoTicket === 
@@ -1398,6 +1400,7 @@ const handleGestorChange = (e) => {
                                   icon="pi pi-trash"
                                   severity="danger"
                                   text
+                                  
                                   onClick={() => {
                                     const updated = [...formik.values.asignaciones[visibleIndex].DetalleTareasConsultor];
                                     const index = updated.findIndex(
@@ -1443,14 +1446,26 @@ const handleGestorChange = (e) => {
 
 
               </table>
-              {!permisosActual.controlesOcultos.includes("btnEliminar") && (
+              {/* {!permisosActual.controlesOcultos.includes("btnEliminar") && persona?.esCargaMasiva== false &&(
               <button
                 type="button"
                 onClick={addRow}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 Agregar fila
-              </button>)}
+              </button>)} */}
+              {(
+                !permisosActual.controlesOcultos.includes("btnEliminar") ||
+                (permisosActual.controlesOcultos.includes("btnEliminar") && persona?.cargamasiva === true)
+              ) && (
+                <button
+                  type="button"
+                  onClick={addRow}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Agregar fila
+                </button>
+              )}
               </div>
               </>
              )}

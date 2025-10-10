@@ -4,7 +4,7 @@ const ENDPOINT = constantes.URLAPICONECTA;
 const idSocio= window.localStorage.getItem("idsocio")
 
 export const ListarEmpresas = async () => {
-  return await fetch(`${ENDPOINT}/api/Empresas`, {
+  return await fetch(`${ENDPOINT}/api/Empresas?soloActivos=true`, {
     method: "GET",
     headers: {
       "Accept": "application/json"

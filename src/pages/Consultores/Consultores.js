@@ -64,7 +64,9 @@ const loadLazyData = () => {
          fetchFunction()
         // ListarConsultoresPorSocio()
             .then((data) => {
-                console.log("DATA")
+                console.log("DATA",data)
+                                console.log("DATA",data)
+
                 setTotalRecords(data.length);
                 const pageNumber = lazyState?.page ?? 0;
                 const pageSize = lazyState?.rows ?? 10;
@@ -148,6 +150,7 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
     // },[permisos])
 
     useEffect(() => {
+        console.log("LISTAAA",listaPersonasTotal)
               setListaPersonas(listaPersonasTotal)
     }, [listaPersonasTotal]);
     useEffect(() => {
@@ -248,17 +251,17 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                      </div> */}
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
-                            // lazy
+                             lazy
                              globalFilter={globalFilterValue}   
                                globalFilterFields={[
-    'persona.nombres',
-    'persona.apellidoPaterno',
-    'persona.apellidoMaterno',
-    'persona.telefono'
-  ]}
-                            // globalFilterFields={['persona.nombres','persona.apellidoPaterno','persona.apellidoMaterno']}
+                                    'persona.nombres',
+                                    'persona.apellidoPaterno',
+                                    'persona.apellidoMaterno',
+                                    'persona.telefono'
+                                ]}
                             loading={loading}
                             onPage={onPage}
+                            paginator           
                             first={lazyState.first}
                             header = {header}
                             totalRecords ={totalRecords}

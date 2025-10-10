@@ -15,7 +15,7 @@ export default function useUsuario(){
 const login = useCallback(async({userName,password},onSuccess) => {
     await loginService({userName,password})
     .then(res => {
-        const { accessToken, refreshToken, expiresAt, user,notificacionTicket } = res;
+        const { accessToken, refreshToken, expiresAt, user,notificacionTicket ,idConsultor} = res;
 
         console.log("success: ", accessToken);
 
@@ -29,7 +29,9 @@ const login = useCallback(async({userName,password},onSuccess) => {
         window.localStorage.setItem('idUser', user.id);
         window.localStorage.setItem('codRol', user.rol.codigo);
         window.localStorage.setItem("notificacionTicket", JSON.stringify(notificacionTicket));
+        window.localStorage.setItem('idConsultor', idConsultor);
 
+        
 
 
         setState({ loading: false, error: false });
@@ -46,6 +48,8 @@ const login = useCallback(async({userName,password},onSuccess) => {
         window.localStorage.removeItem('idUser');
         window.localStorage.removeItem('codRol');
         window.localStorage.removeItem('notificacionTicket');
+        window.localStorage.removeItem('idConsultor');
+
 
 
 
@@ -68,6 +72,8 @@ const login = useCallback(async({userName,password},onSuccess) => {
         window.localStorage.removeItem('idRol');
         window.localStorage.removeItem('idUser');
         window.localStorage.removeItem('codRol');
+        window.localStorage.removeItem('idConsultor');
+
         setJwt(null)
     },[setJwt])
 
