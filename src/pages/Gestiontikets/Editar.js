@@ -103,8 +103,21 @@ const [tempData, setTempData] = useState({
   const agregarDetalle = () => {
     console.log("agregarDetalle",visibleIndex)
     if (visibleIndex === null) return;
-    if (nuevoDetalle.FechaInicio && nuevoDetalle.FechaFin && nuevoDetalle.Horas &&  nuevoDetalle.Descripcion ) {
-        const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
+    //if (nuevoDetalle.FechaInicio && nuevoDetalle.FechaFin && nuevoDetalle.Horas &&  nuevoDetalle.Descripcion ) {
+    
+  const { FechaInicio, FechaFin, Horas, Descripcion } = nuevoDetalle;
+
+  // Validar campos obligatorios
+  if (!FechaInicio || !Horas || !Descripcion) {
+    toast.current.show({
+      severity: "warn",
+      summary: "Campos incompletos",
+      detail: "Debes completar Fecha de inicio, Horas y Descripción antes de agregar el detalle.",
+      life: 5000,
+    });
+    return;
+  }
+          const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
 
           const fechaInicioDia = new Date(nuevoDetalle.FechaInicio);
           fechaInicioDia.setHours(0, 0, 0, 0);
@@ -143,7 +156,7 @@ const [tempData, setTempData] = useState({
         console.log("FORMIK",formik.values.asignaciones[visibleIndex].DetalleTareasConsultor)
         setDetalles(updated);
         setNuevoDetalle({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true,IdTicketConsultorAsignacion:formik.values.asignaciones[visibleIndex].Id,Id:0 });
-    }
+    //}
   };
 
 
@@ -379,10 +392,10 @@ useEffect(() => {
             FechaDesasignacion: Yup.string().nullable(),
             DetalleTareasConsultor: Yup.array().of(
             Yup.object().shape({
-              FechaInicio: Yup.date().required(),
+              FechaInicio: Yup.date().required("Fecha inicio es obligatorio"),
               FechaFin: Yup.date().required(),
-              Horas: Yup.string().required(),
-              Descripcion: Yup.string().required(),
+              Horas: Yup.string().required("Horas es obligatorio"),
+              Descripcion: Yup.string().required("Descripción es obligatoria"),
               Activo: Yup.boolean().required(),
               IdTicketConsultorAsignacion:Yup.number(),
               Id:Yup.number(),
@@ -501,8 +514,6 @@ console.log("📦 Datos a enviar:");
   },
   
  
-
-
     });
   useEffect(() => {
   if (formik.submitCount > 0) {
@@ -708,13 +719,22 @@ const handleGestorChange = (e) => {
     ]);
   };
 
-  const removeRow = (index) => {
-    const newAsignaciones = [...formik.values.asignaciones];
-    newAsignaciones.splice(index, 1);
-    formik.setFieldValue("asignaciones", newAsignaciones);
-  };
+  // const removeRow = (index) => {
+  //   const newAsignaciones = [...formik.values.asignaciones];
+  //   newAsignaciones.splice(index, 1);
+  //   formik.setFieldValue("asignaciones", newAsignaciones);
+  // };
+    const removeRow = (index) => {
+      const newAsignaciones = [...formik.values.asignaciones];
 
-  
+      newAsignaciones[index] = {
+        ...newAsignaciones[index],
+        Activo: false
+      };
+      formik.setFieldValue("asignaciones", newAsignaciones);
+    };
+
+      
   return (
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
       <ConfirmDialog />
@@ -1129,7 +1149,9 @@ const handleGestorChange = (e) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {formik.values.asignaciones.map((asignacion, index) => (
+                  {formik.values.asignaciones
+                    .filter((asignacion) => asignacion.Activo !== false)
+                    .map((asignacion, index) => (
                     <tr key={index} className="border-t">
                       
                       <td className="p-2 border">
@@ -1145,7 +1167,11 @@ const handleGestorChange = (e) => {
                             formik.setFieldValue(`asignaciones[${index}].IdConsultor`, e.value)
                           }
                           onBlur={formik.handleBlur}
-                          disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
+                          // disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
+                          disabled={
+                            permisosActual.divsBloqueados.includes("divAsignaciones") &&
+                            formik.values.asignaciones[index].IdConsultor !== ""
+                          }
 
                         />
                         <small className="p-error">
@@ -1169,7 +1195,11 @@ const handleGestorChange = (e) => {
                             formik.setFieldValue(`asignaciones[${index}].IdTipoActividad`, e.value)
                           }
                           onBlur={formik.handleBlur}
-                          disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
+                          // disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
+                           disabled={
+                            permisosActual.divsBloqueados.includes("divAsignaciones") &&
+                            formik.values.asignaciones[index].IdTipoActividad !== ""
+                          }
 
                         />
                         <small className="p-error">
@@ -1196,7 +1226,11 @@ const handleGestorChange = (e) => {
                           )
                         }
                         onBlur={formik.handleBlur}
-                        disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
+                        // disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
+                         disabled={
+                            permisosActual.divsBloqueados.includes("divAsignaciones") &&
+                            formik.values.asignaciones[index].FechaAsignacion !== null
+                          }
                         showTime
                         hourFormat="24"
                         minDate={new Date()} 
@@ -1229,8 +1263,12 @@ const handleGestorChange = (e) => {
                         onBlur={formik.handleBlur}
                         showTime 
 
-                        disabled={!formik.values.asignaciones[index].FechaAsignacion ||
-                                   permisosActual.divsBloqueados.includes("divAsignaciones") }
+                        // disabled={!formik.values.asignaciones[index].FechaAsignacion ||
+                        //            permisosActual.divsBloqueados.includes("divAsignaciones") }
+                         disabled={
+                            !formik.values.asignaciones[index].FechaAsignacion ||(permisosActual.divsBloqueados.includes("divAsignaciones") &&
+                            formik.values.asignaciones[index].FechaDesasignacion !== null)
+                          }
                         minDate={
                           formik.values.asignaciones[index].FechaAsignacion
                             ? new Date(formik.values.asignaciones[index].FechaAsignacion)
@@ -1259,7 +1297,14 @@ const handleGestorChange = (e) => {
                           }
                           //  icon={!permisosActual.divsBloqueados.includes("divHorasTareo") ? "pi pi-plus" : ""}
                             onClick={() => setVisibleIndex(index)}
-                            disabled={!(formik.values.asignaciones[index].IdConsultor == window.localStorage.getItem("idConsultor"))}
+                            //  disabled={!(formik.values.asignaciones[index].IdConsultor == window.localStorage.getItem("idConsultor"))}
+                           disabled={
+                            !(
+                               formik.values.asignaciones[index].IdConsultor == "" ||
+                              formik.values.asignaciones[index].IdConsultor == window.localStorage.getItem("idConsultor")
+                            )
+                          }
+
                             className="w-full"
                             type="button"
                           />
@@ -1434,10 +1479,12 @@ const handleGestorChange = (e) => {
                           type="button"
                           onClick={() => removeRow(index)}
                           className="text-red-600 hover:underline"
+                          
                         >
                           Eliminar
                         </button>
                       </td>
+                    
                     </>)}
                     </tr>
                   ))}
@@ -1456,7 +1503,7 @@ const handleGestorChange = (e) => {
               </button>)} */}
               {(
                 !permisosActual.controlesOcultos.includes("btnEliminar") ||
-                (permisosActual.controlesOcultos.includes("btnEliminar") && persona?.cargamasiva === true)
+                (permisosActual.controlesOcultos.includes("btnEliminar") && persona?.esCargaMasiva === true)
               ) && (
                 <button
                   type="button"
