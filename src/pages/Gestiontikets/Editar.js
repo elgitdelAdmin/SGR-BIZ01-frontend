@@ -442,6 +442,7 @@ useEffect(() => {
       IdTipoActividad: a.idTipoActividad,
       FechaAsignacion: a.fechaAsignacion,
       FechaDesasignacion: a.fechaDesasignacion,
+      Activo:a.activo,
       // DetalleTareasConsultor:a.detalleTareasConsultor
       DetalleTareasConsultor: a.detalleTareasConsultor.map((d) => ({
         FechaInicio: d.fechaInicio,
@@ -706,10 +707,12 @@ const handleGestorChange = (e) => {
   };
 
   const addRow = () => {
+
     formik.setFieldValue("asignaciones", [
       ...formik.values.asignaciones,
       {
         Id:0,
+        // Activo:"",
         IdConsultor: "",
         IdTipoActividad: "",
         FechaAsignacion: null,
@@ -736,6 +739,7 @@ const handleGestorChange = (e) => {
 
       
   return (
+
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
       <ConfirmDialog />
       <Toast ref={toast} position="top-center"></Toast>
@@ -1152,6 +1156,7 @@ const handleGestorChange = (e) => {
                   {formik.values.asignaciones
                     .filter((asignacion) => asignacion.Activo !== false)
                     .map((asignacion, index) => (
+
                     <tr key={index} className="border-t">
                       
                       <td className="p-2 border">
@@ -1168,9 +1173,10 @@ const handleGestorChange = (e) => {
                           }
                           onBlur={formik.handleBlur}
                           // disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
+   
                           disabled={
                             permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                            formik.values.asignaciones[index].IdConsultor !== ""
+                            formik.values.asignaciones[index].IdConsultor !== "" &&  formik.values.asignaciones[index].Activo == true
                           }
 
                         />
@@ -1198,7 +1204,7 @@ const handleGestorChange = (e) => {
                           // disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
                            disabled={
                             permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                            formik.values.asignaciones[index].IdTipoActividad !== ""
+                            formik.values.asignaciones[index].IdTipoActividad !== "" &&  formik.values.asignaciones[index].Activo == true
                           }
 
                         />
@@ -1229,7 +1235,7 @@ const handleGestorChange = (e) => {
                         // disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
                          disabled={
                             permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                            formik.values.asignaciones[index].FechaAsignacion !== null
+                            formik.values.asignaciones[index].FechaAsignacion !== null &&  formik.values.asignaciones[index].Activo == true
                           }
                         showTime
                         hourFormat="24"
@@ -1267,7 +1273,7 @@ const handleGestorChange = (e) => {
                         //            permisosActual.divsBloqueados.includes("divAsignaciones") }
                          disabled={
                             !formik.values.asignaciones[index].FechaAsignacion ||(permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                            formik.values.asignaciones[index].FechaDesasignacion !== null)
+                            formik.values.asignaciones[index].FechaDesasignacion !== null) &&  formik.values.asignaciones[index].Activo == true
                           }
                         minDate={
                           formik.values.asignaciones[index].FechaAsignacion
@@ -1299,10 +1305,10 @@ const handleGestorChange = (e) => {
                             onClick={() => setVisibleIndex(index)}
                             //  disabled={!(formik.values.asignaciones[index].IdConsultor == window.localStorage.getItem("idConsultor"))}
                            disabled={
-                            !(
-                               formik.values.asignaciones[index].IdConsultor == "" ||
+                            (!(
+                              //  formik.values.asignaciones[index].IdConsultor == "" ||
                               formik.values.asignaciones[index].IdConsultor == window.localStorage.getItem("idConsultor")
-                            )
+                            )&& !permisosActual.divsBloqueados.includes("divHorasTareo"))
                           }
 
                             className="w-full"
@@ -1524,8 +1530,9 @@ const handleGestorChange = (e) => {
            <div className="zv-editarUsuario-footer">
           {/* <button type="button" onClick={() => console.log("VALUES", formik.values)}>
             Ver valores
-          </button> */}
-          {!permisosActual.controlesOcultos.includes("btnEliminar") && (
+          </button>
+           */}
+          {(!permisosActual.controlesOcultos.includes("btnEliminar") || persona?.esCargaMasiva==true ) &&(
            <Boton
               label="Guardar cambios"
               style={{ fontSize: 12 }}
