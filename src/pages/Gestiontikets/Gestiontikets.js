@@ -286,12 +286,16 @@ useEffect(() => {
                  <div className="zv-usuario-body-filtro">
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 <div style={{ marginLeft: "auto" }}>
+                                      {!permisosActual.controlesOcultos.includes("btnCrear") && (
+                   <>
+                   
                                      <Boton
                                      icon="pi pi-plus" 
                                      style={{ fontSize: 15, borderRadius: 15 }}
                                      color="primary"
                                      onClick={() => navigate("Crear/")}
                                      />
+                                      </>)}
 
                                  </div>
                              </div>                        
@@ -316,10 +320,10 @@ useEffect(() => {
                             <Column field="empresa.razonSocial" header="Empresa" ></Column>
                             <Column field="horasTrabajadas" header="Horas Trabajadas" ></Column>
                             <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'}/>
-                            <Column header="EstadoHoras" body={estadoHorasTemplate}></Column>
+                            {/* <Column header="EstadoHoras" body={estadoHorasTemplate}></Column> */}
+                            {/* <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column> */}
+                            <Column body={accion}  header="Acciones"></Column>
 
-
-                            <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column>
                         </DatatableDefault>
                     </div>
             </div>

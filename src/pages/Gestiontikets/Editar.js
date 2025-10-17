@@ -25,10 +25,7 @@ import { TabView, TabPanel } from "primereact/tabview";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import {ListarConsultores,ListarConsultoresPorSocio} from "../../service/ConsultorService";
-
-
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog"; // For confirmDialog method
-
 import { handleSoloLetras, handleSoloLetrastest } from "../../helpers/helpers";
 import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
@@ -40,6 +37,7 @@ import {ListarGestoresPorSocio,ListarGestores} from "../../service/GestorService
 import {ListarEmpresasPorSocio,ListarEmpresas,ListarEmpresasporRol} from "../../service/EmpresaService";
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
+import { Accordion, AccordionTab } from 'primereact/accordion';
 
 const Editar = () => {
   const navigate = useNavigate();
@@ -63,6 +61,11 @@ const Editar = () => {
   const [gestores, setGestores] = useState(null);
   const [consultores, setConsultores] = useState(null);
   const codRol = localStorage.getItem("codRol");
+  const [activeIndex, setActiveIndex] = useState(modoEdicion ? null : 0);
+
+    const location = useLocation();
+
+  const isOpen = location.pathname.includes('/Crear/');
  let { idUser } = useParams();
  const {permisos} = useUsuario();
     const permisosActual = permisos["/tickets"] || {
@@ -85,6 +88,7 @@ const [tempData, setTempData] = useState({
   IdTicketConsultorAsignacion:0,
   Id:0
 });
+const [totalesFijos, setTotalesFijos] = useState([]);
 
 
  const [visible, setVisible] = useState(false);
@@ -171,22 +175,20 @@ const handleAdd = () => {
   setTempData({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true });
   setVisibleIndex(null);
 };
-  const footer = (
-    <div className="w-full flex justify-end">
-        <Button label="Registrar"   
-        style={{ marginLeft: "auto" }} 
-        severity="secondary" 
-        onClick={() => {
-            formik.handleSubmit();   
-            setVisibleIndex(null);  
-          }}
-        // onClick={() => setVisibleIndex(null)} 
-        />
+  // const footer = (
+  //   <div className="w-full flex justify-end">
+  //       <Button label="Registrar"   
+  //       style={{ marginLeft: "auto" }} 
+  //       severity="secondary" 
+  //       onClick={() => {
+  //           formik.handleSubmit();   
+  //           setVisibleIndex(null);  
+  //         }}
+  //       // onClick={() => setVisibleIndex(null)} 
+  //       />
 
-    </div>
-  );
-
-
+  //   </div>
+  // );
 
  useEffect(() => {
     const getParametro = async () => {
@@ -226,20 +228,7 @@ const handleAdd = () => {
           };
       getFrentes();
   }, []);
-  useEffect(() => {
-      const getTicket = async () => {
-        // let jwt = window.localStorage.getItem("jwt");
-        await ObtenerTicket({id}).then((data) => {
-          setTituloPagina("Datos del Ticket");
-          setTicket(data);
-          setModoEdicion(true);
-        });
-      };
-      if (id) getTicket();
-    }, [id]);
-
-
-  useEffect(() => {
+    useEffect(() => {
     if (!parametros?.length) return;
 
     const estadoActual = parametros.find(
@@ -263,6 +252,36 @@ const handleAdd = () => {
       const rolesPermitidos = estadoActual?.valor2?.split(",") || [];
   setBloquearDropdown(!rolesPermitidos.includes(codRol));
   }, [parametros]); 
+
+  useEffect(() => {
+      const getTicket = async () => {
+        // let jwt = window.localStorage.getItem("jwt");
+        await ObtenerTicket({id}).then((data) => {
+          setTituloPagina("Datos del Ticket");
+          setTicket(data);
+          setModoEdicion(true);
+                  console.log("DATAAAAA",data)
+          const totalHorasPorConsultor = data.consultorAsignaciones.map(asig => {
+            const total = (asig.detalleTareasConsultor || [])
+              .filter(t => t.activo)
+              .reduce((suma, tarea) => suma + (tarea.horas || 0), 0);
+
+            return {
+              idConsultor: asig.idConsultor,
+              totalHoras: total
+            };
+
+});
+
+console.log(totalHorasPorConsultor);
+  setTotalesFijos(totalHorasPorConsultor)
+
+        });
+      };
+      if (id) getTicket();
+    }, [id]);
+
+
 
 
 
@@ -327,18 +346,6 @@ const handleAdd = () => {
     };
     getGestores();
   }, []);
-  //  useEffect(() => {
-  //   const getConsultores = async () => {
-  //     // await ListarConsultores().then(data=>{
-  //     //   console.log("Data",data)
-  //     //   setConsultores(data)})
-  //     const data=[{id: 1,nombre: 'Francisco'},
-  //      {id: 2, nombre:'Eduardo'},
-  //     ]
-  //     setConsultores(data);
-  //   };
-  //   getConsultores();
-  // }, []);
   
 useEffect(() => {
   const getConsultores = async () => {
@@ -737,7 +744,51 @@ const handleGestorChange = (e) => {
       formik.setFieldValue("asignaciones", newAsignaciones);
     };
 
-      
+
+useEffect(() => {
+  // Cuando cambia modoEdicion, actualiza el acordeón
+  setActiveIndex(modoEdicion ? null : 0);
+}, [modoEdicion]);
+
+
+const footer = (
+  <div className="w-full flex justify-between items-center border-t pt-3 px-3">
+    {/* Total de horas (lado izquierdo) */}
+    {formik.values.asignaciones[visibleIndex] && (
+      <div className="text-left font-semibold text-blue-700">
+        Total de horas:&nbsp;
+        {
+          formik.values.asignaciones[visibleIndex].DetalleTareasConsultor
+            ?.filter((d) => d.Activo)
+            .reduce((total, item) => total + (item.Horas || 0), 0)
+        }
+      </div>
+    )}
+
+    {/* Botón Registrar (lado derecho) */}
+    <Button
+      label="Registrar"
+      severity="secondary"
+      onClick={() => {
+        formik.handleSubmit();
+        setVisibleIndex(null);
+      }}
+    />
+  </div>
+);
+
+// useEffect(() => {
+//   const iniciales = formik.values.asignaciones.map((asig) => {
+//     const detalle = asig.DetalleTareasConsultor || [];
+//     return detalle
+//       .filter((d) => d.Activo)
+//       .reduce((sum, d) => sum + (d.Horas || 0), 0);
+//   });
+//   console.log("INICIALES",iniciales)
+//   setTotalesFijos(iniciales);
+// }, []); // Solo se ejecuta una vez
+
+
   return (
 
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
@@ -753,7 +804,17 @@ const handleGestorChange = (e) => {
       </div>
       <div className="zv-editarUsuario-body" style={{ marginTop: 16 }}>
         <form onSubmit={formik.handleSubmit}>
-          <div className="p-fluid formgrid grid">   
+          <div className="p-fluid formgrid grid"> 
+            <div className="field col-12 md:col-12">
+           
+              {/* <Accordion
+                key={modoEdicion ? 'edit' : 'view'}
+                activeIndex={!modoEdicion ? 0 : null}
+              > */}
+                  <Accordion activeIndex={isOpen ? 0 : null}>
+
+              <AccordionTab header="Datos Generales" style={{ width: '100%' }} >
+                <div className="grid"> 
               <div className="field col-12 md:col-6">
                 <label className="label-form">Titulo</label>
                 <InputText
@@ -986,7 +1047,10 @@ const handleGestorChange = (e) => {
                 {formik.touched.idGestorConsultoria && formik.errors.idGestorConsultoria}
               </small>
               </div>
-
+                </div>
+              </AccordionTab>
+            </Accordion>
+            </div> 
                { modoEdicion && (
              <>
              {!permisosActual.divsOcultos.includes("divFrentes") && (
@@ -1145,7 +1209,9 @@ const handleGestorChange = (e) => {
                     <th className="p-2 border">Tipo actividad</th>
                     <th className="p-2 border">Fecha Inicio</th>
                     <th className="p-2 border">Fecha Fin</th>
+                    <th className="p-2 border">Horas Trabajadas</th>
                     <th className="p-2 border">Horas</th>
+
                       {!permisosActual.controlesOcultos.includes("btnEliminar") && (
                    <>
                     <th className="p-2 border">Acciones</th>
@@ -1292,7 +1358,29 @@ const handleGestorChange = (e) => {
                           }
                         </small>
                       </td>
-                  
+                       {/* <td className="p-2 border text-center">
+                        {formik.values.asignaciones[index].DetalleTareasConsultor
+                          ?.filter((d) => d.Activo)
+                          .reduce((total, item) => total + (item.Horas || 0), 0) || 0}
+                      </td> */}
+                     {/* <td className="p-2 border text-center">
+                      {formik.values.asignaciones
+    .filter((asignacion) => asignacion.Activo !== false)
+    .map((asignacion, index) => (
+      <tr key={index} className="border-t">
+        <td className="p-2 border text-center">
+          {totalesFijos[index] }
+        </td>
+      </tr>
+    ))}
+                     </td> */}
+
+                     <td className="p-2 border text-center">
+          {totalesFijos?.[index]?.totalHoras || 0}
+                    </td>
+
+
+
                       <td className="p-2 border">
                         <Button
                            label={""}
