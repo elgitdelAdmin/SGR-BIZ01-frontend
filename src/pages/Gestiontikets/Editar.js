@@ -361,6 +361,19 @@ useEffect(() => {
   };
   getConsultores();
 }, []);
+// const toLocalISOString = (date) => {
+//   if (!date) return null;
+//   const d = new Date(date);
+//   const pad = (n) => n.toString().padStart(2, "0");
+//   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000`;
+// };
+
+function toLocalISOString(date) {
+  const d = new Date(date);
+  const offset = d.getTimezoneOffset() * 60000; // minutos → milisegundos
+  const local = new Date(d.getTime() - offset);
+  return local.toISOString().slice(0, 19); // corta la "Z" (evita UTC)
+}
 
   const schema = Yup.object().shape({
 
@@ -381,13 +394,18 @@ useEffect(() => {
         idFrente: Yup.number().nullable().transform((v, o) => o === "" ? null : v),
         idSubFrente: Yup.number().nullable().transform((v, o) => o === "" ? null : v),
         cantidad: Yup.number().nullable(),
+        fechaInicio:Yup.string().nullable(),
+        fechaFin:Yup.string().nullable(),
        
       }).notRequired(),
       frenteSubFrentes: Yup.array().of(
         Yup.object().shape({
+          id: Yup.number(),
           idFrente: Yup.number().required(),
           idSubFrente: Yup.number().required(),
           cantidad: Yup.number().nullable(),
+          fechaInicio:Yup.string().nullable(),
+          fechaFin:Yup.string().nullable(),
         })
       ),
       asignaciones: Yup.array().of(
@@ -438,9 +456,13 @@ useEffect(() => {
       urlArchivos: persona ? persona.urlArchivos : "",
       idGestorAsignado: persona ? persona.idGestorAsignado : null,
       nuevaEspecializacion: {
+          id:"",
           idFrente: "",
           idSubFrente: "",
-          cantidad:""
+          cantidad:"",
+          fechaInicio:"",
+          fechaFin:"",
+          activo:true
       },
       frenteSubFrentes: persona ?persona.frenteSubFrentes:[],
       asignaciones: persona ?(persona.consultorAsignaciones.map((a) => ({
@@ -475,7 +497,9 @@ useEffect(() => {
     const formData = new FormData();
     formData.append("CodTicketInterno", values.codTicketInterno);
     formData.append("titulo", values.titulo);
-    formData.append("fechaSolicitud", values.fechaSolicitud ? new Date(values.fechaSolicitud).toISOString() : null);
+    // formData.append("fechaSolicitud", values.fechaSolicitud ? new Date(values.fechaSolicitud).toISOString() : null);
+    formData.append("fechaSolicitud", values.fechaSolicitud ? toLocalISOString(values.fechaSolicitud) : null);
+
     formData.append("idTipoTicket", values.idTipoTicket);
     formData.append("idEstadoTicket", values.idEstadoTicket);
     formData.append("idEmpresa", values.idEmpresa);
@@ -490,9 +514,16 @@ useEffect(() => {
     formData.append(
       "frenteSubFrentes",
       JSON.stringify(values.frenteSubFrentes.map(e => ({
+        Id: Number(e.id),
         IdFrente: Number(e.idFrente),
         IdSubFrente: Number(e.idSubFrente),
         Cantidad: e.cantidad,
+        // FechaInicio: e.fechaInicio ? new Date(e.fechaInicio).toISOString() : null,
+        // FechaFin: e.fechaFin ? new Date(e.fechaFin).toISOString() : null,
+        FechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
+        FechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
+        Activo:e.activo
+
       })))
     );
 
@@ -647,22 +678,40 @@ console.log("📦 Datos a enviar:");
       </ul>
     </>
   );
- const confirmarEliminacion = (rowData) => {
-        confirmDialog({
-          message: '¿Esta seguro de eliminar esta especialización?',
-          header: 'Confirmación',
-          icon: 'pi pi-exclamation-triangle',
-          acceptClassName: 'p-button-danger',
-          acceptLabel: 'Eliminar',
-          rejectLabel: 'Cancelar',
-          accept: () => {
-            const nuevasEspecializaciones = formik.values.frenteSubFrentes.filter(
-              (esp) => esp !== rowData
-            );
-            formik.setFieldValue('frenteSubFrentes', nuevasEspecializaciones);
-          }
-        });
-      };
+//  const confirmarEliminacion = (rowData) => {
+//         confirmDialog({
+//           message: '¿Esta seguro de eliminar esta especialización?',
+//           header: 'Confirmación',
+//           icon: 'pi pi-exclamation-triangle',
+//           acceptClassName: 'p-button-danger',
+//           acceptLabel: 'Eliminar',
+//           rejectLabel: 'Cancelar',
+//           accept: () => {
+//             const nuevasEspecializaciones = formik.values.frenteSubFrentes.filter(
+//               (esp) => esp !== rowData
+//             );
+//             formik.setFieldValue('frenteSubFrentes', nuevasEspecializaciones);
+//           }
+//         });
+//       };
+
+const confirmarEliminacion = (rowData) => {
+  confirmDialog({
+    message: '¿Está seguro de desactivar esta especialización?',
+    header: 'Confirmación',
+    icon: 'pi pi-exclamation-triangle',
+    acceptClassName: 'p-button-danger',
+    acceptLabel: 'Desactivar',
+    rejectLabel: 'Cancelar',
+    accept: () => {
+      const nuevasEspecializaciones = formik.values.frenteSubFrentes.map((esp) =>
+        esp === rowData ? { ...esp, activo: false } : esp
+      );
+      formik.setFieldValue('frenteSubFrentes', nuevasEspecializaciones);
+    },
+  });
+};
+
 
    const accion = (rowData) => {
           return (
@@ -1062,7 +1111,7 @@ const footer = (
                     Especializaciones
                   </label>
               </div>
-              <div className="field col-12 md:col-3">
+              <div className="field col-12 md:col-2">
               <DropdownDefault
               value={formik.values.nuevaEspecializacion.idFrente}
               options={frentes}
@@ -1081,7 +1130,7 @@ const footer = (
                     placeholder="Selecciona Frente"
               />
               </div>
-              <div className="field col-12 md:col-3">
+              <div className="field col-12 md:col-2">
               <DropdownDefault
                 value={formik.values.nuevaEspecializacion.idSubFrente}
                 options={subfrentes}
@@ -1091,7 +1140,7 @@ const footer = (
                 placeholder="Selecciona Subfrente"
               />
               </div>
-              <div className="field col-12 md:col-3">
+              <div className="field col-12 md:col-2">
               <InputText
                   type="number"
                   name="nuevaEspecializacion.cantidad"
@@ -1102,14 +1151,65 @@ const footer = (
                 />
               </div>
 
-              <div className="field col-12 md:col-3">
+              <div className="field col-12 md:col-2">
+                <Calendar
+                  value={formik.values.nuevaEspecializacion.fechaInicio}
+                  onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
+                  placeholder="Fecha de Inicio"
+                  dateFormat="yy-mm-dd"
+                  showIcon
+                  className="w-full"
+                  minDate={new Date()} 
+                />
+              </div>
+             <div className="field col-12 md:col-2">
+                <Calendar
+                  value={formik.values.nuevaEspecializacion.fechaFin}
+                  onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
+                  placeholder="Fecha de Inicio"
+                  dateFormat="yy-mm-dd"
+                  showIcon
+                  className="w-full"
+                  minDate={
+                          formik.values.nuevaEspecializacion.fechaInicio
+                            ? new Date(formik.values.nuevaEspecializacion.fechaInicio)
+                            : new Date()
+                        }
+                />
+              </div>
+              {/* <div className="field col-12 md:col-2">
+                <Calendar
+                  value={formik.values.nuevaEspecializacion.fechaFin}
+                  // onChange={(e) =>
+                  //   formik.setFieldValue(
+                  //     "nuevaEspecializacion.fechaFin",
+                  //     e.value ? e.value.toISOString() : ""
+                  //   )
+                  // }
+                  onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.fechaFin)}
+
+                  // onBlur={formik.handleBlur}
+                  placeholder="Fecha de Fin"
+                  dateFormat="yy-mm-dd"
+                  showIcon
+                  className="w-full"
+                />
+              </div> */}
+
+
+
+
+              <div className="field col-12 md:col-2">
              <Boton
                 type="button"
                 label="Agregar Especialización"
                 style={{ fontSize: 13, borderRadius: 15 }}
                 onClick={() => {
                   const nueva = formik.values.nuevaEspecializacion;
+                  console.log("NUEVA",nueva)
+                  console.log("FECHAA INICIO",nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null)
 
+                  console.log("FECHAA FIN",nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null)
                   if (!nueva.idFrente || !nueva.idSubFrente) {
                     alert("Completa todos los campos de la especialización");
                     return;
@@ -1133,17 +1233,28 @@ const footer = (
                   formik.setFieldValue("frenteSubFrentes", [
                     ...especializacionesActuales,
                     {
+                      id: Number(nueva.id),
                       idFrente: Number(nueva.idFrente),
                       idSubFrente: Number(nueva.idSubFrente),
-                     cantidad: Number(nueva.cantidad),
+                      cantidad: Number(nueva.cantidad),
+                      fechaInicio: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
+                      fechaFin: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
+                    // fechaInicio: nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null,
+                    //  fechaFin: nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null,
+
+                      activo:true
 
                     },
                   ]);
-
+                  console.log("formik",Date(nueva.fechaInicio))
                   formik.setFieldValue("nuevaEspecializacion", {
+                    id: "",
                     idFrente: "",
                     idSubFrente: "",
                     cantidad: "",
+                    fechaInicio:"",
+                    fechaFin:"",
+                    activo:true
                   });
                 }}
               />
@@ -1153,7 +1264,7 @@ const footer = (
                  {frentes.length === 0 ? (
                 <p>Cargando frentes...</p> 
               ) : (
-              <DatatableDefault showSearch={false} paginator={false} value={formik.values.frenteSubFrentes}>
+              <DatatableDefault showSearch={false} paginator={false}   value={formik.values.frenteSubFrentes.filter((item) => item.activo)}>
                   <Column
                     field="idFrente"
                     header="Frente"
@@ -1180,6 +1291,16 @@ const footer = (
                     field="cantidad"
                     header="Cantidad"
                       body={(rowData) => rowData.cantidad ?? "—"}
+                  />
+                   <Column
+                    field="FechaInicio"
+                    header="Fecha Inicio"
+                      body={(row) => row.fechaInicio ? new Date(row.fechaInicio).toLocaleDateString() : ""}
+                  />
+                  <Column
+                    field="FechaFin"
+                    header="Fecha Fin"
+                      body={(row) => row.fechaFin ? new Date(row.fechaFin).toLocaleDateString() : ""}
                   />
                   
                       <Column
@@ -1291,12 +1412,19 @@ const footer = (
                               ? new Date(formik.values.asignaciones[index].FechaAsignacion)
                               : null
                           }  
-                        onChange={(e) =>
-                          formik.setFieldValue(
-                            `asignaciones[${index}].FechaAsignacion`,
-                            e.value ? e.value.toISOString() : null
-                          )
-                        }
+                        // onChange={(e) =>
+                        //   formik.setFieldValue(
+                        //     `asignaciones[${index}].FechaAsignacion`,
+                        //     e.value ? e.value.toISOString() : null
+                        //   )
+                        // }
+                                                  onChange={(e) =>
+                            formik.setFieldValue(
+                              `asignaciones[${index}].FechaAsignacion`,
+                              e.value ? toLocalISOString(e.value) : null
+                            )
+                          }
+
                         onBlur={formik.handleBlur}
                         // disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
                          disabled={
@@ -1326,12 +1454,19 @@ const footer = (
                               ? new Date(formik.values.asignaciones[index].FechaDesasignacion)
                               : null
                           }  
+                        // onChange={(e) =>
+                        //   formik.setFieldValue(
+                        //     `asignaciones[${index}].FechaDesasignacion`,
+                        //     e.value ? e.value.toISOString() : null
+                        //   )
+                        // }
                         onChange={(e) =>
-                          formik.setFieldValue(
-                            `asignaciones[${index}].FechaDesasignacion`,
-                            e.value ? e.value.toISOString() : null
-                          )
-                        }
+                        formik.setFieldValue(
+                          `asignaciones[${index}].FechaDesasignacion`,
+                          e.value ? toLocalISOString(e.value) : null
+                        )
+                      }
+
                         onBlur={formik.handleBlur}
                         showTime 
 
