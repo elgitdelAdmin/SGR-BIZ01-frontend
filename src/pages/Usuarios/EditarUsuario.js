@@ -88,11 +88,30 @@ const EditarUsuario = () => {
       nombres: Yup.string().required("Nombres es un campo obligatorio"),
       apellidoPaterno: Yup.string().required("Apellido Paterno es un campo obligatorio"),
       apellidoMaterno: Yup.string().required("Apellido Materno es un campo obligatorio"),
+      // numeroDocumento: Yup.string()
+      //   .required("Documento de Identidad es un campo obligatorio")
+      //   .matches(/^\d+$/, "Documento debe contener solo números")
+      //   .min(8, "Documento debe tener mínimo 8 números")
+      //   .test("no-es-ceros", "Documento no puede ser igual a '00000000'", value => value !== "00000000"),
       numeroDocumento: Yup.string()
         .required("Documento de Identidad es un campo obligatorio")
-        .matches(/^\d+$/, "Documento debe contener solo números")
-        .min(8, "Documento debe tener mínimo 8 números")
-        .test("no-es-ceros", "Documento no puede ser igual a '00000000'", value => value !== "00000000"),
+        .when("tipoDocumento", {
+          is: 1,
+          then: (schema) =>
+            schema
+              .matches(/^\d+$/, "Documento debe contener solo números")
+              .min(8, "Documento debe tener mínimo 8 números")
+              .test(
+                "no-es-ceros",
+                "Documento no puede ser igual a '00000000'",
+                (value) => value !== "00000000"
+              ),
+          otherwise: (schema) =>
+            schema
+              .matches(/^[0-9a-zA-Z-]+$/, "Documento solo puede contener letras, números o guiones")
+              .min(5, "Documento debe tener mínimo 5 caracteres"),
+        }),
+      
       tipoDocumento: Yup.number().required("Tipo de documento es un campo obligatorio"),
       telefono: Yup.string()
         .required("Teléfono es un campo obligatorio")
