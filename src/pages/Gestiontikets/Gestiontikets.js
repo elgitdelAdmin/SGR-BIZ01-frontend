@@ -91,6 +91,7 @@ const loadLazyData = () => {
                             }
                     return (
                         ticket.codTicket?.toLowerCase().includes(search) ||
+                        ticket.codTicketInterno?.toLowerCase().includes(search) ||
                         ticket.titulo?.toLowerCase().includes(search) ||
                         ticket.descripcion?.toLowerCase().includes(search) ||
                         ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
@@ -303,7 +304,7 @@ useEffect(() => {
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy
-                            onGlobalFilterChange={['titulo', 'codTicket','fechaSolicitud','descripcion','estado','empresa.razonSocial']}
+                            onGlobalFilterChange={['titulo', 'codTicket','codTicketInterno','fechaSolicitud','descripcion','estado','empresa.razonSocial']}
                             loading={loading}
                             onPage={onPage}
                             first={lazyState.first}
@@ -311,7 +312,8 @@ useEffect(() => {
                             totalRecords ={totalRecords}
                             
                         >
-                            <Column field="codTicket" header="Codigo Ticket" ></Column>
+                            <Column field="codTicket" header="Codigo Ticket Conecta" ></Column>
+                            <Column field="codTicketInterno" header="Codigo Interno" ></Column>
                             <Column field="titulo" header="Titulo" ></Column>
                             <Column field="fechaSolicitud" header="Fecha de Solicitud" ></Column>
                             <Column field="descripcion" header="Descripcion" ></Column>

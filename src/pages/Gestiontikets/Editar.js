@@ -1166,7 +1166,7 @@ const footer = (
                 <Calendar
                   value={formik.values.nuevaEspecializacion.fechaFin}
                   onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
-                  placeholder="Fecha de Inicio"
+                  placeholder="Fecha de Fin"
                   dateFormat="yy-mm-dd"
                   showIcon
                   className="w-full"

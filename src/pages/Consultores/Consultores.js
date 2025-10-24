@@ -79,7 +79,9 @@ const loadLazyData = () => {
                             c.persona?.nombres?.toLowerCase().includes(search) ||
                             c.persona?.apellidoPaterno?.toLowerCase().includes(search) ||
                             c.persona?.apellidoMaterno?.toLowerCase().includes(search) ||
- (c.persona?.telefono && c.persona.telefono.toString().toLowerCase().includes(search))                          );
+                            c.persona?.correo?.toLowerCase().includes(search) ||
+                            c.persona?.username?.toLowerCase().includes(search) ||
+                           (c.persona?.telefono && c.persona.telefono.toString().toLowerCase().includes(search))                          );
                         }
                  //Agrego
 filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
@@ -257,7 +259,9 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                                     'persona.nombres',
                                     'persona.apellidoPaterno',
                                     'persona.apellidoMaterno',
-                                    'persona.telefono'
+                                    'persona.correo',
+                                    'persona.telefono',
+                                    'persona.username',
                                 ]}
                             loading={loading}
                             onPage={onPage}
@@ -269,6 +273,10 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                               <Column field="persona.nombres" header="Nombres" />
                              <Column field="persona.apellidoPaterno" header="Apellido Paterno" />
                              <Column field="persona.apellidoMaterno" header="Apellido Materno" />
+                             <Column field="persona.correo" header="Correo" />
+                             {/* <Column field="persona.correo" header="Usuario" /> */}
+
+
                              <Column
                                 header="Especializaciones"
                                 body={verespecializaciones} 

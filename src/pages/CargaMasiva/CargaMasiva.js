@@ -26,7 +26,8 @@ import * as XLSX from "xlsx";
 const CargaMasiva = () => {
   const navigate = useNavigate();
   const [persona] = useState(null);
-
+  const idUser = localStorage.getItem("idUser");
+  const codRol = localStorage.getItem("codRol");
   const [tituloPagina] = useState("Carga Masiva");
 
   const [parametros, setParametro] = useState([]);
@@ -156,7 +157,11 @@ const CargaMasiva = () => {
                 }}
                 onBlur={formik.handleBlur}
                 // options={tipotiket}
-                 options={parametros?.filter((item) => item.tipoParametro === "TipoCargaMasiva")}
+                 options={parametros?.filter((item) => 
+                     item.tipoParametro === "TipoCargaMasiva" &&
+                     (codRol==="ADMIN" || Number(item.valor2) === Number(idUser))
+
+                    )}
                 optionLabel="nombre"
                 optionValue="id"
                 disabled={permisosActual.controlesBloqueados.includes("cboTipo")}
