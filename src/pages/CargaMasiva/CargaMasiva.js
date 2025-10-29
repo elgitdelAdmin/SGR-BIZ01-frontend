@@ -164,7 +164,6 @@ const CargaMasiva = () => {
                     )}
                 optionLabel="nombre"
                 optionValue="id"
-                disabled={permisosActual.controlesBloqueados.includes("cboTipo")}
 
               />
               <small className="p-error">
