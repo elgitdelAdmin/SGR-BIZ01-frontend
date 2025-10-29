@@ -220,7 +220,19 @@ const handleAdd = () => {
       };
       getgestorConsultoria();
     }, []);
+// useEffect(() => {
+//   if (
+//     Array.isArray(gestorConsultoria) && 
+//     gestorConsultoria.length === 1 &&  
+//     formik?.setFieldValue &&            
+//     !formik.values.idGestorConsultoria  
+//   ) {
+//     const unicoGestor = gestorConsultoria[0];
+//     formik.setFieldValue("idGestorConsultoria", unicoGestor.id);
+//   }
+// }, [gestorConsultoria]);
 
+ 
    useEffect(() => {
       const getFrentes = async () => {
        await ListarFrentes().then(data=>{setFrentes(data)})
@@ -1571,10 +1583,10 @@ const footer = (
                               : null} 
                               maxDate={ new Date()}
                               // disabled={formik.values.idEstadoTicket==63}
-                                disabled={
-                                  formik.values.idEstadoTicket === 
-                                  parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                                }
+                                // disabled={
+                                //   formik.values.idEstadoTicket === 
+                                //   parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                                // }
 
                             />
                           </div>
@@ -1609,10 +1621,10 @@ const footer = (
                               min={1}
                               className="w-full"
                               // disabled={formik.values.idEstadoTicket==63}
-                              disabled={
-                                  formik.values.idEstadoTicket === 
-                                  parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                                }
+                              // disabled={
+                              //     formik.values.idEstadoTicket === 
+                              //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                              //   }
                             />
                           </div>
 
@@ -1623,10 +1635,10 @@ const footer = (
                                 onChange={(e) => setNuevoDetalle({ ...nuevoDetalle, Descripcion: e.target.value })}
                                 className="w-full"
                                 // disabled={formik.values.idEstadoTicket==63}
-                                 disabled={
-                                  formik.values.idEstadoTicket === 
-                                  parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                                }
+                                //  disabled={
+                                //   formik.values.idEstadoTicket === 
+                                //   parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                                // }
 
                               />
                             </div>
@@ -1638,10 +1650,10 @@ const footer = (
                               severity="success"
                               onClick={agregarDetalle}
                               // disabled={formik.values.idEstadoTicket==63}
-                               disabled={
-                                  formik.values.idEstadoTicket === 
-                                  parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                                }
+                              //  disabled={
+                              //     formik.values.idEstadoTicket === 
+                              //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                              //   }
                             />
                           </div>
                           </>)}

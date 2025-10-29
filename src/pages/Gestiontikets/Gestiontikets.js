@@ -30,6 +30,8 @@ const Gestiontikets = () => {
     const [totalRecords, setTotalRecords] = useState(0);
     const [paginaReinicio, setpaginaReinicio] = useState(null);
     const [parametros, setParametro] = useState([]);
+   const [parametrosPrioridad, setParametroPrioridad] = useState([]);
+
     
     const {permisos} = useUsuario();
     const permisosActual = permisos["/tickets"] || {
@@ -179,7 +181,9 @@ useEffect(() => {
   const getParametro = async () => {
     const data = await ListarParametros();
     const estadoTickets = data.filter(p => p.tipoParametro === "EstadoTicket");
+    const prioridadTickets = data.filter(p => p.tipoParametro === "Prioridad");
     setParametro(estadoTickets);
+    setParametroPrioridad(prioridadTickets)
   };
   getParametro();
 }, []);
@@ -219,6 +223,12 @@ useEffect(() => {
         const estadoTicketTemplate = (rowData) => {
         const estado = parametros.find(p => p.id === rowData.idEstadoTicket);
         return estado ? estado.nombre : "Sin estado";
+        };
+
+        const prioridadTicketTemplate = (rowData) => {
+        const prioridad = parametrosPrioridad.find(p => p.id === rowData.idPrioridad);
+        console.log("prioridad",prioridad)
+        return prioridad ? prioridad.descripcion : "Sin prioridad";
         };
      const estadoHorasTemplate = (rowData) => {
             const { horasTrabajadas, horasTotales } = rowData;
@@ -278,6 +288,23 @@ useEffect(() => {
             accept:()=>Eliminar({id})
         });
     };
+    const limpiarDescripcion = (texto) => {
+  if (!texto) return '';
+
+  // Quita contenido entre etiquetas <v:...> y <img ...>
+  let limpio = texto.replace(/<v:[^>]+>.*?<\/v:[^>]+>/gs, '');
+  limpio = limpio.replace(/<img[^>]*>/g, '');
+
+  // Quita todas las etiquetas HTML restantes
+  limpio = limpio.replace(/<[^>]*>/g, '');
+
+  // Decodifica entidades HTML (&nbsp; → espacio, etc.)
+  const parser = new DOMParser();
+  const decoded = parser.parseFromString(limpio, 'text/html').body.textContent;
+
+  return decoded.trim();
+};
+
     return ( 
         <div className="zv-usuario" style={{paddingTop:16}}>
             <ConfirmDialog />
@@ -316,9 +343,33 @@ useEffect(() => {
                             <Column field="codTicketInterno" header="Codigo Interno" ></Column>
                             <Column field="titulo" header="Titulo" ></Column>
                             <Column field="fechaSolicitud" header="Fecha de Solicitud" ></Column>
-                            <Column field="descripcion" header="Descripcion" ></Column>
+                            {/* <Column field="descripcion" header="Descripcion" ></Column> */}
+                            {/* <Column
+  field="descripcion"
+  header="Descripción"
+  style={{ width: '700px' }}
+  bodyStyle={{ width: '700px', whiteSpace: 'normal' }}
+></Column> */}
+                            <Column
+                            field="descripcion"
+                            header="Descripción"
+                            style={{ width: '350px', whiteSpace: 'normal', wordWrap: 'break-word' }}
+                            body={(rowData) => (
+                                <div style={{
+                                maxWidth: '350px',
+                                overflowWrap: 'break-word',
+                                whiteSpace: 'normal',
+                                textOverflow: 'ellipsis',
+                                }}>
+                                {limpiarDescripcion(rowData.descripcion)}
+                                </div>
+                            )}
+                            />
+
+
                             {/* <Column  field="activo" header="Estado"dataType="boolean"  body={booleanTemplate}></Column> */}
                             <Column header="Estado" body={estadoTicketTemplate} />
+                            <Column header="Prioridad" body={prioridadTicketTemplate} />
                             <Column field="empresa.razonSocial" header="Empresa" ></Column>
                             <Column field="horasTrabajadas" header="Horas Trabajadas" ></Column>
                             <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'}/>

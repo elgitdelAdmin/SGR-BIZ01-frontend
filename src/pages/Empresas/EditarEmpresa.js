@@ -179,9 +179,9 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
     razonSocial: Yup.string().required("La razón social es obligatoria"),
     nombreComercial: Yup.string().required("El nombre comercial es obligatorio"),
     numDocContribuyente: Yup.string()
-      .required("El RUC es obligatorio")
-      .matches(/^\d+$/, "El RUC debe contener solo números")
-      .length(11, "El RUC debe tener exactamente 11 dígitos"),
+      .required("El RUC es obligatorio"),
+      // .matches(/^\d+$/, "El RUC debe contener solo números")
+      // .length(11, "El RUC debe tener exactamente 11 dígitos"),
     direccion: Yup.string().required("La dirección es obligatoria"),
     telefono: Yup.string()
       .required("El teléfono es obligatorio")
@@ -448,8 +448,8 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 value={formik.values.numDocContribuyente}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                maxLength={11}
-                keyfilter={ /^\d+$/}
+                // maxLength={11}
+                // keyfilter={ /^\d+$/}
               ></InputText>
               <small className="p-error">
                 {formik.touched.numDocContribuyente && formik.errors.numDocContribuyente}

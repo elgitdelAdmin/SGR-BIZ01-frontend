@@ -180,24 +180,8 @@ const CargaMasiva = () => {
                         ? "Archivo cargado correctamente"
                         : "Seleccionar archivo Excel"}
                     </label>
+                 
                     {/* <input
-                    type="file"
-                    id="excelFile"
-                    name="excelFile"
-                    accept=".xls,.xlsx"
-                    onChange={(event) => {
-                        const file = event.currentTarget.files[0];
-                        if (file) {
-                        formik.setFieldValue("excelFile", file);
-                        } else {
-                        formik.setFieldValue("excelFile", null);
-                        }
-                    }}
-                    disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
-                    onBlur={formik.handleBlur}
-                    className="hidden-input"
-                    /> */}
-                    <input
                       type="file"
                       id="excelFile"
                       name="excelFile"
@@ -274,7 +258,151 @@ const CargaMasiva = () => {
                       disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
                       onBlur={formik.handleBlur}
                       className="hidden-input"
+                    /> */}
+                    <input
+                      type="file"
+                      id="excelFile"
+                      name="excelFile"
+                      accept=".xls,.xlsx"
+                      onChange={async (event) => {
+                        const file = event.currentTarget.files[0];
+                        if (!file) {
+                          formik.setFieldValue("excelFile", null);
+                          return;
+                        }
+
+                        try {
+                          const data = await file.arrayBuffer();
+                          const workbook = XLSX.read(data, { type: "array" });
+                          const sheetName = workbook.SheetNames[0];
+                          const sheet = workbook.Sheets[sheetName];
+
+                          // 🔹 Leer encabezados y filas
+                          const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+                          if (rows.length === 0) {
+                            toast.current.show({
+                              severity: "warn",
+                              summary: "Archivo vacío",
+                              detail: "El archivo Excel no contiene datos.",
+                              life: 6000,
+                            });
+                            formik.setFieldValue("excelFile", null);
+                            return;
+                          }
+
+                          // 🔹 Determinar la cantidad real de filas según la columna más completa
+                          const conteoPorColumna = {};
+                          Object.keys(rows[0]).forEach((col) => (conteoPorColumna[col] = 0));
+
+                          rows.forEach((row) => {
+                            Object.entries(row).forEach(([col, valor]) => {
+                              if (String(valor).trim() !== "") conteoPorColumna[col]++;
+                            });
+                          });
+
+                          // Encontrar la columna con más datos
+                          const columnaPrincipal = Object.entries(conteoPorColumna).reduce(
+                            (a, b) => (b[1] > a[1] ? b : a),
+                            ["", 0]
+                          );
+
+                          const totalFilasValidas = columnaPrincipal[1];
+
+                          // 🔹 Cortar filas que estén después del último dato válido
+                          const filasLimpias = rows.slice(0, totalFilasValidas);
+
+                          const headers = Object.keys(filasLimpias[0] || {});
+
+                          // 🔹 Obtener columnas requeridas según tipo de carga
+                          const tipoSeleccionado = parametros.find(
+                            (p) => p.id === formik.values.TipoCarga
+                          );
+                          const columnasRequeridas = tipoSeleccionado
+                            ? JSON.parse(tipoSeleccionado.valor1)
+                            : [];
+
+                          // 🔹 Normalizar texto
+                          const normalizar = (texto) =>
+                            texto
+                              ?.toString()
+                              .normalize("NFD")
+                              .replace(/[\u0300-\u036f]/g, "")
+                              .replace(/\s+/g, "")
+                              .toLowerCase();
+
+                          const headersNormalizados = headers.map(normalizar);
+
+                          // 🔹 Verificar columnas faltantes
+                          const faltantes = columnasRequeridas.filter(
+                            (col) => !headersNormalizados.includes(normalizar(col))
+                          );
+
+                          if (faltantes.length > 0) {
+                            toast.current.show({
+                              severity: "warn",
+                              summary: "Campos faltantes",
+                              detail: `El archivo Excel no contiene las siguientes columnas requeridas: ${faltantes.join(
+                                ", "
+                              )}`,
+                              life: 9000,
+                            });
+                            formik.setFieldValue("excelFile", null);
+                            return;
+                          }
+
+                          // 🔹 Verificar celdas vacías en columnas requeridas
+                          const errores = [];
+                          filasLimpias.forEach((row, index) => {
+                            columnasRequeridas.forEach((col) => {
+                              const valor = row[col];
+                              if (String(valor).trim() === "") {
+                                errores.push(`Fila ${index + 2}: Falta completar "${col}"`);
+                              }
+                            });
+                          });
+
+                          if (errores.length > 0) {
+                            toast.current.show({
+                              severity: "error",
+                              summary: "Campos vacíos",
+                              detail: `Se encontraron celdas vacías:\n${errores
+                                .slice(0, 10)
+                                .join("\n")} ${
+                                errores.length > 10
+                                  ? `\n... y ${errores.length - 10} más`
+                                  : ""
+                              }`,
+                              life: 12000,
+                            });
+                            formik.setFieldValue("excelFile", null);
+                            return;
+                          }
+
+                          // ✅ Todo correcto
+                          formik.setFieldValue("excelFile", file);
+                          toast.current.show({
+                            severity: "success",
+                            summary: "Archivo válido",
+                            detail: `Archivo correcto — ${totalFilasValidas} filas válidas detectadas.`,
+                            life: 4000,
+                          });
+                        } catch (error) {
+                          console.error("Error al leer el archivo Excel:", error);
+                          toast.current.show({
+                            severity: "error",
+                            summary: "Error",
+                            detail: "No se pudo leer el archivo Excel.",
+                            life: 7000,
+                          });
+                        }
+                      }}
+                      disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
+                      onBlur={formik.handleBlur}
+                      className="hidden-input"
                     />
+
+
 
                 </div>
                 <small className="p-error">
@@ -285,13 +413,25 @@ const CargaMasiva = () => {
              
             </div>
            <div className="zv-editarUsuario-footer">
-           <Boton
+           {/* <Boton
               label="Cargar"
               style={{ fontSize: 12 }}
               color="primary"
               type="submit"
               loading={formik.isSubmitting}
-            ></Boton>
+            ></Boton> */}
+            <Boton
+              label="Cargar"
+              style={{ fontSize: 12 }}
+              color="primary"
+              type="submit"
+              loading={formik.isSubmitting}
+              disabled={
+                !formik.values.TipoCarga || 
+                !formik.values.excelFile    
+              }
+            />
+
            </div> 
         </form>
       </div>
