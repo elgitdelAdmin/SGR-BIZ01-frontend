@@ -227,7 +227,6 @@ useEffect(() => {
 
         const prioridadTicketTemplate = (rowData) => {
         const prioridad = parametrosPrioridad.find(p => p.id === rowData.idPrioridad);
-        console.log("prioridad",prioridad)
         return prioridad ? prioridad.descripcion : "Sin prioridad";
         };
      const estadoHorasTemplate = (rowData) => {

@@ -56,22 +56,77 @@ const DatatableDefault = (props) => {
     const header = renderHeader();
 
     return ( 
-        <DataTable
-        ref={dt}
-            header={header}
-            {...props}
-            filters={filters}
+//         <DataTable
+//         ref={dt}
+//             header={header}
+//             {...props}
+//             filters={filters}
             
-            size="small"
-            stripedRows 
-            paginator={props.paginator !== false}
-            paginatorLeft={paginatorLeft}
-            paginatorRight={paginatorRight}
-            responsiveLayout="scroll"
-            paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-            currentPageReportTemplate="Desde {first} a {last} of {totalRecords}"
-            rows={10}
-        ></DataTable>
+//             size="small"
+//             stripedRows 
+//             paginator={props.paginator !== false}
+//             paginatorLeft={paginatorLeft}
+//             paginatorRight={paginatorRight}
+//             responsiveLayout="scroll"
+//             paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+//             currentPageReportTemplate="Desde {first} a {last} of {totalRecords}"
+//             rows={10}
+//         >
+// {/* 
+// <DataTable
+//   ref={dt}
+//   header={header}
+//   {...props}
+//   scrollable
+//   scrollHeight="600px"
+//   style={{ width: '100%', minWidth: '1200px' }}
+//   filters={filters}
+//   size="small"
+//   stripedRows
+//   paginator={props.paginator !== false}
+//   paginatorLeft={paginatorLeft}
+//   paginatorRight={paginatorRight}
+//   responsiveLayout="scroll"
+//   paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+//   currentPageReportTemplate="Desde {first} a {last} of {totalRecords}"
+//   rows={10}
+// > */}
+//         </DataTable>
+
+ <>
+            <style>
+                {`
+                .p-datatable {
+                    font-size: 12px !important; /* 🔸 Fuente más pequeña */
+                }
+
+                /* 🔹 Mantener visible el scroll horizontal */
+                .p-datatable-wrapper {
+                    overflow-x: auto !important;
+                    position: sticky;
+                    bottom: 0;
+                    background: white;
+                    z-index: 10;
+                }
+                `}
+            </style>
+
+            <DataTable
+                ref={dt}
+                header={header}
+                {...props}
+                filters={filters}
+                size="small"
+                stripedRows
+                paginator={props.paginator !== false}
+                paginatorLeft={paginatorLeft}
+                paginatorRight={paginatorRight}
+                responsiveLayout="scroll"
+                paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                currentPageReportTemplate="Desde {first} a {last} de {totalRecords}"
+                rows={10}
+            ></DataTable>
+        </>
      );
 }
  
