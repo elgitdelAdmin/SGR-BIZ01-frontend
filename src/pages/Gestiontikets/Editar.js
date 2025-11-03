@@ -208,12 +208,19 @@ const handleAdd = () => {
       useEffect(() => {
     const getConsultorFrente = async () => {
       let idConsultor = window.localStorage.getItem("idConsultor")
+      console.log("idConsultor",idConsultor)
+     if (!idConsultor || idConsultor === "null" || idConsultor === "undefined") {
+      setCodFrentes(["FRN001", "FRN002"]);
+      return;
+    }
+
       await ObtenerConsultor({idConsultor}).then((data) => {
         const codigosFrentes = [
       ...new Set(
         data.especializaciones.map((e) => e.frente.codigo)
       )
     ];
+    console.log("codigosFrentes",codigosFrentes)
      setCodFrentes(codigosFrentes)
       });
     };
