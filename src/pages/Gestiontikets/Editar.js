@@ -247,6 +247,8 @@ const handleAdd = () => {
       getFrentes();
   }, []);
     useEffect(() => {
+            console.log("Prueba")
+
     if (!parametros?.length) return;
 
     const estadoActual = parametros.find(
@@ -268,8 +270,6 @@ const handleAdd = () => {
 
     setOpcionesEstadoTicket(opciones);
       const rolesPermitidos = estadoActual?.valor2?.split(",") || [];
-
-      
   setBloquearDropdown(!rolesPermitidos.includes(codRol));
   }, [parametros]); 
 
@@ -377,7 +377,7 @@ useEffect(() => {
       const consultoresFormateados = data.map((item) => ({
         id: item.id,
         nombre: `${item.persona.nombres} ${item.persona.apellidoPaterno}`
-      }));
+      })).sort((a, b) => a.nombre.localeCompare(b.nombre));
       setConsultores(consultoresFormateados);
     });
   };
@@ -648,8 +648,10 @@ console.log("📦 Datos a enviar:");
             });
             setTimeout(() => {
           // navigate(-1);
+        // navigate(`/tickets/user/${idUser}/rol/${codRol}/Editar/${data.id}`); 
+        window.location.reload(); // 🔄 Recarga la página completa
 
-        navigate(`/tickets/user/${idUser}/rol/${codRol}`); 
+        // navigate(`/tickets/user/${idUser}/rol/${codRol}`); 
         }, 1000);
     
           })
@@ -786,6 +788,13 @@ const handleGestorChange = (e) => {
     formik.setFieldValue("asignaciones", newAsignaciones);
   };
 
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 
   // Agregar nueva fila
@@ -793,7 +802,8 @@ const addRow = () => {
   formik.setFieldValue("asignaciones", [
     ...formik.values.asignaciones,
     {
-      idUnico: crypto.randomUUID(),  // clave única
+      // idUnico: crypto.randomUUID(),  // clave única
+      idUnico: generateUUID(), 
       Id: 0,
       IdConsultor: 0,
       IdTipoActividad: 25,
@@ -998,7 +1008,7 @@ const footer = (
                   formik.setFieldValue("idEstadoTicket", "");
                   formik.handleChange(e);
                 }}
-                disabled={!modoEdicion || bloquearDropdown}
+                disabled={!modoEdicion || (bloquearDropdown && formik.values.idEstadoTicket!==0)}
                 onBlur={formik.handleBlur}
                 // options={estadoTiket}
                 // options={parametros?.filter((item) => item.tipoParametro === "EstadoTicket")}
@@ -1243,24 +1253,7 @@ const footer = (
                         }
                 />
               </div>
-              {/* <div className="field col-12 md:col-2">
-                <Calendar
-                  value={formik.values.nuevaEspecializacion.fechaFin}
-                  // onChange={(e) =>
-                  //   formik.setFieldValue(
-                  //     "nuevaEspecializacion.fechaFin",
-                  //     e.value ? e.value.toISOString() : ""
-                  //   )
-                  // }
-                  onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.fechaFin)}
-
-                  // onBlur={formik.handleBlur}
-                  placeholder="Fecha de Fin"
-                  dateFormat="yy-mm-dd"
-                  showIcon
-                  className="w-full"
-                />
-              </div> */}
+           
 
 
 

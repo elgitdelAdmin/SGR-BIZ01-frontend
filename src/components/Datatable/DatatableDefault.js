@@ -93,40 +93,95 @@ const DatatableDefault = (props) => {
 // > */}
 //         </DataTable>
 
- <>
-            <style>
-                {`
-                .p-datatable {
-                    font-size: 12px !important; /* 🔸 Fuente más pequeña */
-                }
+//  <>
+//             <style>
+//                 {`
+//                 .p-datatable {
+//                     font-size: 12px !important; /* 🔸 Fuente más pequeña */
+//                 }
 
-                /* 🔹 Mantener visible el scroll horizontal */
-                .p-datatable-wrapper {
-                    overflow-x: auto !important;
-                    position: sticky;
-                    bottom: 0;
-                    background: white;
-                    z-index: 10;
-                }
-                `}
-            </style>
+//                 /* 🔹 Mantener visible el scroll horizontal */
+//                 .p-datatable-wrapper {
+//                     overflow-x: auto !important;
+//                     position: sticky;
+//                     bottom: 0;
+//                     background: white;
+//                     z-index: 10;
+//                 }
+//                 `}
+//             </style>
 
-            <DataTable
-                ref={dt}
-                header={header}
-                {...props}
-                filters={filters}
-                size="small"
-                stripedRows
-                paginator={props.paginator !== false}
-                paginatorLeft={paginatorLeft}
-                paginatorRight={paginatorRight}
-                responsiveLayout="scroll"
-                paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                currentPageReportTemplate="Desde {first} a {last} de {totalRecords}"
-                rows={10}
-            ></DataTable>
-        </>
+//             <DataTable
+//                 ref={dt}
+//                 header={header}
+//                 {...props}
+//                 filters={filters}
+//                 size="small"
+//                 stripedRows
+//                 paginator={props.paginator !== false}
+//                 paginatorLeft={paginatorLeft}
+//                 paginatorRight={paginatorRight}
+//                 responsiveLayout="scroll"
+//                 paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+//                 currentPageReportTemplate="Desde {first} a {last} de {totalRecords}"
+//                 rows={10}
+//             ></DataTable>
+//         </>
+<>
+  <style>
+    {`
+      /* 🔹 Reducir tamaño de fuente */
+      .p-datatable {
+        font-size: 11px !important;
+      }
+
+      /* 🔹 Limitar altura y permitir solo scroll vertical */
+      .p-datatable-scrollable-body {
+        max-height: 500px !important; /* ajusta si quieres más alto */
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+      }
+
+      /* 🔹 Fijar el paginador (parte inferior) en pantalla */
+      .p-paginator {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        z-index: 20;
+        border-top: 1px solid #ddd;
+        box-shadow: 0 -2px 3px rgba(0,0,0,0.05);
+      }
+
+      /* 🔹 Fijar el encabezado de la tabla (opcional, queda bonito) */
+      .p-datatable-scrollable-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: white;
+      }
+    `}
+  </style>
+
+  <DataTable
+    ref={dt}
+    header={header}
+    {...props}
+    filters={filters}
+    size="small"
+    stripedRows
+    scrollable
+    // scrollHeight="500px"     // ← Scroll vertical
+    style={{ width: '100%', minWidth: '900px' }}
+    paginator={props.paginator !== false}
+    paginatorLeft={paginatorLeft}
+    paginatorRight={paginatorRight}
+    responsiveLayout="scroll"
+    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+    currentPageReportTemplate="Desde {first} a {last} de {totalRecords}"
+    rows={10}
+  />
+</>
+
      );
 }
  
