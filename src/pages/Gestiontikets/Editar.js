@@ -964,7 +964,7 @@ const footer = (
                   dateFormat="dd/mm/yy"
                   placeholder="Selecciona la fecha"
                   showIcon
-                   minDate={new Date()} 
+                  //  minDate={new Date()} 
                   disabled={permisosActual.controlesBloqueados.includes("dateFechaSolicitud")}
 
                 />
@@ -1235,7 +1235,9 @@ const footer = (
                   dateFormat="yy-mm-dd"
                   showIcon
                   className="w-full"
-                  minDate={new Date()} 
+                  minDate={new Date(formik.values.fechaSolicitud)} 
+                                    // minDate={new Date()} 
+
                 />
               </div>
              <div className="field col-12 md:col-2">
@@ -1801,12 +1803,12 @@ const footer = (
             onBlur={formik.handleBlur}
             showTime
             hourFormat="24"
-            minDate={new Date()}
+            minDate={new Date(formik.values.fechaSolicitud)}
             dateFormat="dd/mm/yy"
           />
         </td>
 
-        {/* FECHA DESASIGNACION */}
+        {/* FECHA DESASIGNACION-- */}
         <td className="p-2 border">
           <Calendar
             id={`FechaDesasignacion-${asignacion.idUnico}`}
@@ -1828,6 +1830,7 @@ const footer = (
             showTime
             hourFormat="24"
             minDate={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : new Date()}
+
             dateFormat="dd/mm/yy"
           />
         </td>
