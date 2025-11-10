@@ -106,7 +106,24 @@ const Editar = () => {
     IdTipoActividad:0
   });
 
+  const [subfrentesSeleccionados, setSubfrentesSeleccionados] = useState([]);
+  const [consultoresPorFila, setConsultoresPorFila] = useState({});
 
+
+const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {  
+    console.log("ObtenerConsultoresPorFrente",idFrente, idSubFrente)
+    console.log("consultores",consultores)
+
+  const resultado = consultores.filter(c =>
+    c.especializaciones.some(e =>
+      // e.idFrente === idFrente && e.idSubFrente === idSubFrente
+      e.idSubFrente === idSubFrente
+    )
+  );
+  console.log("Resultado",resultado)
+
+  return resultado;
+};
   const agregarDetalle = () => {
     console.log("agregarDenuevoDetalletalle",nuevoDetalle)
     if (visibleIndex === null) return;
@@ -283,6 +300,28 @@ const handleAdd = () => {
           setTicket(data);
           setModoEdicion(true);
                   console.log("DATAAAAA",data)
+           console.log("Frentes",frentes)
+
+  // Esperar a que frentes tenga contenido antes de continuar
+      if (!frentes || frentes.length === 0) return;
+
+      // ✅ Buscar nombre del subfrente en el arreglo frentes
+      const subfrentes = (data.frenteSubFrentes || []).map((f) => {
+        const frenteEncontrado = frentes.find((fr) => fr.id === f.idFrente);
+        const subfrenteEncontrado = frenteEncontrado?.subFrente?.find(
+          (sf) => sf.id === f.idSubFrente
+        );
+
+        return {
+          idFrente: f.idFrente,
+          idSubFrente: f.idSubFrente,
+          nombre: subfrenteEncontrado ? subfrenteEncontrado.nombre : "",
+        };
+      });
+     
+                        console.log("subfrentes",subfrentes)
+
+            setSubfrentesSeleccionados(subfrentes);
           const totalHorasPorConsultor = data.consultorAsignaciones.map(asig => {
             const total = (asig.detalleTareasConsultor || [])
               .filter(t => t.activo)
@@ -490,6 +529,7 @@ function toLocalISOString(date) {
       asignaciones: persona ?(persona.consultorAsignaciones.map((a) => ({
          idUnico: a.id.toString(),
       Id:a.id,
+      IdSubFrente: a.IdSubFrente,
       IdConsultor: a.idConsultor,
       IdTipoActividad: a.idTipoActividad,
       FechaAsignacion: a.fechaAsignacion,
@@ -805,6 +845,7 @@ const addRow = () => {
       // idUnico: crypto.randomUUID(),  // clave única
       idUnico: generateUUID(), 
       Id: 0,
+      IdSubFrente: 0,
       IdConsultor: 0,
       IdTipoActividad: 25,
       FechaAsignacion: null,
@@ -964,7 +1005,7 @@ const footer = (
                   dateFormat="dd/mm/yy"
                   placeholder="Selecciona la fecha"
                   showIcon
-                   minDate={new Date()} 
+                  //  minDate={new Date()} 
                   disabled={permisosActual.controlesBloqueados.includes("dateFechaSolicitud")}
 
                 />
@@ -1235,7 +1276,8 @@ const footer = (
                   dateFormat="yy-mm-dd"
                   showIcon
                   className="w-full"
-                  minDate={new Date()} 
+                  minDate={new Date(formik.values.fechaSolicitud)}  
+                  
                 />
               </div>
              <div className="field col-12 md:col-2">
@@ -1305,6 +1347,25 @@ const footer = (
 
                     },
                   ]);
+                  setSubfrentesSeleccionados((prev) => {
+                  const yaEsta = prev.some((sf) => sf.idSubFrente === nueva.idSubFrente);
+                  if (yaEsta) return prev;
+
+                  const subfrenteSeleccionado = subfrentes.find(
+                    (s) => s.id === nueva.idSubFrente
+                  );
+
+                  if (!subfrenteSeleccionado) return prev;
+
+                  // ✅ Solo guarda los campos necesarios
+                  const nuevo = {
+                    idSubFrente: subfrenteSeleccionado.id,
+                    idFrente: subfrenteSeleccionado.idFrente,
+                    nombre: subfrenteSeleccionado.nombre,
+                  };
+                   console.log("nuevo",nuevo)
+                  return [...prev, nuevo];
+                });
                   console.log("formik",Date(nueva.fechaInicio))
                   formik.setFieldValue("nuevaEspecializacion", {
                     id: "",
@@ -1752,11 +1813,47 @@ const footer = (
                   ))}
                 </tbody> */}
              
-<tbody>
-  {formik.values.asignaciones
-    .filter((asignacion) => asignacion.Activo !== false)
-    .map((asignacion,index) => (
-      <tr key={asignacion.idUnico} className="border-t">
+                    <tbody>
+                      {formik.values.asignaciones
+                        .filter((asignacion) => asignacion.Activo !== false)
+                        .map((asignacion,index) => (
+                          <tr key={asignacion.idUnico} className="border-t">
+                          {/* IdSubFrente */}
+                            <td className="p-2 border">
+                            <DropdownDefault
+                              id={`IdSubFrente-${index}`}
+                              name={`asignaciones[${index}].IdSubFrente`}
+                              placeholder="Seleccione"
+                              value={formik.values.asignaciones[index].IdSubFrente}
+                              options={subfrentesSeleccionados}
+                              optionLabel="nombre"
+                              optionValue="idSubFrente"
+                              onChange={async (e) => {
+                                const idSubFrente = e.value;
+                                const idFrente = formik.values.asignaciones[index].IdFrente;
+      
+                                formik.setFieldValue(`asignaciones[${index}].IdSubFrente`, idSubFrente);
+      
+                                if (idSubFrente) {
+                                  const data = await ObtenerConsultoresPorFrente(idFrente, idSubFrente);
+                                  setConsultoresPorFila((prev) => ({
+                                    ...prev,
+                                    [index]: data
+                                  }));
+                                }
+                              }}
+                              onBlur={formik.handleBlur}
+                              disabled={
+                                permisosActual.divsBloqueados.includes("divAsignaciones") &&
+                                formik.values.asignaciones[index].IdSubFrente !== "" &&
+                                formik.values.asignaciones[index].Activo === true
+                              }
+                            />
+                            <small className="p-error">
+                              {formik.touched.asignaciones?.[index]?.IdSubFrente &&
+                                formik.errors.asignaciones?.[index]?.IdSubFrente}
+                            </small>
+                          </td>
         {/* CONSULTOR */}
         <td className="p-2 border">
           <DropdownDefault
@@ -1801,7 +1898,7 @@ const footer = (
             onBlur={formik.handleBlur}
             showTime
             hourFormat="24"
-            minDate={new Date()}
+            minDate={new Date(formik.values.fechaSolicitud)}
             dateFormat="dd/mm/yy"
           />
         </td>
