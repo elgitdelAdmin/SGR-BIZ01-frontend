@@ -131,7 +131,7 @@ export default function Login() {
 
                                             <div className="form-footer" >
                                                 <Button
-                                                label="Iniciar sesión"
+                                                label="Iniciar sesión QA"
                                                 style={{ background: "#404BD9", fontSize: 14, width: 160,height:90, borderRadius: 6 }}
                                                 loading={isSubmitting}
                                                 />
