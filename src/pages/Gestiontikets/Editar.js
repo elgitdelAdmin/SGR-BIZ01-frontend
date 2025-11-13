@@ -1793,12 +1793,28 @@ const footer = (
             //     e.value ? toLocalISOString(e.value) : null
             //   )
             // }
-            onChange={(e) => {
-  formik.setFieldValue(
-    `asignaciones[${index}].FechaAsignacion`,
-    e.value ? e.value.toISOString() : null
-  );
+//             onChange={(e) => {
+//   formik.setFieldValue(
+//     `asignaciones[${index}].FechaAsignacion`,
+//     e.value ? e.value.toISOString() : null
+//   );
+// }}
+
+onChange={(e) => {
+  if (e.value) {
+    const d = e.value;
+
+    const pad = (n, z = 2) => n.toString().padStart(z, '0');
+
+    const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+
+    formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, localString);
+    console.log("FechaAsignacion guardada:", localString);
+  } else {
+    formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, null);
+  }
 }}
+
 
             onBlur={formik.handleBlur}
             showTime
@@ -1820,12 +1836,26 @@ const footer = (
             //     e.value ? toLocalISOString(e.value) : null
             //   )
             // }
-                     onChange={(e) => {
-                formik.setFieldValue(
-                  `asignaciones[${index}].FechaDesasignacion`,
-                  e.value ? e.value.toISOString() : null
-                );
-              }}
+              //        onChange={(e) => {
+              //   formik.setFieldValue(
+              //     `asignaciones[${index}].FechaDesasignacion`,
+              //     e.value ? e.value.toISOString() : null
+              //   );
+              // }}
+onChange={(e) => {
+  if (e.value) {
+    const d = e.value;
+
+    const pad = (n, z = 2) => n.toString().padStart(z, '0');
+
+    const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+
+    formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, localString);
+    console.log("FechaDesasignacion guardada:", localString);
+  } else {
+    formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, null);
+  }
+}}
             onBlur={formik.handleBlur}
             showTime
             hourFormat="24"
@@ -2093,8 +2123,8 @@ const footer = (
            <div className="zv-editarUsuario-footer">
           {/* <button type="button" onClick={() => console.log("VALUES", formik.values)}>
             Ver valores
-          </button>
-           */}
+          </button> */}
+          
           {/* {(!permisosActual.controlesOcultos.includes("btnEliminar") || persona?.esCargaMasiva==true ) &&( */}
 
      
