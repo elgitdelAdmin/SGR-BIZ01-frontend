@@ -33,7 +33,7 @@ import { Divider } from "primereact/divider";
 import { InputSwitch } from 'primereact/inputswitch';
 import { FileUpload } from "primereact/fileupload";
 import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria} from "../../service/TiketService";
-import {ListarGestoresPorSocio,ListarGestores} from "../../service/GestorService";
+import {ListarGestoresPorSocio,ListarGestores, ListarGestoresPorRolSocio} from "../../service/GestorService";
 import {ListarEmpresasPorSocio,ListarEmpresas,ListarEmpresasporRol} from "../../service/EmpresaService";
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
@@ -363,7 +363,7 @@ console.log(totalHorasPorConsultor);
   }, []);
    useEffect(() => {
     const getGestores = async () => {
-        const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
+        const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorRolSocio;
         await  fetchFunction().then(data=>{setGestores(data)})
     };
     getGestores();

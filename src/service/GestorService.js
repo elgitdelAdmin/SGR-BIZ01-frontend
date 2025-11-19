@@ -24,7 +24,20 @@ export const ListarGestoresPorSocio = async () => {
     },
   })
   .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los consultores");
+    if (!res.ok) throw new Error("Error al obtener los Gestores");
+    return res.json();
+  });
+};
+
+export const ListarGestoresPorRolSocio = async () => {
+  return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/${window.localStorage.getItem("idRol")}/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    },
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Error al obtener los Gestores");
     return res.json();
   });
 };

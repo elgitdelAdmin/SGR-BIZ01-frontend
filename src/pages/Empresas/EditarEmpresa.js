@@ -94,9 +94,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
       getPais();
     }, []);
      useEffect(() => {
-      const getGestor = async () => {
-      // const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
-        
+      const getGestor = async () => {        
        await ListarGestorCuenta().then(data=>{setGestor(data)})
       };
       getGestor();
@@ -271,7 +269,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
       correopersona: empresa?.personaResponsable.correo || "",
       fechaNacimiento: empresa?.personaResponsable.fechaNacimiento || "",
       usuarioCreacionpersona:empresa?.personaResponsable.usuarioCreacion|| window.localStorage.getItem("username"), 
-      idUser: empresa?.idUser||"",
+      idUser: empresa?.idUser||0,
       usuarioActualizacion:empresa?.personaResponsable.usuarioActualizacion||window.localStorage.getItem("username"), 
 
     },

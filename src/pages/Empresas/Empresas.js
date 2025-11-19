@@ -77,7 +77,7 @@ const loadLazyData = () => {
   filteredData = data.filter(emp =>
     emp.nombreComercial?.toLowerCase().includes(search) ||
     emp.razonSocial?.toLowerCase().includes(search) ||
-    emp.ruc?.toString().includes(search) ||
+    emp.numDocContribuyente?.toString().includes(search) ||
     emp.telefono?.toString().includes(search) ||
     emp.direccion?.toLowerCase().includes(search) ||
     emp.email?.toLowerCase().includes(search)
@@ -241,7 +241,7 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
                         <DatatableDefault value={listaPersonas} 
                             lazy
-                            globalFilterFields={['nombreComercial', 'razonSocial', 'ruc', 'telefono', 'direccion', 'email']}                           
+                            globalFilterFields={['nombreComercial', 'razonSocial', 'numDocContribuyente', 'telefono', 'direccion', 'email']}                           
                              loading={loading}
                             onPage={onPage}
                             first={lazyState.first}
@@ -251,7 +251,7 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                               {/* <Column field="codigo" header="Codigo" /> */}
                              <Column field="nombreComercial" header="Nombre Comercial" />
                              <Column field="razonSocial" header="Razon social" />
-                            <Column field="ruc" header="RUC" />
+                            <Column field="numDocContribuyente" header="RUC" />
                             <Column field="telefono" header="Telefono" />
                             <Column field="direccion" header="Direccion" />
                             <Column field="email" header="Correo" />
