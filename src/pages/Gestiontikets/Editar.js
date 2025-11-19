@@ -81,6 +81,8 @@ const Editar = () => {
   const [opcionesEstadoTicket, setOpcionesEstadoTicket] = useState([]);
   const [bloquearDropdown, setBloquearDropdown] = useState([]);
   const [visibleIndex, setVisibleIndex] = useState(null);
+  const [visibleIndexPlanificacion, setVisibleIndexPlanificacion] = useState(null);
+
   const [tempData, setTempData] = useState({
     FechaInicio: null,
     FechaFin: null,
@@ -105,7 +107,18 @@ const Editar = () => {
     Id:0,
     IdTipoActividad:0
   });
+  const [detallesPlanificacion, setDetallesPlanificacion] = useState([]);
 
+    const [nuevoDetallePlanificacion, setNuevoDetallePlanificacion] = useState({
+    FechaInicio: null,
+    FechaFin: null,
+    Horas: null,
+    Descripcion: "",
+    Activo:true,
+    IdTicketConsultorAsignacion:0,
+    Id:0,
+    IdTipoActividad:0
+  });
   const [subfrentesSeleccionados, setSubfrentesSeleccionados] = useState([]);
   const [consultoresPorFila, setConsultoresPorFila] = useState({});
 
@@ -178,6 +191,63 @@ const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
         console.log("FORMIK",formik.values.asignaciones[visibleIndex].DetalleTareasConsultor)
         setDetalles(updated);
         setNuevoDetalle({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true,IdTicketConsultorAsignacion:formik.values.asignaciones[visibleIndex].Id,Id:0 });
+    //}
+  };
+
+    const agregarDetallePlanificacion = () => {
+    console.log("agregarDenuevoDetalletallePlanificacion",nuevoDetallePlanificacion)
+    if (visibleIndexPlanificacion === null) return;
+    
+    const { FechaInicio, Horas, Descripcion ,IdTipoActividad} = nuevoDetallePlanificacion;
+
+    if (!FechaInicio || !Horas || !Descripcion || !IdTipoActividad) {
+      toast.current.show({
+        severity: "warn",
+        summary: "Campos incompletos",
+        detail: "Debes completar Fecha de inicio, Horas ,Tipo Actividad y Descripción antes de agregar el detalle.",
+        life: 5000,
+      });
+      return;
+    }
+          const current = formik.values.asignaciones[visibleIndexPlanificacion].DetallePlanificacionConsultor || [];
+
+          const fechaInicioDia = new Date(nuevoDetallePlanificacion.FechaInicio);
+          fechaInicioDia.setHours(0, 0, 0, 0);
+
+          const horasEnDia = current.reduce((total, det) => {
+            const detDia = new Date(det.FechaInicio);
+            detDia.setHours(0, 0, 0, 0);
+
+            if (detDia.getTime() === fechaInicioDia.getTime()) {
+              return total + det.Horas;
+            }
+            return total;
+          }, 0);
+
+          if (horasEnDia + nuevoDetallePlanificacion.Horas > 24) {
+              toast.current.show({
+                severity: "error",
+                summary: "Error",
+                detail: "No puedes asignar más de 24 horas en un mismo día",
+                life: 7000,
+              });
+            return;
+          }
+
+          const updated = [
+          ...current,
+          { 
+            ...nuevoDetallePlanificacion, 
+            Activo: true,
+            IdTicketConsultorAsignacion: formik.values.asignaciones[visibleIndexPlanificacion].Id 
+          }
+        ];
+        console.log("updated",updated)
+
+        formik.setFieldValue(`asignaciones[${visibleIndexPlanificacion}].DetallePlanificacionConsultor`, updated);
+        console.log("FORMIK",formik.values.asignaciones[visibleIndexPlanificacion].DetallePlanificacionConsultor)
+        setDetallesPlanificacion(updated);
+        setNuevoDetallePlanificacion({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true,IdTicketConsultorAsignacion:formik.values.asignaciones[visibleIndexPlanificacion].Id,Id:0 });
     //}
   };
 
@@ -259,7 +329,7 @@ const handleAdd = () => {
    useEffect(() => {
       const getFrentes = async () => {
        await ListarFrentes().then(data=>{setFrentes(data)})
-
+console.log("Listar")
           };
       getFrentes();
   }, []);
@@ -291,6 +361,7 @@ const handleAdd = () => {
   }, [parametros]); 
 
   useEffect(() => {
+      if (!id || frentes.length === 0) return;
       const getTicket = async () => {
         // let jwt = window.localStorage.getItem("jwt");
         await ObtenerTicket({id}).then((data) => {
@@ -319,7 +390,7 @@ const handleAdd = () => {
         };
       });
      
-                        console.log("subfrentes",subfrentes)
+                        console.log("subfrentesD",subfrentes)
 
             setSubfrentesSeleccionados(subfrentes);
           const totalHorasPorConsultor = data.consultorAsignaciones.map(asig => {
@@ -340,7 +411,7 @@ console.log(totalHorasPorConsultor);
         });
       };
       if (id) getTicket();
-    }, [id]);
+    }, [id,frentes]);
 
 
 
@@ -415,7 +486,8 @@ useEffect(() => {
     await fetchFunction().then((data) => {
       const consultoresFormateados = data.map((item) => ({
         id: item.id,
-        nombre: `${item.persona.nombres} ${item.persona.apellidoPaterno}`
+        nombre: `${item.persona.nombres} ${item.persona.apellidoPaterno}`,
+         especializaciones: item.especializaciones || [] 
       })).sort((a, b) => a.nombre.localeCompare(b.nombre));
       setConsultores(consultoresFormateados);
     });
@@ -487,6 +559,18 @@ function toLocalISOString(date) {
               Id:Yup.number(),
 
             })
+          ),
+          DetallePlanificacionConsultor: Yup.array().of(
+            Yup.object().shape({
+              FechaInicio: Yup.date().required("Fecha inicio es obligatorio"),
+              FechaFin: Yup.date().required(),
+              Horas: Yup.string().required("Horas es obligatorio"),
+              Descripcion: Yup.string().required("Descripción es obligatoria"),
+              Activo: Yup.boolean().required(),
+              IdTicketConsultorAsignacion:Yup.number(),
+              Id:Yup.number(),
+
+            })
           )
             // DetalleTareasConsultor:Yup.string().nullable(),
          })
@@ -537,6 +621,16 @@ function toLocalISOString(date) {
       Activo:a.activo,
       // DetalleTareasConsultor:a.detalleTareasConsultor
       DetalleTareasConsultor: a.detalleTareasConsultor.map((d) => ({
+        FechaInicio: d.fechaInicio,
+        FechaFin: d.fechaFin,
+        Horas: d.horas,
+        Descripcion: d.descripcion,
+        Activo: d.activo,
+        IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion,
+        Id: d.id,
+        IdTipoActividad:d.idTipoActividad
+      })),
+       DetallePlanificacionConsultor: a.detallePlanificacionConsultor.map((d) => ({
         FechaInicio: d.fechaInicio,
         FechaFin: d.fechaFin,
         Horas: d.horas,
@@ -851,6 +945,7 @@ const addRow = () => {
       FechaAsignacion: null,
       FechaDesasignacion: null,
       DetalleTareasConsultor: [],
+      DetallePlanificacionConsultor: [],
       Activo: true,
     },
   ]);
@@ -1446,9 +1541,11 @@ const footer = (
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100 text-left">
+                    <th className="p-2 border">Subfrente</th>
                     <th className="p-2 border">Consultor</th>
                     <th className="p-2 border">Fecha Inicio</th>
                     <th className="p-2 border">Fecha Fin</th>
+                    <th className="p-2 border">Horas Planificadas</th>
                     <th className="p-2 border">Horas Trabajadas</th>
                     <th className="p-2 border">Horas</th>
 
@@ -1458,360 +1555,7 @@ const footer = (
                     </>)}
                   </tr>
                 </thead>
-                {/* <tbody>
-                  {formik.values.asignaciones
-                    .filter((asignacion) => asignacion.Activo !== false)
-                    .map((asignacion,index) => (
-
-                    <tr key={asignacion.idUnico} className="border-t">
-                      
-                      <td className="p-2 border">
-                        <DropdownDefault
-                          id={`IdConsultor-${index}`}
-                          name={`asignaciones[${index}].IdConsultor`}
-                          placeholder="Seleccione"
-                          value={formik.values.asignaciones[index].IdConsultor}
-                          options={consultores}
-                          optionLabel="nombre"
-                          optionValue="id"
-                          onChange={(e) =>
-                            formik.setFieldValue(`asignaciones[${index}].IdConsultor`, e.value)
-                          }
-                          onBlur={formik.handleBlur}
-                          // disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
-   
-                          disabled={
-                            permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                            formik.values.asignaciones[index].IdConsultor !== "" &&  formik.values.asignaciones[index].Activo == true
-                          }
-
-                        />
-                        <small className="p-error">
-                          {
-                            formik.touched.asignaciones?.[index]?.IdConsultor &&
-                            formik.errors.asignaciones?.[index]?.IdConsultor
-                          }
-                        </small>
-                      </td>
-
-                      <td className="p-2 border">
-                        <Calendar
-                        id={`FechaAsignacion-${index}`}
-                        name={`asignaciones[${index}].FechaAsignacion`}
-                        value={
-                            formik.values.asignaciones[index].FechaAsignacion
-                              ? new Date(formik.values.asignaciones[index].FechaAsignacion)
-                              : null
-                          }  
-                        // onChange={(e) =>
-                        //   formik.setFieldValue(
-                        //     `asignaciones[${index}].FechaAsignacion`,
-                        //     e.value ? e.value.toISOString() : null
-                        //   )
-                        // }
-                                                  onChange={(e) =>
-                            formik.setFieldValue(
-                              `asignaciones[${index}].FechaAsignacion`,
-                              e.value ? toLocalISOString(e.value) : null
-                            )
-                          }
-
-                        onBlur={formik.handleBlur}
-                        // disabled={permisosActual.divsBloqueados.includes("divAsignaciones")} 
-                         disabled={
-                            permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                            formik.values.asignaciones[index].FechaAsignacion !== null &&  formik.values.asignaciones[index].Activo == true
-                          }
-                        showTime
-                        hourFormat="24"
-                        minDate={new Date()} 
-                        dateFormat="dd/mm/yy"   
-                      />
-
-                        <small className="p-error">
-                          {
-                            formik.touched.asignaciones?.[index]?.FechaAsignacion &&
-                            formik.errors.asignaciones?.[index]?.FechaAsignacion
-                          }
-                        </small>
-                      </td>
-
-                      <td className="p-2 border">
-                        <Calendar
-                        id={`FechaDesasignacion-${index}`}
-                        name={`asignaciones[${index}].FechaDesasignacion`}
-                        value={
-                            formik.values.asignaciones[index].FechaDesasignacion
-                              ? new Date(formik.values.asignaciones[index].FechaDesasignacion)
-                              : null
-                          }  
-                        // onChange={(e) =>
-                        //   formik.setFieldValue(
-                        //     `asignaciones[${index}].FechaDesasignacion`,
-                        //     e.value ? e.value.toISOString() : null
-                        //   )
-                        // }
-                        onChange={(e) =>
-                        formik.setFieldValue(
-                          `asignaciones[${index}].FechaDesasignacion`,
-                          e.value ? toLocalISOString(e.value) : null
-                        )
-                      }
-
-                        onBlur={formik.handleBlur}
-                        showTime 
-
-                        // disabled={!formik.values.asignaciones[index].FechaAsignacion ||
-                        //            permisosActual.divsBloqueados.includes("divAsignaciones") }
-                         disabled={
-                            !formik.values.asignaciones[index].FechaAsignacion ||(permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                            formik.values.asignaciones[index].FechaDesasignacion !== null) &&  formik.values.asignaciones[index].Activo == true
-                          }
-                        minDate={
-                          formik.values.asignaciones[index].FechaAsignacion
-                            ? new Date(formik.values.asignaciones[index].FechaAsignacion)
-                            : new Date()
-                        }
-                       
-                        dateFormat="dd/mm/yy"  
-                        hourFormat="24"
-                      />
-
-                        <small className="p-error">
-                          {
-                            formik.touched.asignaciones?.[index]?.FechaDesasignacion &&
-                            formik.errors.asignaciones?.[index]?.FechaDesasignacion
-                          }
-                        </small>
-                      </td>
-                
-
-                     <td className="p-2 border text-center">
-                    {totalesFijos?.[index]?.totalHoras || 0}
-                    </td>
-                      <td className="p-2 border">
-                        <Button
-                           label={""}
-                           icon={
-                            !permisosActual.divsBloqueados.includes("divHorasTareo")
-                              ? "pi pi-plus"   
-                              : "pi pi-eye"    
-                          }
-                            onClick={() => setVisibleIndex(index)}
-                           disabled={
-                            (!(
-                              formik.values.asignaciones[index].IdConsultor == window.localStorage.getItem("idConsultor")
-                            )&& !permisosActual.divsBloqueados.includes("divHorasTareo"))
-                          }
-
-                            className="w-full"
-                            type="button"
-                          />
-                        <Dialog
-                          header={!permisosActual.divsBloqueados.includes("divHorasTareo") ? "Asignar Horas" : "Ver Horas"}
-                          visible={visibleIndex === index}
-                          style={{ width: "60vw" }}   
-                          modal
-                          onHide={() => setVisibleIndex(null)}
-                         footer={!permisosActual.divsBloqueados.includes("divHorasTareo")? footer: null}
-                        >
-                          {!permisosActual.divsOcultos.includes("divHorasTareo") && (
-                           <>
-                          <div className="p-fluid formgrid grid">
-                            <div className="field col-12 md:col-6">
-                            <label>Fecha Inicio</label>
-                            <Calendar
-                              value={nuevoDetalle.FechaInicio}
-                              onChange={(e) => {
-                                const fechaInicio = e.value;
-                                let fechaFin = nuevoDetalle.FechaFin;
-
-                                if (fechaInicio && nuevoDetalle.Horas) {
-                                  fechaFin = new Date(fechaInicio);
-                                  fechaFin.setHours(fechaFin.getHours() + nuevoDetalle.Horas);
-                                }
-
-                                setNuevoDetalle({ ...nuevoDetalle, FechaInicio: fechaInicio, FechaFin: fechaFin });
-                              }}
-                              dateFormat="yy-mm-dd"
-                              showIcon
-                              className="w-full"
-                              minDate={formik.values.asignaciones[index].FechaAsignacion
-                              ? new Date(formik.values.asignaciones[index].FechaAsignacion)
-                              : null} 
-                              maxDate={ new Date()}
-                            />
-                          </div>
-
-                          <div className="field col-12 md:col-6">
-                            <label>Fecha Fin</label>
-                            <Calendar
-                              value={nuevoDetalle.FechaFin}
-                              readOnlyInput
-                              disabled
-                              dateFormat="yy-mm-dd"
-                              showIcon
-                              className="w-full"
-                            />
-                          </div>
-
-                          <div className="field col-12 md:col-6">
-                            <label>Horas</label>
-                            <InputNumber
-                              value={nuevoDetalle.Horas}
-                              onValueChange={(e) => {
-                                const horas = e.value;
-                                let fechaFin = nuevoDetalle.FechaFin;
-
-                                if (nuevoDetalle.FechaInicio && horas) {
-                                  fechaFin = new Date(nuevoDetalle.FechaInicio);
-                                  fechaFin.setHours(fechaFin.getHours() + horas);
-                                }
-
-                                setNuevoDetalle({ ...nuevoDetalle, Horas: horas, FechaFin: fechaFin });
-                              }}
-                              min={1}
-                              className="w-full"
-                              // disabled={formik.values.idEstadoTicket==63}
-                              // disabled={
-                              //     formik.values.idEstadoTicket === 
-                              //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                              //   }
-                            />
-                          </div>
-                
-                            
-                         <div className="field col-12 md:col-6">
-                          <label>Tipo de Actividad</label>
-                          <DropdownDefault
-                            value={nuevoDetalle.IdTipoActividad}
-                           options={parametros?.filter((item) => item.tipoParametro === "TipoActividad" &&
-                           codFrentes.includes(item.valor1) )}
-                            onChange={(e) => {
-                              const tipo = e.value;
-                              setNuevoDetalle({ ...nuevoDetalle, IdTipoActividad: tipo });
-                            }}
-                            optionLabel="nombre"  
-                            optionValue="id"    
-                            placeholder="Seleccione tipo"
-                            className="w-full"
-                          />
-                         </div>
-                            <div className="field col-12 md:col-6">
-                              <label>Descripción</label>
-                              <InputText
-                                value={nuevoDetalle.Descripcion}
-                                onChange={(e) => setNuevoDetalle({ ...nuevoDetalle, Descripcion: e.target.value })}
-                                className="w-full"
-                                // disabled={formik.values.idEstadoTicket==63}
-                                //  disabled={
-                                //   formik.values.idEstadoTicket === 
-                                //   parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                                // }
-
-                              />
-                            </div>
-                          </div>
-                          <div className="mb-4">
-                            <Button
-                              label="Añadir"
-                              icon="pi pi-plus"
-                              severity="success"
-                              onClick={agregarDetalle}
-                              // disabled={formik.values.idEstadoTicket==63}
-                              //  disabled={
-                              //     formik.values.idEstadoTicket === 
-                              //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                              //   }
-                            />
-                          </div>
-                          </>)}
-                          <DataTable
-                           value={
-                              (formik.values.asignaciones[visibleIndex]?.DetalleTareasConsultor || [])
-                                .filter((d) => d.Activo) 
-                            }
-                           responsiveLayout="scroll"
-                            className="w-full"
-                          >
-                            <Column
-                              field="FechaInicio"
-                              header="Fecha Inicio"
-                                body={(row) => row.FechaInicio ? new Date(row.FechaInicio).toLocaleDateString() : ""}
-                            />
-                            <Column
-                              field="FechaFin"
-                              header="Fecha Fin"
-                              body={(row) => row.FechaFin ? new Date(row.FechaFin).toLocaleDateString() : ""}
-                            />
-                            <Column field="Horas" header="Horas" />
-                           <Column
-                              field="IdTipoActividad"
-                              header="Tipo de Actividad"
-                              body={(rowData) => {
-                                const tipo = parametros?.find(
-                                  (item) =>
-                                    item.tipoParametro === "TipoActividad" &&
-                                    codFrentes.includes(item.valor1) &&
-                                    item.id === rowData.IdTipoActividad
-                                );
-                                return tipo?.nombre || "—";
-                              }}
-                            />
-                            <Column field="Descripcion" header="Descripción"  />
-                             {!permisosActual.divsBloqueados.includes("divHorasTareo") && (
-                         
-                            <Column
-                              header="Acciones"
-                              body={(rowData) => (
-                                <Button
-                                  icon="pi pi-trash"
-                                  severity="danger"
-                                  text
-                                  
-                                  onClick={() => {
-                                    const updated = [...formik.values.asignaciones[visibleIndex].DetalleTareasConsultor];
-                                    const index = updated.findIndex(
-                                      (d) =>
-                                        d.FechaInicio === rowData.FechaInicio &&
-                                        d.FechaFin === rowData.FechaFin &&
-                                        d.Horas === rowData.Horas &&
-                                        d.Descripcion === rowData.Descripcion
-                                    );
-                                    if (index !== -1) {
-                                      updated[index] = { ...updated[index], Activo: false };
-                                      formik.setFieldValue(
-                                        `asignaciones[${visibleIndex}].DetalleTareasConsultor`,
-                                        updated
-                                      );
-                                    }
-                                  }}
-                                />
-                              )}
-                            />
-                             )}
-                          </DataTable>
-                        </Dialog>
-                      </td>
-
-
-                 {!permisosActual.controlesOcultos.includes("btnEliminar") && (
-                   <>
-                      <td className="p-2 border">
-                      
-                       <button
-                        type="button"
-                        onClick={() => removeRow(asignacion.idUnico)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Eliminar
-                      </button>
-                      </td>
-                    
-                    </>)}
-                    </tr>
-                  ))}
-                </tbody> */}
+               
              
                     <tbody>
                       {formik.values.asignaciones
@@ -1830,9 +1574,14 @@ const footer = (
                               optionValue="idSubFrente"
                               onChange={async (e) => {
                                 const idSubFrente = e.value;
-                                const idFrente = formik.values.asignaciones[index].IdFrente;
+                                const seleccionado = subfrentesSeleccionados.find(s => s.idSubFrente === idSubFrente);
+
+                                const idFrente = seleccionado?.idFrente; 
+
       
                                 formik.setFieldValue(`asignaciones[${index}].IdSubFrente`, idSubFrente);
+                                  formik.setFieldValue(`asignaciones[${index}].IdFrente`, idFrente);
+
       
                                 if (idSubFrente) {
                                   const data = await ObtenerConsultoresPorFrente(idFrente, idSubFrente);
@@ -1854,313 +1603,535 @@ const footer = (
                                 formik.errors.asignaciones?.[index]?.IdSubFrente}
                             </small>
                           </td>
-        {/* CONSULTOR */}
-        <td className="p-2 border">
-          <DropdownDefault
-          id={`IdConsultor-${asignacion.idUnico}`}
-          name={`asignaciones.${asignacion.idUnico}.IdConsultor`} // no usar index
-          placeholder="Seleccione"
-          value={asignacion.IdConsultor}
-          options={consultores}
-          optionLabel="nombre"
-          optionValue="id"
-          onChange={(e) => {
-            const idx = formik.values.asignaciones.findIndex(a => a.idUnico === asignacion.idUnico);
-            if(idx !== -1){
-              formik.setFieldValue(`asignaciones[${idx}].IdConsultor`, e.value);
-            }
-          }}
-          onBlur={formik.handleBlur}
-          disabled={permisosActual.divsBloqueados.includes("divAsignaciones") && asignacion.IdConsultor !== "" && asignacion.Activo === true}
-          />
-        </td>
-
-        {/* FECHA ASIGNACION */}
-        <td className="p-2 border">
-          <Calendar
-            id={`FechaAsignacion-${asignacion.idUnico}`}
-            name={`asignaciones[${asignacion.idUnico}].FechaAsignacion`}
-            value={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : null}
-
-            // onChange={(e) =>
-            //   formik.setFieldValue(
-            //     `asignaciones[${asignacion.idUnico}].FechaAsignacion`,
-            //     e.value ? toLocalISOString(e.value) : null
-            //   )
-            // }
-            onChange={(e) => {
-  formik.setFieldValue(
-    `asignaciones[${index}].FechaAsignacion`,
-    e.value ? e.value.toISOString() : null
-  );
-}}
-
-            onBlur={formik.handleBlur}
-            showTime
-            hourFormat="24"
-            minDate={new Date(formik.values.fechaSolicitud)}
-            dateFormat="dd/mm/yy"
-          />
-        </td>
-
-        {/* FECHA DESASIGNACION */}
-        <td className="p-2 border">
-          <Calendar
-            id={`FechaDesasignacion-${asignacion.idUnico}`}
-            name={`asignaciones[${asignacion.idUnico}].FechaDesasignacion`}
-            value={asignacion.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null}
-            // onChange={(e) =>
-            //   formik.setFieldValue(
-            //     `asignaciones[${asignacion.idUnico}].FechaDesasignacion`,
-            //     e.value ? toLocalISOString(e.value) : null
-            //   )
-            // }
-                     onChange={(e) => {
-                formik.setFieldValue(
-                  `asignaciones[${index}].FechaDesasignacion`,
-                  e.value ? e.value.toISOString() : null
-                );
-              }}
-            onBlur={formik.handleBlur}
-            showTime
-            hourFormat="24"
-            minDate={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : new Date()}
-            dateFormat="dd/mm/yy"
-          />
-        </td>
-
-        {/* HORAS TRABAJADAS */}
-        <td className="p-2 border text-center">
-          {totalesFijos?.[index]?.totalHoras || 0}
-        </td>
-
-        {/* BOTON ASIGNAR / VER HORAS */}
-        <td className="p-2 border">
-          <Button
-            label={""}
-            icon={
-              !permisosActual.divsBloqueados.includes("divHorasTareo")
-                ? "pi pi-plus"
-                : "pi pi-eye"
-            }
-            onClick={() => setVisibleIndex(index)}
-            disabled={
-              !(
-                asignacion.IdConsultor == window.localStorage.getItem("idConsultor")
-              ) && !permisosActual.divsBloqueados.includes("divHorasTareo")
-            }
-            className="w-full"
-            type="button"
-          />
-
-          <Dialog
-            header={
-              !permisosActual.divsBloqueados.includes("divHorasTareo")
-                ? "Asignar Horas"
-                : "Ver Horas"
-            }
-            visible={visibleIndex === index}
-            style={{ width: "60vw" }}
-            modal
-            onHide={() => setVisibleIndex(null)}
-            footer={!permisosActual.divsBloqueados.includes("divHorasTareo") ? footer : null}
-          >
-           
- {!permisosActual.divsOcultos.includes("divHorasTareo") && (
-                           <>
-                          <div className="p-fluid formgrid grid">
-                            <div className="field col-12 md:col-6">
-                            <label>Fecha Inicio</label>
-                            <Calendar
-                              value={nuevoDetalle.FechaInicio}
-                              onChange={(e) => {
-                                const fechaInicio = e.value;
-                                let fechaFin = nuevoDetalle.FechaFin;
-
-                                if (fechaInicio && nuevoDetalle.Horas) {
-                                  fechaFin = new Date(fechaInicio);
-                                  fechaFin.setHours(fechaFin.getHours() + nuevoDetalle.Horas);
-                                }
-
-                                setNuevoDetalle({ ...nuevoDetalle, FechaInicio: fechaInicio, FechaFin: fechaFin });
-                              }}
-                              dateFormat="yy-mm-dd"
-                              showIcon
-                              className="w-full"
-                              minDate={formik.values.asignaciones[index].FechaAsignacion
-                              ? new Date(formik.values.asignaciones[index].FechaAsignacion)
-                              : null} 
-                              maxDate={ new Date()}
-                            />
-                          </div>
-
-                          <div className="field col-12 md:col-6">
-                            <label>Fecha Fin</label>
-                            <Calendar
-                              value={nuevoDetalle.FechaFin}
-                              readOnlyInput
-                              disabled
-                              dateFormat="yy-mm-dd"
-                              showIcon
-                              className="w-full"
-                            />
-                          </div>
-
-                          <div className="field col-12 md:col-6">
-                            <label>Horas</label>
-                            <InputNumber
-                              value={nuevoDetalle.Horas}
-                              onValueChange={(e) => {
-                                const horas = e.value;
-                                let fechaFin = nuevoDetalle.FechaFin;
-
-                                if (nuevoDetalle.FechaInicio && horas) {
-                                  fechaFin = new Date(nuevoDetalle.FechaInicio);
-                                  fechaFin.setHours(fechaFin.getHours() + horas);
-                                }
-
-                                setNuevoDetalle({ ...nuevoDetalle, Horas: horas, FechaFin: fechaFin });
-                              }}
-                              min={1}
-                              className="w-full"
-                              // disabled={formik.values.idEstadoTicket==63}
-                              // disabled={
-                              //     formik.values.idEstadoTicket === 
-                              //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                              //   }
-                            />
-                          </div>
-                
-                            
-                         <div className="field col-12 md:col-6">
-                          <label>Tipo de Actividad</label>
-                          <DropdownDefault
-                            value={nuevoDetalle.IdTipoActividad}
-                           options={parametros?.filter((item) => item.tipoParametro === "TipoActividad" &&
-                           codFrentes.includes(item.valor1) )}
+                          {/* CONSULTOR */}
+                          <td className="p-2 border">
+                            <DropdownDefault
+                            id={`IdConsultor-${asignacion.idUnico}`}
+                            name={`asignaciones.${asignacion.idUnico}.IdConsultor`} // no usar index
+                            placeholder="Seleccione"
+                            value={asignacion.IdConsultor}
+                            options={consultoresPorFila[index] || []}
+                            // options={consultores}
+                            optionLabel="nombre"
+                            optionValue="id"
                             onChange={(e) => {
-                              const tipo = e.value;
-                              setNuevoDetalle({ ...nuevoDetalle, IdTipoActividad: tipo });
+                              const idx = formik.values.asignaciones.findIndex(a => a.idUnico === asignacion.idUnico);
+                              if(idx !== -1){
+                                formik.setFieldValue(`asignaciones[${idx}].IdConsultor`, e.value);
+                              }
                             }}
-                            optionLabel="nombre"  
-                            optionValue="id"    
-                            placeholder="Seleccione tipo"
-                            className="w-full"
+                            onBlur={formik.handleBlur}
+                            disabled={permisosActual.divsBloqueados.includes("divAsignaciones") && asignacion.IdConsultor !== "" && asignacion.Activo === true}
+                            />
+                          </td>
+
+                          {/* FECHA ASIGNACION */}
+                          <td className="p-2 border">
+                            <Calendar
+                              id={`FechaAsignacion-${asignacion.idUnico}`}
+                              name={`asignaciones[${asignacion.idUnico}].FechaAsignacion`}
+                              value={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : null}
+
+                              // onChange={(e) =>
+                              //   formik.setFieldValue(
+                              //     `asignaciones[${asignacion.idUnico}].FechaAsignacion`,
+                              //     e.value ? toLocalISOString(e.value) : null
+                              //   )
+                              // }
+                  //             onChange={(e) => {
+                  //   formik.setFieldValue(
+                  //     `asignaciones[${index}].FechaAsignacion`,
+                  //     e.value ? e.value.toISOString() : null
+                  //   );
+                  // }}
+                              onChange={(e) => {
+                    if (e.value) {
+                      const d = e.value;
+                      const pad = (n, z = 2) => n.toString().padStart(z, '0');
+                      const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+                      formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, localString);
+                      console.log("FechaAsignacion guardada:", localString);
+                    } else {
+                      formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, null);
+                    }
+                  }}
+
+                              onBlur={formik.handleBlur}
+                              showTime
+                              hourFormat="24"
+                              minDate={new Date(formik.values.fechaSolicitud)}
+                              dateFormat="dd/mm/yy"
+                            />
+                          </td>
+
+                          {/* FECHA DESASIGNACION */}
+                          <td className="p-2 border">
+                            <Calendar
+                              id={`FechaDesasignacion-${asignacion.idUnico}`}
+                              name={`asignaciones[${asignacion.idUnico}].FechaDesasignacion`}
+                              value={asignacion.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null}
+                              // onChange={(e) =>
+                              //   formik.setFieldValue(
+                              //     `asignaciones[${asignacion.idUnico}].FechaDesasignacion`,
+                              //     e.value ? toLocalISOString(e.value) : null
+                              //   )
+                              // }
+                                //        onChange={(e) => {
+                                //   formik.setFieldValue(
+                                //     `asignaciones[${index}].FechaDesasignacion`,
+                                //     e.value ? e.value.toISOString() : null
+                                //   );
+                                // }}
+                                onChange={(e) => {
+                                if (e.value) {
+                                  const d = e.value;
+                                  const pad = (n, z = 2) => n.toString().padStart(z, '0');
+                                  const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+                                  formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, localString);
+                                  console.log("FechaDesasignacion guardada:", localString);
+                                } else {
+                                  formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, null);
+                                }
+                              }}
+                              onBlur={formik.handleBlur}
+                              showTime
+                              hourFormat="24"
+                              minDate={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : new Date()}
+                              dateFormat="dd/mm/yy"
+                            />
+                          </td>
+
+                          {/* HORAS TRABAJADAS */}
+                          <td className="p-2 border text-center">
+                            {totalesFijos?.[index]?.totalHoras || 0}
+                          </td>
+
+                          {/* BOTON PLANIFICAT / VER PLANIFICACION */}
+                           <td className="p-2 border">
+                          <Button
+                              label={""}
+                              icon={
+                              !permisosActual.divsBloqueados.includes("divHorasTareo")
+                                  ? "pi pi-plus"
+                                  : "pi pi-eye"
+                              }
+                              onClick={() => setVisibleIndexPlanificacion(index)}
+                              disabled={
+                              !(
+                                  asignacion.IdConsultor == window.localStorage.getItem("idConsultor")
+                              ) && !permisosActual.divsBloqueados.includes("divHorasTareo")
+                              }
+                              className="w-full"
+                              type="button"
                           />
-                         </div>
-                            <div className="field col-12 md:col-6">
+
+                          <Dialog
+                              header={
+                              !permisosActual.divsBloqueados.includes("divHorasTareo")
+                                  ? "Planificar  Horas"
+                                  : "Ver Planificación"
+                              }
+                              visible={visibleIndexPlanificacion === index}
+                              style={{ width: "60vw" }}
+                              modal
+                              onHide={() => setVisibleIndexPlanificacion(null)}
+                              footer={!permisosActual.divsBloqueados.includes("divHorasTareo") ? footer : null}
+                          >
+                          
+                              {!permisosActual.divsOcultos.includes("divHorasTareo") && (
+                              <>
+                              <div className="p-fluid formgrid grid">
+                              <div className="field col-12 md:col-6">
+                                  <label>Fecha Inicio</label>
+                                  <Calendar
+                                  value={nuevoDetallePlanificacion.FechaInicio}
+                                  onChange={(e) => {
+                                      const fechaInicio = e.value;
+                                      let fechaFin = nuevoDetallePlanificacion.FechaFin;
+
+                                      if (fechaInicio && nuevoDetallePlanificacion.Horas) {
+                                      fechaFin = new Date(fechaInicio);
+                                      fechaFin.setHours(fechaFin.getHours() + nuevoDetallePlanificacion.Horas);
+                                      }
+
+                                      setNuevoDetallePlanificacion({ ...nuevoDetallePlanificacion, FechaInicio: fechaInicio, FechaFin: fechaFin });
+                                  }}
+                                  dateFormat="yy-mm-dd"
+                                  showIcon
+                                  className="w-full"
+                                  minDate={formik.values.asignaciones[index].FechaAsignacion
+                                  ? new Date(formik.values.asignaciones[index].FechaAsignacion)
+                                  : null} 
+                                  maxDate={ new Date()}
+                                  />
+                              </div>
+
+                              <div className="field col-12 md:col-6">
+                                  <label>Fecha Fin</label>
+                                  <Calendar
+                                  value={nuevoDetallePlanificacion.FechaFin}
+                                  readOnlyInput
+                                  disabled
+                                  dateFormat="yy-mm-dd"
+                                  showIcon
+                                  className="w-full"
+                                  />
+                              </div>
+
+                              <div className="field col-12 md:col-6">
+                                  <label>Horas</label>
+                                  <InputNumber
+                                  value={nuevoDetallePlanificacion.Horas}
+                                  onValueChange={(e) => {
+                                      const horas = e.value;
+                                      let fechaFin = nuevoDetallePlanificacion.FechaFin;
+
+                                      if (nuevoDetallePlanificacion.FechaInicio && horas) {
+                                      fechaFin = new Date(nuevoDetallePlanificacion.FechaInicio);
+                                      fechaFin.setHours(fechaFin.getHours() + horas);
+                                      }
+
+                                      setNuevoDetallePlanificacion({ ...nuevoDetallePlanificacion, Horas: horas, FechaFin: fechaFin });
+                                  }}
+                                  min={1}
+                                  className="w-full"
+                                  />
+                              </div>
+                              <div className="field col-12 md:col-6">
+                              <label>Tipo de Actividad</label>
+                              <DropdownDefault
+                                  value={nuevoDetallePlanificacion.IdTipoActividad}
+                              options={parametros?.filter((item) => item.tipoParametro === "TipoActividad" &&
+                              codFrentes.includes(item.valor1) )}
+                                  onChange={(e) => {
+                                      console.log("Dropdown onChange:", e.value);
+
+                                  const tipoPlanificion = e.value;
+                                  setNuevoDetallePlanificacion({ ...nuevoDetallePlanificacion, IdTipoActividad: tipoPlanificion });
+                                  }}
+                                  optionLabel="nombre"  
+                                  optionValue="id"    
+                                  placeholder="Seleccione tipo"
+                                  className="w-full"
+                              />
+                              </div>
+                              <div className="field col-12 md:col-6">
                               <label>Descripción</label>
                               <InputText
-                                value={nuevoDetalle.Descripcion}
-                                onChange={(e) => setNuevoDetalle({ ...nuevoDetalle, Descripcion: e.target.value })}
-                                className="w-full"
-                                // disabled={formik.values.idEstadoTicket==63}
-                                //  disabled={
-                                //   formik.values.idEstadoTicket === 
-                                //   parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                                // }
+                                  value={nuevoDetallePlanificacion.Descripcion}
+                                  onChange={(e) => setNuevoDetallePlanificacion({ ...nuevoDetallePlanificacion, Descripcion: e.target.value })}
+                                  className="w-full"
+
 
                               />
-                            </div>
-                          </div>
-                          <div className="mb-4">
-                            <Button
-                              label="Añadir"
-                              icon="pi pi-plus"
-                              severity="success"
-                              onClick={agregarDetalle}
-                              // disabled={formik.values.idEstadoTicket==63}
-                              //  disabled={
-                              //     formik.values.idEstadoTicket === 
-                              //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                              //   }
-                            />
-                          </div>
-                          </>)}
-                          <DataTable
-                           value={
-                              (formik.values.asignaciones[visibleIndex]?.DetalleTareasConsultor || [])
-                                .filter((d) => d.Activo) 
-                            }
-                           responsiveLayout="scroll"
-                            className="w-full"
-                          >
-                            <Column
-                              field="FechaInicio"
-                              header="Fecha Inicio"
-                                body={(row) => row.FechaInicio ? new Date(row.FechaInicio).toLocaleDateString() : ""}
-                            />
-                            <Column
-                              field="FechaFin"
-                              header="Fecha Fin"
-                              body={(row) => row.FechaFin ? new Date(row.FechaFin).toLocaleDateString() : ""}
-                            />
-                            <Column field="Horas" header="Horas" />
-                           <Column
-                              field="IdTipoActividad"
-                              header="Tipo de Actividad"
-                              body={(rowData) => {
-                                const tipo = parametros?.find(
-                                  (item) =>
-                                    item.tipoParametro === "TipoActividad" &&
-                                    codFrentes.includes(item.valor1) &&
-                                    item.id === rowData.IdTipoActividad
-                                );
-                                return tipo?.nombre || "—";
-                              }}
-                            />
-                            <Column field="Descripcion" header="Descripción"  />
-                             {!permisosActual.divsBloqueados.includes("divHorasTareo") && (
-                         
-                            <Column
-                              header="Acciones"
-                              body={(rowData) => (
-                                <Button
-                                  icon="pi pi-trash"
-                                  severity="danger"
-                                  text
-                                  
-                                  onClick={() => {
-                                    const updated = [...formik.values.asignaciones[visibleIndex].DetalleTareasConsultor];
-                                    const index = updated.findIndex(
-                                      (d) =>
-                                        d.FechaInicio === rowData.FechaInicio &&
-                                        d.FechaFin === rowData.FechaFin &&
-                                        d.Horas === rowData.Horas &&
-                                        d.Descripcion === rowData.Descripcion
-                                    );
-                                    if (index !== -1) {
-                                      updated[index] = { ...updated[index], Activo: false };
-                                      formik.setFieldValue(
-                                        `asignaciones[${visibleIndex}].DetalleTareasConsultor`,
-                                        updated
-                                      );
-                                    }
-                                  }}
-                                />
+                              </div>
+                              </div>
+                              <div className="mb-4">
+                                  <Button
+                                  label="Añadir"
+                                  icon="pi pi-plus"
+                                  severity="success"
+                                  onClick={agregarDetallePlanificacion}
+                                  />
+                              </div>
+                              </>
                               )}
-                            />
-                             )}
-                          </DataTable>
-           
-          </Dialog>
-        </td>
+                              <DataTable
+                              value={
+                                  (formik.values.asignaciones[visibleIndexPlanificacion]?.DetallePlanificacionConsultor || [])
+                                  .filter((d) => d.Activo) 
+                              }
+                              responsiveLayout="scroll"
+                              className="w-full"
+                              >
+                              <Column
+                                  field="FechaInicio"
+                                  header="Fecha Inicio"
+                                  body={(row) => row.FechaInicio ? new Date(row.FechaInicio).toLocaleDateString() : ""}
+                              />
+                              <Column
+                                  field="FechaFin"
+                                  header="Fecha Fin"
+                                  body={(row) => row.FechaFin ? new Date(row.FechaFin).toLocaleDateString() : ""}
+                              />
+                              <Column field="Horas" header="Horas" />
+                              <Column
+                                  field="IdTipoActividad"
+                                  header="Tipo de Actividad"
+                                  body={(rowData) => {
+                                  const tipo = parametros?.find(
+                                      (item) =>
+                                      item.tipoParametro === "TipoActividad" &&
+                                      codFrentes.includes(item.valor1) &&
+                                      item.id === rowData.IdTipoActividad
+                                  );
+                                  return tipo?.nombre || "—";
+                                  }}
+                              />
+                              <Column field="Descripcion" header="Descripción"  />
+                              {!permisosActual.divsBloqueados.includes("divPlanificacion") && (
+                          
+                              <Column
+                                  header="Acciones"
+                                  body={(rowData) => (
+                                  <Button
+                                      icon="pi pi-trash"
+                                      severity="danger"
+                                      text
+                                      
+                                      onClick={() => {
+                                      const updated = [...formik.values.asignaciones[visibleIndexPlanificacion].DetallePlanificacionConsultor];
+                                      const index = updated.findIndex(
+                                          (d) =>
+                                          d.FechaInicio === rowData.FechaInicio &&
+                                          d.FechaFin === rowData.FechaFin &&
+                                          d.Horas === rowData.Horas &&
+                                          d.Descripcion === rowData.Descripcion
+                                      );
+                                      if (index !== -1) {
+                                          updated[index] = { ...updated[index], Activo: false };
+                                          formik.setFieldValue(
+                                          `asignaciones[${visibleIndexPlanificacion}].DetallePlanificacionConsultor`,
+                                          updated
+                                          );
+                                      }
+                                      }}
+                                  />
+                                  )}
+                              />
+                              )}
+                              </DataTable>
+                          
+                          </Dialog>
+                          </td>
 
-        {/* ELIMINAR FILA */}
-        {!permisosActual.controlesOcultos.includes("btnEliminar") && (
-          <td className="p-2 border">
-            <button
-              type="button"
-              onClick={() => removeRow(asignacion.idUnico)}
-              className="text-red-600 hover:underline"
-            >
-              Eliminar
-            </button>
-          </td>
-        )}
-      </tr>
-    ))}
-</tbody>
+                           {/* BOTON ASIGNAR / VER HORAS */}
+                          <td className="p-2 border">
+                            <Button
+                              label={""}
+                              icon={
+                                !permisosActual.divsBloqueados.includes("divHorasTareo")
+                                  ? "pi pi-plus"
+                                  : "pi pi-eye"
+                              }
+                              onClick={() => setVisibleIndex(index)}
+                              disabled={
+                                !(
+                                  asignacion.IdConsultor == window.localStorage.getItem("idConsultor")
+                                ) && !permisosActual.divsBloqueados.includes("divHorasTareo")
+                              }
+                              className="w-full"
+                              type="button"
+                            />
+
+                            <Dialog
+                              header={
+                                !permisosActual.divsBloqueados.includes("divHorasTareo")
+                                  ? "Asignar Horas"
+                                  : "Ver Horas"
+                              }
+                              visible={visibleIndex === index}
+                              style={{ width: "60vw" }}
+                              modal
+                              onHide={() => setVisibleIndex(null)}
+                              footer={!permisosActual.divsBloqueados.includes("divHorasTareo") ? footer : null}
+                            >
+                            
+                  {!permisosActual.divsOcultos.includes("divHorasTareo") && (
+                                            <>
+                                            <div className="p-fluid formgrid grid">
+                                              <div className="field col-12 md:col-6">
+                                              <label>Fecha Inicio</label>
+                                              <Calendar
+                                                value={nuevoDetalle.FechaInicio}
+                                                onChange={(e) => {
+                                                  const fechaInicio = e.value;
+                                                  let fechaFin = nuevoDetalle.FechaFin;
+
+                                                  if (fechaInicio && nuevoDetalle.Horas) {
+                                                    fechaFin = new Date(fechaInicio);
+                                                    fechaFin.setHours(fechaFin.getHours() + nuevoDetalle.Horas);
+                                                  }
+
+                                                  setNuevoDetalle({ ...nuevoDetalle, FechaInicio: fechaInicio, FechaFin: fechaFin });
+                                                }}
+                                                dateFormat="yy-mm-dd"
+                                                showIcon
+                                                className="w-full"
+                                                minDate={formik.values.asignaciones[index].FechaAsignacion
+                                                ? new Date(formik.values.asignaciones[index].FechaAsignacion)
+                                                : null} 
+                                                maxDate={ new Date()}
+                                              />
+                                            </div>
+
+                                            <div className="field col-12 md:col-6">
+                                              <label>Fecha Fin</label>
+                                              <Calendar
+                                                value={nuevoDetalle.FechaFin}
+                                                readOnlyInput
+                                                disabled
+                                                dateFormat="yy-mm-dd"
+                                                showIcon
+                                                className="w-full"
+                                              />
+                                            </div>
+
+                                            <div className="field col-12 md:col-6">
+                                              <label>Horas</label>
+                                              <InputNumber
+                                                value={nuevoDetalle.Horas}
+                                                onValueChange={(e) => {
+                                                  const horas = e.value;
+                                                  let fechaFin = nuevoDetalle.FechaFin;
+
+                                                  if (nuevoDetalle.FechaInicio && horas) {
+                                                    fechaFin = new Date(nuevoDetalle.FechaInicio);
+                                                    fechaFin.setHours(fechaFin.getHours() + horas);
+                                                  }
+
+                                                  setNuevoDetalle({ ...nuevoDetalle, Horas: horas, FechaFin: fechaFin });
+                                                }}
+                                                min={1}
+                                                className="w-full"
+                                                // disabled={formik.values.idEstadoTicket==63}
+                                                // disabled={
+                                                //     formik.values.idEstadoTicket === 
+                                                //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                                                //   }
+                                              />
+                                            </div>
+                                  
+                                              
+                                          <div className="field col-12 md:col-6">
+                                            <label>Tipo de Actividad</label>
+                                            <DropdownDefault
+                                              value={nuevoDetalle.IdTipoActividad}
+                                            options={parametros?.filter((item) => item.tipoParametro === "TipoActividad" &&
+                                            codFrentes.includes(item.valor1) )}
+                                              onChange={(e) => {
+                                                const tipo = e.value;
+                                                setNuevoDetalle({ ...nuevoDetalle, IdTipoActividad: tipo });
+                                              }}
+                                              optionLabel="nombre"  
+                                              optionValue="id"    
+                                              placeholder="Seleccione tipo"
+                                              className="w-full"
+                                            />
+                                          </div>
+                                              <div className="field col-12 md:col-6">
+                                                <label>Descripción</label>
+                                                <InputText
+                                                  value={nuevoDetalle.Descripcion}
+                                                  onChange={(e) => setNuevoDetalle({ ...nuevoDetalle, Descripcion: e.target.value })}
+                                                  className="w-full"
+                                                  // disabled={formik.values.idEstadoTicket==63}
+                                                  //  disabled={
+                                                  //   formik.values.idEstadoTicket === 
+                                                  //   parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                                                  // }
+
+                                                />
+                                              </div>
+                                            </div>
+                                            <div className="mb-4">
+                                              <Button
+                                                label="Añadir"
+                                                icon="pi pi-plus"
+                                                severity="success"
+                                                onClick={agregarDetalle}
+                                                // disabled={formik.values.idEstadoTicket==63}
+                                                //  disabled={
+                                                //     formik.values.idEstadoTicket === 
+                                                //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+                                                //   }
+                                              />
+                                            </div>
+                                            </>)}
+                                            <DataTable
+                                            value={
+                                                (formik.values.asignaciones[visibleIndex]?.DetalleTareasConsultor || [])
+                                                  .filter((d) => d.Activo) 
+                                              }
+                                            responsiveLayout="scroll"
+                                              className="w-full"
+                                            >
+                                              <Column
+                                                field="FechaInicio"
+                                                header="Fecha Inicio"
+                                                  body={(row) => row.FechaInicio ? new Date(row.FechaInicio).toLocaleDateString() : ""}
+                                              />
+                                              <Column
+                                                field="FechaFin"
+                                                header="Fecha Fin"
+                                                body={(row) => row.FechaFin ? new Date(row.FechaFin).toLocaleDateString() : ""}
+                                              />
+                                              <Column field="Horas" header="Horas" />
+                                            <Column
+                                                field="IdTipoActividad"
+                                                header="Tipo de Actividad"
+                                                body={(rowData) => {
+                                                  const tipo = parametros?.find(
+                                                    (item) =>
+                                                      item.tipoParametro === "TipoActividad" &&
+                                                      codFrentes.includes(item.valor1) &&
+                                                      item.id === rowData.IdTipoActividad
+                                                  );
+                                                  return tipo?.nombre || "—";
+                                                }}
+                                              />
+                                              <Column field="Descripcion" header="Descripción"  />
+                                              {!permisosActual.divsBloqueados.includes("divHorasTareo") && (
+                                          
+                                              <Column
+                                                header="Acciones"
+                                                body={(rowData) => (
+                                                  <Button
+                                                    icon="pi pi-trash"
+                                                    severity="danger"
+                                                    text
+                                                    
+                                                    onClick={() => {
+                                                      const updated = [...formik.values.asignaciones[visibleIndex].DetalleTareasConsultor];
+                                                      const index = updated.findIndex(
+                                                        (d) =>
+                                                          d.FechaInicio === rowData.FechaInicio &&
+                                                          d.FechaFin === rowData.FechaFin &&
+                                                          d.Horas === rowData.Horas &&
+                                                          d.Descripcion === rowData.Descripcion
+                                                      );
+                                                      if (index !== -1) {
+                                                        updated[index] = { ...updated[index], Activo: false };
+                                                        formik.setFieldValue(
+                                                          `asignaciones[${visibleIndex}].DetalleTareasConsultor`,
+                                                          updated
+                                                        );
+                                                      }
+                                                    }}
+                                                  />
+                                                )}
+                                              />
+                                              )}
+                                            </DataTable>
+                            
+                            </Dialog>
+                          </td>
+
+                          {/* ELIMINAR FILA */}
+                          {!permisosActual.controlesOcultos.includes("btnEliminar") && (
+                            <td className="p-2 border">
+                              <button
+                                type="button"
+                                onClick={() => removeRow(asignacion.idUnico)}
+                                className="text-red-600 hover:underline"
+                              >
+                                Eliminar
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                  </tbody>
 
 
               </table>
