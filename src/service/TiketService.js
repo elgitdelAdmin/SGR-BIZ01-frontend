@@ -202,7 +202,7 @@ export const ObtenerTicket = async ({id}) =>{
 }
 
 export const ListarGestorConsultoria = async () => {
-  return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/6`, {
+    return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/6/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -215,7 +215,7 @@ export const ListarGestorConsultoria = async () => {
 };
 
 export const ListarGestorCuenta = async () => {
-  return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/3`, {
+  return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/3/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"

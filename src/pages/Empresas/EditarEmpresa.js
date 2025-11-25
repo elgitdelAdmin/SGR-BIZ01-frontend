@@ -94,9 +94,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
       getPais();
     }, []);
      useEffect(() => {
-      const getGestor = async () => {
-      // const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
-        
+      const getGestor = async () => {        
        await ListarGestorCuenta().then(data=>{setGestor(data)})
       };
       getGestor();
