@@ -159,7 +159,8 @@ const CargaMasiva = () => {
                 // options={tipotiket}
                  options={parametros?.filter((item) => 
                      item.tipoParametro === "TipoCargaMasiva" &&
-                     (codRol==="ADMIN" || Number(item.valor2) === Number(idUser))
+                     (codRol==="ADMIN" ||item.valor2.split(',').includes(String(idUser)))
+                    //  (codRol==="ADMIN" || Number(item.valor2) === Number(idUser))
 
                     )}
                 optionLabel="nombre"

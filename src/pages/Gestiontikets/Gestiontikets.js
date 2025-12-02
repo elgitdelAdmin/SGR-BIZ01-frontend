@@ -377,7 +377,7 @@ useEffect(() => {
                              </div>                        
                      </div>
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        {/* <DatatableDefault value={listaPersonas} 
+                        <DatatableDefault value={listaPersonas} 
                             lazy
                             onGlobalFilterChange={['titulo', 'codTicket','codTicketInterno','fechaSolicitud','descripcion','estado','empresa.razonSocial']}
                             loading={loading}
@@ -413,8 +413,8 @@ useEffect(() => {
                             <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'}/>
                             <Column body={accion}  header="Acciones"></Column>
 
-                        </DatatableDefault> */}
-<DatatableDefaultNew 
+                        </DatatableDefault>
+{/* <DatatableDefaultNew 
     value={listaPersonasTotal}  
     export={true}
     rows={lazyState.rows || 50}  
@@ -432,7 +432,7 @@ useEffect(() => {
     <Column field="horasTrabajadas" header="Horas Trabajadas" sortable></Column>
     <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable/>
     <Column body={accion}  header="Acciones"></Column>
-</DatatableDefaultNew>
+</DatatableDefaultNew> */}
 
 
 
