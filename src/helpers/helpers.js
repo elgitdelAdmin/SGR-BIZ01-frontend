@@ -122,7 +122,7 @@ export function excelFileToJSONSheetName(file,nameSheet,setField){
     
 }
 export const generateExcel = (dtRef) => {
- 
+ console.log("Descarar",dtRef)
   const worksheet = utils.json_to_sheet(dtRef.current.props.value);
   const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
   const excelBuffer = write(workbook, {
@@ -134,6 +134,47 @@ export const generateExcel = (dtRef) => {
   const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   saveAs(blob, 'data.xlsx');
 }
+export const generateExcelNew = (data) => {
+    const MAX_LEN = 32767;
+
+    // Limpia cada fila
+    const sanitizeRow = (row) => {
+        const newRow = {};
+        for (const key in row) {
+            let val = row[key];
+
+            // Convertir objetos a texto
+            if (typeof val === 'object' && val !== null) {
+                val = JSON.stringify(val);
+            }
+
+            // Recortar textos largos
+            if (typeof val === 'string' && val.length > MAX_LEN) {
+                val = val.substring(0, MAX_LEN - 3) + "...";
+            }
+
+            newRow[key] = val;
+        }
+        return newRow;
+    };
+
+    const safeData = data.map(sanitizeRow);
+
+    const worksheet = utils.json_to_sheet(safeData);
+    const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+
+    const excelBuffer = write(workbook, {
+        bookType: 'xlsx',
+        type: 'array'
+    });
+
+    const blob = new Blob([excelBuffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+
+    saveAs(blob, 'data.xlsx');
+};
+
 
 
 export const handleCopyToClipboard = (dtRef) => {

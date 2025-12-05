@@ -13,6 +13,8 @@ import { ConfirmDialog,confirmDialog } from 'primereact/confirmdialog'; // For c
 import useUsuario from "../../hooks/useUsuario";
 import { InputText } from "primereact/inputtext";
 import {ListarTicket,EliminarTicket,ListarParametros} from "../../service/TiketService";
+import DatatableDefaultNew from "../../components/Datatable/DatatableDefaultNew";
+import { DataTable } from 'primereact/datatable';
 
 const Gestiontikets = () => {
     const navigate = useNavigate();
@@ -64,52 +66,99 @@ const Gestiontikets = () => {
 }, [lazyState, globalFilterValue]);
 
 
+// const loadLazyData = () => {
+//     if (networkTimeout) clearTimeout(networkTimeout);
+
+//     networkTimeout = setTimeout(() => {
+//         setLoading(true);
+//         ListarTicket({idUser,codRol})
+//             .then((data) => {
+//                 setTotalRecords(data.length);
+//                 const pageNumber = lazyState?.page ?? 0;
+//                 const pageSize = lazyState?.rows ?? 10;
+//                 const start = pageNumber * pageSize;
+//                 const end = start + pageSize;
+
+//                 let filteredData = data;
+//                 if (globalFilterValue) {
+//                     const search = globalFilterValue.toLowerCase();
+//                     filteredData = data.filter(ticket => {
+//                     const search = globalFilterValue.toLowerCase();
+//                     const estadoNombre = parametros.find(p => p.id === ticket.idEstadoTicket)?.nombre?.toLowerCase() || "";
+//                     let estadoHorasTexto = "";
+//                             if (ticket.horasTrabajadas === 0) {
+//                                 estadoHorasTexto = "pendiente";
+//                             } else if (ticket.horasTrabajadas > 0 && ticket.horasTrabajadas < ticket.horasTotales) {
+//                                 estadoHorasTexto = "en proceso";
+//                             } else if (ticket.horasTrabajadas >= ticket.horasTotales) {
+//                                 estadoHorasTexto = "finalizado";
+//                             }
+//                     return (
+//                         ticket.codTicket?.toLowerCase().includes(search) ||
+//                         ticket.codTicketInterno?.toLowerCase().includes(search) ||
+//                         ticket.titulo?.toLowerCase().includes(search) ||
+//                         ticket.descripcion?.toLowerCase().includes(search) ||
+//                         ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
+//                         ticket.fechaSolicitud?.toLowerCase().includes(search) ||
+//                         estadoNombre.includes(search)||
+//                         estadoHorasTexto.includes(search)
+
+//                     );
+//                     });
+
+//                 }
+//                 filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
+
+//                 const paginatedData = filteredData.slice(start, end);
+
+//                 setListaPersonasTotal(paginatedData);
+//                 setLoading(false);
+//             })
+//             .catch((error) => {
+//                 console.error("Error al cargar tickets:", error);
+//                 setLoading(false);
+//             });
+//     }, Math.random() * 1000 + 250);
+// };
 const loadLazyData = () => {
     if (networkTimeout) clearTimeout(networkTimeout);
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
-        ListarTicket({idUser,codRol})
+        ListarTicket({idUser, codRol})
             .then((data) => {
-                setTotalRecords(data.length);
-                const pageNumber = lazyState?.page ?? 0;
-                const pageSize = lazyState?.rows ?? 10;
-                const start = pageNumber * pageSize;
-                const end = start + pageSize;
-
+                // Aplicar filtro global si existe
                 let filteredData = data;
                 if (globalFilterValue) {
                     const search = globalFilterValue.toLowerCase();
                     filteredData = data.filter(ticket => {
-                    const search = globalFilterValue.toLowerCase();
-                    const estadoNombre = parametros.find(p => p.id === ticket.idEstadoTicket)?.nombre?.toLowerCase() || "";
-                    let estadoHorasTexto = "";
-                            if (ticket.horasTrabajadas === 0) {
-                                estadoHorasTexto = "pendiente";
-                            } else if (ticket.horasTrabajadas > 0 && ticket.horasTrabajadas < ticket.horasTotales) {
-                                estadoHorasTexto = "en proceso";
-                            } else if (ticket.horasTrabajadas >= ticket.horasTotales) {
-                                estadoHorasTexto = "finalizado";
-                            }
-                    return (
-                        ticket.codTicket?.toLowerCase().includes(search) ||
-                        ticket.codTicketInterno?.toLowerCase().includes(search) ||
-                        ticket.titulo?.toLowerCase().includes(search) ||
-                        ticket.descripcion?.toLowerCase().includes(search) ||
-                        ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
-                        ticket.fechaSolicitud?.toLowerCase().includes(search) ||
-                        estadoNombre.includes(search)||
-                        estadoHorasTexto.includes(search)
-
-                    );
+                        const estadoNombre = parametros.find(p => p.id === ticket.idEstadoTicket)?.nombre?.toLowerCase() || "";
+                        let estadoHorasTexto = "";
+                        if (ticket.horasTrabajadas === 0) {
+                            estadoHorasTexto = "pendiente";
+                        } else if (ticket.horasTrabajadas > 0 && ticket.horasTrabajadas < ticket.horasTotales) {
+                            estadoHorasTexto = "en proceso";
+                        } else if (ticket.horasTrabajadas >= ticket.horasTotales) {
+                            estadoHorasTexto = "finalizado";
+                        }
+                        return (
+                            ticket.codTicket?.toLowerCase().includes(search) ||
+                            ticket.codTicketInterno?.toLowerCase().includes(search) ||
+                            ticket.titulo?.toLowerCase().includes(search) ||
+                            ticket.descripcion?.toLowerCase().includes(search) ||
+                            ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
+                            ticket.fechaSolicitud?.toLowerCase().includes(search) ||
+                            estadoNombre.includes(search) ||
+                            estadoHorasTexto.includes(search)
+                        );
                     });
-
                 }
-                filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
 
-                const paginatedData = filteredData.slice(start, end);
+                // Ordenar
+                filteredData.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
 
-                setListaPersonasTotal(paginatedData);
+                setListaPersonasTotal(filteredData);
+                setTotalRecords(filteredData.length);
                 setLoading(false);
             })
             .catch((error) => {
@@ -118,7 +167,6 @@ const loadLazyData = () => {
             });
     }, Math.random() * 1000 + 250);
 };
-
     const onPage = (event) => {
     setlazyState((prevState) => ({
         ...prevState,
@@ -304,6 +352,7 @@ useEffect(() => {
   return decoded.trim();
 };
 
+
     return ( 
         <div className="zv-usuario" style={{paddingTop:16}}>
             <ConfirmDialog />
@@ -342,13 +391,6 @@ useEffect(() => {
                             <Column field="codTicketInterno" header="Codigo Interno" ></Column>
                             <Column field="titulo" header="Titulo" ></Column>
                             <Column field="fechaSolicitud" header="Fecha de Solicitud" ></Column>
-                            {/* <Column field="descripcion" header="Descripcion" ></Column> */}
-                            {/* <Column
-  field="descripcion"
-  header="Descripción"
-  style={{ width: '700px' }}
-  bodyStyle={{ width: '700px', whiteSpace: 'normal' }}
-></Column> */}
                             <Column
                             field="descripcion"
                             header="Descripción"
@@ -364,19 +406,109 @@ useEffect(() => {
                                 </div>
                             )}
                             />
-
-
-                            {/* <Column  field="activo" header="Estado"dataType="boolean"  body={booleanTemplate}></Column> */}
                             <Column header="Estado" body={estadoTicketTemplate} />
                             <Column header="Prioridad" body={prioridadTicketTemplate} />
                             <Column field="empresa.razonSocial" header="Empresa" ></Column>
                             <Column field="horasTrabajadas" header="Horas Trabajadas" ></Column>
                             <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'}/>
-                            {/* <Column header="EstadoHoras" body={estadoHorasTemplate}></Column> */}
-                            {/* <Column body={accion} style={{display:"flex",justifyContent:"center"}} header="Acciones"></Column> */}
                             <Column body={accion}  header="Acciones"></Column>
 
                         </DatatableDefault>
+{/* <DatatableDefaultNew 
+    value={listaPersonasTotal}  
+    export={true}
+    rows={lazyState.rows || 50}  
+    showSearch={false} 
+    loading={loading}
+    
+>
+    <Column field="codTicket" header="Codigo Ticket Conecta" sortable />
+    <Column field="codTicketInterno" header="Codigo Interno"sortable ></Column>
+    <Column field="titulo" header="Titulo"sortable ></Column>
+    <Column field="fechaSolicitud" header="Fecha de Solicitud" sortable></Column>
+    <Column header="Estado" body={estadoTicketTemplate} sortable/>
+    <Column header="Prioridad" body={prioridadTicketTemplate} sortable/>
+    <Column field="empresa.razonSocial" header="Empresa" sortable></Column>
+    <Column field="horasTrabajadas" header="Horas Trabajadas" sortable></Column>
+    <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable/>
+    <Column body={accion}  header="Acciones"></Column>
+</DatatableDefaultNew> */}
+
+
+
+                      {/* {loading ? (
+  <div className="text-center p-8">Cargando...</div>
+) : (
+  <DatatableDefaultNew 
+    data={listaPersonas || []} 
+    columns={columns}
+  />
+  
+)} */}
+{/* <DataTable 
+    value={listaPersonas} 
+    lazy
+    loading={loading}
+    onPage={onPage}
+    first={lazyState.first}
+    paginator
+    rows={10}
+    totalRecords={totalRecords}
+    header={header}
+    filterDisplay="row"
+>
+    <Column field="codTicket" header="Codigo Ticket Conecta" filter filterPlaceholder="Buscar..." />
+    <Column field="codTicketInterno" header="Codigo Interno" filter filterPlaceholder="Buscar..." />
+    <Column field="titulo" header="Titulo" filter filterPlaceholder="Buscar..." />
+    <Column field="fechaSolicitud" header="Fecha de Solicitud" filter filterPlaceholder="Buscar..." />
+    <Column
+        field="descripcion"
+        header="Descripción"
+        filter 
+        filterPlaceholder="Buscar..."
+        style={{ width: '350px', whiteSpace: 'normal', wordWrap: 'break-word' }}
+        body={(rowData) => (
+            <div style={{
+                maxWidth: '350px',
+                overflowWrap: 'break-word',
+                whiteSpace: 'normal',
+            }}>
+                {limpiarDescripcion(rowData.descripcion)}
+            </div>
+        )}
+    />
+    <Column header="Estado" body={estadoTicketTemplate} filter filterPlaceholder="Buscar..." />
+    <Column header="Prioridad" body={prioridadTicketTemplate} filter filterPlaceholder="Buscar..." />
+    <Column field="empresa.razonSocial" header="Empresa" filter filterPlaceholder="Buscar..." />
+    <Column field="horasTrabajadas" header="Horas Trabajadas" filter filterPlaceholder="Buscar..." />
+    <Column field="horasPlanificadas" header="Horas Planificadas" filter filterPlaceholder="Buscar..." body={(rowData) => rowData.horasPlanificadas ?? '-'} />
+    <Column body={accion} header="Acciones" />
+</DataTable> */}
+
+{/* <DatatableDefault
+    globalFilterFields={['titulo', 'codTicket','codTicketInterno','fechaSolicitud','descripcion','estado','empresa.razonSocial']}
+
+    value={listaPersonasTotal}
+    lazy
+    paginator
+    totalRecords={totalRecords}
+    onPage={onPage}
+    first={lazyState.first}
+    rows={lazyState.rows}
+    loading={loading}
+>
+    <Column field="codTicket" header="Codigo Ticket Conecta" filter filterPlaceholder="Buscar..." ></Column>
+    <Column field="codTicketInterno" header="Codigo Interno" filter filterPlaceholder="Buscar..."></Column>
+    <Column field="titulo" header="Titulo"  filter filterPlaceholder="Buscar..."></Column>
+    <Column field="fechaSolicitud" header="Fecha de Solicitud" filter filterPlaceholder="Buscar..."></Column>
+    <Column header="Estado" body={estadoTicketTemplate} filter filterPlaceholder="Buscar..."/>
+    <Column header="Prioridad" body={prioridadTicketTemplate} filter filterPlaceholder="Buscar..." />
+    <Column field="empresa.razonSocial" header="Empresa" filter filterPlaceholder="Buscar..."></Column>
+    <Column field="horasTrabajadas" header="Horas Trabajadas" filter filterPlaceholder="Buscar..."></Column>
+    <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'}filter filterPlaceholder="Buscar..." />
+    <Column body={accion}  header="Acciones"></Column>
+
+</DatatableDefault> */}
                     </div>
             </div>
         </div>
