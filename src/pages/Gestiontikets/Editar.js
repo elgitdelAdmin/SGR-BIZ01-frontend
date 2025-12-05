@@ -78,6 +78,12 @@ const Editar = () => {
     };
 
   //
+
+    const [add, setAñadir] = useState(true);
+    const [eliminar, setEliminar] = useState(true);
+    const [addPlanificacion, setAñadirPlanificacion] = useState(true);
+    const [eliminarPlanificacion, setEliminarPlanificacion] = useState(true);
+
   const [opcionesEstadoTicket, setOpcionesEstadoTicket] = useState([]);
   const [bloquearDropdown, setBloquearDropdown] = useState([]);
   const [visibleIndex, setVisibleIndex] = useState(null);
@@ -123,24 +129,10 @@ const Editar = () => {
   const [consultoresPorFila, setConsultoresPorFila] = useState({});
 
 
-const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {  
-    console.log("ObtenerConsultoresPorFrente",idFrente, idSubFrente)
-    console.log("consultores",consultores)
-
-  const resultado = consultores.filter(c =>
-    c.especializaciones.some(e =>
-      // e.idFrente === idFrente && e.idSubFrente === idSubFrente
-      e.idSubFrente === idSubFrente
-    )
-  );
-  console.log("Resultado",resultado)
-
-  return resultado;
-};
+  
   const agregarDetalle = () => {
     console.log("agregarDenuevoDetalletalle",nuevoDetalle)
     if (visibleIndex === null) return;
-    
     const { FechaInicio, FechaFin, Horas, Descripcion ,IdTipoActividad} = nuevoDetalle;
 
     if (!FechaInicio || !Horas || !Descripcion || !IdTipoActividad) {
@@ -151,7 +143,9 @@ const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
         life: 5000,
       });
       return;
-    }
+    } else{    setAñadir(false)
+}
+    
           const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
 
           const fechaInicioDia = new Date(nuevoDetalle.FechaInicio);
@@ -194,7 +188,8 @@ const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
     //}
   };
 
-    const agregarDetallePlanificacion = () => {
+  const agregarDetallePlanificacion = () => {
+    
     console.log("agregarDenuevoDetalletallePlanificacion",nuevoDetallePlanificacion)
     if (visibleIndexPlanificacion === null) return;
     
@@ -208,7 +203,7 @@ const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
         life: 5000,
       });
       return;
-    }
+    }else{setAñadirPlanificacion(false)}
           const current = formik.values.asignaciones[visibleIndexPlanificacion].DetallePlanificacionConsultor || [];
 
           const fechaInicioDia = new Date(nuevoDetallePlanificacion.FechaInicio);
@@ -253,16 +248,16 @@ const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
 
 
   
-const handleAdd = () => {
-  if (visibleIndex === null) return;
-  const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
-  const updated = [...current, tempData];
-  formik.setFieldValue(`asignaciones[${visibleIndex}].DetalleTareasConsultor`, updated);
+  const handleAdd = () => {
+    if (visibleIndex === null) return;
+    const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
+    const updated = [...current, tempData];
+    formik.setFieldValue(`asignaciones[${visibleIndex}].DetalleTareasConsultor`, updated);
 
-  // limpiar y cerrar
-  setTempData({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true });
-  setVisibleIndex(null);
-};
+    // limpiar y cerrar
+    setTempData({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true });
+    setVisibleIndex(null);
+  };
 
 
  useEffect(() => {
@@ -285,14 +280,14 @@ const handleAdd = () => {
       getEmpresa();
     }, []);
 
-      useEffect(() => {
+  useEffect(() => {
       const getgestorConsultoria = async () => {
         await ListarGestorConsultoria().then(data=>{setgestorConsultoria(data)})
       };
       getgestorConsultoria();
     }, []);
 
-      useEffect(() => {
+  useEffect(() => {
     const getConsultorFrente = async () => {
       let idConsultor = window.localStorage.getItem("idConsultor")
       console.log("idConsultor",idConsultor)
@@ -326,16 +321,13 @@ const handleAdd = () => {
 // }, [gestorConsultoria]);
 
  
-   useEffect(() => {
-      const getFrentes = async () => {
-       await ListarFrentes().then(data=>{setFrentes(data)})
-console.log("Listar")
-          };
-      getFrentes();
-  }, []);
     useEffect(() => {
-            console.log("Prueba")
-
+        const getFrentes = async () => {
+        await ListarFrentes().then(data=>{setFrentes(data)})
+            };
+        getFrentes();
+    }, []);
+    useEffect(() => {
     if (!parametros?.length) return;
 
     const estadoActual = parametros.find(
@@ -360,6 +352,7 @@ console.log("Listar")
   setBloquearDropdown(!rolesPermitidos.includes(codRol));
   }, [parametros]); 
 
+  
   useEffect(() => {
       if (!id || frentes.length === 0) return;
       const getTicket = async () => {
@@ -372,7 +365,6 @@ console.log("Listar")
           setModoEdicion(true);
                   console.log("DATAAAAA",data)
            console.log("Frentes",frentes)
-
   // Esperar a que frentes tenga contenido antes de continuar
       if (!frentes || frentes.length === 0) return;
 
@@ -393,6 +385,7 @@ console.log("Listar")
                         console.log("subfrentesD",subfrentes)
 
             setSubfrentesSeleccionados(subfrentes);
+
           const totalHorasPorConsultor = data.consultorAsignaciones.map(asig => {
             const total = (asig.detalleTareasConsultor || [])
               .filter(t => t.activo)
@@ -412,10 +405,6 @@ console.log(totalHorasPorConsultor);
       };
       if (id) getTicket();
     }, [id,frentes]);
-
-
-
-
 
   //OK 
   
@@ -481,6 +470,7 @@ console.log(totalHorasPorConsultor);
   
 useEffect(() => {
   const getConsultores = async () => {
+    console.log('getConsultores')
      const fetchFunction = codRol === "SUPERADMIN" ? ListarConsultores : ListarConsultoresPorSocio;
 
     await fetchFunction().then((data) => {
@@ -489,6 +479,8 @@ useEffect(() => {
         nombre: `${item.persona.nombres} ${item.persona.apellidoPaterno}`,
          especializaciones: item.especializaciones || [] 
       })).sort((a, b) => a.nombre.localeCompare(b.nombre));
+          console.log('consultoresFormateados',consultoresFormateados)
+
       setConsultores(consultoresFormateados);
     });
   };
@@ -613,7 +605,8 @@ function toLocalISOString(date) {
       asignaciones: persona ?(persona.consultorAsignaciones.map((a) => ({
          idUnico: a.id.toString(),
       Id:a.id,
-      IdSubFrente: a.IdSubFrente,
+      IdSubFrente: a.idSubFrente,
+      // IdSubFrente: String(a.idSubFrente),
       IdConsultor: a.idConsultor,
       IdTipoActividad: a.idTipoActividad,
       FechaAsignacion: a.fechaAsignacion,
@@ -732,8 +725,48 @@ console.log("📦 Datos a enviar:");
     }
   }
 }, [persona, empresa]);
+useEffect(() => {
+  if (!Array.isArray(consultores) || consultores.length === 0) return;  
+  if (!formik.values.asignaciones) return;
 
+  formik.values.asignaciones.forEach((a, index) => {
+    if (a.IdSubFrente) {
+      const seleccionado = subfrentesSeleccionados.find(
+        s => s.idSubFrente == a.IdSubFrente
+      );
 
+      const idFrente = seleccionado?.idFrente;
+
+      if (idFrente) {
+        ObtenerConsultoresPorFrente(idFrente, a.IdSubFrente).then(data => {
+          setConsultoresPorFila(prev => ({
+            ...prev,
+            [index]: data
+          }));
+        });
+      }
+    }
+  });
+}, [
+  formik.values.asignaciones,
+  subfrentesSeleccionados,
+  consultores
+]);
+
+const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {  
+      console.log("ObtenerConsultoresPorFrente",idFrente, idSubFrente)
+      console.log("consultores",consultores)
+
+    const resultado = consultores.filter(c =>
+      c.especializaciones.some(e =>
+        // e.idFrente === idFrente && e.idSubFrente === idSubFrente
+        e.idSubFrente === idSubFrente
+      )
+    );
+    console.log("Resultado",resultado)
+
+    return resultado;
+  };
 
   const Registrar = ({ formData }) => {
     RegistrarTiket({ formData})
@@ -1023,15 +1056,30 @@ const footer = (
       </div>
     )}
 
-    {/* Botón Registrar (lado derecho) */}
-    <Button
+ {formik.values.asignaciones[visibleIndex] && (
+        <Button
       label="Registrar"
       severity="secondary"
+      disabled={add && eliminar}
       onClick={() => {
         formik.handleSubmit();
         setVisibleIndex(null);
       }}
     />
+    )}
+     {formik.values.asignaciones[visibleIndexPlanificacion] && (
+        <Button
+      label="Registrar"
+      severity="secondary"
+      disabled={addPlanificacion && eliminarPlanificacion}
+      onClick={() => {
+        formik.handleSubmit();
+        setVisibleIndex(null);
+      }}
+    />
+    )}
+    {/* Botón Registrar (lado derecho) */}
+  
   </div>
 );
 
@@ -1575,10 +1623,7 @@ const footer = (
                               onChange={async (e) => {
                                 const idSubFrente = e.value;
                                 const seleccionado = subfrentesSeleccionados.find(s => s.idSubFrente === idSubFrente);
-
                                 const idFrente = seleccionado?.idFrente; 
-
-      
                                 formik.setFieldValue(`asignaciones[${index}].IdSubFrente`, idSubFrente);
                                   formik.setFieldValue(`asignaciones[${index}].IdFrente`, idFrente);
 
@@ -1701,11 +1746,7 @@ const footer = (
                             />
                           </td>
 
-                          {/* HORAS TRABAJADAS */}
-                          <td className="p-2 border text-center">
-                            {totalesFijos?.[index]?.totalHoras || 0}
-                          </td>
-
+                      
                           {/* BOTON PLANIFICAT / VER PLANIFICACION */}
                            <td className="p-2 border">
                           <Button
@@ -1724,7 +1765,6 @@ const footer = (
                               className="w-full"
                               type="button"
                           />
-
                           <Dialog
                               header={
                               !permisosActual.divsBloqueados.includes("divHorasTareo")
@@ -1880,6 +1920,7 @@ const footer = (
                                       text
                                       
                                       onClick={() => {
+                                        setEliminarPlanificacion(false)
                                       const updated = [...formik.values.asignaciones[visibleIndexPlanificacion].DetallePlanificacionConsultor];
                                       const index = updated.findIndex(
                                           (d) =>
@@ -1904,6 +1945,12 @@ const footer = (
                           
                           </Dialog>
                           </td>
+
+                             {/* HORAS TRABAJADAS */}
+                          <td className="p-2 border text-center">
+                            {totalesFijos?.[index]?.totalHoras || 0}
+                          </td>
+
 
                            {/* BOTON ASIGNAR / VER HORAS */}
                           <td className="p-2 border">
@@ -2092,6 +2139,7 @@ const footer = (
                                                     text
                                                     
                                                     onClick={() => {
+                                                      setEliminar(false)
                                                       const updated = [...formik.values.asignaciones[visibleIndex].DetalleTareasConsultor];
                                                       const index = updated.findIndex(
                                                         (d) =>

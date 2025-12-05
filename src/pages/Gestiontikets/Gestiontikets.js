@@ -377,7 +377,7 @@ useEffect(() => {
                              </div>                        
                      </div>
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        <DatatableDefault value={listaPersonas} 
+                        {/* <DatatableDefault value={listaPersonas} 
                             lazy
                             onGlobalFilterChange={['titulo', 'codTicket','codTicketInterno','fechaSolicitud','descripcion','estado','empresa.razonSocial']}
                             loading={loading}
@@ -413,7 +413,7 @@ useEffect(() => {
                             <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'}/>
                             <Column body={accion}  header="Acciones"></Column>
 
-                        </DatatableDefault>
+                        </DatatableDefault> */}
 {/* <DatatableDefaultNew 
     value={listaPersonasTotal}  
     export={true}
@@ -434,6 +434,24 @@ useEffect(() => {
     <Column body={accion}  header="Acciones"></Column>
 </DatatableDefaultNew> */}
 
+<DatatableDefaultNew 
+    value={listaPersonasTotal}  
+    export={true}
+    rows={lazyState.rows || 50}  
+    showSearch={false} 
+    loading={loading}
+>
+    <Column field="codTicket" header="Codigo Ticket Conecta" sortable style={{ width: '130px', minWidth: '130px' }} />
+    <Column field="codTicketInterno" header="Codigo Interno" sortable style={{ width: '110px', minWidth: '110px' }} />
+    <Column field="titulo" header="Titulo" sortable style={{ width: '350px', minWidth: '350px' }} />
+    <Column field="fechaSolicitud" header="Fecha de Solicitud" sortable style={{ width: '160px', minWidth: '160px' }} />
+    <Column header="Estado" body={estadoTicketTemplate} sortable style={{ width: '140px', minWidth: '140px' }} />
+    <Column header="Prioridad" body={prioridadTicketTemplate} sortable style={{ width: '140px', minWidth: '140px' }} />
+    <Column field="empresa.razonSocial" header="Empresa" sortable style={{ width: '150px', minWidth: '150px' }} />
+    <Column field="horasTrabajadas" header="Horas Trabajadas" sortable style={{ width: '100px', minWidth: '100px' }} />
+    <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />
+    <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
+</DatatableDefaultNew>
 
 
                       {/* {loading ? (
