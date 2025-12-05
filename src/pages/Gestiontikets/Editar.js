@@ -726,6 +726,7 @@ console.log("📦 Datos a enviar:");
   }
 }, [persona, empresa]);
 useEffect(() => {
+  console.log("Hola")
   if (!Array.isArray(consultores) || consultores.length === 0) return;  
   if (!formik.values.asignaciones) return;
 
@@ -734,6 +735,7 @@ useEffect(() => {
       const seleccionado = subfrentesSeleccionados.find(
         s => s.idSubFrente == a.IdSubFrente
       );
+    console.log("idFrente",seleccionado?.idFrente)
 
       const idFrente = seleccionado?.idFrente;
 
@@ -755,7 +757,6 @@ useEffect(() => {
 
 const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {  
       console.log("ObtenerConsultoresPorFrente",idFrente, idSubFrente)
-      console.log("consultores",consultores)
 
     const resultado = consultores.filter(c =>
       c.especializaciones.some(e =>
@@ -1655,8 +1656,13 @@ const footer = (
                             name={`asignaciones.${asignacion.idUnico}.IdConsultor`} // no usar index
                             placeholder="Seleccione"
                             value={asignacion.IdConsultor}
-                            options={consultoresPorFila[index] || []}
-                            // options={consultores}
+                            //options={consultoresPorFila[index] || []}
+                                                        options={
+                              !formik.values.asignaciones?.[index]?.IdSubFrente
+                                ? consultores
+                                : (consultoresPorFila[index] || [])
+                            }
+
                             optionLabel="nombre"
                             optionValue="id"
                             onChange={(e) => {
