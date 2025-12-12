@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState ,useRef} from "react";
+import React, { useEffect, useState ,useRef,useMemo} from "react";
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
@@ -15,6 +15,7 @@ import { InputText } from "primereact/inputtext";
 import {ListarTicket,EliminarTicket,ListarParametros} from "../../service/TiketService";
 import DatatableDefaultNew from "../../components/Datatable/DatatableDefaultNew";
 import { DataTable } from 'primereact/datatable';
+import { MultiSelect } from 'primereact/multiselect';
 
 const Gestiontikets = () => {
     const navigate = useNavigate();
@@ -33,6 +34,14 @@ const Gestiontikets = () => {
     const [paginaReinicio, setpaginaReinicio] = useState(null);
     const [parametros, setParametro] = useState([]);
    const [parametrosPrioridad, setParametroPrioridad] = useState([]);
+const [estadosSeleccionados, setEstadosSeleccionados] = useState([]);
+const estadosOpciones = [
+    { id: 'activo', nombre: 'Activo' },
+    { id: 'inactivo', nombre: 'Inactivo' },
+    { id: 'pendiente', nombre: 'Pendiente' },
+    { id: 'completado', nombre: 'Completado' }
+    // Agrega los estados que necesites
+];
 
     
     const {permisos} = useUsuario();
@@ -65,53 +74,81 @@ const Gestiontikets = () => {
     loadLazyData();
 }, [lazyState, globalFilterValue]);
 
+useEffect(() => {
+  const getParametro = async () => {
+    const data = await ListarParametros();
+    const estadoTickets = data.filter(p => p.tipoParametro === "EstadoTicket");
+    const prioridadTickets = data.filter(p => p.tipoParametro === "Prioridad");
+    setParametro(estadoTickets);
+    setParametroPrioridad(prioridadTickets)
+  };
+  getParametro();
+}, []);
 
+
+// useEffect(() => {
+//     loadLazyData();
+// }, [lazyState, estadosSeleccionados]);
+
+useEffect(() => {
+  if (parametros.length > 0) {
+    loadLazyData();
+  }
+}, [parametros,parametrosPrioridad,estadosSeleccionados]);
+
+useEffect(() => {
+  if (parametros.length > 0 && estadosSeleccionados.length === 0) {
+    // Filtra todos los estados excepto "Cerrado" y "Anulado"
+    const estadosPorDefecto = parametros
+      .filter(p => 
+        p.nombre?.toLowerCase() !== 'cerrado' && 
+        p.nombre?.toLowerCase() !== 'anulado'
+      )
+      .map(p => p.id); // Obtiene los IDs
+    
+    // Esto actualiza el estado y el MultiSelect los muestra seleccionados
+    setEstadosSeleccionados(estadosPorDefecto);
+  }
+}, [parametros]);
 // const loadLazyData = () => {
 //     if (networkTimeout) clearTimeout(networkTimeout);
 
 //     networkTimeout = setTimeout(() => {
 //         setLoading(true);
-//         ListarTicket({idUser,codRol})
+//         ListarTicket({idUser, codRol})
 //             .then((data) => {
-//                 setTotalRecords(data.length);
-//                 const pageNumber = lazyState?.page ?? 0;
-//                 const pageSize = lazyState?.rows ?? 10;
-//                 const start = pageNumber * pageSize;
-//                 const end = start + pageSize;
-
+//                 // Aplicar filtro global si existe
 //                 let filteredData = data;
 //                 if (globalFilterValue) {
 //                     const search = globalFilterValue.toLowerCase();
 //                     filteredData = data.filter(ticket => {
-//                     const search = globalFilterValue.toLowerCase();
-//                     const estadoNombre = parametros.find(p => p.id === ticket.idEstadoTicket)?.nombre?.toLowerCase() || "";
-//                     let estadoHorasTexto = "";
-//                             if (ticket.horasTrabajadas === 0) {
-//                                 estadoHorasTexto = "pendiente";
-//                             } else if (ticket.horasTrabajadas > 0 && ticket.horasTrabajadas < ticket.horasTotales) {
-//                                 estadoHorasTexto = "en proceso";
-//                             } else if (ticket.horasTrabajadas >= ticket.horasTotales) {
-//                                 estadoHorasTexto = "finalizado";
-//                             }
-//                     return (
-//                         ticket.codTicket?.toLowerCase().includes(search) ||
-//                         ticket.codTicketInterno?.toLowerCase().includes(search) ||
-//                         ticket.titulo?.toLowerCase().includes(search) ||
-//                         ticket.descripcion?.toLowerCase().includes(search) ||
-//                         ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
-//                         ticket.fechaSolicitud?.toLowerCase().includes(search) ||
-//                         estadoNombre.includes(search)||
-//                         estadoHorasTexto.includes(search)
-
-//                     );
+//                         const estadoNombre = parametros.find(p => p.id === ticket.idEstadoTicket)?.nombre?.toLowerCase() || "";
+//                         let estadoHorasTexto = "";
+//                         if (ticket.horasTrabajadas === 0) {
+//                             estadoHorasTexto = "pendiente";
+//                         } else if (ticket.horasTrabajadas > 0 && ticket.horasTrabajadas < ticket.horasTotales) {
+//                             estadoHorasTexto = "en proceso";
+//                         } else if (ticket.horasTrabajadas >= ticket.horasTotales) {
+//                             estadoHorasTexto = "finalizado";
+//                         }
+//                         return (
+//                             ticket.codTicket?.toLowerCase().includes(search) ||
+//                             ticket.codTicketInterno?.toLowerCase().includes(search) ||
+//                             ticket.titulo?.toLowerCase().includes(search) ||
+//                             ticket.descripcion?.toLowerCase().includes(search) ||
+//                             ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
+//                             ticket.fechaSolicitud?.toLowerCase().includes(search) ||
+//                             estadoNombre.includes(search) ||
+//                             estadoHorasTexto.includes(search)
+//                         );
 //                     });
-
 //                 }
-//                 filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
 
-//                 const paginatedData = filteredData.slice(start, end);
+//                 // Ordenar
+//                 filteredData.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
 
-//                 setListaPersonasTotal(paginatedData);
+//                 setListaPersonasTotal(filteredData);
+//                 setTotalRecords(filteredData.length);
 //                 setLoading(false);
 //             })
 //             .catch((error) => {
@@ -125,38 +162,53 @@ const loadLazyData = () => {
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
-        ListarTicket({idUser, codRol})
+        ListarTicket({ idUser, codRol })
             .then((data) => {
-                // Aplicar filtro global si existe
-                let filteredData = data;
+
+                // --- 1) Agregar estadoNombre a cada ticket ---
+                const dataConEstado = data.map(ticket => ({
+                    ...ticket,
+                    estadoNombre:
+                        parametros.find(p => p.id === ticket.idEstadoTicket)?.nombre || "Sin estado",
+                    prioridadNombre:
+                        parametrosPrioridad.find(p => p.id === ticket.idPrioridad)?.nombre || "Sin prioridad",
+
+                    estadoHorasTexto:
+                        ticket.horasTrabajadas === 0
+                            ? "pendiente"
+                            : ticket.horasTrabajadas < ticket.horasTotales
+                                ? "en proceso"
+                                : "finalizado"
+                }));
+                // --- 2) Filtro global ---
+                let filteredData = dataConEstado;
+
+                
+                if (estadosSeleccionados.length > 0) {
+                    filteredData = filteredData.filter(ticket => 
+                        estadosSeleccionados.includes(ticket.idEstadoTicket)
+                    );
+                }
                 if (globalFilterValue) {
                     const search = globalFilterValue.toLowerCase();
-                    filteredData = data.filter(ticket => {
-                        const estadoNombre = parametros.find(p => p.id === ticket.idEstadoTicket)?.nombre?.toLowerCase() || "";
-                        let estadoHorasTexto = "";
-                        if (ticket.horasTrabajadas === 0) {
-                            estadoHorasTexto = "pendiente";
-                        } else if (ticket.horasTrabajadas > 0 && ticket.horasTrabajadas < ticket.horasTotales) {
-                            estadoHorasTexto = "en proceso";
-                        } else if (ticket.horasTrabajadas >= ticket.horasTotales) {
-                            estadoHorasTexto = "finalizado";
-                        }
-                        return (
-                            ticket.codTicket?.toLowerCase().includes(search) ||
-                            ticket.codTicketInterno?.toLowerCase().includes(search) ||
-                            ticket.titulo?.toLowerCase().includes(search) ||
-                            ticket.descripcion?.toLowerCase().includes(search) ||
-                            ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
-                            ticket.fechaSolicitud?.toLowerCase().includes(search) ||
-                            estadoNombre.includes(search) ||
-                            estadoHorasTexto.includes(search)
-                        );
-                    });
+
+                    filteredData = dataConEstado.filter(ticket => (
+                        ticket.codTicket?.toLowerCase().includes(search) ||
+                        ticket.codTicketInterno?.toLowerCase().includes(search) ||
+                        ticket.titulo?.toLowerCase().includes(search) ||
+                        ticket.descripcion?.toLowerCase().includes(search) ||
+                        ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
+                        ticket.fechaSolicitud?.toLowerCase().includes(search) ||
+                        ticket.estadoNombre?.toLowerCase().includes(search) ||
+                        ticket.prioridadNombre?.toLowerCase().includes(search) ||
+                        ticket.estadoHorasTexto?.toLowerCase().includes(search)
+                    ));
                 }
 
-                // Ordenar
+                // --- 3) Ordenar ---
                 filteredData.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
 
+                // --- 4) Guardar ---
                 setListaPersonasTotal(filteredData);
                 setTotalRecords(filteredData.length);
                 setLoading(false);
@@ -167,7 +219,8 @@ const loadLazyData = () => {
             });
     }, Math.random() * 1000 + 250);
 };
-    const onPage = (event) => {
+   
+const onPage = (event) => {
     setlazyState((prevState) => ({
         ...prevState,
         first: event.first,
@@ -225,16 +278,7 @@ const loadLazyData = () => {
               setListaPersonas(listaPersonasTotal)
     }, [listaPersonasTotal]);
    
-useEffect(() => {
-  const getParametro = async () => {
-    const data = await ListarParametros();
-    const estadoTickets = data.filter(p => p.tipoParametro === "EstadoTicket");
-    const prioridadTickets = data.filter(p => p.tipoParametro === "Prioridad");
-    setParametro(estadoTickets);
-    setParametroPrioridad(prioridadTickets)
-  };
-  getParametro();
-}, []);
+
 
     const accion =(rowData)=>{
   const eliminarOculto = permisosActual.controlesOcultos.includes("btnEliminar");
@@ -352,7 +396,12 @@ useEffect(() => {
   return decoded.trim();
 };
 
-
+const datosFiltrados = useMemo(() => {
+    if (estadosSeleccionados.length === 0) {
+        return parametros; // Cambia 'tickets' por el nombre de tu variable de datos
+    }
+    return parametros.filter(item => estadosSeleccionados.includes(item.estado));
+}, [parametros, estadosSeleccionados]); 
     return ( 
         <div className="zv-usuario" style={{paddingTop:16}}>
             <ConfirmDialog />
@@ -362,8 +411,36 @@ useEffect(() => {
                  <div className="zv-usuario-body-filtro">
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 <div style={{ marginLeft: "auto" }}>
+                               <div className="field col-12 md:col-2">
+                                <label htmlFor="estados" className="font-bold">
+                                    Estados
+                                </label>
+                                <MultiSelect
+                                    id="estados"
+                                    value={estadosSeleccionados}
+                                    options={parametros}
+                                    optionLabel="nombre"
+                                    optionValue="id"
+                                    onChange={(e) => setEstadosSeleccionados(e.value)}
+                                    placeholder="Selecciona Estados"
+                                    display="chip"
+                                    filter
+                                    maxSelectedLabels={2}
+                                    className="w-full md:w-20rem"
+                                />
+                               </div>
+                                     {/* <div className="field col-12 md:col-2">
+                                        <DropdownDefault
+                                            // value={}
+                                    options={parametros}
+                                            optionLabel="nombre"
+                                            optionValue="id"
+                                            // onChange={}
+                                            placeholder="Selecciona Estado"
+                                        />
+                                        </div> */}
                                       {!permisosActual.controlesOcultos.includes("btnCrear") && (
-                   <>
+                                     <>
                    
                                      <Boton
                                      icon="pi pi-plus" 
@@ -372,6 +449,7 @@ useEffect(() => {
                                      onClick={() => navigate("Crear/")}
                                      />
                                       </>)}
+                                    
 
                                  </div>
                              </div>                        
@@ -414,119 +492,50 @@ useEffect(() => {
                             <Column body={accion}  header="Acciones"></Column>
 
                         </DatatableDefault> */}
-{/* <DatatableDefaultNew 
-    value={listaPersonasTotal}  
-    export={true}
-    rows={lazyState.rows || 50}  
-    showSearch={false} 
-    loading={loading}
-    
->
-    <Column field="codTicket" header="Codigo Ticket Conecta" sortable />
-    <Column field="codTicketInterno" header="Codigo Interno"sortable ></Column>
-    <Column field="titulo" header="Titulo"sortable ></Column>
-    <Column field="fechaSolicitud" header="Fecha de Solicitud" sortable></Column>
-    <Column header="Estado" body={estadoTicketTemplate} sortable/>
-    <Column header="Prioridad" body={prioridadTicketTemplate} sortable/>
-    <Column field="empresa.razonSocial" header="Empresa" sortable></Column>
-    <Column field="horasTrabajadas" header="Horas Trabajadas" sortable></Column>
-    <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable/>
-    <Column body={accion}  header="Acciones"></Column>
-</DatatableDefaultNew> */}
 
-<DatatableDefaultNew 
-    value={listaPersonasTotal}  
-    export={true}
-    rows={lazyState.rows || 50}  
-    showSearch={false} 
-    loading={loading}
->
-    <Column field="codTicket" header="Codigo Ticket Conecta" sortable style={{ width: '130px', minWidth: '130px' }} />
-    <Column field="codTicketInterno" header="Codigo Interno" sortable style={{ width: '110px', minWidth: '110px' }} />
-    <Column field="titulo" header="Titulo" sortable style={{ width: '350px', minWidth: '350px' }} />
-    <Column field="fechaSolicitud" header="Fecha de Solicitud" sortable style={{ width: '160px', minWidth: '160px' }} />
-    <Column header="Estado" body={estadoTicketTemplate} sortable style={{ width: '140px', minWidth: '140px' }} />
-    <Column header="Prioridad" body={prioridadTicketTemplate} sortable style={{ width: '140px', minWidth: '140px' }} />
-    <Column field="empresa.razonSocial" header="Empresa" sortable style={{ width: '150px', minWidth: '150px' }} />
-    <Column field="horasTrabajadas" header="Horas Trabajadas" sortable style={{ width: '100px', minWidth: '100px' }} />
-    <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />
-    <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
-</DatatableDefaultNew>
+                        <DatatableDefaultNew 
+                            value={listaPersonasTotal}  
+                            export={true}
+                            rows={lazyState.rows || 50}  
+                            showSearch={false} 
+                            loading={loading}
+                        >
+                            <Column field="codTicket" header="Codigo Ticket Conecta" sortable style={{ width: '130px', minWidth: '180px' }} />
+                            <Column field="codTicketInterno" header="Codigo Interno" sortable style={{ width: '110px', minWidth: '130px' }} />
+                            <Column field="titulo" header="Titulo" sortable style={{ width: '350px', minWidth: '350px' }} />
+                            <Column 
+                            field="fechaSolicitud" 
+                            header="Fecha de Solicitud" 
+                            sortable 
+                            style={{ width: '160px', minWidth: '160px' }}
+                            body={(rowData) => {
+                                if (!rowData.fechaSolicitud) return '';
+                                return rowData.fechaSolicitud.replace('T', ' ');
+                            }}
+                        />
+                                <Column
+                                    field="estadoNombre"
+                                    header="Estado"
+                                    sortable
+                                    filter
+                                    style={{ width: '140px', minWidth: '140px' }}
+                                />
+                                 <Column
+                                    field="prioridadNombre"
+                                    header="Prioridad"
+                                    sortable
+                                    filter
+                                    style={{ width: '140px', minWidth: '140px' }}
+                                />
 
+                            {/* <Column   field="idEstadoTicket" header="Estado" body={estadoTicketTemplate} sortable style={{ width: '140px', minWidth: '140px' }} /> */}
+                            {/* <Column header="Prioridad" body={prioridadTicketTemplate} sortable style={{ width: '140px', minWidth: '140px' }} /> */}
+                            <Column field="empresa.razonSocial" header="Empresa" sortable style={{ width: '150px', minWidth: '150px' }} />
+                            <Column field="horasTrabajadas" header="Horas Trabajadas" sortable style={{ width: '100px', minWidth: '100px' }} />
+                            <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
+                        </DatatableDefaultNew>
 
-                      {/* {loading ? (
-  <div className="text-center p-8">Cargando...</div>
-) : (
-  <DatatableDefaultNew 
-    data={listaPersonas || []} 
-    columns={columns}
-  />
-  
-)} */}
-{/* <DataTable 
-    value={listaPersonas} 
-    lazy
-    loading={loading}
-    onPage={onPage}
-    first={lazyState.first}
-    paginator
-    rows={10}
-    totalRecords={totalRecords}
-    header={header}
-    filterDisplay="row"
->
-    <Column field="codTicket" header="Codigo Ticket Conecta" filter filterPlaceholder="Buscar..." />
-    <Column field="codTicketInterno" header="Codigo Interno" filter filterPlaceholder="Buscar..." />
-    <Column field="titulo" header="Titulo" filter filterPlaceholder="Buscar..." />
-    <Column field="fechaSolicitud" header="Fecha de Solicitud" filter filterPlaceholder="Buscar..." />
-    <Column
-        field="descripcion"
-        header="Descripción"
-        filter 
-        filterPlaceholder="Buscar..."
-        style={{ width: '350px', whiteSpace: 'normal', wordWrap: 'break-word' }}
-        body={(rowData) => (
-            <div style={{
-                maxWidth: '350px',
-                overflowWrap: 'break-word',
-                whiteSpace: 'normal',
-            }}>
-                {limpiarDescripcion(rowData.descripcion)}
-            </div>
-        )}
-    />
-    <Column header="Estado" body={estadoTicketTemplate} filter filterPlaceholder="Buscar..." />
-    <Column header="Prioridad" body={prioridadTicketTemplate} filter filterPlaceholder="Buscar..." />
-    <Column field="empresa.razonSocial" header="Empresa" filter filterPlaceholder="Buscar..." />
-    <Column field="horasTrabajadas" header="Horas Trabajadas" filter filterPlaceholder="Buscar..." />
-    <Column field="horasPlanificadas" header="Horas Planificadas" filter filterPlaceholder="Buscar..." body={(rowData) => rowData.horasPlanificadas ?? '-'} />
-    <Column body={accion} header="Acciones" />
-</DataTable> */}
-
-{/* <DatatableDefault
-    globalFilterFields={['titulo', 'codTicket','codTicketInterno','fechaSolicitud','descripcion','estado','empresa.razonSocial']}
-
-    value={listaPersonasTotal}
-    lazy
-    paginator
-    totalRecords={totalRecords}
-    onPage={onPage}
-    first={lazyState.first}
-    rows={lazyState.rows}
-    loading={loading}
->
-    <Column field="codTicket" header="Codigo Ticket Conecta" filter filterPlaceholder="Buscar..." ></Column>
-    <Column field="codTicketInterno" header="Codigo Interno" filter filterPlaceholder="Buscar..."></Column>
-    <Column field="titulo" header="Titulo"  filter filterPlaceholder="Buscar..."></Column>
-    <Column field="fechaSolicitud" header="Fecha de Solicitud" filter filterPlaceholder="Buscar..."></Column>
-    <Column header="Estado" body={estadoTicketTemplate} filter filterPlaceholder="Buscar..."/>
-    <Column header="Prioridad" body={prioridadTicketTemplate} filter filterPlaceholder="Buscar..." />
-    <Column field="empresa.razonSocial" header="Empresa" filter filterPlaceholder="Buscar..."></Column>
-    <Column field="horasTrabajadas" header="Horas Trabajadas" filter filterPlaceholder="Buscar..."></Column>
-    <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'}filter filterPlaceholder="Buscar..." />
-    <Column body={accion}  header="Acciones"></Column>
-
-</DatatableDefault> */}
                     </div>
             </div>
         </div>
