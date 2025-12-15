@@ -705,11 +705,31 @@ console.log("📦 Datos a enviar:");
   
  
     });
-  useEffect(() => {
-  if (formik.submitCount > 0) {
-    console.log("Errores actuales:", formik.errors);
+//   useEffect(() => {
+//   if (formik.submitCount > 0) {
+//     console.log("Errores actuales:", formik.errors);
+//   toast.current.show({
+//         severity: "warn",
+//         summary: "Campos incompletos",
+//         detail: Object.values(formik.errors).join(", "),
+//         life: 5000,
+//       });
+//   }
+// }, [formik.submitCount]);
+useEffect(() => {
+  if (
+    formik.submitCount > 0 &&
+    Object.keys(formik.errors).length > 0
+  ) {
+    toast.current.show({
+      severity: "warn",
+      summary: "Campos incompletos",
+      detail: Object.values(formik.errors).join(", "),
+      life: 5000,
+    });
   }
-}, [formik.submitCount]);
+}, [formik.submitCount, formik.errors]);
+
  useEffect(() => {
   if (
     persona &&

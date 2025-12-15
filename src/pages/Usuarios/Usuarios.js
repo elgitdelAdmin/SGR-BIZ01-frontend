@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState ,useRef} from "react";
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
-import DatatableDefault from "../../components/Datatable/DatatableDefault";
+import DatatableDefaultNew from "../../components/Datatable/DatatableDefaultNew";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Usuarios.scss"
@@ -261,7 +261,7 @@ const loadLazyData = () => {
                              </div>                        
                      </div>
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        <DatatableDefault value={listaPersonas} 
+                        {/* <DatatableDefault value={listaPersonas} 
                             lazy
                             // globalFilterFields={['nombres']}
                             globalFilterFields={[
@@ -286,17 +286,31 @@ const loadLazyData = () => {
 
                             <Column field="username" header="Username" />
                             <Column field="persona.correo" header="Correo" />
-                            {/* <Column
-                                field="activo"
-                                header="Estado"
-                                body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
-                            /> */}
+            
                             <Column
                                 header="Acciones"
                                 body={accion} 
                             />
-                        </DatatableDefault>
+                        </DatatableDefault> */}
                        
+
+
+                        <DatatableDefaultNew 
+                            value={listaPersonas}  
+                            export={true}
+                            rows={lazyState.rows || 50}  
+                            showSearch={false} 
+                            loading={loading}
+                        >
+                          <Column field="persona.nombres" header="Nombres"  sortable style={{ width: '120px', minWidth: '120px' }}/>
+                            <Column field="persona.apellidoPaterno" header="Apellido Paterno" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="persona.apellidoMaterno" header="Apellido Materno" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="persona.numeroDocumento" header="N° Documento" sortable style={{ width: '120px', minWidth: '120px' }} />
+
+                            <Column field="username" header="Username"  sortable style={{ width: '120px', minWidth: '120px' }}/>
+                            <Column field="persona.correo" header="Correo"  sortable style={{ width: '120px', minWidth: '120px' }}/>
+                            <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
+                           </DatatableDefaultNew>
                     </div>
             </div>
         </div>

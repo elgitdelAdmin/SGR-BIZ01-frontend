@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState ,useRef} from "react";
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
-import DatatableDefault from "../../components/Datatable/DatatableDefault";
+import DatatableDefaultNew from "../../components/Datatable/DatatableDefaultNew";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Gestores.scss"
@@ -250,7 +250,7 @@ const loadLazyData = () => {
                              </div>                        
                      </div> */}
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        <DatatableDefault value={listaPersonas} 
+                        {/* <DatatableDefault value={listaPersonas} 
                             lazy
                             globalFilterFields={["nombres", "apellidoPaterno", "apellidoMaterno", "telefono"]}                           
                             loading={loading}
@@ -262,10 +262,7 @@ const loadLazyData = () => {
                               <Column field="nombres" header="Nombres" />
                              <Column field="apellidoPaterno" header="Apellido Paterno" />
                              <Column field="apellidoMaterno" header="Apellido Materno" />
-                             {/* <Column
-                                header="Especializaciones"
-                                body={verespecializaciones} 
-                            /> */}
+                             
                             <Column field="telefono" header="Teléfono" />
                             <Column
                                 field="activo"
@@ -276,7 +273,26 @@ const loadLazyData = () => {
                                 header="Acciones"
                                 body={accion} 
                             />
-                        </DatatableDefault>
+                        </DatatableDefault> */}
+
+                         <DatatableDefaultNew 
+                            value={listaPersonas}  
+                            export={true}
+                            rows={lazyState.rows || 50}  
+                            showSearch={false} 
+                            loading={loading}
+                        >
+                               <Column field="nombres" header="Nombres"   sortable style={{ width: '120px', minWidth: '120px' }}/>
+                             <Column field="apellidoPaterno" header="Apellido Paterno"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                             <Column field="apellidoMaterno" header="Apellido Materno" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="telefono" header="Teléfono"   sortable style={{ width: '120px', minWidth: '120px' }}/>
+                            <Column
+                                field="activo"
+                                header="Estado"
+                                body={(rowData) => (rowData.activo ? "Activo" : "Inactivo") } sortable style={{ width: '120px', minWidth: '120px' }}
+                            />
+                            <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
+                           </DatatableDefaultNew>
                          <Dialog
                                 header="Especializaciones"
                                 visible={visible}

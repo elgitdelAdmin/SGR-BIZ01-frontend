@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState ,useRef} from "react";
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
-import DatatableDefault from "../../components/Datatable/DatatableDefault";
+import DatatableDefaultNew from "../../components/Datatable/DatatableDefaultNew";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Empresas.scss"
@@ -239,7 +239,7 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                              </div>                        
                      </div>
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        <DatatableDefault value={listaPersonas} 
+                        {/* <DatatableDefault value={listaPersonas} 
                             lazy
                             globalFilterFields={['nombreComercial', 'razonSocial', 'numDocContribuyente', 'telefono', 'direccion', 'email']}                           
                              loading={loading}
@@ -248,7 +248,6 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                             header = {header}
                             totalRecords ={totalRecords}
                         >
-                              {/* <Column field="codigo" header="Codigo" /> */}
                              <Column field="nombreComercial" header="Nombre Comercial" />
                              <Column field="razonSocial" header="Razon social" />
                             <Column field="numDocContribuyente" header="RUC" />
@@ -264,7 +263,27 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                                 header="Acciones"
                                 body={accion} 
                             />
-                        </DatatableDefault>
+                        </DatatableDefault> */}
+                           <DatatableDefaultNew 
+                            value={listaPersonas}  
+                            export={true}
+                            rows={lazyState.rows || 50}  
+                            showSearch={false} 
+                            loading={loading}
+                        >
+                                <Column field="nombreComercial" header="Nombre Comercial"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                             <Column field="razonSocial" header="Razon social" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                            <Column field="numDocContribuyente" header="RUC" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                            <Column field="telefono" header="Telefono"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="direccion" header="Direccion"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="email" header="Correo"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column
+                                field="activo"
+                                header="Estado"
+                                body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}  sortable style={{ width: '130px', minWidth: '180px' }} 
+                            />
+                            <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
+                           </DatatableDefaultNew>
                          <Dialog
                                 header="Especializaciones"
                                 visible={visible}
