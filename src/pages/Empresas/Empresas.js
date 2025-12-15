@@ -66,12 +66,18 @@ const loadLazyData = () => {
          fetchFunction()
         // ListarEmpresasPorSocio()
             .then((data) => {
+                 const dataConEstado = data.map(consultor => ({
+                    ...consultor,
+                    estadoNombre:
+                        consultor.activo ? "Activo" : "Inactivo"
+                   
+                }));
                 setTotalRecords(data.length);
                 const pageNumber = lazyState?.page ?? 0;
                 const pageSize = lazyState?.rows ?? 10;
                 const start = pageNumber * pageSize;
                 const end = start + pageSize;
-                let filteredData = data;
+                let filteredData = dataConEstado;
               if (globalFilterValue) {
   const search = globalFilterValue.toLowerCase();
   filteredData = data.filter(emp =>
@@ -277,11 +283,8 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                             <Column field="telefono" header="Telefono"  sortable style={{ width: '120px', minWidth: '120px' }} />
                             <Column field="direccion" header="Direccion"  sortable style={{ width: '120px', minWidth: '120px' }} />
                             <Column field="email" header="Correo"  sortable style={{ width: '120px', minWidth: '120px' }} />
-                            <Column
-                                field="activo"
-                                header="Estado"
-                                body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}  sortable style={{ width: '130px', minWidth: '180px' }} 
-                            />
+                            <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                           
                             <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
                            </DatatableDefaultNew>
                          <Dialog

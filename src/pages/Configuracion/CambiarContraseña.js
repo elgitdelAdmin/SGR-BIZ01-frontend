@@ -348,6 +348,26 @@ const CambiarContraseña = () => {
         <form onSubmit={formik.handleSubmit}>
           <div className="p-fluid formgrid grid">
             <div className="field col-12 md:col-6">
+                   <label className="label-form">Contraseña Anterior</label>
+           
+                           <Password
+                             id="password"
+                             name="password"
+                             placeholder="Escribe tu contraseña anterior"
+                             value={formik.values.password}
+                             onBlur={formik.handleBlur}
+                             onChange={(e) => formik.setFieldValue('password', e.target.value)}
+                             toggleMask
+                             feedback={false}
+                           />
+                           <div className="p-error">
+                             {formik.touched.password && formik.errors.password}
+                           </div>
+                         
+                       
+                     
+                   </div>
+         <div className="field col-12 md:col-6">
                    <label className="label-form">Contraseña</label>
            
                            <Password
@@ -367,23 +387,7 @@ const CambiarContraseña = () => {
                        
                      
                    </div>
-            <div className="field col-12 md:col-6">
-              <label className="label-form">Nombres</label>
-              <InputText
-                type={"text"}
-                id="nombres"
-                name="nombres"
-                placeholder="Escribe aquí"
-                value={formik.values.nombres}
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-
-                // onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
-              ></InputText>
-              <div className="p-error">
-                {formik.touched.nombres && formik.errors.nombres}
-              </div>
-            </div>
+        
              
             
           </div>

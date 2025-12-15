@@ -64,15 +64,20 @@ const loadLazyData = () => {
          fetchFunction()
         // ListarConsultoresPorSocio()
             .then((data) => {
-                console.log("DATA",data)
-                                console.log("DATA",data)
+                const dataConEstado = data.map(consultor => ({
+                    ...consultor,
+                    estadoNombre:
+                        consultor.activo ? "Activo" : "Inactivo"
+                   
+                }));
 
                 setTotalRecords(data.length);
                 const pageNumber = lazyState?.page ?? 0;
                 const pageSize = lazyState?.rows ?? 10;
                 const start = pageNumber * pageSize;
                 const end = start + pageSize;
-                let filteredData = data;
+                let filteredData = dataConEstado;
+                console.log("filteredData",filteredData)
                if (globalFilterValue) {
                         const search = globalFilterValue.toLowerCase();
                         filteredData = data.filter(c =>
@@ -81,6 +86,8 @@ const loadLazyData = () => {
                             c.persona?.apellidoMaterno?.toLowerCase().includes(search) ||
                             c.persona?.correo?.toLowerCase().includes(search) ||
                             c.persona?.username?.toLowerCase().includes(search) ||
+                            c.persona?.estadoNombre?.toLowerCase().includes(search) ||
+
                            (c.persona?.telefono && c.persona.telefono.toString().toLowerCase().includes(search))                          );
                         }
                  //Agrego
@@ -309,11 +316,13 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                                 body={verespecializaciones}  sortable style={{ width: '50px', minWidth: '58px' }} 
                             />
                             <Column field="persona.telefono" header="Teléfono"  sortable style={{ width: '130px', minWidth: '180px' }} />
-                            <Column
+                            {/* <Column
                                 field="activo"
                                 header="Estado"
                                 body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}  sortable style={{ width: '130px', minWidth: '180px' }} 
-                            />
+                            /> */}
+                            <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
+
                             <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
                            </DatatableDefaultNew>
                          <Dialog

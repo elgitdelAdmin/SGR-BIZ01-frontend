@@ -1777,11 +1777,12 @@ const footer = (
                            <td className="p-2 border">
                           <Button
                               label={""}
-                              icon={
-                              !permisosActual.divsBloqueados.includes("divHorasTareo")
-                                  ? "pi pi-plus"
-                                  : "pi pi-eye"
-                              }
+                               icon={"pi pi-plus"}
+                              // icon={
+                              // !permisosActual.divsBloqueados.includes("divHorasTareo")
+                              //     ? "pi pi-plus"
+                              //     : "pi pi-eye"
+                              // }
                               onClick={() => setVisibleIndexPlanificacion(index)}
                               disabled={
                               !(
@@ -1801,7 +1802,9 @@ const footer = (
                               style={{ width: "60vw" }}
                               modal
                               onHide={() => setVisibleIndexPlanificacion(null)}
-                              footer={!permisosActual.divsBloqueados.includes("divHorasTareo") ? footer : null}
+                              // footer={!permisosActual.divsBloqueados.includes("divHorasTareo") ? footer : null}
+                              footer={footer }
+
                           >
                           
                               {!permisosActual.divsOcultos.includes("divHorasTareo") && (

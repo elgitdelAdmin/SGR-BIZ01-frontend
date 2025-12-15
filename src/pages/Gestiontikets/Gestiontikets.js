@@ -110,53 +110,7 @@ useEffect(() => {
     setEstadosSeleccionados(estadosPorDefecto);
   }
 }, [parametros]);
-// const loadLazyData = () => {
-//     if (networkTimeout) clearTimeout(networkTimeout);
 
-//     networkTimeout = setTimeout(() => {
-//         setLoading(true);
-//         ListarTicket({idUser, codRol})
-//             .then((data) => {
-//                 // Aplicar filtro global si existe
-//                 let filteredData = data;
-//                 if (globalFilterValue) {
-//                     const search = globalFilterValue.toLowerCase();
-//                     filteredData = data.filter(ticket => {
-//                         const estadoNombre = parametros.find(p => p.id === ticket.idEstadoTicket)?.nombre?.toLowerCase() || "";
-//                         let estadoHorasTexto = "";
-//                         if (ticket.horasTrabajadas === 0) {
-//                             estadoHorasTexto = "pendiente";
-//                         } else if (ticket.horasTrabajadas > 0 && ticket.horasTrabajadas < ticket.horasTotales) {
-//                             estadoHorasTexto = "en proceso";
-//                         } else if (ticket.horasTrabajadas >= ticket.horasTotales) {
-//                             estadoHorasTexto = "finalizado";
-//                         }
-//                         return (
-//                             ticket.codTicket?.toLowerCase().includes(search) ||
-//                             ticket.codTicketInterno?.toLowerCase().includes(search) ||
-//                             ticket.titulo?.toLowerCase().includes(search) ||
-//                             ticket.descripcion?.toLowerCase().includes(search) ||
-//                             ticket.empresa?.razonSocial?.toLowerCase().includes(search) ||
-//                             ticket.fechaSolicitud?.toLowerCase().includes(search) ||
-//                             estadoNombre.includes(search) ||
-//                             estadoHorasTexto.includes(search)
-//                         );
-//                     });
-//                 }
-
-//                 // Ordenar
-//                 filteredData.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
-
-//                 setListaPersonasTotal(filteredData);
-//                 setTotalRecords(filteredData.length);
-//                 setLoading(false);
-//             })
-//             .catch((error) => {
-//                 console.error("Error al cargar tickets:", error);
-//                 setLoading(false);
-//             });
-//     }, Math.random() * 1000 + 250);
-// };
 const loadLazyData = () => {
     if (networkTimeout) clearTimeout(networkTimeout);
 
@@ -455,44 +409,7 @@ const datosFiltrados = useMemo(() => {
                              </div>                        
                      </div>
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        {/* <DatatableDefault value={listaPersonas} 
-                            lazy
-                            onGlobalFilterChange={['titulo', 'codTicket','codTicketInterno','fechaSolicitud','descripcion','estado','empresa.razonSocial']}
-                            loading={loading}
-                            onPage={onPage}
-                            first={lazyState.first}
-                            header = {header}
-                            totalRecords ={totalRecords}
-                            
-                        >
-                            <Column field="codTicket" header="Codigo Ticket Conecta" ></Column>
-                            <Column field="codTicketInterno" header="Codigo Interno" ></Column>
-                            <Column field="titulo" header="Titulo" ></Column>
-                            <Column field="fechaSolicitud" header="Fecha de Solicitud" ></Column>
-                            <Column
-                            field="descripcion"
-                            header="Descripción"
-                            style={{ width: '350px', whiteSpace: 'normal', wordWrap: 'break-word' }}
-                            body={(rowData) => (
-                                <div style={{
-                                maxWidth: '350px',
-                                overflowWrap: 'break-word',
-                                whiteSpace: 'normal',
-                                textOverflow: 'ellipsis',
-                                }}>
-                                {limpiarDescripcion(rowData.descripcion)}
-                                </div>
-                            )}
-                            />
-                            <Column header="Estado" body={estadoTicketTemplate} />
-                            <Column header="Prioridad" body={prioridadTicketTemplate} />
-                            <Column field="empresa.razonSocial" header="Empresa" ></Column>
-                            <Column field="horasTrabajadas" header="Horas Trabajadas" ></Column>
-                            <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'}/>
-                            <Column body={accion}  header="Acciones"></Column>
-
-                        </DatatableDefault> */}
-
+                      
                         <DatatableDefaultNew 
                             value={listaPersonasTotal}  
                             export={true}
@@ -503,16 +420,20 @@ const datosFiltrados = useMemo(() => {
                             <Column field="codTicket" header="Codigo Ticket Conecta" sortable style={{ width: '130px', minWidth: '180px' }} />
                             <Column field="codTicketInterno" header="Codigo Interno" sortable style={{ width: '110px', minWidth: '130px' }} />
                             <Column field="titulo" header="Titulo" sortable style={{ width: '350px', minWidth: '350px' }} />
+                           
                             <Column 
-                            field="fechaSolicitud" 
-                            header="Fecha de Solicitud" 
-                            sortable 
-                            style={{ width: '160px', minWidth: '160px' }}
-                            body={(rowData) => {
-                                if (!rowData.fechaSolicitud) return '';
-                                return rowData.fechaSolicitud.replace('T', ' ');
-                            }}
-                        />
+                                field="fechaSolicitud" 
+                                header="Fecha de Solicitud" 
+                                sortable 
+                                style={{ width: '170px', minWidth: '170px' }}
+                                body={(rowData) => {
+                                    const fecha = rowData?.fechaSolicitud;
+                                    if (!fecha) return '';
+
+                                    return fecha.replace('T', ' / ').split('.')[0];
+                                }}
+                                />
+
                                 <Column
                                     field="estadoNombre"
                                     header="Estado"
