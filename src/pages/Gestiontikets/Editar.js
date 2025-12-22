@@ -12,7 +12,7 @@ import * as Iconsax from "iconsax-react";
 import "./Gestiontikets.scss"
 import { InputText } from "primereact/inputtext";
 import Boton from "../../components/Boton/Boton";
-
+import { Dropdown } from 'primereact/dropdown';
 import * as Yup from "yup";
 import { Field, FieldArray, Formik, useFormik, FormikProvider } from "formik";
 
@@ -1697,24 +1697,12 @@ const footer = (
                           </td>
 
                           {/* FECHA ASIGNACION */}
-                          <td className="p-2 border">
+                          {/* <td className="p-2 border">
                             <Calendar
                               id={`FechaAsignacion-${asignacion.idUnico}`}
                               name={`asignaciones[${asignacion.idUnico}].FechaAsignacion`}
                               value={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : null}
 
-                              // onChange={(e) =>
-                              //   formik.setFieldValue(
-                              //     `asignaciones[${asignacion.idUnico}].FechaAsignacion`,
-                              //     e.value ? toLocalISOString(e.value) : null
-                              //   )
-                              // }
-                  //             onChange={(e) => {
-                  //   formik.setFieldValue(
-                  //     `asignaciones[${index}].FechaAsignacion`,
-                  //     e.value ? e.value.toISOString() : null
-                  //   );
-                  // }}
                               onChange={(e) => {
                     if (e.value) {
                       const d = e.value;
@@ -1733,26 +1721,64 @@ const footer = (
                               minDate={new Date(formik.values.fechaSolicitud)}
                               dateFormat="dd/mm/yy"
                             />
-                          </td>
+                          </td> */}
+                            <td className="p-2 border">
+                            <Calendar
+                              id={`FechaAsignacion-${index}`}
+                              name={`asignaciones[${index}].FechaAsignacion`}
+                              value={
+                                formik.values.asignaciones?.[index]?.FechaAsignacion
+                                  ? new Date(formik.values.asignaciones[index].FechaAsignacion)
+                                  : null
+                              }
+                              onChange={(e) => {
+                                // Solo actualizar si e.value es una fecha válida (no null/undefined)
+                                // y si viene del selector (no del input manual mientras se escribe)
+                                if (e.value instanceof Date && !isNaN(e.value)) {
+                                  const d = e.value;
+                                  const pad = (n, z = 2) => n.toString().padStart(z, '0');
+                                  const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+                                  formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, localString);
+                                  console.log("FechaAsignacion guardada:", localString);
+                                } else if (e.value === null) {
+                                  formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, null);
+                                }
+                              }}
+                              onBlur={(e) => {
+                                formik.handleBlur(e);
+                                // Validar y guardar cuando el usuario termina de escribir
+                                const inputValue = e.target.value;
+                                if (inputValue) {
+                                  try {
+                                    const parsedDate = new Date(inputValue);
+                                    if (!isNaN(parsedDate)) {
+                                      const pad = (n, z = 2) => n.toString().padStart(z, '0');
+                                      const localString = `${parsedDate.getFullYear()}-${pad(parsedDate.getMonth() + 1)}-${pad(parsedDate.getDate())}T${pad(parsedDate.getHours())}:${pad(parsedDate.getMinutes())}:${pad(parsedDate.getSeconds())}.${pad(parsedDate.getMilliseconds(), 3)}`;
+                                      formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, localString);
+                                    }
+                                  } catch (error) {
+                                    console.error("Error parseando fecha:", error);
+                                  }
+                                }
+                              }}
+                              showTime
+                              hourFormat="24"
+                              stepMinute={1}
+                              showSeconds={false}
+                              minDate={new Date(formik.values.fechaSolicitud)}
+                              dateFormat="dd/mm/yy"
+                              touchUI={false}
+                              keepInvalid={true}
+                            />
+                            </td>
 
                           {/* FECHA DESASIGNACION */}
-                          <td className="p-2 border">
+                          {/* <td className="p-2 border">
                             <Calendar
                               id={`FechaDesasignacion-${asignacion.idUnico}`}
                               name={`asignaciones[${asignacion.idUnico}].FechaDesasignacion`}
                               value={asignacion.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null}
-                              // onChange={(e) =>
-                              //   formik.setFieldValue(
-                              //     `asignaciones[${asignacion.idUnico}].FechaDesasignacion`,
-                              //     e.value ? toLocalISOString(e.value) : null
-                              //   )
-                              // }
-                                //        onChange={(e) => {
-                                //   formik.setFieldValue(
-                                //     `asignaciones[${index}].FechaDesasignacion`,
-                                //     e.value ? e.value.toISOString() : null
-                                //   );
-                                // }}
+                             
                                 onChange={(e) => {
                                 if (e.value) {
                                   const d = e.value;
@@ -1770,9 +1796,54 @@ const footer = (
                               minDate={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : new Date()}
                               dateFormat="dd/mm/yy"
                             />
+                          </td> */}
+                          <td className="p-2 border">
+                            <Calendar
+                              id={`FechaDesasignacion-${asignacion.idUnico}`}
+                              name={`asignaciones[${asignacion.idUnico}].FechaDesasignacion`}
+                              value={asignacion.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null}
+                              onChange={(e) => {
+                                // Solo actualizar si e.value es una fecha válida (no null/undefined)
+                                // y si viene del selector (no del input manual mientras se escribe)
+                                if (e.value instanceof Date && !isNaN(e.value)) {
+                                  const d = e.value;
+                                  const pad = (n, z = 2) => n.toString().padStart(z, '0');
+                                  const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+                                  formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, localString);
+                                  console.log("FechaDesasignacion guardada:", localString);
+                                } else if (e.value === null) {
+                                  formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, null);
+                                }
+                              }}
+                              onBlur={(e) => {
+                                formik.handleBlur(e);
+                                // Validar y guardar cuando el usuario termina de escribir
+                                const inputValue = e.target.value;
+                                if (inputValue) {
+                                  try {
+                                    const parsedDate = new Date(inputValue);
+                                    if (!isNaN(parsedDate)) {
+                                      const pad = (n, z = 2) => n.toString().padStart(z, '0');
+                                      const localString = `${parsedDate.getFullYear()}-${pad(parsedDate.getMonth() + 1)}-${pad(parsedDate.getDate())}T${pad(parsedDate.getHours())}:${pad(parsedDate.getMinutes())}:${pad(parsedDate.getSeconds())}.${pad(parsedDate.getMilliseconds(), 3)}`;
+                                      formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, localString);
+                                    }
+                                  } catch (error) {
+                                    console.error("Error parseando fecha:", error);
+                                  }
+                                }
+                              }}
+                              showTime
+                              hourFormat="24"
+                              stepMinute={1}
+                              showSeconds={false}
+                              minDate={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : new Date()}
+                              dateFormat="dd/mm/yy"
+                              touchUI={false}
+                              keepInvalid={true}
+                            />
                           </td>
+                     
 
-                      
                           {/* BOTON PLANIFICAT / VER PLANIFICACION */}
                            <td className="p-2 border">
                           <Button
@@ -1810,7 +1881,7 @@ const footer = (
                               {!permisosActual.divsOcultos.includes("divHorasTareo") && (
                               <>
                               <div className="p-fluid formgrid grid">
-                              <div className="field col-12 md:col-6">
+                              {/* <div className="field col-12 md:col-6">
                                   <label>Fecha Inicio</label>
                                   <Calendar
                                   value={nuevoDetallePlanificacion.FechaInicio}
@@ -1831,9 +1902,14 @@ const footer = (
                                   minDate={formik.values.asignaciones[index].FechaAsignacion
                                   ? new Date(formik.values.asignaciones[index].FechaAsignacion)
                                   : null} 
-                                  maxDate={ new Date()}
+                                  // maxDate={ new Date()}
+                                   maxDate={formik.values.asignaciones[index].FechaDesasignacion
+                                  ? new Date(formik.values.asignaciones[index].FechaDesasignacion)
+                                  : null} 
                                   />
                               </div>
+
+
 
                               <div className="field col-12 md:col-6">
                                   <label>Fecha Fin</label>
@@ -1865,7 +1941,102 @@ const footer = (
                                   min={1}
                                   className="w-full"
                                   />
+                              </div> */}
+
+                              <div className="field col-12 md:col-6">
+                                  <label>Fecha Inicio</label>
+                                  <Calendar
+                                      value={nuevoDetallePlanificacion.FechaInicio}
+                                      onChange={(e) => {
+                                          const fechaInicio = e.value;
+                                          let fechaFin = nuevoDetallePlanificacion.FechaFin;
+
+                                          if (fechaInicio && nuevoDetallePlanificacion.Horas) {
+                                              const horas = nuevoDetallePlanificacion.Horas;
+                                              
+                                              // Calcular días completos (máximo 16 horas por día)
+                                              const diasCompletos = Math.floor(horas / 16);
+                                              const horasRestantes = horas % 16;
+                                              
+                                              // Crear nueva fecha fin comenzando desde fecha inicio
+                                              fechaFin = new Date(fechaInicio);
+                                              
+                                              // Si hay horas restantes, se trabaja ese día adicional
+                                              if (horasRestantes > 0) {
+                                                  fechaFin.setDate(fechaFin.getDate() + diasCompletos);
+                                              } else if (diasCompletos > 0) {
+                                                  // Si son exactamente múltiplos de 16, termina en el último día
+                                                  fechaFin.setDate(fechaFin.getDate() + diasCompletos - 1);
+                                              }
+                                          }
+
+                                          setNuevoDetallePlanificacion({ 
+                                              ...nuevoDetallePlanificacion, 
+                                              FechaInicio: fechaInicio, 
+                                              FechaFin: fechaFin 
+                                          });
+                                      }}
+                                      dateFormat="yy-mm-dd"
+                                      showIcon
+                                      className="w-full"
+                                      minDate={formik.values.asignaciones[index].FechaAsignacion
+                                          ? new Date(formik.values.asignaciones[index].FechaAsignacion)
+                                          : null} 
+                                      maxDate={formik.values.asignaciones[index].FechaDesasignacion
+                                          ? new Date(formik.values.asignaciones[index].FechaDesasignacion)
+                                          : null} 
+                                  />
                               </div>
+
+                              <div className="field col-12 md:col-6">
+                                  <label>Fecha Fin</label>
+                                  <Calendar
+                                      value={nuevoDetallePlanificacion.FechaFin}
+                                      readOnlyInput
+                                      disabled
+                                      dateFormat="yy-mm-dd"
+                                      showIcon
+                                      className="w-full"
+                                  />
+                              </div>
+
+                              <div className="field col-12 md:col-6">
+                                  <label>Horas</label>
+                                  <InputNumber
+                                      value={nuevoDetallePlanificacion.Horas}
+                                      onValueChange={(e) => {
+                                          const horas = e.value;
+                                          let fechaFin = nuevoDetallePlanificacion.FechaFin;
+
+                                          if (nuevoDetallePlanificacion.FechaInicio && horas) {
+                                              // Calcular días completos (máximo 16 horas por día)
+                                              const diasCompletos = Math.floor(horas / 16);
+                                              const horasRestantes = horas % 16;
+                                              
+                                              // Crear nueva fecha fin comenzando desde fecha inicio
+                                              fechaFin = new Date(nuevoDetallePlanificacion.FechaInicio);
+                                              
+                                              // Si hay horas restantes, se trabaja ese día adicional
+                                              if (horasRestantes > 0) {
+                                                  fechaFin.setDate(fechaFin.getDate() + diasCompletos);
+                                              } else if (diasCompletos > 0) {
+                                                  // Si son exactamente múltiplos de 16, termina en el último día
+                                                  fechaFin.setDate(fechaFin.getDate() + diasCompletos - 1);
+                                              }
+                                          }
+
+                                          setNuevoDetallePlanificacion({ 
+                                              ...nuevoDetallePlanificacion, 
+                                              Horas: horas, 
+                                              FechaFin: fechaFin 
+                                          });
+                                      }}
+                                      min={1}
+                                      className="w-full"
+                                  />
+                                  <small className="block mt-1 text-gray-500">Máximo 16 horas laborables por día</small>
+                              </div>
+
                               <div className="field col-12 md:col-6">
                               <label>Tipo de Actividad</label>
                               <DropdownDefault
@@ -2016,7 +2187,7 @@ const footer = (
                   {!permisosActual.divsOcultos.includes("divHorasTareo") && (
                                             <>
                                             <div className="p-fluid formgrid grid">
-                                              <div className="field col-12 md:col-6">
+                                              {/* <div className="field col-12 md:col-6">
                                               <label>Fecha Inicio</label>
                                               <Calendar
                                                 value={nuevoDetalle.FechaInicio}
@@ -2077,8 +2248,95 @@ const footer = (
                                                 //   }
                                               />
                                             </div>
-                                  
-                                              
+                                   */}
+                                              <div className="field col-12 md:col-6">
+    <label>Fecha Inicio</label>
+    <Calendar
+        value={nuevoDetalle.FechaInicio}
+        onChange={(e) => {
+            const fechaInicio = e.value;
+            let fechaFin = null;
+
+            if (fechaInicio && nuevoDetalle.Horas) {
+                const horas = nuevoDetalle.Horas;
+                
+                // Calcular días completos (máximo 16 horas por día)
+                const diasCompletos = Math.floor(horas / 16);
+                const horasRestantes = horas % 16;
+                
+                // Crear nueva fecha fin comenzando desde fecha inicio
+                fechaFin = new Date(fechaInicio);
+                
+                // Si hay horas restantes, se trabaja ese día adicional
+                if (horasRestantes > 0) {
+                    fechaFin.setDate(fechaFin.getDate() + diasCompletos);
+                } else if (diasCompletos > 0) {
+                    // Si son exactamente múltiplos de 16, termina en el último día
+                    fechaFin.setDate(fechaFin.getDate() + diasCompletos - 1);
+                }
+            }
+
+            setNuevoDetalle({ ...nuevoDetalle, FechaInicio: fechaInicio, FechaFin: fechaFin });
+        }}
+        dateFormat="yy-mm-dd"
+        showIcon
+        className="w-full"
+        minDate={formik.values.asignaciones[index].FechaAsignacion
+            ? new Date(formik.values.asignaciones[index].FechaAsignacion)
+            : null} 
+        maxDate={new Date()}
+    />
+</div>
+
+<div className="field col-12 md:col-6">
+    <label>Fecha Fin</label>
+    <Calendar
+        value={nuevoDetalle.FechaFin}
+        readOnlyInput
+        disabled
+        dateFormat="yy-mm-dd"
+        showIcon
+        className="w-full"
+    />
+</div>
+
+<div className="field col-12 md:col-6">
+    <label>Horas</label>
+    <InputNumber
+        value={nuevoDetalle.Horas}
+        onValueChange={(e) => {
+            const horas = e.value;
+            let fechaFin = null;
+
+            if (nuevoDetalle.FechaInicio && horas) {
+                // Calcular días completos (máximo 16 horas por día)
+                const diasCompletos = Math.floor(horas / 16);
+                const horasRestantes = horas % 16;
+                
+                // Crear nueva fecha fin comenzando desde fecha inicio
+                fechaFin = new Date(nuevoDetalle.FechaInicio);
+                
+                // Si hay horas restantes, se trabaja ese día adicional
+                if (horasRestantes > 0) {
+                    fechaFin.setDate(fechaFin.getDate() + diasCompletos);
+                } else if (diasCompletos > 0) {
+                    // Si son exactamente múltiplos de 16, termina en el último día
+                    fechaFin.setDate(fechaFin.getDate() + diasCompletos - 1);
+                }
+            }
+
+            setNuevoDetalle({ ...nuevoDetalle, Horas: horas, FechaFin: fechaFin });
+        }}
+        min={1}
+        className="w-full"
+        // disabled={formik.values.idEstadoTicket==63}
+        // disabled={
+        //     formik.values.idEstadoTicket === 
+        //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
+        //   }
+    />
+    <small className="block mt-1 text-gray-500">Máximo 16 horas laborables por día</small>
+</div>
                                           <div className="field col-12 md:col-6">
                                             <label>Tipo de Actividad</label>
                                             <DropdownDefault
@@ -2116,11 +2374,7 @@ const footer = (
                                                 icon="pi pi-plus"
                                                 severity="success"
                                                 onClick={agregarDetalle}
-                                                // disabled={formik.values.idEstadoTicket==63}
-                                                //  disabled={
-                                                //     formik.values.idEstadoTicket === 
-                                                //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                                                //   }
+                                                
                                               />
                                             </div>
                                             </>)}

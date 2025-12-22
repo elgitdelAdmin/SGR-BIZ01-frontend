@@ -58,33 +58,25 @@ const Gestores = () => {
     loadLazyData();
     }, [lazyState, globalFilterValue]);
 
-
 const loadLazyData = () => {
     if (networkTimeout) clearTimeout(networkTimeout);
 
     networkTimeout = setTimeout(() => {
         setLoading(true);
-        const fetchFunction = codRol === "SUPERADMIN" ? ListarUsuarios : ListarUsuariosPorSocio;
-         fetchFunction()
-        // ListarUsuariosPorSocio()
-            .then((data) => {
-                setTotalRecords(data.length);
-                const pageNumber = lazyState?.page ?? 0;
-                const pageSize = lazyState?.rows ?? 10;
-                const start = pageNumber * pageSize;
-                const end = start + pageSize;
-                let filteredData = data;
-                // if (globalFilterValue) {
-                //     const search = globalFilterValue.toLowerCase();
-                //     filteredData = data.filter(ticket =>
-                //         ticket.titulo?.toLowerCase().includes(search) ||
-                //         ticket.descripcion?.toLowerCase().includes(search)
-                //     );
-                // }
 
+        const fetchFunction =
+            codRol === "SUPERADMIN"
+                ? ListarUsuarios
+                : ListarUsuariosPorSocio;
+
+        fetchFunction()
+            .then((data) => {
+                let filteredData = data;
+
+                // 🔹 filtro global
                 if (globalFilterValue) {
                     const search = globalFilterValue.toLowerCase();
-                    filteredData = data.filter(usuario =>
+                    filteredData = filteredData.filter(usuario =>
                         usuario.persona?.nombres?.toLowerCase().includes(search) ||
                         usuario.persona?.apellidoPaterno?.toLowerCase().includes(search) ||
                         usuario.persona?.apellidoMaterno?.toLowerCase().includes(search) ||
@@ -94,37 +86,99 @@ const loadLazyData = () => {
                     );
                 }
 
-                 //Agrego
-                // filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
-            filteredData.sort((a, b) => {
-                        const fechaA = new Date(a.persona?.fechaCreacion);
-                        const fechaB = new Date(b.persona?.fechaCreacion);
-                        return fechaB - fechaA; // más reciente primero
-            });
-                             const paginatedData = filteredData.slice(start, end);
+                // 🔹 ordenar
+                filteredData.sort((a, b) => {
+                    const fechaA = new Date(a.persona?.fechaCreacion);
+                    const fechaB = new Date(b.persona?.fechaCreacion);
+                    return fechaB - fechaA;
+                });
 
-                setListaPersonasTotal(paginatedData);
+                // 🔹 guardar TODO
+                setListaPersonasTotal(filteredData);
+                setTotalRecords(filteredData.length);
+
+                // 🔹 paginar SOLO lo visible
+                const pageNumber = lazyState?.page ?? 0;
+                const pageSize = lazyState?.rows ?? 10;
+                const start = pageNumber * pageSize;
+                const end = start + pageSize;
+
+                setListaPersonas(filteredData.slice(start, end));
+
                 setLoading(false);
             })
             .catch((error) => {
-                console.error("Error al cargar tickets:", error);
+                console.error("Error al cargar usuarios:", error);
                 setLoading(false);
             });
     }, Math.random() * 1000 + 250);
 };
 
+// const loadLazyData = () => {
+//     if (networkTimeout) clearTimeout(networkTimeout);
+
+//     networkTimeout = setTimeout(() => {
+//         setLoading(true);
+//         const fetchFunction = codRol === "SUPERADMIN" ? ListarUsuarios : ListarUsuariosPorSocio;
+//          fetchFunction()
+//         // ListarUsuariosPorSocio()
+//             .then((data) => {
+//                 setTotalRecords(data.length);
+//                 const pageNumber = lazyState?.page ?? 0;
+//                 const pageSize = lazyState?.rows ?? 10;
+//                 const start = pageNumber * pageSize;
+//                 const end = start + pageSize;
+//                 let filteredData = data;
+
+//                 if (globalFilterValue) {
+//                     const search = globalFilterValue.toLowerCase();
+//                     filteredData = data.filter(usuario =>
+//                         usuario.persona?.nombres?.toLowerCase().includes(search) ||
+//                         usuario.persona?.apellidoPaterno?.toLowerCase().includes(search) ||
+//                         usuario.persona?.apellidoMaterno?.toLowerCase().includes(search) ||
+//                         usuario.persona?.numeroDocumento?.toLowerCase().includes(search) ||
+//                         usuario.username?.toLowerCase().includes(search) ||
+//                         usuario.persona?.correo?.toLowerCase().includes(search)
+//                     );
+//                 }
+//                     filteredData.sort((a, b) => {
+//                                 const fechaA = new Date(a.persona?.fechaCreacion);
+//                                 const fechaB = new Date(b.persona?.fechaCreacion);
+//                                 return fechaB - fechaA; // más reciente primero
+//                     });
+//                              const paginatedData = filteredData.slice(start, end);
+
+//                 setListaPersonasTotal(paginatedData);
+//                 setLoading(false);
+//             })
+//             .catch((error) => {
+//                 console.error("Error al cargar tickets:", error);
+//                 setLoading(false);
+//             });
+//     }, Math.random() * 1000 + 250);
+// };
+
     // const onPage = (event) => {
     //     setlazyState(event);
     // };
-    const onPage = (event) => {
+//     const onPage = (event) => {
+//     setlazyState((prevState) => ({
+//         ...prevState,
+//         first: event.first,
+//         rows: event.rows,
+//         page: event.page,
+//     }));
+// };
+
+const onPage = (event) => {
+    console.log("📊 Evento onPage recibido:", event);
     setlazyState((prevState) => ({
         ...prevState,
         first: event.first,
         rows: event.rows,
-        page: event.page,
+        page: event.page, // Ya viene calculado desde DatatableDefaultNew
     }));
 };
-
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
@@ -165,7 +219,7 @@ const loadLazyData = () => {
 
   
     useEffect(() => {
-    
+    console.log("listaPersonasTotal",listaPersonasTotal)
         setListaPersonas(listaPersonasTotal)
     }, [listaPersonasTotal]);
    
@@ -299,6 +353,8 @@ const loadLazyData = () => {
                             value={listaPersonas}  
                             export={true}
                             rows={lazyState.rows || 50}  
+                            first={lazyState.first}  // ✅ AGREGAR ESTA LÍNEA
+                            onPage={onPage}  // ✅ AGREGAR ESTA LÍNEA
                             showSearch={false} 
                             loading={loading}
                         >

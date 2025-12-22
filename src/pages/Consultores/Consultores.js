@@ -92,9 +92,9 @@ const loadLazyData = () => {
                         }
                  //Agrego
 filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
-                const paginatedData = filteredData.slice(start, end);
+                // const paginatedData = filteredData.slice(start, end);
 
-                setListaPersonasTotal(paginatedData);
+                setListaPersonasTotal(filteredData);
                 setLoading(false);
             })
             .catch((error) => {
@@ -185,7 +185,9 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
         </div>
         
     }
-            
+
+
+
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;
 
@@ -240,6 +242,8 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
       const modalFooter = (
     <Boton label="Cerrar" icon="pi pi-times" onClick={() => setVisible(false)} />
   );
+
+
     return ( 
         <div className="zv-usuario" style={{paddingTop:16}}>
             <ConfirmDialog />

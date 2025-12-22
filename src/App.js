@@ -33,6 +33,10 @@ import  Socios  from "./pages/Socios/Socios"
 import  EditarSocio from "./pages/Socios/EditarSocio";
 import  CargaMasiva from "./pages/CargaMasiva/CargaMasiva";
 import  CambiarContraseña from "./pages/Configuracion/CambiarContraseña";
+import  RecuperarContrasena from "./pages/Login/RecuperarContrasena";
+import  CambiarEmail from "./pages/Configuracion/CambiarEmail";
+
+
 
 function App() {
   const [layoutMode, setLayoutMode] = useState("static");
@@ -203,8 +207,11 @@ function App() {
 
               <Route path="Cargabilidad" element={<Cargabilidad />}></Route>
 
-              <Route path="Configuracion/CambiarContraseña" element={<CambiarContraseña/>}></Route>           
-             
+              <Route path="Configuracion/CambiarContraseña" element={<CambiarContraseña/>}></Route>    
+              <Route path="Configuracion/CambiarEmail" element={<CambiarEmail/>}></Route>           
+       
+              <Route path="Login/RecuperarContrasena" element={<RecuperarContrasena/>}></Route>           
+
             </Routes>
           </div>
         </div>

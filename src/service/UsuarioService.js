@@ -186,7 +186,94 @@ export const ListarParametros = async () => {
 };
 
 
+export const ActualizarContraseña = ({ jsonData }) => {
+    return fetch(`${ENDPOINT}/api/Auth/change-password`, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json", 
+      },
+      body: jsonData,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          if (res.status === 401) {
+            window.localStorage.removeItem("jwt");
+            window.location.reload();
+          } else {
+            throw new Error("No se recibió respuesta del servidor");
+          }
+        }
+        return res.json();
+      })
+      .then((res) => {
+        if (res.errors) throw new Error(res.errors[0]);
+        const { data } = res;
+        return data;
+      });
+  };
 
+
+export const EnviarCodigoVerificacion = ({ jsonData }) => {
+  return fetch(`${ENDPOINT}/api/Auth/send-verification-code`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    },
+    body: jsonData,
+  })
+    .then((res) => {
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.localStorage.removeItem("jwt");
+          window.location.reload();
+        } else {
+          throw new Error("No se pudo enviar el código de verificación");
+        }
+      }
+      return res.json();
+    })
+    .then((res) => {
+      if (res.errors) throw new Error(res.errors[0]);
+      const { data } = res;
+      return data;
+    });
+};
+
+export const ConfirmarEmail = ({ jsonData }) => {
+  return fetch(`${ENDPOINT}/api/Auth/confirm-email`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    },
+    body: jsonData,
+  })
+    .then((res) => {
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.localStorage.removeItem("jwt");
+          window.location.reload();
+        } else if (res.status === 400) {
+          throw new Error("Código inválido o expirado");
+        } else {
+          throw new Error("No se pudo confirmar el código");
+        }
+      }
+      return res.json();
+    })
+    .then((res) => {
+      if (res.errors) throw new Error(res.errors[0]);
+      const { data } = res;
+      
+      if (data && data.email) {
+        window.localStorage.setItem('userEmail', data.email);
+      }
+      
+      return data;
+    });
+};
 
 
 

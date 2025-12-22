@@ -11,6 +11,18 @@ const DatatableDefaultNew = (props) => {
   const [filteredData, setFilteredData] = useState(props.value || []);
   const scrollSyncRef = useRef(null);
   const tableWrapperRef = useRef(null);
+
+  const [first, setFirst] = useState(props.first || 0);
+  const [rows, setRows] = useState(props.rows || 10);
+  
+  
+   // ✅ Actualizar Tabla
+  // useEffect(() => {
+  //   console.log("📄 Props.first recibido:", props.first);
+  //   if (props.first !== undefined) {
+  //     setFirst(props.first);
+  //   }
+  // }, [props.first]);
   
   // Inicializar filtros para búsqueda global y por columna
   const [filters, setFilters] = useState(() => {
@@ -370,6 +382,29 @@ const DatatableDefaultNew = (props) => {
             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
             rows={props.rows || 10}
             rowsPerPageOptions={[10, 25, 50, 100]}
+            onPage={(e) => {
+              setFirst(e.first);
+              setRows(e.rows);
+              if (props.onPage) {
+                props.onPage(e);
+              }
+            }}
+
+            //Actualizacion de tabla
+            //  first={first}  
+           
+            //   onPage={(e) => {
+            //   console.log("🔄 onPage evento:", e);
+            //   setFirst(e.first);
+            //   setRows(e.rows);
+              
+            //   if (props.onPage) {
+            //     props.onPage({
+            //       ...e,
+            //       page: Math.floor(e.first / e.rows) 
+            //     });
+            //   }
+            // }}
             dataKey="id"
             filters={filters}
             filterDisplay="row"

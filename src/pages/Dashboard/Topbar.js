@@ -59,6 +59,11 @@ const TopBar = (props) => {
         navigate("/Configuracion/CambiarContraseña"); // Cambia esta ruta según tu aplicación
     };
 
+    const handleChangeEmail = () => {
+        setShowUserMenu(false);
+        navigate("/Configuracion/CambiarEmail"); // Cambia esta ruta según tu aplicación
+    };
+
     // Cerrar el menú al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -214,6 +219,23 @@ const TopBar = (props) => {
                             >
                                 <Iconsax.Lock size="18" />
                                 <span>Cambiar contraseña</span>
+                            </div>
+                              <div
+                                onClick={handleChangeEmail}
+                                style={{
+                                    padding: "12px 16px",
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                    borderBottom: "1px solid #f0f0f0",
+                                    color: "#2D5B97",
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f5f5f5"}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                            >
+                                <Iconsax.Setting size="18" />
+                                <span>Validar Correo</span>
                             </div>
                             <div
                                 onClick={cerrarSesion}

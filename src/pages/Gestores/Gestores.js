@@ -91,9 +91,9 @@ const loadLazyData = () => {
 
                  //Agrego
                filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
-                const paginatedData = filteredData.slice(start, end);
+                // const paginatedData = filteredData.slice(start, end);
 
-                setListaPersonasTotal(paginatedData);
+                setListaPersonasTotal(filteredData);
                 setLoading(false);
             })
             .catch((error) => {

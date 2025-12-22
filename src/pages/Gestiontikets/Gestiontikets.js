@@ -174,16 +174,24 @@ const loadLazyData = () => {
     }, Math.random() * 1000 + 250);
 };
    
+// const onPage = (event) => {
+//     setlazyState((prevState) => ({
+//         ...prevState,
+//         first: event.first,
+//         rows: event.rows,
+//         page: event.page,
+//     }));
+// };
+
 const onPage = (event) => {
+    console.log("📊 Evento onPage recibido:", event);
     setlazyState((prevState) => ({
         ...prevState,
         first: event.first,
         rows: event.rows,
-        page: event.page,
+        page: event.page, // Ya viene calculado desde DatatableDefaultNew
     }));
 };
-
-
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
             onPage(1);
@@ -257,6 +265,53 @@ const onPage = (event) => {
         </div>
         
     }
+
+ /// Ajuste para tabla
+//    useEffect(() => {
+//     const savedLazyState = sessionStorage.getItem('tickets_lazyState');
+//     const savedGlobalFilter = sessionStorage.getItem('tickets_globalFilter');
+    
+//     console.log("🔄 Restaurando estado guardado:", savedLazyState);
+    
+//     if (savedLazyState) {
+//         const parsedState = JSON.parse(savedLazyState);
+//         console.log("📖 Estado parseado:", parsedState);
+        
+//         const restoredState = {
+//             ...parsedState,
+//             first: parsedState.page * parsedState.rows,
+//             page: parsedState.page
+//         };
+        
+//         console.log("✅ Estado restaurado final:", restoredState);
+//         setlazyState(restoredState);
+//         sessionStorage.removeItem('tickets_lazyState');
+//     }
+    
+//     if (savedGlobalFilter) {
+//         setGlobalFilterValue(savedGlobalFilter);
+//         sessionStorage.removeItem('tickets_globalFilter');
+//     }
+// }, []);
+// const accion = (rowData) => {
+//     return <div className="profesor-datatable-accion">
+//         <div className="accion-editar" onClick={() => {
+//             console.log("💾 LazyState actual antes de guardar:", lazyState);
+            
+//             const stateToSave = {
+//                 ...lazyState,
+//                 page: Math.floor(lazyState.first / lazyState.rows)
+//             };
+            
+//             console.log("💾 Estado a guardar:", stateToSave);
+//             sessionStorage.setItem('tickets_lazyState', JSON.stringify(stateToSave));
+//             sessionStorage.setItem('tickets_globalFilter', globalFilterValue); // ✅ Corregido el typo
+//             navigate("Editar/" + rowData.id);
+//         }}>
+//             <span><Iconsax.Edit color="#ffffff"/></span>
+//         </div>
+//     </div>
+// }
             
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;
@@ -414,6 +469,9 @@ const datosFiltrados = useMemo(() => {
                             value={listaPersonasTotal}  
                             export={true}
                             rows={lazyState.rows || 50}  
+                            first={lazyState.first}  // ✅ AGREGAR ESTA LÍNEA
+                             onPage={onPage}  // ✅ AGREGAR ESTA LÍNEA
+
                             showSearch={false} 
                             loading={loading}
                         >
