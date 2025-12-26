@@ -174,22 +174,13 @@ const loadLazyData = () => {
     }, Math.random() * 1000 + 250);
 };
    
-// const onPage = (event) => {
-//     setlazyState((prevState) => ({
-//         ...prevState,
-//         first: event.first,
-//         rows: event.rows,
-//         page: event.page,
-//     }));
-// };
-
 const onPage = (event) => {
     console.log("📊 Evento onPage recibido:", event);
     setlazyState((prevState) => ({
         ...prevState,
         first: event.first,
         rows: event.rows,
-        page: event.page, // Ya viene calculado desde DatatableDefaultNew
+        page: event.page, 
     }));
 };
     const handleKeyPress = (e) => {
@@ -243,30 +234,17 @@ const onPage = (event) => {
 
 
     const accion =(rowData)=>{
-  const eliminarOculto = permisosActual.controlesOcultos.includes("btnEliminar");
+        const eliminarOculto = permisosActual.controlesOcultos.includes("btnEliminar");
 
         return  <div className="profesor-datatable-accion">
             <div className="accion-editar" onClick={()=>navigate("Editar/"+rowData.id)}>
                 <span><Iconsax.Edit color="#ffffff"/></span>
             </div>
-
-           
-               {/* {!eliminarOculto && (
-        <div
-          className="accion-eliminar"
-          onClick={() => {
-            setUsuarioSeleccionado(rowData.id);
-            confirm2(rowData.id);
-          }}
-        >
-          <span><Iconsax.Trash color="#ffffff" /></span>
-        </div>
-      )} */}
         </div>
         
     }
 
- /// Ajuste para tabla
+ /// Ajuste para tabla 
 //    useEffect(() => {
 //     const savedLazyState = sessionStorage.getItem('tickets_lazyState');
 //     const savedGlobalFilter = sessionStorage.getItem('tickets_globalFilter');
@@ -438,16 +416,6 @@ const datosFiltrados = useMemo(() => {
                                     className="w-full md:w-20rem"
                                 />
                                </div>
-                                     {/* <div className="field col-12 md:col-2">
-                                        <DropdownDefault
-                                            // value={}
-                                    options={parametros}
-                                            optionLabel="nombre"
-                                            optionValue="id"
-                                            // onChange={}
-                                            placeholder="Selecciona Estado"
-                                        />
-                                        </div> */}
                                       {!permisosActual.controlesOcultos.includes("btnCrear") && (
                                      <>
                    
@@ -469,8 +437,8 @@ const datosFiltrados = useMemo(() => {
                             value={listaPersonasTotal}  
                             export={true}
                             rows={lazyState.rows || 50}  
-                            first={lazyState.first}  // ✅ AGREGAR ESTA LÍNEA
-                             onPage={onPage}  // ✅ AGREGAR ESTA LÍNEA
+                            first={lazyState.first}  
+                             onPage={onPage} 
 
                             showSearch={false} 
                             loading={loading}
@@ -506,9 +474,6 @@ const datosFiltrados = useMemo(() => {
                                     filter
                                     style={{ width: '140px', minWidth: '140px' }}
                                 />
-
-                            {/* <Column   field="idEstadoTicket" header="Estado" body={estadoTicketTemplate} sortable style={{ width: '140px', minWidth: '140px' }} /> */}
-                            {/* <Column header="Prioridad" body={prioridadTicketTemplate} sortable style={{ width: '140px', minWidth: '140px' }} /> */}
                             <Column field="empresa.razonSocial" header="Empresa" sortable style={{ width: '150px', minWidth: '150px' }} />
                             <Column field="horasTrabajadas" header="Horas Trabajadas" sortable style={{ width: '100px', minWidth: '100px' }} />
                             <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />

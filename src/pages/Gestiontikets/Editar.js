@@ -32,7 +32,7 @@ import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { InputSwitch } from 'primereact/inputswitch';
 import { FileUpload } from "primereact/fileupload";
-import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria} from "../../service/TiketService";
+import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria,ListarGestorCuenta} from "../../service/TiketService";
 import {ListarGestoresPorSocio,ListarGestores, ListarGestoresPorRolSocio} from "../../service/GestorService";
 import {ListarEmpresasPorSocio,ListarEmpresas,ListarEmpresasporRol} from "../../service/EmpresaService";
 import { Button } from 'primereact/button';
@@ -52,6 +52,7 @@ const Editar = () => {
   const [subfrentes, setSubfrentes] = useState(null);
   const [empresa, setEmpresa] = useState(null);
   const [gestorConsultoria, setgestorConsultoria] = useState(null);
+  const [gestorCuenta, setgestorCuenta] = useState(null);
 
   const [pais, setPais] = useState(null);
 
@@ -285,6 +286,12 @@ const Editar = () => {
         await ListarGestorConsultoria().then(data=>{setgestorConsultoria(data)})
       };
       getgestorConsultoria();
+    }, []);
+  useEffect(() => {
+      const getgestorCuenta = async () => {
+        await ListarGestorCuenta().then(data=>{setgestorCuenta(data)})
+      };
+      getgestorCuenta();
     }, []);
 
   useEffect(() => {
@@ -521,6 +528,7 @@ function toLocalISOString(date) {
         cantidad: Yup.number().nullable(),
         fechaInicio:Yup.string().nullable(),
         fechaFin:Yup.string().nullable(),
+        descripcion:Yup.string().nullable(),
        
       }).notRequired(),
       frenteSubFrentes: Yup.array().of(
@@ -531,6 +539,7 @@ function toLocalISOString(date) {
           cantidad: Yup.number().nullable(),
           fechaInicio:Yup.string().nullable(),
           fechaFin:Yup.string().nullable(),
+          descripcion:Yup.string().nullable(),
         })
       ),
       asignaciones: Yup.array().of(
@@ -599,7 +608,8 @@ function toLocalISOString(date) {
           cantidad:"",
           fechaInicio:"",
           fechaFin:"",
-          activo:true
+          activo:true,
+          descripcion:""
       },
       frenteSubFrentes: persona ?persona.frenteSubFrentes:[],
       asignaciones: persona ?(persona.consultorAsignaciones.map((a) => ({
@@ -673,7 +683,8 @@ function toLocalISOString(date) {
         // FechaFin: e.fechaFin ? new Date(e.fechaFin).toISOString() : null,
         FechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
         FechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
-        Activo:e.activo
+        Activo:e.activo,
+        Descripcion:e.descripcion
 
       })))
     );
@@ -1377,6 +1388,25 @@ const footer = (
                 {formik.touched.idGestorConsultoria && formik.errors.idGestorConsultoria}
               </small>
               </div>
+               <div className="field col-12 md:col-6">
+              <label className="label-form">Gestor Asignado</label>
+              <DropdownDefault
+                id="idGestorAsignado"
+                name="idGestorAsignado"
+                placeholder="Seleccione"
+                value={formik.values.idGestorAsignado}
+                onChange={handleGestorChange}
+                onBlur={formik.handleBlur}
+                options={gestorCuenta}
+                optionLabel={(option) => `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`}
+                optionValue="id"
+                // disabled={permisosActual.controlesBloqueados.includes("cboGestoridGestorAsignado")}
+
+              />
+              <small className="p-error">
+                {formik.touched.idGestorConsultoria && formik.errors.idGestorConsultoria}
+              </small>
+              </div>
                 </div>
               </AccordionTab>
             </Accordion>
@@ -1392,158 +1422,166 @@ const footer = (
                     Especializaciones
                   </label>
               </div>
-              <div className="field col-12 md:col-2">
-              <DropdownDefault
-              value={formik.values.nuevaEspecializacion.idFrente}
-              options={frentes}
-              optionLabel="nombre"
-              optionValue="id"
-              onChange={(e) => {
-                      const idFrenteSeleccionado = e.value;
-                      formik.setFieldValue("nuevaEspecializacion.idFrente", idFrenteSeleccionado);
-                      const frenteSeleccionado = frentes.find((f) => f.id === idFrenteSeleccionado);
-                      if (frenteSeleccionado) {
-                        setSubfrentes(frenteSeleccionado.subFrente || []);
-                      } else {
-                        setSubfrentes([]);
+                  <div className="field col-12 md:col-3">
+                  <DropdownDefault
+                  value={formik.values.nuevaEspecializacion.idFrente}
+                  options={frentes}
+                  optionLabel="nombre"
+                  optionValue="id"
+                  onChange={(e) => {
+                          const idFrenteSeleccionado = e.value;
+                          formik.setFieldValue("nuevaEspecializacion.idFrente", idFrenteSeleccionado);
+                          const frenteSeleccionado = frentes.find((f) => f.id === idFrenteSeleccionado);
+                          if (frenteSeleccionado) {
+                            setSubfrentes(frenteSeleccionado.subFrente || []);
+                          } else {
+                            setSubfrentes([]);
+                          }
+                        }}
+                        placeholder="Selecciona Frente"
+                  />
+                  </div>
+                  <div className="field col-12 md:col-3">
+                  <DropdownDefault
+                    value={formik.values.nuevaEspecializacion.idSubFrente}
+                    options={subfrentes}
+                    optionLabel="nombre"
+                    optionValue="id"
+                    onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idSubFrente", e.value)}
+                    placeholder="Selecciona Subfrente"
+                  />
+                  </div>
+                  <div className="field col-12 md:col-2">
+                  <InputText
+                      type="number"
+                      name="nuevaEspecializacion.cantidad"
+                      placeholder="Ingresa la cantidad"
+                      value={formik.values.nuevaEspecializacion.cantidad}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                    />
+                  </div>
+                  <div className="field col-12 md:col-2">
+                    <Calendar
+                      value={formik.values.nuevaEspecializacion.fechaInicio}
+                      onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
+                      placeholder="Fecha de Inicio"
+                      dateFormat="yy-mm-dd"
+                      showIcon
+                      className="w-full"
+                      minDate={new Date(formik.values.fechaSolicitud)}  
+                      
+                    />
+                  </div>
+                  <div className="field col-12 md:col-2">
+                    <Calendar
+                      value={formik.values.nuevaEspecializacion.fechaFin}
+                      onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
+                      placeholder="Fecha de Fin"
+                      dateFormat="yy-mm-dd"
+                      showIcon
+                      className="w-full"
+                      minDate={
+                              formik.values.nuevaEspecializacion.fechaInicio
+                                ? new Date(formik.values.nuevaEspecializacion.fechaInicio)
+                                : new Date()
+                            }
+                    />
+                  </div>
+                 
+                    <div className="field col-12 md:col-10">
+                  <InputText
+                      type={"text"}
+                      name="nuevaEspecializacion.descripcion"
+                      placeholder="Ingresa la Descripción"
+                      value={formik.values.nuevaEspecializacion.descripcion}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                    />
+                  </div>
+                   <div className="field col-12 md:col-2">
+                <Boton
+                    type="button"
+                    label="Agregar Especialización"
+                    style={{ fontSize: 13, borderRadius: 15 }}
+                    onClick={() => {
+                      const nueva = formik.values.nuevaEspecializacion;
+                      console.log("NUEVA",nueva)
+                      console.log("FECHAA INICIO",nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null)
+
+                      console.log("FECHAA FIN",nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null)
+                      if (!nueva.idFrente || !nueva.idSubFrente) {
+                        alert("Completa todos los campos de la especialización");
+                        return;
                       }
+
+                      const especializacionesActuales = Array.isArray(formik.values.frenteSubFrentes)
+                        ? formik.values.frenteSubFrentes
+                        : [];
+
+                      // const yaExiste = especializacionesActuales.some(
+                      //   (item) =>
+                      //     Number(item.idFrente) === Number(nueva.idFrente) &&
+                      //     Number(item.idSubFrente) === Number(nueva.idSubFrente)
+                      // );
+
+                      // if (yaExiste) {
+                      //   alert("Esta especialización ya fue agregada");
+                      //   return;
+                      // }
+
+                      formik.setFieldValue("frenteSubFrentes", [
+                        ...especializacionesActuales,
+                        {
+                          id: Number(nueva.id),
+                          idFrente: Number(nueva.idFrente),
+                          idSubFrente: Number(nueva.idSubFrente),
+                          cantidad: Number(nueva.cantidad),
+                          fechaInicio: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
+                          fechaFin: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
+                        // fechaInicio: nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null,
+                        //  fechaFin: nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null,
+
+                          activo:true,
+                          descripcion:nueva.descripcion
+
+                        },
+                      ]);
+                      setSubfrentesSeleccionados((prev) => {
+                      const yaEsta = prev.some((sf) => sf.idSubFrente === nueva.idSubFrente);
+                      if (yaEsta) return prev;
+
+                      const subfrenteSeleccionado = subfrentes.find(
+                        (s) => s.id === nueva.idSubFrente
+                      );
+
+                      if (!subfrenteSeleccionado) return prev;
+
+                      // ✅ Solo guarda los campos necesarios
+                      const nuevo = {
+                        idSubFrente: subfrenteSeleccionado.id,
+                        idFrente: subfrenteSeleccionado.idFrente,
+                        nombre: subfrenteSeleccionado.nombre,
+                      };
+                      console.log("nuevo",nuevo)
+                      return [...prev, nuevo];
+                    });
+                      console.log("formik",Date(nueva.fechaInicio))
+                      formik.setFieldValue("nuevaEspecializacion", {
+                        id: "",
+                        idFrente: "",
+                        idSubFrente: "",
+                        cantidad: "",
+                        fechaInicio:"",
+                        fechaFin:"",
+                        activo:true,
+                        descripcion:""
+                      });
                     }}
-                    placeholder="Selecciona Frente"
-              />
-              </div>
-              <div className="field col-12 md:col-2">
-              <DropdownDefault
-                value={formik.values.nuevaEspecializacion.idSubFrente}
-                options={subfrentes}
-                optionLabel="nombre"
-                optionValue="id"
-                onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idSubFrente", e.value)}
-                placeholder="Selecciona Subfrente"
-              />
-              </div>
-              <div className="field col-12 md:col-2">
-              <InputText
-                  type="number"
-                  name="nuevaEspecializacion.cantidad"
-                  placeholder="Ingresa la cantidad"
-                  value={formik.values.nuevaEspecializacion.cantidad}
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                />
-              </div>
+                  />
 
-              <div className="field col-12 md:col-2">
-                <Calendar
-                  value={formik.values.nuevaEspecializacion.fechaInicio}
-                  onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
-                  placeholder="Fecha de Inicio"
-                  dateFormat="yy-mm-dd"
-                  showIcon
-                  className="w-full"
-                  minDate={new Date(formik.values.fechaSolicitud)}  
-                  
-                />
-              </div>
-             <div className="field col-12 md:col-2">
-                <Calendar
-                  value={formik.values.nuevaEspecializacion.fechaFin}
-                  onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
-                  placeholder="Fecha de Fin"
-                  dateFormat="yy-mm-dd"
-                  showIcon
-                  className="w-full"
-                  minDate={
-                          formik.values.nuevaEspecializacion.fechaInicio
-                            ? new Date(formik.values.nuevaEspecializacion.fechaInicio)
-                            : new Date()
-                        }
-                />
-              </div>
-           
-
-
-
-
-              <div className="field col-12 md:col-2">
-             <Boton
-                type="button"
-                label="Agregar Especialización"
-                style={{ fontSize: 13, borderRadius: 15 }}
-                onClick={() => {
-                  const nueva = formik.values.nuevaEspecializacion;
-                  console.log("NUEVA",nueva)
-                  console.log("FECHAA INICIO",nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null)
-
-                  console.log("FECHAA FIN",nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null)
-                  if (!nueva.idFrente || !nueva.idSubFrente) {
-                    alert("Completa todos los campos de la especialización");
-                    return;
-                  }
-
-                  const especializacionesActuales = Array.isArray(formik.values.frenteSubFrentes)
-                    ? formik.values.frenteSubFrentes
-                    : [];
-
-                  const yaExiste = especializacionesActuales.some(
-                    (item) =>
-                      Number(item.idFrente) === Number(nueva.idFrente) &&
-                      Number(item.idSubFrente) === Number(nueva.idSubFrente)
-                  );
-
-                  if (yaExiste) {
-                    alert("Esta especialización ya fue agregada");
-                    return;
-                  }
-
-                  formik.setFieldValue("frenteSubFrentes", [
-                    ...especializacionesActuales,
-                    {
-                      id: Number(nueva.id),
-                      idFrente: Number(nueva.idFrente),
-                      idSubFrente: Number(nueva.idSubFrente),
-                      cantidad: Number(nueva.cantidad),
-                      fechaInicio: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
-                      fechaFin: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
-                    // fechaInicio: nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null,
-                    //  fechaFin: nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null,
-
-                      activo:true
-
-                    },
-                  ]);
-                  setSubfrentesSeleccionados((prev) => {
-                  const yaEsta = prev.some((sf) => sf.idSubFrente === nueva.idSubFrente);
-                  if (yaEsta) return prev;
-
-                  const subfrenteSeleccionado = subfrentes.find(
-                    (s) => s.id === nueva.idSubFrente
-                  );
-
-                  if (!subfrenteSeleccionado) return prev;
-
-                  // ✅ Solo guarda los campos necesarios
-                  const nuevo = {
-                    idSubFrente: subfrenteSeleccionado.id,
-                    idFrente: subfrenteSeleccionado.idFrente,
-                    nombre: subfrenteSeleccionado.nombre,
-                  };
-                   console.log("nuevo",nuevo)
-                  return [...prev, nuevo];
-                });
-                  console.log("formik",Date(nueva.fechaInicio))
-                  formik.setFieldValue("nuevaEspecializacion", {
-                    id: "",
-                    idFrente: "",
-                    idSubFrente: "",
-                    cantidad: "",
-                    fechaInicio:"",
-                    fechaFin:"",
-                    activo:true
-                  });
-                }}
-              />
-
-              </div>
+                  </div>
+                    
               <div className="field col-12 md:col-12">
                  {frentes.length === 0 ? (
                 <p>Cargando frentes...</p> 

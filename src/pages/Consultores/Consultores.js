@@ -104,15 +104,16 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
     }, Math.random() * 1000 + 250);
 };
 
-    const onPage = (event) => {
+
+const onPage = (event) => {
+    console.log("📊 Evento onPage recibido:", event);
     setlazyState((prevState) => ({
         ...prevState,
         first: event.first,
         rows: event.rows,
-        page: event.page,
+        page: event.page, 
     }));
 };
-
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
@@ -306,6 +307,8 @@ filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion
                             value={listaPersonas}  
                             export={true}
                             rows={lazyState.rows || 50}  
+                             first={lazyState.first}  
+                            onPage={onPage}  
                             showSearch={false} 
                             loading={loading}
                         >

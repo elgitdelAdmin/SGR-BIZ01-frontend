@@ -353,8 +353,8 @@ const onPage = (event) => {
                             value={listaPersonas}  
                             export={true}
                             rows={lazyState.rows || 50}  
-                            first={lazyState.first}  // ✅ AGREGAR ESTA LÍNEA
-                            onPage={onPage}  // ✅ AGREGAR ESTA LÍNEA
+                            first={lazyState.first}  
+                            onPage={onPage}  
                             showSearch={false} 
                             loading={loading}
                         >
