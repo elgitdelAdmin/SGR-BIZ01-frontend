@@ -264,51 +264,21 @@ const onPage = (event) => {
                              </div>                        
                      </div> */}
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        {/* <DatatableDefault value={listaPersonas} 
-                             lazy
-                             globalFilter={globalFilterValue}   
-                               globalFilterFields={[
-                                    'persona.nombres',
-                                    'persona.apellidoPaterno',
-                                    'persona.apellidoMaterno',
-                                    'persona.correo',
-                                    'persona.telefono',
-                                    'persona.username',
-                                ]}
-                            loading={loading}
-                            onPage={onPage}
-                            paginator           
-                            first={lazyState.first}
-                            header = {header}
-                            totalRecords ={totalRecords}
-                        >
-                              <Column field="persona.nombres" header="Nombres" />
-                             <Column field="persona.apellidoPaterno" header="Apellido Paterno" />
-                             <Column field="persona.apellidoMaterno" header="Apellido Materno" />
-                             <Column field="persona.correo" header="Correo" />
-
-
-                             <Column
-                                header="Especializaciones"
-                                body={verespecializaciones} 
-                            />
-                            <Column field="persona.telefono" header="Teléfono" />
-                            <Column
-                                field="activo"
-                                header="Estado"
-                                body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
-                            />
-                            <Column
-                                header="Acciones"
-                                body={accion} 
-                            />
-                        </DatatableDefault> */}
-                           <DatatableDefaultNew 
+                       
+                           {/* <DatatableDefaultNew 
                             value={listaPersonas}  
                             export={true}
                             rows={lazyState.rows || 50}  
                              first={lazyState.first}  
                             onPage={onPage}  
+                            showSearch={false} 
+                            loading={loading}
+                        > */}
+
+                             <DatatableDefaultNew 
+                            value={listaPersonas}  
+                            export={true}
+                            rows={lazyState.rows || 50}  
                             showSearch={false} 
                             loading={loading}
                         >

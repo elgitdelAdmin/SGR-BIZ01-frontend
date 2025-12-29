@@ -233,63 +233,58 @@ const onPage = (event) => {
    
 
 
-    const accion =(rowData)=>{
-        const eliminarOculto = permisosActual.controlesOcultos.includes("btnEliminar");
+    // const accion =(rowData)=>{
+    //     const eliminarOculto = permisosActual.controlesOcultos.includes("btnEliminar");
 
-        return  <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("Editar/"+rowData.id)}>
-                <span><Iconsax.Edit color="#ffffff"/></span>
-            </div>
-        </div>
+    //     return  <div className="profesor-datatable-accion">
+    //         <div className="accion-editar" onClick={()=>navigate("Editar/"+rowData.id)}>
+    //             <span><Iconsax.Edit color="#ffffff"/></span>
+    //         </div>
+    //     </div>
         
+    // }
+
+ //Ajuste para tabla 
+   useEffect(() => {
+    const savedLazyState = sessionStorage.getItem('tickets_lazyState');
+    const savedGlobalFilter = sessionStorage.getItem('tickets_globalFilter');
+    
+    
+    if (savedLazyState) {
+        const parsedState = JSON.parse(savedLazyState);
+        
+        const restoredState = {
+            ...parsedState,
+            first: parsedState.page * parsedState.rows,
+            page: parsedState.page
+        };
+        
+        setlazyState(restoredState);
+        sessionStorage.removeItem('tickets_lazyState');
     }
-
- /// Ajuste para tabla 
-//    useEffect(() => {
-//     const savedLazyState = sessionStorage.getItem('tickets_lazyState');
-//     const savedGlobalFilter = sessionStorage.getItem('tickets_globalFilter');
     
-//     console.log("🔄 Restaurando estado guardado:", savedLazyState);
-    
-//     if (savedLazyState) {
-//         const parsedState = JSON.parse(savedLazyState);
-//         console.log("📖 Estado parseado:", parsedState);
-        
-//         const restoredState = {
-//             ...parsedState,
-//             first: parsedState.page * parsedState.rows,
-//             page: parsedState.page
-//         };
-        
-//         console.log("✅ Estado restaurado final:", restoredState);
-//         setlazyState(restoredState);
-//         sessionStorage.removeItem('tickets_lazyState');
-//     }
-    
-//     if (savedGlobalFilter) {
-//         setGlobalFilterValue(savedGlobalFilter);
-//         sessionStorage.removeItem('tickets_globalFilter');
-//     }
-// }, []);
-// const accion = (rowData) => {
-//     return <div className="profesor-datatable-accion">
-//         <div className="accion-editar" onClick={() => {
-//             console.log("💾 LazyState actual antes de guardar:", lazyState);
+    if (savedGlobalFilter) {
+        setGlobalFilterValue(savedGlobalFilter);
+        sessionStorage.removeItem('tickets_globalFilter');
+    }
+}, []);
+const accion = (rowData) => {
+    return <div className="profesor-datatable-accion">
+        <div className="accion-editar" onClick={() => {
             
-//             const stateToSave = {
-//                 ...lazyState,
-//                 page: Math.floor(lazyState.first / lazyState.rows)
-//             };
+            const stateToSave = {
+                ...lazyState,
+                page: Math.floor(lazyState.first / lazyState.rows)
+            };
             
-//             console.log("💾 Estado a guardar:", stateToSave);
-//             sessionStorage.setItem('tickets_lazyState', JSON.stringify(stateToSave));
-//             sessionStorage.setItem('tickets_globalFilter', globalFilterValue); // ✅ Corregido el typo
-//             navigate("Editar/" + rowData.id);
-//         }}>
-//             <span><Iconsax.Edit color="#ffffff"/></span>
-//         </div>
-//     </div>
-// }
+            sessionStorage.setItem('tickets_lazyState', JSON.stringify(stateToSave));
+            sessionStorage.setItem('tickets_globalFilter', globalFilterValue); // ✅ Corregido el typo
+            navigate("Editar/" + rowData.id);
+        }}>
+            <span><Iconsax.Edit color="#ffffff"/></span>
+        </div>
+    </div>
+}
             
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;
@@ -443,6 +438,7 @@ const datosFiltrados = useMemo(() => {
                             showSearch={false} 
                             loading={loading}
                         >
+                            <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
                             <Column field="codTicket" header="Codigo Ticket Conecta" sortable style={{ width: '130px', minWidth: '180px' }} />
                             <Column field="codTicketInterno" header="Codigo Interno" sortable style={{ width: '110px', minWidth: '130px' }} />
                             <Column field="titulo" header="Titulo" sortable style={{ width: '350px', minWidth: '350px' }} />
@@ -477,7 +473,6 @@ const datosFiltrados = useMemo(() => {
                             <Column field="empresa.razonSocial" header="Empresa" sortable style={{ width: '150px', minWidth: '150px' }} />
                             <Column field="horasTrabajadas" header="Horas Trabajadas" sortable style={{ width: '100px', minWidth: '100px' }} />
                             <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />
-                            <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
                         </DatatableDefaultNew>
 
                     </div>

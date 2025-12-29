@@ -135,6 +135,8 @@ export const generateExcel = (dtRef) => {
   saveAs(blob, 'data.xlsx');
 }
 export const generateExcelNew = (data) => {
+   console.log("Descarar",data)
+
     const MAX_LEN = 32767;
 
     // Limpia cada fila

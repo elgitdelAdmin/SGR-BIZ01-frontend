@@ -188,14 +188,42 @@ const DatatableDefaultNew = (props) => {
     );
   };
   
-  const renderHeader = () => {
-    return (
-      <div className="flex justify-content-between align-items-center">
-        <div className="flex gap-2">
-        </div>
-      </div>
-    );
-  };
+  // const renderHeader = () => {
+  //   return (
+  //     <div className="flex justify-content-between align-items-center">
+  //       <div className="flex gap-2">
+  //       </div>
+  //     </div>
+  //   );
+  // };
+
+   const renderHeader = () => {
+          return (
+          <div className='flex justify-content-between flex-wrap'>
+              {
+                  props.export && 
+                  props.export == true && 
+                  <div  className='flex  flex-wrapjustify-content-center' style={{gap:8}}>
+                      <div className="flex ">
+                          <Button type="button" label='Descargar'icon="pi pi-file-excel"  severity="success" onClick={()=>generateExcelNew(filteredData)} data-pr-tooltip="XLS" />
+                      </div>
+                  </div>
+              }
+              {props.showSearch !== false && (
+                  <div className="flex justify-content-end">
+                      <span className="p-input-icon-left">
+                          <i className="pi pi-search" />
+                          <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Buscar..." />
+                      </span>
+                  </div>
+              )}
+               
+          </div>
+             
+          
+              
+          );
+      };
   
   const header = renderHeader();
   
