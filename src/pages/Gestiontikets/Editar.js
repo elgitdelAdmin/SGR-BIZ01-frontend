@@ -129,7 +129,8 @@ const Editar = () => {
   const [subfrentesSeleccionados, setSubfrentesSeleccionados] = useState([]);
   const [consultoresPorFila, setConsultoresPorFila] = useState({});
 
-
+  const [visibleDescripcion, setVisibleDescripcion] = useState(false);
+  const [rowSeleccionada, setRowSeleccionada] = useState(null);
   
   const agregarDetalle = () => {
     console.log("agregarDenuevoDetalletalle",nuevoDetalle)
@@ -565,7 +566,7 @@ function toLocalISOString(date) {
       idPrioridad: persona ? persona.idPrioridad : null,
       descripcion: persona ? persona.descripcion : "",
       urlArchivos: persona ? persona.urlArchivos : "",
-      idGestor: persona ? persona.idGestor : null,
+      idGestor: persona ? persona.empresa.idGestor : null,
       nuevaEspecializacion: {
           id:"",
           idFrente: "",
@@ -1081,6 +1082,27 @@ const footer = (
 //   setTotalesFijos(iniciales);
 // }, []); // Solo se ejecuta una vez
 
+
+const obtenerCantidadPermitida = (idSubFrente) => {
+  const especializacion = formik.values.frenteSubFrentes.find(
+    (e) => e.idSubFrente === idSubFrente && e.activo
+  );
+  return especializacion?.cantidad ?? 0;
+};
+const contarAsignaciones = (idSubFrente) => {
+  return formik.values.asignaciones.filter(
+    (a) => a.IdSubFrente === idSubFrente && a.Activo !== false
+  ).length;
+};
+
+const verDescripcion = (rowData) => {
+
+  console.log("VER")
+  setRowSeleccionada(rowData);
+  setVisibleDescripcion(true);
+};
+
+
   return (
 
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
@@ -1443,8 +1465,7 @@ const footer = (
                             }
                     />
                   </div>
-                 
-                    <div className="field col-12 md:col-10">
+                  <div className="field col-12 md:col-10">
                   <InputText
                       type={"text"}
                       name="nuevaEspecializacion.descripcion"
@@ -1454,93 +1475,94 @@ const footer = (
                       onChange={formik.handleChange}
                     />
                   </div>
-                   <div className="field col-12 md:col-2">
-                <Boton
-                    type="button"
-                    label="Agregar Especialización"
-                    style={{ fontSize: 13, borderRadius: 15 }}
-                    onClick={() => {
-                      const nueva = formik.values.nuevaEspecializacion;
-                      console.log("NUEVA",nueva)
-                      console.log("FECHAA INICIO",nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null)
+                  <div className="field col-12 md:col-2">
+                    <Boton
+                        type="button"
+                        label="Agregar Especialización"
+                        style={{ fontSize: 13, borderRadius: 15 }}
+                        onClick={() => {
+                          const nueva = formik.values.nuevaEspecializacion;
+                          console.log("NUEVA",nueva)
+                          console.log("FECHAA INICIO",nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null)
 
-                      console.log("FECHAA FIN",nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null)
-                      if (!nueva.idFrente || !nueva.idSubFrente) {
-                        alert("Completa todos los campos de la especialización");
-                        return;
-                      }
+                          console.log("FECHAA FIN",nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null)
+                          if (!nueva.idFrente || !nueva.idSubFrente) {
+                            alert("Completa todos los campos de la especialización");
+                            return;
+                          }
 
-                      const especializacionesActuales = Array.isArray(formik.values.frenteSubFrentes)
-                        ? formik.values.frenteSubFrentes
-                        : [];
+                          const especializacionesActuales = Array.isArray(formik.values.frenteSubFrentes)
+                            ? formik.values.frenteSubFrentes
+                            : [];
 
-                      // const yaExiste = especializacionesActuales.some(
-                      //   (item) =>
-                      //     Number(item.idFrente) === Number(nueva.idFrente) &&
-                      //     Number(item.idSubFrente) === Number(nueva.idSubFrente)
-                      // );
+                          // const yaExiste = especializacionesActuales.some(
+                          //   (item) =>
+                          //     Number(item.idFrente) === Number(nueva.idFrente) &&
+                          //     Number(item.idSubFrente) === Number(nueva.idSubFrente)
+                          // );
 
-                      // if (yaExiste) {
-                      //   alert("Esta especialización ya fue agregada");
-                      //   return;
-                      // }
+                          // if (yaExiste) {
+                          //   alert("Esta especialización ya fue agregada");
+                          //   return;
+                          // }
 
-                      formik.setFieldValue("frenteSubFrentes", [
-                        ...especializacionesActuales,
-                        {
-                          id: Number(nueva.id),
-                          idFrente: Number(nueva.idFrente),
-                          idSubFrente: Number(nueva.idSubFrente),
-                          cantidad: Number(nueva.cantidad),
-                          fechaInicio: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
-                          fechaFin: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
-                        // fechaInicio: nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null,
-                        //  fechaFin: nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null,
+                          formik.setFieldValue("frenteSubFrentes", [
+                            ...especializacionesActuales,
+                            {
+                              id: Number(nueva.id),
+                              idFrente: Number(nueva.idFrente),
+                              idSubFrente: Number(nueva.idSubFrente),
+                              cantidad: Number(nueva.cantidad),
+                              fechaInicio: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
+                              fechaFin: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
+                            // fechaInicio: nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null,
+                            //  fechaFin: nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null,
 
-                          activo:true,
-                          descripcion:nueva.descripcion
+                              activo:true,
+                              descripcion:nueva.descripcion
 
-                        },
-                      ]);
-                      setSubfrentesSeleccionados((prev) => {
-                      const yaEsta = prev.some((sf) => sf.idSubFrente === nueva.idSubFrente);
-                      if (yaEsta) return prev;
+                            },
+                          ]);
+                          setSubfrentesSeleccionados((prev) => {
+                          const yaEsta = prev.some((sf) => sf.idSubFrente === nueva.idSubFrente);
+                          if (yaEsta) return prev;
 
-                      const subfrenteSeleccionado = subfrentes.find(
-                        (s) => s.id === nueva.idSubFrente
-                      );
+                          const subfrenteSeleccionado = subfrentes.find(
+                            (s) => s.id === nueva.idSubFrente
+                          );
 
-                      if (!subfrenteSeleccionado) return prev;
+                          if (!subfrenteSeleccionado) return prev;
 
-                      // ✅ Solo guarda los campos necesarios
-                      const nuevo = {
-                        idSubFrente: subfrenteSeleccionado.id,
-                        idFrente: subfrenteSeleccionado.idFrente,
-                        nombre: subfrenteSeleccionado.nombre,
-                      };
-                      console.log("nuevo",nuevo)
-                      return [...prev, nuevo];
-                    });
-                      console.log("formik",Date(nueva.fechaInicio))
-                      formik.setFieldValue("nuevaEspecializacion", {
-                        id: "",
-                        idFrente: "",
-                        idSubFrente: "",
-                        cantidad: "",
-                        fechaInicio:"",
-                        fechaFin:"",
-                        activo:true,
-                        descripcion:""
-                      });
-                    }}
-                  />
-
+                          // ✅ Solo guarda los campos necesarios
+                          const nuevo = {
+                            idSubFrente: subfrenteSeleccionado.id,
+                            idFrente: subfrenteSeleccionado.idFrente,
+                            nombre: subfrenteSeleccionado.nombre,
+                          };
+                          console.log("nuevo",nuevo)
+                          return [...prev, nuevo];
+                        });
+                          console.log("formik",Date(nueva.fechaInicio))
+                          formik.setFieldValue("nuevaEspecializacion", {
+                            id: "",
+                            idFrente: "",
+                            idSubFrente: "",
+                            cantidad: "",
+                            fechaInicio:"",
+                            fechaFin:"",
+                            activo:true,
+                            descripcion:""
+                          });
+                        }}
+                      />
                   </div>
                     
               <div className="field col-12 md:col-12">
                  {frentes.length === 0 ? (
                 <p>Cargando frentes...</p> 
               ) : (
+
+                <>
               <DatatableDefault showSearch={false} paginator={false}   value={formik.values.frenteSubFrentes.filter((item) => item.activo)}>
                   <Column
                     field="idFrente"
@@ -1579,13 +1601,36 @@ const footer = (
                     header="Fecha Fin"
                       body={(row) => row.fechaFin ? new Date(row.fechaFin).toLocaleDateString() : ""}
                   />
-                  
+                      <Column
+                        header="Descripción"
+                        body={(rowData) => (
+                          <Button
+                          type="button"
+                            icon="pi pi-eye"
+                            className="p-button-text p-button-sm"
+                            onClick={() => verDescripcion(rowData)}
+                            tooltip="Ver descripción"
+                          />
+                        )}
+                      />
+
                       <Column
                         header="Acciones"
                         body={accion} 
                       />   
                      
               </DatatableDefault>
+
+               <Dialog
+                header="Descripción"
+                visible={visibleDescripcion}
+                style={{ width: "450px" }}
+                modal
+                onHide={() => setVisibleDescripcion(false)}
+              >
+                <p>{rowSeleccionada?.descripcion || "Sin descripción"}</p>
+              </Dialog>
+              </>
               )}
               </div>
               </>
@@ -1636,6 +1681,18 @@ const footer = (
                               optionValue="idSubFrente"
                               onChange={async (e) => {
                                 const idSubFrente = e.value;
+                                const maxPermitido = obtenerCantidadPermitida(idSubFrente);
+                                const asignados = contarAsignaciones(idSubFrente);
+                                 if (asignados >= maxPermitido) {
+                                   toast.current.show({
+                                    severity: "warn",
+                                    summary: "Campos incompletos",
+                                    detail: `Solo se permiten ${maxPermitido} asignaciones para este subfrente`,
+                                    life: 5000,
+                                  });
+                                  // alert(`Solo se permiten ${maxPermitido} asignaciones para este subfrente`);
+                                  return; 
+                                }
                                 const seleccionado = subfrentesSeleccionados.find(s => s.idSubFrente === idSubFrente);
                                 const idFrente = seleccionado?.idFrente; 
                                 formik.setFieldValue(`asignaciones[${index}].IdSubFrente`, idSubFrente);
@@ -1689,32 +1746,7 @@ const footer = (
                             />
                           </td>
 
-                          {/* FECHA ASIGNACION */}
-                          {/* <td className="p-2 border">
-                            <Calendar
-                              id={`FechaAsignacion-${asignacion.idUnico}`}
-                              name={`asignaciones[${asignacion.idUnico}].FechaAsignacion`}
-                              value={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : null}
-
-                              onChange={(e) => {
-                    if (e.value) {
-                      const d = e.value;
-                      const pad = (n, z = 2) => n.toString().padStart(z, '0');
-                      const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
-                      formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, localString);
-                      console.log("FechaAsignacion guardada:", localString);
-                    } else {
-                      formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, null);
-                    }
-                  }}
-
-                              onBlur={formik.handleBlur}
-                              showTime
-                              hourFormat="24"
-                              minDate={new Date(formik.values.fechaSolicitud)}
-                              dateFormat="dd/mm/yy"
-                            />
-                          </td> */}
+                         
                             <td className="p-2 border">
                             <Calendar
                               id={`FechaAsignacion-${index}`}

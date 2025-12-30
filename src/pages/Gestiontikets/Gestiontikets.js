@@ -439,7 +439,7 @@ const datosFiltrados = useMemo(() => {
                             loading={loading}
                         >
                             <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
-                            <Column field="codTicket" header="Codigo Ticket Conecta" sortable style={{ width: '130px', minWidth: '180px' }} />
+                            <Column field="codTicket"    header={<div>Codigo Ticket <br />Conecta</div>}   sortable style={{ width: '130px', minWidth: '180px' }} />
                             <Column field="codTicketInterno" header="Codigo Interno" sortable style={{ width: '110px', minWidth: '130px' }} />
                             <Column field="titulo" header="Titulo" sortable style={{ width: '350px', minWidth: '350px' }} />
                            
@@ -471,8 +471,8 @@ const datosFiltrados = useMemo(() => {
                                     style={{ width: '140px', minWidth: '140px' }}
                                 />
                             <Column field="empresa.razonSocial" header="Empresa" sortable style={{ width: '150px', minWidth: '150px' }} />
-                            <Column field="horasTrabajadas" header="Horas Trabajadas" sortable style={{ width: '100px', minWidth: '100px' }} />
-                            <Column field="horasPlanificadas" header="Horas Planificadas" body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="horasTrabajadas"    header={<div>Horas <br />Trabajadas</div>} sortable style={{ width: '100px', minWidth: '100px' }} />
+                            <Column field="horasPlanificadas"  header={<div>Horas <br />Planificadas</div>} body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />
                         </DatatableDefaultNew>
 
                     </div>
