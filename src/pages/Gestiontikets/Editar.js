@@ -319,13 +319,26 @@ const Editar = () => {
 
 
  
-    useEffect(() => {
-        const getFrentes = async () => {
-        await ListarFrentes().then(data=>{setFrentes(data)})
-            };
-        getFrentes();
-    }, []);
+    // useEffect(() => {
+    //     const getFrentes = async () => {
+    //     await ListarFrentes().then(data=>{setFrentes(data)})
+    //         };
+    //     getFrentes();
+    // }, []);
    
+useEffect(() => {
+  const getFrentes = async () => {
+    const data = await ListarFrentes();
+
+    const frentesOrdenados = [...data].sort((a, b) =>
+      a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
+    );
+
+    setFrentes(frentesOrdenados);
+  };
+
+  getFrentes();
+}, []);
 
   
   useEffect(() => {
@@ -1405,16 +1418,40 @@ const verDescripcion = (rowData) => {
                   options={frentes}
                   optionLabel="nombre"
                   optionValue="id"
+                  // onChange={(e) => {
+                  //         const idFrenteSeleccionado = e.value;
+                  //         formik.setFieldValue("nuevaEspecializacion.idFrente", idFrenteSeleccionado);
+                  //         const frenteSeleccionado = frentes.find((f) => f.id === idFrenteSeleccionado);
+                  //         if (frenteSeleccionado) {
+                  //           setSubfrentes(frenteSeleccionado.subFrente || []);
+                  //         } else {
+                  //           setSubfrentes([]);
+                  //         }
+                  //       }}
+
                   onChange={(e) => {
-                          const idFrenteSeleccionado = e.value;
-                          formik.setFieldValue("nuevaEspecializacion.idFrente", idFrenteSeleccionado);
-                          const frenteSeleccionado = frentes.find((f) => f.id === idFrenteSeleccionado);
-                          if (frenteSeleccionado) {
-                            setSubfrentes(frenteSeleccionado.subFrente || []);
-                          } else {
-                            setSubfrentes([]);
-                          }
-                        }}
+                    const idFrenteSeleccionado = e.value;
+                    formik.setFieldValue(
+                      "nuevaEspecializacion.idFrente",
+                      idFrenteSeleccionado
+                    );
+
+                    const frenteSeleccionado = frentes.find(
+                      (f) => f.id === idFrenteSeleccionado
+                    );
+
+                    if (frenteSeleccionado) {
+                      const subfrentesOrdenados = [...(frenteSeleccionado.subFrente || [])]
+                        .sort((a, b) =>
+                          a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
+                        );
+
+                      setSubfrentes(subfrentesOrdenados);
+                    } else {
+                      setSubfrentes([]);
+                    }
+                  }}
+
                         placeholder="Selecciona Frente"
                   />
                   </div>
