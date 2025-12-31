@@ -142,33 +142,71 @@ const DatatableDefaultNew = (props) => {
   const getFieldValue = (obj, field) => {
   return field.split('.').reduce((acc, part) => acc && acc[part], obj);
 };
-
-  const applyFiltersWithNewValue = (newFilters) => {
-    let filtered = [...(props.value || [])];
-    
-    // Aplicar filtro global
-    if (newFilters.global.value) {
-      const globalValue = newFilters.global.value.toLowerCase();
-      filtered = filtered.filter(item => {
-        return Object.values(item).some(val => 
-          val && val.toString().toLowerCase().includes(globalValue)
-        );
-      });
-    }
-    
-    // Aplicar filtros por columna
-    Object.keys(newFilters).forEach(field => {
-      if (field !== 'global' && newFilters[field].value) {
-        const filterValue = newFilters[field].value.toLowerCase();
-        filtered = filtered.filter(item => {
-          const fieldValue = getFieldValue(item, field);
-          return fieldValue && fieldValue.toString().toLowerCase().includes(filterValue);
-        });
-      }
+const applyFiltersWithNewValue = (newFilters) => {
+  let filtered = [...(props.value || [])];
+  
+  console.log("🔍 Props.value tiene:", props.value?.length, "registros");
+  console.log("🔍 Filtros activos:", newFilters);
+  
+  // Aplicar filtro global
+  if (newFilters.global.value) {
+    const globalValue = newFilters.global.value.toLowerCase();
+    filtered = filtered.filter(item => {
+      return Object.values(item).some(val => 
+        val && val.toString().toLowerCase().includes(globalValue)
+      );
     });
+  }
+  
+  // Aplicar filtros por columna
+  Object.keys(newFilters).forEach(field => {
+    if (field !== 'global' && newFilters[field].value) {
+      const filterValue = newFilters[field].value.toLowerCase();
+
+      filtered = filtered.filter(item => {
+        const fieldValue = getFieldValue(item, field);
+        
+        if (field === 'empresa.razonSocial') {
+        }
+        
+        if (fieldValue === null || fieldValue === undefined) {
+          return false;
+        }
+        return fieldValue.toString().toLowerCase().includes(filterValue);
+      });
+      
+    }
+  });
+  
+  setFilteredData(filtered);
+  setFirst(0);
+};
+  // const applyFiltersWithNewValue = (newFilters) => {
+  //   let filtered = [...(props.value || [])];
     
-    setFilteredData(filtered);
-  };
+  //   // Aplicar filtro global
+  //   if (newFilters.global.value) {
+  //     const globalValue = newFilters.global.value.toLowerCase();
+  //     filtered = filtered.filter(item => {
+  //       return Object.values(item).some(val => 
+  //         val && val.toString().toLowerCase().includes(globalValue)
+  //       );
+  //     });
+  //   }
+    
+  //   // Aplicar filtros por columna
+  //   Object.keys(newFilters).forEach(field => {
+  //     if (field !== 'global' && newFilters[field].value) {
+  //       const filterValue = newFilters[field].value.toLowerCase();
+  //       filtered = filtered.filter(item => {
+  //         const fieldValue = getFieldValue(item, field);
+  //         return fieldValue && fieldValue.toString().toLowerCase().includes(filterValue);
+  //       });
+  //     }
+  //   });
+    
+  //   setFilteredData(filtered);
+  // };
   
   // Template para el filtro de cada columna
   const columnFilterTemplate = (field) => {
@@ -205,7 +243,20 @@ const DatatableDefaultNew = (props) => {
                   props.export == true && 
                   <div  className='flex  flex-wrapjustify-content-center' style={{gap:8}}>
                       <div className="flex ">
-                          <Button type="button" label='Descargar'icon="pi pi-file-excel"  severity="success" onClick={()=>generateExcelNew(filteredData)} data-pr-tooltip="XLS" />
+                          <Button type="button" label='Descargar'icon="pi pi-file-excel"  severity="success" 
+                          // onClick={()=>generateExcelNew(filteredData)} 
+                          onClick={() => {
+                const columnsInfo = React.Children.toArray(props.children)
+                  .filter(child => child?.props?.field)
+                  .map(child => ({
+                    field: child.props.field,
+                    header: child.props.header,
+                    body: child.props.body // Template personalizado si existe
+                  }));
+                
+                generateExcelNew(filteredData, columnsInfo);
+              }} 
+                          data-pr-tooltip="XLS" />
                       </div>
                   </div>
               }

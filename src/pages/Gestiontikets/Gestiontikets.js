@@ -70,9 +70,12 @@ const estadosOpciones = [
     });
 
     let networkTimeout = null;
-    useEffect(() => {
+//     useEffect(() => {
+//     loadLazyData();
+// }, [lazyState, globalFilterValue]);
+ useEffect(() => {
     loadLazyData();
-}, [lazyState, globalFilterValue]);
+}, [globalFilterValue]);
 
 useEffect(() => {
   const getParametro = async () => {
@@ -174,14 +177,24 @@ const loadLazyData = () => {
     }, Math.random() * 1000 + 250);
 };
    
+// const onPage = (event) => {
+//     setlazyState((prevState) => ({
+//         ...prevState,
+//         first: event.first,
+//         rows: event.rows,
+//         page: event.page, 
+//     }));
+// };
+
 const onPage = (event) => {
-    console.log("📊 Evento onPage recibido:", event);
+    // Solo actualiza el estado de paginación, NO recarga datos
     setlazyState((prevState) => ({
         ...prevState,
         first: event.first,
         rows: event.rows,
         page: event.page, 
     }));
+    // NO llamar loadLazyData() aquí
 };
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
@@ -339,9 +352,7 @@ const accion = (rowData) => {
 
 
     const Eliminar =async ({id})=>{
-        console.log("ID",id)
             await EliminarTicket({id}).then(data=>{
-                console.log(data);
                 toast.current.show({severity:'success', summary: 'Éxito', detail:"Registro eliminado.", life: 7000})
                 loadLazyData(); 
     

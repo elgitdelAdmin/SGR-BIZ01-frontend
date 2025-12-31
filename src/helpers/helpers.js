@@ -134,33 +134,151 @@ export const generateExcel = (dtRef) => {
   const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   saveAs(blob, 'data.xlsx');
 }
-export const generateExcelNew = (data) => {
-   console.log("Descarar",data)
+// export const generateExcelNew = (data) => {
+//    console.log("Descarar",data)
+
+//     const MAX_LEN = 32767;
+
+//     // Limpia cada fila
+//     const sanitizeRow = (row) => {
+//         const newRow = {};
+//         for (const key in row) {
+//             let val = row[key];
+
+//             // Convertir objetos a texto
+//             if (typeof val === 'object' && val !== null) {
+//                 val = JSON.stringify(val);
+//             }
+
+//             // Recortar textos largos
+//             if (typeof val === 'string' && val.length > MAX_LEN) {
+//                 val = val.substring(0, MAX_LEN - 3) + "...";
+//             }
+
+//             newRow[key] = val;
+//         }
+//         return newRow;
+//     };
+
+//     const safeData = data.map(sanitizeRow);
+
+//     const worksheet = utils.json_to_sheet(safeData);
+//     const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+
+//     const excelBuffer = write(workbook, {
+//         bookType: 'xlsx',
+//         type: 'array'
+//     });
+
+//     const blob = new Blob([excelBuffer], {
+//         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+//     });
+
+//     saveAs(blob, 'data.xlsx');
+// };
+
+export const generateExcelNew = (data, columnsInfo = null) => {
+    console.log("Descargar", data);
+    console.log("Columnas", columnsInfo);
 
     const MAX_LEN = 32767;
 
-    // Limpia cada fila
-    const sanitizeRow = (row) => {
+    // Si no hay columnsInfo, exportar todo como antes
+    if (!columnsInfo || columnsInfo.length === 0) {
+        const sanitizeRow = (row) => {
+            const newRow = {};
+            for (const key in row) {
+                let val = row[key];
+
+                if (typeof val === 'object' && val !== null) {
+                    val = JSON.stringify(val);
+                }
+
+                if (typeof val === 'string' && val.length > MAX_LEN) {
+                    val = val.substring(0, MAX_LEN - 3) + "...";
+                }
+
+                newRow[key] = val;
+            }
+            return newRow;
+        };
+
+        const safeData = data.map(sanitizeRow);
+        const worksheet = utils.json_to_sheet(safeData);
+        const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+        const excelBuffer = write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        saveAs(blob, 'data.xlsx');
+        return;
+    }
+
+    // ✅ NUEVO: Exportar solo columnas visibles con valores formateados
+    const processRow = (row) => {
         const newRow = {};
-        for (const key in row) {
-            let val = row[key];
+        
+        columnsInfo.forEach(col => {
+            const { field, header, body } = col;
+            let value;
 
-            // Convertir objetos a texto
-            if (typeof val === 'object' && val !== null) {
-                val = JSON.stringify(val);
+            // Si la columna tiene un body template (función de formateo)
+            if (typeof body === 'function') {
+                // Ejecutar el template para obtener el valor formateado
+                const result = body(row);
+                
+                // Si el resultado es un objeto React, extraer el texto
+                if (result && typeof result === 'object') {
+                    // Intentar extraer texto de elementos React
+                    if (result.props && result.props.children) {
+                        value = extractText(result.props.children);
+                    } else {
+                        value = String(result);
+                    }
+                } else {
+                    value = result;
+                }
+            } else {
+                // Obtener valor del campo (soporta campos anidados como empresa.razonSocial)
+                value = field.split('.').reduce((obj, key) => obj?.[key], row);
             }
 
-            // Recortar textos largos
-            if (typeof val === 'string' && val.length > MAX_LEN) {
-                val = val.substring(0, MAX_LEN - 3) + "...";
+            // Limpiar el valor
+            if (typeof value === 'object' && value !== null) {
+                value = JSON.stringify(value);
             }
 
-            newRow[key] = val;
-        }
+            if (typeof value === 'string' && value.length > MAX_LEN) {
+                value = value.substring(0, MAX_LEN - 3) + "...";
+            }
+
+            // Usar el header como nombre de columna
+            const columnName = typeof header === 'string' 
+                ? header 
+                : typeof header === 'object' && header.props?.children
+                    ? extractText(header.props.children)
+                    : field;
+
+            newRow[columnName] = value ?? '';
+        });
+
         return newRow;
     };
 
-    const safeData = data.map(sanitizeRow);
+    // Función auxiliar para extraer texto de elementos React
+    const extractText = (children) => {
+        if (typeof children === 'string') return children;
+        if (typeof children === 'number') return String(children);
+        if (Array.isArray(children)) {
+            return children.map(extractText).join(' ');
+        }
+        if (children && typeof children === 'object' && children.props) {
+            return extractText(children.props.children);
+        }
+        return '';
+    };
+
+    const safeData = data.map(processRow);
 
     const worksheet = utils.json_to_sheet(safeData);
     const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
@@ -176,8 +294,6 @@ export const generateExcelNew = (data) => {
 
     saveAs(blob, 'data.xlsx');
 };
-
-
 
 export const handleCopyToClipboard = (dtRef) => {
   if (dtRef.current) {
