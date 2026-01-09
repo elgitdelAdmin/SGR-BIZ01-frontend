@@ -368,9 +368,8 @@ const CambiarEmail = () => {
         </span>
       </div>
       <div className="header-titulo" style={{ marginTop: 16 }}>
-        Cambiar Correo
+        Validar Correo
       </div>
-      
       <div className="zv-editarUsuario-body" style={{ marginTop: 16 }}>
         {/* PASO 1: Enviar código al correo actual */}
         {paso === 1 && (
@@ -412,11 +411,11 @@ const CambiarEmail = () => {
           <form onSubmit={formikConfirmar.handleSubmit}>
             <div className="p-fluid formgrid grid">
               <div className="field col-12 md:col-12">
-                <label className="label-form">Nuevo Correo Electrónico</label>
+                <label className="label-form">Correo Electrónico</label>
                 <InputText
                   id="nuevoEmail"
                   name="nuevoEmail"
-                  placeholder="nuevo_correo@ejemplo.com"
+                  placeholder="correo@ejemplo.com"
                   value={formikConfirmar.values.nuevoEmail}
                   onBlur={formikConfirmar.handleBlur}
                   onChange={(e) => formikConfirmar.setFieldValue('nuevoEmail', e.target.value)}
