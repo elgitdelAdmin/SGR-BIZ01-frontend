@@ -1,7 +1,6 @@
 {
   "name": "zv_admin",
   "version": "0.1.0",
-  "homepage": "./",
   "engines": {
     "node": "16.8.0"
   },
