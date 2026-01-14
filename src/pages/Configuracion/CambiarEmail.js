@@ -465,7 +465,7 @@ const CambiarEmail = () => {
                 }}
               ></Boton>
               <Boton
-                label="Confirmar Cambio"
+                label="Validar Correo"
                 style={{ fontSize: 12 }}
                 color="primary"
                 type="submit"
