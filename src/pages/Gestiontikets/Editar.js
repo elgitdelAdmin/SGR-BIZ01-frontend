@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   Navigate,
   useLocation,
@@ -8,6 +8,7 @@ import {
 import { Calendar } from 'primereact/calendar';
 import { DataTable } from 'primereact/datatable';
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
+import ModalArchivos from "../../components/Modals/ModalArchivos/ModalArchivos";
 import * as Iconsax from "iconsax-react";
 import "./Gestiontikets.scss"
 import { InputText } from "primereact/inputtext";
@@ -33,7 +34,7 @@ import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { InputSwitch } from 'primereact/inputswitch';
 import { FileUpload } from "primereact/fileupload";
-import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria,ListarGestorCuenta} from "../../service/TiketService";
+import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria,ListarGestorCuenta,DescargarArchivoTicket} from "../../service/TiketService";
 import {ListarGestoresPorSocio,ListarGestores, ListarGestoresPorRolSocio} from "../../service/GestorService";
 import {ListarEmpresasPorSocio,ListarEmpresas,ListarEmpresasporRol} from "../../service/EmpresaService";
 import { Button } from 'primereact/button';
@@ -67,6 +68,7 @@ const Editar = () => {
   const [activeIndex, setActiveIndex] = useState(modoEdicion ? null : 0);
   const [codFrentes, setCodFrentes] = useState([]);
   const [subtiposFiltrados, setSubtiposFiltrados] = useState([]);
+const [visibleArchivos, setVisibleArchivos] = useState(false);
 
     const location = useLocation();
 
@@ -251,19 +253,56 @@ const Editar = () => {
     //}
   };
 
+const descargarArchivo = async (row) => {
+  try {
+    const blob = await DescargarArchivoTicket({
+      idTicket: persona?.id ?? id,
+      orden: row.Orden,
+    });
 
-  
-  const handleAdd = () => {
-    if (visibleIndex === null) return;
-    const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
-    const updated = [...current, tempData];
-    formik.setFieldValue(`asignaciones[${visibleIndex}].DetalleTareasConsultor`, updated);
+    const filename = row?.Url
+      ? row.Url.split("/").pop()
+      : `archivo_${row.Orden}`;
 
-    // limpiar y cerrar
-    setTempData({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true });
-    setVisibleIndex(null);
-  };
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    toast.current?.show({
+      severity: "error",
+      summary: "Error",
+      detail: err.message || "No se pudo descargar el archivo",
+      life: 6000,
+    });
+  }
+};
 
+  const archivosRows = useMemo(() => {
+    try {
+      return persona?.urlArchivos ? JSON.parse(persona.urlArchivos) : [];
+    } catch {
+      return [];
+    }
+  }, [persona?.urlArchivos]);
+
+  const columnasArchivos = useMemo(() => ([
+    { field: "Orden", header: "Orden", style: { width: "90px" } },
+    {
+      field: "Url",
+      header: "Archivo",
+      body: (row) => (row?.Url ? row.Url.split("/").pop() : "—"),
+    },
+    {
+      field: "FechaInsert",
+      header: "Fecha",
+      body: (row) => row?.FechaInsert ? new Date(row.FechaInsert).toLocaleString() : "—",
+    },
+  ]), []);
 
  useEffect(() => {
     const getParametro = async () => {
@@ -1409,32 +1448,65 @@ const verDescripcion = (rowData) => {
                 <div className="field col-12 md:col-6">
                   <div className="grid">
                     {/* Subir archivo ZIP */}
-                    <div className="field col-12">
-                      <label className="label-form">Subir archivo ZIP</label>
-                      <div className="custom-file-upload">
-                        <label htmlFor="zipFile" className="upload-label">
-                          {formik.values.zipFile
-                            ? "Archivo cargado correctamente"
-                            : "Seleccionar archivo .zip"}
-                        </label>
-                        <input
-                          type="file"
-                          id="zipFile"
-                          name="zipFile"
-                          accept=".zip"
-                          onChange={(event) => {
-                            const file = event.currentTarget.files[0];
-                            formik.setFieldValue("zipFile", file || null);
-                          }}
-                          disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
-                          onBlur={formik.handleBlur}
-                          className="hidden-input"
-                        />
-                      </div>
-                      <small className="p-error">
-                        {formik.touched.urlArchivos && formik.errors.urlArchivos}
-                      </small>
-                    </div>
+            <div className="field col-12">
+  <label className="label-form">Subir archivo ZIP</label>
+
+  <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+    {/* Botón cargar: ocupa TODO el espacio */}
+    <label
+      htmlFor="zipFile"
+      className="upload-label"
+      style={{ flex: 1, margin: 0 }}   // <-- CLAVE: flex:1
+    >
+      {formik.values.zipFile
+        ? formik.values.zipFile.name
+        : "Seleccionar archivo .zip"}
+    </label>
+
+    <input
+      type="file"
+      id="zipFile"
+      name="zipFile"
+      accept=".zip"
+      onChange={(event) => {
+        const file = event.currentTarget.files[0];
+        formik.setFieldValue("zipFile", file || null);
+      }}
+      disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
+      onBlur={formik.handleBlur}
+      className="hidden-input"
+    />
+
+    {/* Ojo: ancho fijo */}
+    {/* <Boton
+      type="button"
+      icon="pi pi-eye"
+      color="primary"
+      aria-label="Ver archivos"
+      onClick={() => setVisibleArchivos(true)}
+      disabled={!persona?.urlArchivos}
+      style={{
+        width: 55,
+        height: 45,
+        padding: 0,
+        borderRadius: 6,  
+      }}
+    />
+*/}
+  </div>
+</div>
+
+      <ModalArchivos
+  visible={visibleArchivos}
+  onHide={() => setVisibleArchivos(false)}
+  title="Archivos adjuntos"
+  rows={archivosRows}
+  columns={columnasArchivos}
+  rowKey={(r) => `${r.Orden}-${r.Url}`}
+  onDownload={descargarArchivo}
+/>
+
+
 
                     {/* Gestor Asignado (queda arriba, justo debajo del ZIP) */}
                     <div className="field col-12" style={{ marginTop: -6 }}>

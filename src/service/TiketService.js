@@ -43,49 +43,6 @@ export const ListarFrentes = async () => {
   });
 };
 
-
-// export const ListarConsultores = async () => {
-//   return await fetch(`${ENDPOINT}/api/Consultor`, {
-//     method: "GET",
-//     headers: {
-//       "Accept": "application/json"
-//     },
-//   })
-//   .then(res => {
-//     if (!res.ok) throw new Error("Error al obtener los consultores");
-//     return res.json();
-//   });
-// };
-
-
-// export const RegistrarTiket = ({ formData }) => {
-//   return fetch(`${ENDPOINT}/api/Ticket`, {
-//     method: "POST",
-//     headers: {
-//       "Accept": "application/json",
-//       //"Content-Type": "application/json", 
-//     },
-//     body: formData,
-//   })
-//     .then((res) => {
-//       if (!res.ok) {
-//         if (res.status === 401) {
-//           window.localStorage.removeItem("jwt");
-//           window.location.reload();
-//         } else {
-//           throw new Error("No se recibió respuesta del servidor");
-//         }
-//       }
-//       return res.json();
-
-//     })
-//     .then((res) => {
-//       if (res.errors) throw new Error(res.errors[0]);
-//       const { data } = res;
-//       return data;
-//     });
-// };
-
 export const RegistrarTiket = ({ formData }) => {
   return fetch(`${ENDPOINT}/api/Ticket`, {
     method: "POST",
@@ -225,4 +182,28 @@ export const ListarGestorCuenta = async () => {
     if (!res.ok) throw new Error("Error al obtener los Gestores");
     return res.json();
   });
+};
+export const DescargarArchivoTicket = async ({ idTicket, orden }) => {
+  return fetch(`${ENDPOINT}/api/Ticket/${idTicket}/desgarcarArchivo/${orden}`, {
+    method: "GET",
+    headers: {
+      "Accept": "*/*",
+    },
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.localStorage.removeItem("jwt");
+          window.location.reload();
+        } else {
+          throw new Error("Error al descargar el archivo");
+        }
+      }
+
+      // El endpoint devuelve un archivo, no JSON
+      return res.blob();
+    })
+    .then((blob) => {
+      return blob;
+    });
 };
