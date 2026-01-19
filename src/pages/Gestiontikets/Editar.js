@@ -1261,7 +1261,7 @@ const verDescripcion = (rowData) => {
                       options={parametros?.filter((item) => item.tipoParametro === "TipoTicket")}
                       optionLabel="nombre"
                       optionValue="id"
-                      disabled={permisosActual.controlesBloqueados.includes("cboTipo")}
+                      //disabled={permisosActual.controlesBloqueados.includes("cboTipo")}
                       onChange={(e) => {
                         const nuevoTipoId = Number(e.value);
                         formik.setFieldValue("idTipoTicket", nuevoTipoId);
