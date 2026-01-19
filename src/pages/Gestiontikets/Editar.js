@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   Navigate,
   useLocation,
@@ -8,10 +8,12 @@ import {
 import { Calendar } from 'primereact/calendar';
 import { DataTable } from 'primereact/datatable';
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
+import ModalArchivos from "../../components/Modals/ModalArchivos/ModalArchivos";
 import * as Iconsax from "iconsax-react";
 import "./Gestiontikets.scss"
 import { InputText } from "primereact/inputtext";
 import Boton from "../../components/Boton/Boton";
+import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown } from 'primereact/dropdown';
 import * as Yup from "yup";
 import { Field, FieldArray, Formik, useFormik, FormikProvider } from "formik";
@@ -32,7 +34,7 @@ import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { InputSwitch } from 'primereact/inputswitch';
 import { FileUpload } from "primereact/fileupload";
-import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria,ListarGestorCuenta} from "../../service/TiketService";
+import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria,ListarGestorCuenta,DescargarArchivoTicket} from "../../service/TiketService";
 import {ListarGestoresPorSocio,ListarGestores, ListarGestoresPorRolSocio} from "../../service/GestorService";
 import {ListarEmpresasPorSocio,ListarEmpresas,ListarEmpresasporRol} from "../../service/EmpresaService";
 import { Button } from 'primereact/button';
@@ -65,6 +67,8 @@ const Editar = () => {
   const codRol = localStorage.getItem("codRol");
   const [activeIndex, setActiveIndex] = useState(modoEdicion ? null : 0);
   const [codFrentes, setCodFrentes] = useState([]);
+  const [subtiposFiltrados, setSubtiposFiltrados] = useState([]);
+const [visibleArchivos, setVisibleArchivos] = useState(false);
 
     const location = useLocation();
 
@@ -131,7 +135,8 @@ const Editar = () => {
 
   const [visibleDescripcion, setVisibleDescripcion] = useState(false);
   const [rowSeleccionada, setRowSeleccionada] = useState(null);
-  
+
+
   const agregarDetalle = () => {
     console.log("agregarDenuevoDetalletalle",nuevoDetalle)
     if (visibleIndex === null) return;
@@ -248,19 +253,56 @@ const Editar = () => {
     //}
   };
 
+const descargarArchivo = async (row) => {
+  try {
+    const blob = await DescargarArchivoTicket({
+      idTicket: persona?.id ?? id,
+      orden: row.Orden,
+    });
 
-  
-  const handleAdd = () => {
-    if (visibleIndex === null) return;
-    const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
-    const updated = [...current, tempData];
-    formik.setFieldValue(`asignaciones[${visibleIndex}].DetalleTareasConsultor`, updated);
+    const filename = row?.Url
+      ? row.Url.split("/").pop()
+      : `archivo_${row.Orden}`;
 
-    // limpiar y cerrar
-    setTempData({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true });
-    setVisibleIndex(null);
-  };
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    toast.current?.show({
+      severity: "error",
+      summary: "Error",
+      detail: err.message || "No se pudo descargar el archivo",
+      life: 6000,
+    });
+  }
+};
 
+  const archivosRows = useMemo(() => {
+    try {
+      return persona?.urlArchivos ? JSON.parse(persona.urlArchivos) : [];
+    } catch {
+      return [];
+    }
+  }, [persona?.urlArchivos]);
+
+  const columnasArchivos = useMemo(() => ([
+    { field: "Orden", header: "Orden", style: { width: "90px" } },
+    {
+      field: "Url",
+      header: "Archivo",
+      body: (row) => (row?.Url ? row.Url.split("/").pop() : "—"),
+    },
+    {
+      field: "FechaInsert",
+      header: "Fecha",
+      body: (row) => row?.FechaInsert ? new Date(row.FechaInsert).toLocaleString() : "—",
+    },
+  ]), []);
 
  useEffect(() => {
     const getParametro = async () => {
@@ -317,14 +359,6 @@ const Editar = () => {
      getConsultorFrente();
   }, []);
 
-
- 
-    // useEffect(() => {
-    //     const getFrentes = async () => {
-    //     await ListarFrentes().then(data=>{setFrentes(data)})
-    //         };
-    //     getFrentes();
-    // }, []);
    
 useEffect(() => {
   const getFrentes = async () => {
@@ -492,6 +526,7 @@ function toLocalISOString(date) {
       titulo: Yup.string().required("Título es obligatorio"),
       fechaSolicitud: Yup.date().required("Fecha de solicitud es obligatoria"),
       idTipoTicket: Yup.number().required("Tipo de ticket es obligatorio"),
+      idSubtipoTicket: Yup.number().required("Subtipo es obligatorio"),
       idEstadoTicket: Yup.number().required("Estado del ticket es obligatorio"),
       idEmpresa: Yup.number().required("Empresa es obligatoria"),
       // idUsuarioResponsableCliente: Yup.number().required("Responsable del cliente es obligatorio"),
@@ -572,7 +607,8 @@ function toLocalISOString(date) {
       codTicketInterno: persona ? persona.codTicketInterno : "",
       titulo: persona ? persona.titulo : "",
       fechaSolicitud: persona ? new Date(persona.fechaSolicitud) : null,
-      idTipoTicket: persona ? persona.idTipoTicket : null,
+      idTipoTicket: persona ? Number(persona.idTipoTicket) : null,
+      idSubtipoTicket: persona ? Number(persona.idSubTipoTicket ?? persona.idSubtipoTicket) : null,
       idEstadoTicket: persona ? persona.idEstadoTicket : 54,
       idEmpresa: persona ? persona.idEmpresa : null,
       idUsuarioResponsableCliente: persona ? persona.idUsuarioResponsableCliente : null,
@@ -639,8 +675,8 @@ function toLocalISOString(date) {
     formData.append("titulo", values.titulo);
     // formData.append("fechaSolicitud", values.fechaSolicitud ? new Date(values.fechaSolicitud).toISOString() : null);
     formData.append("fechaSolicitud", values.fechaSolicitud ? toLocalISOString(values.fechaSolicitud) : null);
-
     formData.append("idTipoTicket", values.idTipoTicket);
+    formData.append("idSubtipoTicket", values.idSubtipoTicket);
     formData.append("idEstadoTicket", values.idEstadoTicket);
     formData.append("idEmpresa", values.idEmpresa);
     formData.append("idUsuarioResponsableCliente", values.idUsuarioResponsableCliente);
@@ -695,17 +731,46 @@ console.log("📦 Datos a enviar:");
   
  
     });
-//   useEffect(() => {
-//   if (formik.submitCount > 0) {
-//     console.log("Errores actuales:", formik.errors);
-//   toast.current.show({
-//         severity: "warn",
-//         summary: "Campos incompletos",
-//         detail: Object.values(formik.errors).join(", "),
-//         life: 5000,
-//       });
-//   }
-// }, [formik.submitCount]);
+
+const recalcularSubtipos = (idTipoTicket) => {
+  if (!idTipoTicket || !parametros?.length) return;
+
+  const tipo = parametros.find(
+    (p) => p.tipoParametro === "TipoTicket" && Number(p.id) === Number(idTipoTicket)
+  );
+
+  const codigoTipo = (tipo?.codigo ?? "").trim();
+
+  // Si no hay código, no borres el valor (solo deja opciones vacías)
+  if (!codigoTipo) {
+    setSubtiposFiltrados([]);
+    return;
+  }
+
+const subs = parametros
+  .filter(
+    (p) =>
+      p.tipoParametro === "Subtipos" &&
+      String(p.valor1).trim() === codigoTipo
+  )
+  .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+  .map((s) => ({ ...s, id: Number(s.id) })); // 🔥 normaliza ids
+
+setSubtiposFiltrados(subs);
+
+
+  // En edición NO limpies el subtipo automáticamente
+  const actual = Number(formik.values.idSubtipoTicket);
+  const existe = subs.some((s) => Number(s.id) === actual);
+
+    const esEdicionReal = Boolean(id) || Boolean(persona); // ✅ detecta edición real
+
+    if (!existe && !esEdicionReal) {
+      formik.setFieldValue("idSubtipoTicket", null);
+    }
+
+};
+
 
  useEffect(() => {
     if (!parametros?.length) return;
@@ -747,6 +812,26 @@ useEffect(() => {
     });
   }
 }, [formik.submitCount, formik.errors]);
+useEffect(() => {
+  if (!parametros?.length) return;
+  if (!formik.values.idTipoTicket) return;
+
+  recalcularSubtipos(formik.values.idTipoTicket);
+}, [parametros, formik.values.idTipoTicket]);
+useEffect(() => {
+  if (!persona) return;
+  if (!subtiposFiltrados?.length) return;
+
+  const idBackend = persona.idSubTipoTicket ?? persona.idSubtipoTicket ?? null;
+  if (!idBackend) return;
+
+  const existe = subtiposFiltrados.some(s => Number(s.id) === Number(idBackend));
+
+  if (existe) {
+    formik.setFieldValue("idSubtipoTicket", Number(idBackend));
+  }
+}, [persona, subtiposFiltrados]);
+
 
  useEffect(() => {
   if (
@@ -982,17 +1067,8 @@ const confirmarEliminacion = (rowData) => {
   }
 };
 
-const handleGestorChange = (e) => {
-  const selectedGestorConsultoriaId = e.value;
-  formik.setFieldValue("idGestorConsultoria", selectedGestorConsultoriaId);
 
-};
 
- const handleChange = (index, field, value) => {
-    const newAsignaciones = [...formik.values.asignaciones];
-    newAsignaciones[index][field] = value;
-    formik.setFieldValue("asignaciones", newAsignaciones);
-  };
 
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -1133,273 +1209,332 @@ const verDescripcion = (rowData) => {
         <form onSubmit={formik.handleSubmit}>
           <div className="p-fluid formgrid grid"> 
             <div className="field col-12 md:col-12">
-           
-              {/* <Accordion
-                key={modoEdicion ? 'edit' : 'view'}
-                activeIndex={!modoEdicion ? 0 : null}
-              > */}
-                  <Accordion activeIndex={isOpen ? 0 : null}>
+      
+                        
+            {/* ===================== DATOS GENERALES (COPIAR Y PEGAR) ===================== */}
+            <Accordion activeIndex={isOpen ? 0 : null}>
+              <AccordionTab header="Datos Generales" style={{ width: "100%" }}>
+                <div className="grid">
+                  {/* Titulo */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Titulo</label>
+                    <InputText
+                      type={"text"}
+                      id="titulo"
+                      name="titulo"
+                      placeholder="Escribe aquí"
+                      value={formik.values.titulo}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      disabled={permisosActual.controlesBloqueados.includes("txtTitulo")}
+                    />
+                    <div className="p-error">{formik.touched.titulo && formik.errors.titulo}</div>
+                  </div>
 
-              <AccordionTab header="Datos Generales" style={{ width: '100%' }} >
-                <div className="grid"> 
-              <div className="field col-12 md:col-6">
-                <label className="label-form">Titulo</label>
-                <InputText
-                  type={"text"}
-                  id="titulo"
-                  name="titulo"
-                  placeholder="Escribe aquí"
-                  value={formik.values.titulo}
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  disabled={permisosActual.controlesBloqueados.includes("txtTitulo")}
-                  // onChange={(e)=>handleSoloLetras(e,formik,"titulo")}
-                ></InputText>
-                <div className="p-error">
-                  {formik.touched.titulo && formik.errors.titulo}
+                  {/* Fecha de solicitud */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Fecha de solicitud </label>
+                    <Calendar
+                      id="fechaSolicitud"
+                      name="fechaSolicitud"
+                      value={formik.values.fechaSolicitud}
+                      onChange={(e) => formik.setFieldValue("fechaSolicitud", e.value)}
+                      onBlur={formik.handleBlur}
+                      dateFormat="dd/mm/yy"
+                      placeholder="Selecciona la fecha"
+                      showIcon
+                      disabled={permisosActual.controlesBloqueados.includes("dateFechaSolicitud")}
+                    />
+                    <div className="p-error">
+                      {formik.touched.fechaSolicitud && formik.errors.fechaSolicitud}
+                    </div>
+                  </div>
+
+                  {/* Tipo */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Tipo</label>
+                  <DropdownDefault
+                      id="idTipoTicket"
+                      name="idTipoTicket"
+                      placeholder="Seleccione"
+                      value={formik.values.idTipoTicket}
+                      options={parametros?.filter((item) => item.tipoParametro === "TipoTicket")}
+                      optionLabel="nombre"
+                      optionValue="id"
+                      //disabled={permisosActual.controlesBloqueados.includes("cboTipo")}
+                      onChange={(e) => {
+                        const nuevoTipoId = Number(e.value);
+                        formik.setFieldValue("idTipoTicket", nuevoTipoId);
+                        formik.setFieldValue("idSubtipoTicket", null);
+                      }}
+                      onBlur={formik.handleBlur}
+                    />
+
+                    <small className="p-error">
+                      {formik.touched.idTipoTicket && formik.errors.idTipoTicket}
+                    </small>
+                  </div>
+
+                  {/* Subtipo */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Subtipo</label>
+                    <DropdownDefault
+                      id="idSubtipoTicket"
+                      name="idSubtipoTicket"
+                      placeholder="Seleccione"
+                      value={formik.values.idSubtipoTicket}
+                      options={subtiposFiltrados}
+                      optionLabel="nombre"
+                      optionValue="id"
+                      disabled={
+                        permisosActual.controlesBloqueados.includes("cboSubtipo") ||
+                        !formik.values.idTipoTicket
+                      }
+                      onChange={(e) => formik.setFieldValue("idSubtipoTicket", Number(e.value))}
+                      onBlur={formik.handleBlur}
+                    />
+                    <small className="p-error">
+                      {formik.touched.idSubtipoTicket && formik.errors.idSubtipoTicket}
+                    </small>
+                  </div>
+
+                  {/* Empresa */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Empresa</label>
+                    <DropdownDefault
+                      id="idEmpresa"
+                      name="idEmpresa"
+                      placeholder="Seleccione"
+                      value={formik.values.idEmpresa}
+                      onChange={handleEmpresaChange}
+                      onBlur={formik.handleBlur}
+                      options={empresa}
+                      optionLabel="nombreComercial"
+                      optionValue="id"
+                      disabled={permisosActual.controlesBloqueados.includes("cboEmpresa")}
+                    />
+                    <small className="p-error">{formik.touched.idEmpresa && formik.errors.idEmpresa}</small>
+                  </div>
+
+                  {/* Usuario Responsable del Cliente */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Usuario Responsable del Cliente</label>
+                    <InputText
+                      type={"text"}
+                      id="nombrePersonaResponsable"
+                      name="nombrePersonaResponsable"
+                      placeholder="Escribe aquí"
+                      value={formik.values.nombrePersonaResponsable}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      disabled={true}
+                    />
+                    <div className="p-error">{formik.touched.titulo && formik.errors.titulo}</div>
+                  </div>
+
+                  {/* Prioridad */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Prioridad</label>
+                    <DropdownDefault
+                      type="text"
+                      id="idPrioridad"
+                      name="idPrioridad"
+                      placeholder="Seleccione"
+                      value={formik.values.idPrioridad}
+                      onChange={(e) => {
+                        formik.setFieldValue("idPrioridad", "");
+                        formik.handleChange(e);
+                      }}
+                      onBlur={formik.handleBlur}
+                      options={parametros?.filter((item) => item.tipoParametro === "Prioridad")}
+                      disabled={permisosActual.controlesBloqueados.includes("cboPrioridad")}
+                      optionLabel="nombre"
+                      optionValue="id"
+                    />
+                    <small className="p-error">
+                      {formik.touched.idPrioridad && formik.errors.idPrioridad}
+                    </small>
+                  </div>
+
+                  {/* Codigo Interno */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Codigo Interno</label>
+                    <InputText
+                      type={"text"}
+                      id="codTicketInterno"
+                      name="codTicketInterno"
+                      placeholder="Escribe aquí"
+                      value={formik.values.codTicketInterno}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      disabled={permisosActual.controlesBloqueados.includes("textCodigoInterno")}
+                    />
+                    <div className="p-error">
+                      {formik.touched.codTicketInterno && formik.errors.codTicketInterno}
+                    </div>
+                  </div>
+
+                  {/* ===================== CAMBIO: ESTADO + GESTOR CONSULTORIA JUNTOS ===================== */}
+
+                  {/* Estado */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Estado</label>
+                    <DropdownDefault
+                      type="text"
+                      id="idEstadoTicket"
+                      name="idEstadoTicket"
+                      placeholder="Seleccione"
+                      value={formik.values.idEstadoTicket}
+                      onChange={(e) => {
+                        formik.setFieldValue("idEstadoTicket", "");
+                        formik.handleChange(e);
+                      }}
+                      disabled={!modoEdicion || (bloquearDropdown && formik.values.idEstadoTicket !== 0)}
+                      onBlur={formik.handleBlur}
+                      options={opcionesEstadoTicket}
+                      optionLabel="nombre"
+                      optionValue="id"
+                    />
+                    <small className="p-error">
+                      {formik.touched.idEstadoTicket && formik.errors.idEstadoTicket}
+                    </small>
+                  </div>
+
+                  {/* Gestor Consultoria */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Gestor Consultoria</label>
+                    <DropdownDefault
+                      id="idGestorConsultoria"
+                      name="idGestorConsultoria"
+                      placeholder="Seleccione"
+                      value={formik.values.idGestorConsultoria}
+                      onChange={(e) => formik.setFieldValue("idGestorConsultoria", e.value)}
+                      onBlur={formik.handleBlur}
+                      options={gestorConsultoria}
+                      optionLabel={(option) =>
+                        `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`
+                      }
+                      optionValue="id"
+                      disabled={permisosActual.controlesBloqueados.includes("cboGestorConsultoria")}
+                    />
+                    <small className="p-error">
+                      {formik.touched.idGestorConsultoria && formik.errors.idGestorConsultoria}
+                    </small>
+                  </div>
+
+                  {/* ===================== DESCRIPCION + ZIP (IGUAL) ===================== */}
+
+                  {/* Descripción */}
+                  <div className="field col-12 md:col-6">
+                    <label className="label-form">Descripción</label>
+                    <InputTextarea
+                      id="descripcion"
+                      name="descripcion"
+                      placeholder="Escribe aquí"
+                      value={formik.values.descripcion}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      rows={5}
+                      autoResize
+                      disabled={permisosActual.controlesBloqueados.includes("cboDescripcion")}
+                      className="w-full"
+                    />
+                    <div className="p-error">
+                      {formik.touched.descripcion && formik.errors.descripcion}
+                    </div>
+                  </div>
+
+                {/* COLUMNA DERECHA: ZIP + GESTOR ASIGNADO (MÁS ARRIBA) */}
+                <div className="field col-12 md:col-6">
+                  <div className="grid">
+                    {/* Subir archivo ZIP */}
+            <div className="field col-12">
+  <label className="label-form">Subir archivo ZIP</label>
+
+  <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+    {/* Botón cargar: ocupa TODO el espacio */}
+    <label
+      htmlFor="zipFile"
+      className="upload-label"
+      style={{ flex: 1, margin: 0 }}   // <-- CLAVE: flex:1
+    >
+      {formik.values.zipFile
+        ? formik.values.zipFile.name
+        : "Seleccionar archivo .zip"}
+    </label>
+
+    <input
+      type="file"
+      id="zipFile"
+      name="zipFile"
+      accept=".zip"
+      onChange={(event) => {
+        const file = event.currentTarget.files[0];
+        formik.setFieldValue("zipFile", file || null);
+      }}
+      disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
+      onBlur={formik.handleBlur}
+      className="hidden-input"
+    />
+
+    {/* Ojo: ancho fijo */}
+    {/* <Boton
+      type="button"
+      icon="pi pi-eye"
+      color="primary"
+      aria-label="Ver archivos"
+      onClick={() => setVisibleArchivos(true)}
+      disabled={!persona?.urlArchivos}
+      style={{
+        width: 55,
+        height: 45,
+        padding: 0,
+        borderRadius: 6,  
+      }}
+    />
+*/}
+  </div>
+</div>
+
+      <ModalArchivos
+  visible={visibleArchivos}
+  onHide={() => setVisibleArchivos(false)}
+  title="Archivos adjuntos"
+  rows={archivosRows}
+  columns={columnasArchivos}
+  rowKey={(r) => `${r.Orden}-${r.Url}`}
+  onDownload={descargarArchivo}
+/>
+
+
+
+                    {/* Gestor Asignado (queda arriba, justo debajo del ZIP) */}
+                    <div className="field col-12" style={{ marginTop: -6 }}>
+                      <label className="label-form">Gestor Asignado</label>
+                      <DropdownDefault
+                        id="idGestor"
+                        name="idGestor"
+                        placeholder="Seleccione"
+                        value={formik.values.idGestor}
+                        onChange={(e) => formik.setFieldValue("idGestor", e.value)}
+                        onBlur={formik.handleBlur}
+                        options={gestorCuenta}
+                        optionLabel={(option) =>
+                          `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`
+                        }
+                        optionValue="id"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="field col-12 md:col-6">
-                <label className="label-form">Fecha de solicitud </label>
-                <Calendar
-                  id="fechaSolicitud"
-                  name="fechaSolicitud"
-                  value={formik.values.fechaSolicitud}
-                  onChange={(e) => formik.setFieldValue('fechaSolicitud', e.value)}
-                  onBlur={formik.handleBlur}
-                  dateFormat="dd/mm/yy"
-                  placeholder="Selecciona la fecha"
-                  showIcon
-                  //  minDate={new Date()} 
-                  disabled={permisosActual.controlesBloqueados.includes("dateFechaSolicitud")}
 
-                />
-                <div className="p-error">
-                  {formik.touched.fechaSolicitud && formik.errors.fechaSolicitud}
-                </div>
-              </div>
-              <div className="field col-12 md:col-6">
-              <label className="label-form">Tipo</label>
-               <DropdownDefault
-                type="text"
-                id="idTipoTicket"
-                name="idTipoTicket"
-                placeholder="Seleccione"
-                value={formik.values.idTipoTicket}
-                onChange={(e) => {
-                  formik.setFieldValue("idTipoTicket", "");
-                  formik.handleChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                // options={tipotiket}
-                 options={parametros?.filter((item) => item.tipoParametro === "TipoTicket")}
-                optionLabel="nombre"
-                optionValue="id"
-                disabled={permisosActual.controlesBloqueados.includes("cboTipo")}
-
-              />
-              <small className="p-error">
-                {formik.touched.idTipoTicket && formik.errors.idTipoTicket}
-              </small>
-              </div>
-              <div className="field col-12 md:col-6">
-              <label className="label-form">Estado</label>
-                <DropdownDefault
-                type="text"
-                id="idEstadoTicket"
-                name="idEstadoTicket"
-                placeholder="Seleccione"
-                value={formik.values.idEstadoTicket}
-                onChange={(e) => {
-                  formik.setFieldValue("idEstadoTicket", "");
-                  formik.handleChange(e);
-                }}
-                disabled={!modoEdicion || (bloquearDropdown && formik.values.idEstadoTicket!==0)}
-                onBlur={formik.handleBlur}
-                // options={estadoTiket}
-                // options={parametros?.filter((item) => item.tipoParametro === "EstadoTicket")}
-                  options={opcionesEstadoTicket}
-                // options={parametros
-                // ?.filter(item => 
-                //   item.tipoParametro === "EstadoTicket"
-                //   //  && item.valor2?.split(',').includes(codRol)
-                // )}
-                optionLabel="nombre"
-                optionValue="id"
-              />
-              <small className="p-error">
-                {formik.touched.idEstadoTicket && formik.errors.idEstadoTicket}
-              </small>
-              </div>
-              <div className="field col-12 md:col-6">
-              <label className="label-form">Empresa</label>
-              <DropdownDefault
-                id="idEmpresa"
-                name="idEmpresa"
-                placeholder="Seleccione"
-                value={formik.values.idEmpresa}
-                onChange={handleEmpresaChange}
-                
-                onBlur={formik.handleBlur}
-                options={empresa}
-                optionLabel="nombreComercial"
-                optionValue="id"
-                disabled={permisosActual.controlesBloqueados.includes("cboEmpresa")}
-
-              />
-              <small className="p-error">
-                {formik.touched.idEmpresa && formik.errors.idEmpresa}
-              </small>
-              </div>
-              <div className="field col-12 md:col-6">
-                <label className="label-form">Usuario Responsable del Cliente</label>
-                <InputText
-                  type={"text"}
-                  id="nombrePersonaResponsable"
-                  name="nombrePersonaResponsable"
-                  placeholder="Escribe aquí"
-                  value={formik.values.nombrePersonaResponsable}
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  disabled = {true}
-
-                  // onChange={(e)=>handleSoloLetras(e,formik,"titulo")}
-                ></InputText>
-                <div className="p-error">
-                  {formik.touched.titulo && formik.errors.titulo}
-                </div>
-            
-              </div>
-              <div className="field col-12 md:col-6">
-              <label className="label-form">Prioridad</label>
-               <DropdownDefault
-                type="text"
-                id="idPrioridad"
-                name="idPrioridad"
-                placeholder="Seleccione"
-                value={formik.values.idPrioridad}
-                onChange={(e) => {
-                  formik.setFieldValue("idPrioridad", "");
-                  formik.handleChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                // options={prueba}
-                options={parametros?.filter((item) => item.tipoParametro === "Prioridad")}
-                disabled={permisosActual.controlesBloqueados.includes("cboPrioridad")}
-                optionLabel="nombre"
-                optionValue="id"
-              />
-              <small className="p-error">
-                {formik.touched.idPrioridad && formik.errors.idPrioridad}
-              </small>
-              </div>
-              <div className="field col-12 md:col-6">
-                <label className="label-form">Codigo Interno</label>
-                <InputText
-                  type={"text"}
-                  id="codTicketInterno"
-                  name="codTicketInterno"
-                  placeholder="Escribe aquí"
-                  value={formik.values.codTicketInterno}
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                 disabled={permisosActual.controlesBloqueados.includes("textCodigoInterno")}
-
-                  // onChange={(e)=>handleSoloLetras(e,formik,"codTicketInterno")}
-                ></InputText>
-                <div className="p-error">
-                  {formik.touched.codTicketInterno && formik.errors.codTicketInterno}
-                </div>
-              </div>
-              <div className="field col-12 md:col-6">
-                <label className="label-form">Descripcion</label>
-                <InputText
-                  type={"text"}
-                  id="descripcion"
-                  name="descripcion"
-                  placeholder="Escribe aquí"
-                  value={formik.values.descripcion}
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                 disabled={permisosActual.controlesBloqueados.includes("cboDescripcion")}
-
-                  // onChange={(e)=>handleSoloLetras(e,formik,"descripcion")}   
-                ></InputText>
-                <div className="p-error">
-                  {formik.touched.descripcion && formik.errors.descripcion}
-                </div>
-              </div>           
-              <div className="field col-12 md:col-6">
-                <label className="label-form">Subir archivo ZIP</label>
-                <div className="custom-file-upload">
-                  <label htmlFor="zipFile" className="upload-label">
-                    {formik.values.zipFile
-                    ? "Archivo cargado correctamente"
-                    : "Seleccionar archivo .zip"}
-                  </label>
-                <input
-                type="file"
-                id="zipFile"
-                name="zipFile"
-                accept=".zip"
-                onChange={(event) => {
-                  const file = event.currentTarget.files[0];
-                  if (file) {
-                    formik.setFieldValue("zipFile", file);
-                  } else {
-                    formik.setFieldValue("zipFile", null);
-                  }
-                }}
-                disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
-                onBlur={formik.handleBlur}
-                className="hidden-input"
-              />
-                </div>
-                <small className="p-error">
-                  {formik.touched.urlArchivos && formik.errors.urlArchivos}
-                </small>
-              </div>
-              <div className="field col-12 md:col-6">
-              <label className="label-form">Gestor Consultoria</label>
-              <DropdownDefault
-                id="idGestorConsultoria"
-                name="idGestorConsultoria"
-                placeholder="Seleccione"
-                value={formik.values.idGestorConsultoria}
-                onChange={handleGestorChange}
-                onBlur={formik.handleBlur}
-                options={gestorConsultoria}
-                optionLabel={(option) => `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`}
-                optionValue="id"
-                disabled={permisosActual.controlesBloqueados.includes("cboGestorConsultoria")}
-
-              />
-              <small className="p-error">
-                {formik.touched.idGestorConsultoria && formik.errors.idGestorConsultoria}
-              </small>
-              </div>
-               <div className="field col-12 md:col-6">
-              <label className="label-form">Gestor Asignado</label>
-              <DropdownDefault
-                id="idGestor"
-                name="idGestor"
-                placeholder="Seleccione"
-                value={formik.values.idGestor}
-                onChange={handleGestorChange}
-                onBlur={formik.handleBlur}
-                options={gestorCuenta}
-                optionLabel={(option) => `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`}
-                optionValue="id"
-                // disabled={permisosActual.controlesBloqueados.includes("cboGestoridGestorAsignado")}
-
-              />
-              <small className="p-error">
-                {formik.touched.idGestorConsultoria && formik.errors.idGestorConsultoria}
-              </small>
-              </div>
+          
                 </div>
               </AccordionTab>
             </Accordion>
+            {/* ===================== FIN DATOS GENERALES ===================== */}
+
+
             </div> 
                { modoEdicion && (
              <>
