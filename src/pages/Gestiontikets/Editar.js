@@ -1,12 +1,6 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
-import {
-  Navigate,
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Calendar } from 'primereact/calendar';
-import { DataTable } from 'primereact/datatable';
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
 import ModalArchivos from "../../components/Modals/ModalArchivos/ModalArchivos";
 import * as Iconsax from "iconsax-react";
@@ -14,33 +8,22 @@ import "./Gestiontikets.scss"
 import { InputText } from "primereact/inputtext";
 import Boton from "../../components/Boton/Boton";
 import { InputTextarea } from "primereact/inputtextarea";
-import { Dropdown } from 'primereact/dropdown';
 import * as Yup from "yup";
-import { Field, FieldArray, Formik, useFormik, FormikProvider } from "formik";
-
+import { useFormik } from "formik";
 import { Toast } from "primereact/toast";
 import useUsuario from "../../hooks/useUsuario";
-import { InputNumber } from "primereact/inputnumber";
-import { Password } from "primereact/password";
-import { Checkbox } from "primereact/checkbox";
-import { TabView, TabPanel } from "primereact/tabview";
-import DatatableDefault from "../../components/Datatable/DatatableDefault";
-import { Column } from "primereact/column";
 import {ListarConsultores,ListarConsultoresPorSocio,ObtenerConsultor} from "../../service/ConsultorService";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog"; // For confirmDialog method
-import { handleSoloLetras, handleSoloLetrastest } from "../../helpers/helpers";
-import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
-import { InputSwitch } from 'primereact/inputswitch';
-import { FileUpload } from "primereact/fileupload";
 import { ListarParametros,ListarPais,ListarFrentes,RegistrarTiket,ObtenerTicket,ActualizarTicket,ListarGestorConsultoria,ListarGestorCuenta,DescargarArchivoTicket} from "../../service/TiketService";
-import {ListarGestoresPorSocio,ListarGestores, ListarGestoresPorRolSocio} from "../../service/GestorService";
-import {ListarEmpresasPorSocio,ListarEmpresas,ListarEmpresasporRol} from "../../service/EmpresaService";
+import {ListarGestores, ListarGestoresPorRolSocio} from "../../service/GestorService";
+import {ListarEmpresasporRol} from "../../service/EmpresaService";
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import { Accordion, AccordionTab } from 'primereact/accordion';
-import { v4 as uuidv4 } from "uuid"; // npm install uuid
+import Asignaciones from "./Components/Asignaciones";
+import Especializaciones from "./Components/Especializaciones";
+import ModalRepositorios from "./Components/ModalRepositorios"; 
 
 const Editar = () => {
   const navigate = useNavigate();
@@ -69,6 +52,10 @@ const Editar = () => {
   const [codFrentes, setCodFrentes] = useState([]);
   const [subtiposFiltrados, setSubtiposFiltrados] = useState([]);
 const [visibleArchivos, setVisibleArchivos] = useState(false);
+// ✅ Modal Repositorios
+const [visibleRepos, setVisibleRepos] = useState(false);
+
+
 
     const location = useLocation();
 
@@ -137,121 +124,6 @@ const [visibleArchivos, setVisibleArchivos] = useState(false);
   const [rowSeleccionada, setRowSeleccionada] = useState(null);
 
 
-  const agregarDetalle = () => {
-    console.log("agregarDenuevoDetalletalle",nuevoDetalle)
-    if (visibleIndex === null) return;
-    const { FechaInicio, FechaFin, Horas, Descripcion ,IdTipoActividad} = nuevoDetalle;
-
-    if (!FechaInicio || !Horas || !Descripcion || !IdTipoActividad) {
-      toast.current.show({
-        severity: "warn",
-        summary: "Campos incompletos",
-        detail: "Debes completar Fecha de inicio, Horas ,Tipo Actividad y Descripción antes de agregar el detalle.",
-        life: 5000,
-      });
-      return;
-    } else{    setAñadir(false)
-}
-    
-          const current = formik.values.asignaciones[visibleIndex].DetalleTareasConsultor || [];
-
-          const fechaInicioDia = new Date(nuevoDetalle.FechaInicio);
-          fechaInicioDia.setHours(0, 0, 0, 0);
-
-          const horasEnDia = current.reduce((total, det) => {
-            const detDia = new Date(det.FechaInicio);
-            detDia.setHours(0, 0, 0, 0);
-
-            if (detDia.getTime() === fechaInicioDia.getTime()) {
-              return total + det.Horas;
-            }
-            return total;
-          }, 0);
-
-          if (horasEnDia + nuevoDetalle.Horas > 24) {
-              toast.current.show({
-                severity: "error",
-                summary: "Error",
-                detail: "No puedes asignar más de 24 horas en un mismo día",
-                life: 7000,
-              });
-            return;
-          }
-
-          const updated = [
-          ...current,
-          { 
-            ...nuevoDetalle, 
-            Activo: true,
-            IdTicketConsultorAsignacion: formik.values.asignaciones[visibleIndex].Id 
-          }
-        ];
-        console.log("updated",updated)
-
-        formik.setFieldValue(`asignaciones[${visibleIndex}].DetalleTareasConsultor`, updated);
-        console.log("FORMIK",formik.values.asignaciones[visibleIndex].DetalleTareasConsultor)
-        setDetalles(updated);
-        setNuevoDetalle({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true,IdTicketConsultorAsignacion:formik.values.asignaciones[visibleIndex].Id,Id:0 });
-    //}
-  };
-
-  const agregarDetallePlanificacion = () => {
-    
-    console.log("agregarDenuevoDetalletallePlanificacion",nuevoDetallePlanificacion)
-    if (visibleIndexPlanificacion === null) return;
-    
-    const { FechaInicio, Horas, Descripcion ,IdTipoActividad} = nuevoDetallePlanificacion;
-
-    if (!FechaInicio || !Horas || !Descripcion || !IdTipoActividad) {
-      toast.current.show({
-        severity: "warn",
-        summary: "Campos incompletos",
-        detail: "Debes completar Fecha de inicio, Horas ,Tipo Actividad y Descripción antes de agregar el detalle.",
-        life: 5000,
-      });
-      return;
-    }else{setAñadirPlanificacion(false)}
-          const current = formik.values.asignaciones[visibleIndexPlanificacion].DetallePlanificacionConsultor || [];
-
-          const fechaInicioDia = new Date(nuevoDetallePlanificacion.FechaInicio);
-          fechaInicioDia.setHours(0, 0, 0, 0);
-
-          const horasEnDia = current.reduce((total, det) => {
-            const detDia = new Date(det.FechaInicio);
-            detDia.setHours(0, 0, 0, 0);
-
-            if (detDia.getTime() === fechaInicioDia.getTime()) {
-              return total + det.Horas;
-            }
-            return total;
-          }, 0);
-
-          if (horasEnDia + nuevoDetallePlanificacion.Horas > 24) {
-              toast.current.show({
-                severity: "error",
-                summary: "Error",
-                detail: "No puedes asignar más de 24 horas en un mismo día",
-                life: 7000,
-              });
-            return;
-          }
-
-          const updated = [
-          ...current,
-          { 
-            ...nuevoDetallePlanificacion, 
-            Activo: true,
-            IdTicketConsultorAsignacion: formik.values.asignaciones[visibleIndexPlanificacion].Id 
-          }
-        ];
-        console.log("updated",updated)
-
-        formik.setFieldValue(`asignaciones[${visibleIndexPlanificacion}].DetallePlanificacionConsultor`, updated);
-        console.log("FORMIK",formik.values.asignaciones[visibleIndexPlanificacion].DetallePlanificacionConsultor)
-        setDetallesPlanificacion(updated);
-        setNuevoDetallePlanificacion({ FechaInicio: null, FechaFin: null, Horas: null, Descripcion: "",Activo:true,IdTicketConsultorAsignacion:formik.values.asignaciones[visibleIndexPlanificacion].Id,Id:0 });
-    //}
-  };
 
 const descargarArchivo = async (row) => {
   try {
@@ -340,19 +212,16 @@ const descargarArchivo = async (row) => {
   useEffect(() => {
     const getConsultorFrente = async () => {
       let idConsultor = window.localStorage.getItem("idConsultor")
-      console.log("idConsultor",idConsultor)
      if (!idConsultor || idConsultor === "null" || idConsultor === "undefined") {
       setCodFrentes(["FRN001", "FRN002"]);
       return;
     }
-
       await ObtenerConsultor({idConsultor}).then((data) => {
         const codigosFrentes = [
       ...new Set(
         data.especializaciones.map((e) => e.frente.codigo)
       )
     ];
-    console.log("codigosFrentes",codigosFrentes)
      setCodFrentes(codigosFrentes)
       });
     };
@@ -363,11 +232,9 @@ const descargarArchivo = async (row) => {
 useEffect(() => {
   const getFrentes = async () => {
     const data = await ListarFrentes();
-
     const frentesOrdenados = [...data].sort((a, b) =>
       a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
     );
-
     setFrentes(frentesOrdenados);
   };
 
@@ -378,15 +245,10 @@ useEffect(() => {
   useEffect(() => {
       if (!id || frentes.length === 0) return;
       const getTicket = async () => {
-        // let jwt = window.localStorage.getItem("jwt");
         await ObtenerTicket({id}).then((data) => {
-          // setTituloPagina("Datos del Ticket");
               setTituloPagina(`Datos del Ticket:  ${data.codTicket}`);
-
           setTicket(data);
           setModoEdicion(true);
-                  console.log("DATAAAAA",data)
-           console.log("Frentes",frentes)
       if (!frentes || frentes.length === 0) return;
 
       const subfrentes = (data.frenteSubFrentes || []).map((f) => {
@@ -401,11 +263,7 @@ useEffect(() => {
           nombre: subfrenteEncontrado ? subfrenteEncontrado.nombre : "",
         };
       });
-     
-                        console.log("subfrentesD",subfrentes)
-
             setSubfrentesSeleccionados(subfrentes);
-
           const totalHorasPorConsultor = data.consultorAsignaciones.map(asig => {
             const total = (asig.detalleTareasConsultor || [])
               .filter(t => t.activo)
@@ -418,7 +276,6 @@ useEffect(() => {
 
 });
 
-console.log(totalHorasPorConsultor);
   setTotalesFijos(totalHorasPorConsultor)
 
         });
@@ -426,8 +283,6 @@ console.log(totalHorasPorConsultor);
       if (id) getTicket();
     }, [id,frentes]);
 
-  //OK 
-  
  useEffect(() => {
   if (
     persona &&
@@ -456,10 +311,6 @@ console.log(totalHorasPorConsultor);
 
   useEffect(() => {
     const getUsuario = async () => {
-      // let jwt = window.localStorage.getItem("jwt");
-      // await ObtenerTipoDocumento({ jwt }).then((data) => {
-      //   setTipoDocumento(data);
-      // });
       const data=[{id: 1,nombre: 'Oscar'},
        {id: 2, nombre:'Luis'},
        {id: 3,nombre:'Alberto'}
@@ -490,28 +341,18 @@ console.log(totalHorasPorConsultor);
   
 useEffect(() => {
   const getConsultores = async () => {
-    console.log('getConsultores')
      const fetchFunction = codRol === "SUPERADMIN" ? ListarConsultores : ListarConsultoresPorSocio;
-
     await fetchFunction().then((data) => {
       const consultoresFormateados = data.map((item) => ({
         id: item.id,
         nombre: `${item.persona.nombres} ${item.persona.apellidoPaterno}`,
          especializaciones: item.especializaciones || [] 
       })).sort((a, b) => a.nombre.localeCompare(b.nombre));
-          console.log('consultoresFormateados',consultoresFormateados)
-
       setConsultores(consultoresFormateados);
     });
   };
   getConsultores();
 }, []);
-// const toLocalISOString = (date) => {
-//   if (!date) return null;
-//   const d = new Date(date);
-//   const pad = (n) => n.toString().padStart(2, "0");
-//   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000`;
-// };
 
 function toLocalISOString(date) {
   const d = new Date(date);
@@ -587,14 +428,8 @@ function toLocalISOString(date) {
 
             })
           )
-            // DetalleTareasConsultor:Yup.string().nullable(),
          })
-      ),
-      // zipFile: Yup.mixed()
-      //     .required("El archivo ZIP es obligatorio")
-      //     .test("fileType", "El archivo debe ser un ZIP", (value) => {
-      //       return value && value.type === "application/zip";
-      //     })    
+      ),   
        zipFile: Yup.mixed(),
        idGestorConsultoria: Yup.number().required("Gestor Consultoria es obligatorio"),
 
@@ -665,7 +500,19 @@ function toLocalISOString(date) {
       nombrePersonaResponsable:  "",
       zipFile: null,
       idGestorConsultoria: persona ? persona.idGestorConsultoria : null,
+      reposLinks: (() => {
+        try {
+          // backend guarda JSON como [{ Orden, Url, FechaInsert }]
+          const arr = persona?.repositorios ? JSON.parse(persona.repositorios)
+                    : persona?.Repositorios ? JSON.parse(persona.Repositorios)
+                    : persona?.urlRepositorios ? JSON.parse(persona.urlRepositorios)
+                    : [];
 
+          return Array.isArray(arr) ? arr : [];
+        } catch {
+          return [];
+        }
+      })(),
     },
     validationSchema: schema,
 
@@ -673,7 +520,6 @@ function toLocalISOString(date) {
     const formData = new FormData();
     formData.append("CodTicketInterno", values.codTicketInterno);
     formData.append("titulo", values.titulo);
-    // formData.append("fechaSolicitud", values.fechaSolicitud ? new Date(values.fechaSolicitud).toISOString() : null);
     formData.append("fechaSolicitud", values.fechaSolicitud ? toLocalISOString(values.fechaSolicitud) : null);
     formData.append("idTipoTicket", values.idTipoTicket);
     formData.append("idSubtipoTicket", values.idSubtipoTicket);
@@ -686,7 +532,35 @@ function toLocalISOString(date) {
     formData.append("codReqSgrCsti", "");
     formData.append("idReqSgrCsti", "");
     formData.append("idGestorConsultoria", values.idGestorConsultoria);
-    formData.append("consultorAsignaciones", JSON.stringify(values.asignaciones || []));
+    const reposPayload = (values.reposLinks || []).map(r => ({
+      Link: (r.Url ?? r.Link ?? "").trim(),
+    })).filter(x => x.Link);
+
+    formData.append("repositorios", JSON.stringify(reposPayload));
+
+    //formData.append("consultorAsignaciones", JSON.stringify(values.asignaciones || []));
+    // 1) Construye payload limpio
+    const asignacionesPayload = (values.asignaciones || [])
+      .filter(a => {
+        // ❌ NO mandar filas NUEVAS (Id=0) que se eliminaron en el front (Activo=false)
+        if (Number(a.Id) === 0 && a.Activo === false) return false;
+
+        // ✅ mandar activas (Id=0 o Id>0)
+        if (a.Activo !== false) return true;
+
+        // ✅ mandar eliminadas SOLO si existían en BD (Id>0)
+        return Number(a.Id) > 0 && a.Activo === false;
+      })
+      .map(a => ({
+        ...a,
+        // Normaliza fechas a string ISO local (por si vienen como Date)
+        FechaAsignacion: a.FechaAsignacion ? toLocalISOString(a.FechaAsignacion) : null,
+        FechaDesasignacion: a.FechaDesasignacion ? toLocalISOString(a.FechaDesasignacion) : null,
+      }));
+
+    // 2) Usa este payload en lugar del array original
+    formData.append("consultorAsignaciones", JSON.stringify(asignacionesPayload));
+
     formData.append(
       "frenteSubFrentes",
       JSON.stringify(values.frenteSubFrentes.map(e => ({
@@ -694,8 +568,6 @@ function toLocalISOString(date) {
         IdFrente: Number(e.idFrente),
         IdSubFrente: Number(e.idSubFrente),
         Cantidad: e.cantidad,
-        // FechaInicio: e.fechaInicio ? new Date(e.fechaInicio).toISOString() : null,
-        // FechaFin: e.fechaFin ? new Date(e.fechaFin).toISOString() : null,
         FechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
         FechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
         Activo:e.activo,
@@ -709,20 +581,14 @@ function toLocalISOString(date) {
     } else {
       formData.append("UsuarioCreacion", values.usuarioCreacion);
     }
-    console.log("values.zipFile",values.zipFile)
     if (values.zipFile) {
         formData.append("zipFile", values.zipFile, values.zipFile.name);
-
-      // formData.append("zipFile", values.zipFile);
     }
 
-console.log("📦 Datos a enviar:");
   for (let [key, value] of formData.entries()) {
-    console.log(key, value);
   }
     if (modoEdicion) {
         const idTicket = persona?.id;
-        console.log(idTicket)
         Actualizar({ formData, idTicket });
       } else {
         Registrar({ formData });
@@ -774,22 +640,16 @@ setSubtiposFiltrados(subs);
 
  useEffect(() => {
     if (!parametros?.length) return;
-    console.log("formik.values.idEstadoTicket",formik.values.idEstadoTicket)
-
     const estadoActual = parametros.find(
       (item) => item.id === formik.values.idEstadoTicket
     );
-    console.log("estadoActual",estadoActual)
     const codigosPermitidos = estadoActual?.valor1?.split(",") || [];
-    console.log("codigosPermitidos",codigosPermitidos)
 
     let opciones = parametros.filter(
       (item) =>
         item.tipoParametro === "EstadoTicket" 
       && codigosPermitidos.includes(item.codigo)
     );
-    console.log("opciones",opciones)
-
     const yaIncluido = opciones.some(item => item.id === estadoActual?.id);
     if (!yaIncluido && estadoActual) {
       opciones = [estadoActual, ...opciones];
@@ -849,7 +709,6 @@ useEffect(() => {
   }
 }, [persona, empresa]);
 useEffect(() => {
-  console.log("Hola")
   if (!Array.isArray(consultores) || consultores.length === 0) return;  
   if (!formik.values.asignaciones) return;
 
@@ -858,10 +717,7 @@ useEffect(() => {
       const seleccionado = subfrentesSeleccionados.find(
         s => s.idSubFrente == a.IdSubFrente
       );
-    console.log("idFrente",seleccionado?.idFrente)
-
       const idFrente = seleccionado?.idFrente;
-
       if (idFrente) {
         ObtenerConsultoresPorFrente(idFrente, a.IdSubFrente).then(data => {
           setConsultoresPorFila(prev => ({
@@ -879,16 +735,11 @@ useEffect(() => {
 ]);
 
 const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {  
-      console.log("ObtenerConsultoresPorFrente",idFrente, idSubFrente)
-
     const resultado = consultores.filter(c =>
       c.especializaciones.some(e =>
-        // e.idFrente === idFrente && e.idSubFrente === idSubFrente
         e.idSubFrente === idSubFrente
       )
     );
-    console.log("Resultado",resultado)
-
     return resultado;
   };
 
@@ -902,11 +753,8 @@ const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
           detail: "Registro exitoso.",
           life: 7000,
         });
-        console.log("res",res)
-
         setTimeout(() => {
         navigate(`/tickets/user/${idUser}/rol/${codRol}/Editar/${res.id}`); 
-
         }, 1000);
          })
 
@@ -928,8 +776,6 @@ const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
   const Actualizar = ({ formData,idTicket }) => {
         ActualizarTicket({ formData, idTicket })
           .then((data) => {
-            console.log("data",data)
-
             formik.setSubmitting(false);
             toast.current.show({
               severity: "success",
@@ -938,11 +784,7 @@ const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
               life: 7000,
             });
             setTimeout(() => {
-          // navigate(-1);
-        // navigate(`/tickets/user/${idUser}/rol/${codRol}/Editar/${data.id}`); 
         window.location.reload(); // 🔄 Recarga la página completa
-
-        // navigate(`/tickets/user/${idUser}/rol/${codRol}`); 
         }, 1000);
     
           })
@@ -956,61 +798,6 @@ const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
             formik.setSubmitting(false);
           });
       };
-  
-
-
-
-  const dateBodyTemplateFechaActivacion = (rowData) => {
-    return rowData.fechaActivacion
-      ? formatDate(new Date(rowData.fechaActivacion))
-      : "";
-  };
-  const dateBodyTemplate = (rowData) => {
-    console.log(rowData);
-    return rowData.fechaVigencia ? formatDate(new Date(rowData.fechaVigencia)) : "";
-  };
-
-
-  const programaTemplate = (rowData) => {
-    console.log(rowData);
-    return (
-      <span>
-        {rowData.programa && rowData.idPersonaPrograma
-          ? rowData.programa
-          : "No"}
-      </span>
-    );
-  };
-
-  const headerPass = <div className="font-bold mb-3">Ingrese password</div>;
-  const footerPass = (
-    <>
-      <Divider />
-      <p className="mt-2">Sugerencias</p>
-      <ul className="pl-2 ml-2 mt-0 line-height-3">
-        <li>Al menos una minúscula</li>
-        <li>Al menos una mayúscula</li>
-        <li>Al menos un número</li>
-        <li>Mínimo 8 caracteres</li>
-      </ul>
-    </>
-  );
-//  const confirmarEliminacion = (rowData) => {
-//         confirmDialog({
-//           message: '¿Esta seguro de eliminar esta especialización?',
-//           header: 'Confirmación',
-//           icon: 'pi pi-exclamation-triangle',
-//           acceptClassName: 'p-button-danger',
-//           acceptLabel: 'Eliminar',
-//           rejectLabel: 'Cancelar',
-//           accept: () => {
-//             const nuevasEspecializaciones = formik.values.frenteSubFrentes.filter(
-//               (esp) => esp !== rowData
-//             );
-//             formik.setFieldValue('frenteSubFrentes', nuevasEspecializaciones);
-//           }
-//         });
-//       };
 
 const confirmarEliminacion = (rowData) => {
   confirmDialog({
@@ -1029,29 +816,10 @@ const confirmarEliminacion = (rowData) => {
   });
 };
 
-
-   const accion = (rowData) => {
-          return (
-            <div className="profesor-datatable-accion">
-              <div className="accion-eliminar" onClick={() => confirmarEliminacion(rowData)}>
-                <span>
-                  <Iconsax.Trash color="#ffffff" />
-                </span>
-              </div>
-            </div>
-          );
-    
-        };
-  const handleClick = () => {
-    setMostrarSeccion(true);
-  };
-
   const handleEmpresaChange = (e) => {
   const selectedEmpresaId = e.value;
   formik.setFieldValue("idEmpresa", selectedEmpresaId);
-
   const empresaSeleccionada = empresa.find(emp => emp.id === selectedEmpresaId);
-  console.log("empresaSeleccionada",empresaSeleccionada)
   if (empresaSeleccionada) {
     formik.setFieldValue("idGestor", empresaSeleccionada.idGestor);
     formik.setFieldValue("nombrePersonaResponsable", empresaSeleccionada?.nombrePersonaResponsable);
@@ -1062,8 +830,6 @@ const confirmarEliminacion = (rowData) => {
     formik.setFieldValue("idGestor", "");
     formik.setFieldValue("nombrePersonaResponsable", "");
     formik.setFieldValue("idUsuarioResponsableCliente", "");
-
-
   }
 };
 
@@ -1077,7 +843,6 @@ function generateUUID() {
     return v.toString(16);
   });
 }
-
 
   // Agregar nueva fila
 const addRow = () => {
@@ -1101,23 +866,16 @@ const addRow = () => {
 
 // Eliminar fila por idUnico
 const removeRow = (idUnico) => {
-  console.log("idUnico",idUnico)
-
   const newAsignaciones = formik.values.asignaciones.map((a) =>
     a.idUnico === idUnico ? { ...a, Activo: false } : a
   );
   formik.setFieldValue("asignaciones", newAsignaciones);
 };
 
-
-
-
-
 useEffect(() => {
   // Cuando cambia modoEdicion, actualiza el acordeón
   setActiveIndex(modoEdicion ? null : 0);
 }, [modoEdicion]);
-
 
 const footer = (
   <div className="w-full flex justify-between items-center border-t pt-3 px-3">
@@ -1154,23 +912,9 @@ const footer = (
         setVisibleIndex(null);
       }}
     />
-    )}
-    {/* Botón Registrar (lado derecho) */}
-  
+    )}  
   </div>
 );
-
-// useEffect(() => {
-//   const iniciales = formik.values.asignaciones.map((asig) => {
-//     const detalle = asig.DetalleTareasConsultor || [];
-//     return detalle
-//       .filter((d) => d.Activo)
-//       .reduce((sum, d) => sum + (d.Horas || 0), 0);
-//   });
-//   console.log("INICIALES",iniciales)
-//   setTotalesFijos(iniciales);
-// }, []); // Solo se ejecuta una vez
-
 
 const obtenerCantidadPermitida = (idSubFrente) => {
   const especializacion = formik.values.frenteSubFrentes.find(
@@ -1183,14 +927,6 @@ const contarAsignaciones = (idSubFrente) => {
     (a) => a.IdSubFrente === idSubFrente && a.Activo !== false
   ).length;
 };
-
-const verDescripcion = (rowData) => {
-
-  console.log("VER")
-  setRowSeleccionada(rowData);
-  setVisibleDescripcion(true);
-};
-
 
   return (
 
@@ -1448,63 +1184,56 @@ const verDescripcion = (rowData) => {
                 <div className="field col-12 md:col-6">
                   <div className="grid">
                     {/* Subir archivo ZIP */}
-            <div className="field col-12">
-  <label className="label-form">Subir archivo ZIP</label>
+                    {/*<div className="field col-12">
+                      <label className="label-form">Subir archivo ZIP</label>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+                        <label htmlFor="zipFile" className="upload-label" style={{ flex: 1, margin: 0 }}>
+                          {formik.values.zipFile? formik.values.zipFile.name: "Seleccionar archivo .zip"}
+                        </label>
+                        <input type="file" id="zipFile" name="zipFile" accept=".zip" onChange={(event) => {
+                            const file = event.currentTarget.files[0];
+                            formik.setFieldValue("zipFile", file || null);
+                          }}
+                          disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
+                          onBlur={formik.handleBlur}
+                          className="hidden-input"
+                        />
+                      </div>
+                    </div>*/}
+                    {/* <ModalArchivos
+                      visible={visibleArchivos}
+                      onHide={() => setVisibleArchivos(false)}
+                      title="Archivos adjuntos"
+                      rows={archivosRows}
+                      columns={columnasArchivos}
+                      rowKey={(r) => `${r.Orden}-${r.Url}`}
+                      onDownload={descargarArchivo}
+                    />*/}
+<div className="field col-12">
+  <label className="label-form">Repositorios</label>
 
-  <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
-    {/* Botón cargar: ocupa TODO el espacio */}
-    <label
-      htmlFor="zipFile"
-      className="upload-label"
-      style={{ flex: 1, margin: 0 }}   // <-- CLAVE: flex:1
-    >
-      {formik.values.zipFile
-        ? formik.values.zipFile.name
-        : "Seleccionar archivo .zip"}
-    </label>
-
-    <input
-      type="file"
-      id="zipFile"
-      name="zipFile"
-      accept=".zip"
-      onChange={(event) => {
-        const file = event.currentTarget.files[0];
-        formik.setFieldValue("zipFile", file || null);
-      }}
-      disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
-      onBlur={formik.handleBlur}
-      className="hidden-input"
-    />
-
-    {/* Ojo: ancho fijo */}
-    {/* <Boton
-      type="button"
-      icon="pi pi-eye"
-      color="primary"
-      aria-label="Ver archivos"
-      onClick={() => setVisibleArchivos(true)}
-      disabled={!persona?.urlArchivos}
-      style={{
-        width: 55,
-        height: 45,
-        padding: 0,
-        borderRadius: 6,  
-      }}
-    />
-*/}
-  </div>
+  <Button
+    type="button"
+    className="w-full"
+    style={{ height: 46, justifyContent: "center" }}
+    label="Repositorios"
+    icon="pi pi-link"
+    severity="secondary"
+    onClick={() => setVisibleRepos(true)}
+    disabled={permisosActual.controlesBloqueados.includes("btnRepositorios")}
+  />
 </div>
-
-      <ModalArchivos
-  visible={visibleArchivos}
-  onHide={() => setVisibleArchivos(false)}
-  title="Archivos adjuntos"
-  rows={archivosRows}
-  columns={columnasArchivos}
-  rowKey={(r) => `${r.Orden}-${r.Url}`}
-  onDownload={descargarArchivo}
+<ModalRepositorios
+  visible={visibleRepos}
+  onHide={() => setVisibleRepos(false)}
+  title="Repositorios (Links)"
+  rows={formik.values.reposLinks}
+  onChangeLinks={(linksSinFecha) => {
+    // Aquí guardas lo que se enviará al backend (SIN fecha)
+    formik.setFieldValue("reposLinks", linksSinFecha);
+  }}
 />
+
 
 
 
@@ -1538,1099 +1267,55 @@ const verDescripcion = (rowData) => {
             </div> 
                { modoEdicion && (
              <>
-             {!permisosActual.divsOcultos.includes("divFrentes") && (
-             <>
-              <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
+      {!permisosActual.divsOcultos.includes("divFrentes") && (
+  <>
+    <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
 
-              <div className="field col-12">
-                  <label style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "10px", display: "block" }}>
-                    Especializaciones
-                  </label>
-              </div>
-                  <div className="field col-12 md:col-3">
-                  <DropdownDefault
-                  value={formik.values.nuevaEspecializacion.idFrente}
-                  options={frentes}
-                  optionLabel="nombre"
-                  optionValue="id"
-                  // onChange={(e) => {
-                  //         const idFrenteSeleccionado = e.value;
-                  //         formik.setFieldValue("nuevaEspecializacion.idFrente", idFrenteSeleccionado);
-                  //         const frenteSeleccionado = frentes.find((f) => f.id === idFrenteSeleccionado);
-                  //         if (frenteSeleccionado) {
-                  //           setSubfrentes(frenteSeleccionado.subFrente || []);
-                  //         } else {
-                  //           setSubfrentes([]);
-                  //         }
-                  //       }}
+    <Especializaciones
+      formik={formik}
+      frentes={frentes}
+      permisosActual={permisosActual}
+      setSubfrentesSeleccionados={setSubfrentesSeleccionados}
+    />
+  </>
+)}
 
-                  onChange={(e) => {
-                    const idFrenteSeleccionado = e.value;
-                    formik.setFieldValue(
-                      "nuevaEspecializacion.idFrente",
-                      idFrenteSeleccionado
-                    );
 
-                    const frenteSeleccionado = frentes.find(
-                      (f) => f.id === idFrenteSeleccionado
-                    );
-
-                    if (frenteSeleccionado) {
-                      const subfrentesOrdenados = [...(frenteSeleccionado.subFrente || [])]
-                        .sort((a, b) =>
-                          a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
-                        );
-
-                      setSubfrentes(subfrentesOrdenados);
-                    } else {
-                      setSubfrentes([]);
-                    }
-                  }}
-
-                        placeholder="Selecciona Frente"
-                  />
-                  </div>
-                  <div className="field col-12 md:col-3">
-                  <DropdownDefault
-                    value={formik.values.nuevaEspecializacion.idSubFrente}
-                    options={subfrentes}
-                    optionLabel="nombre"
-                    optionValue="id"
-                    onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idSubFrente", e.value)}
-                    placeholder="Selecciona Subfrente"
-                  />
-                  </div>
-                  <div className="field col-12 md:col-2">
-                  <InputText
-                      type="number"
-                      name="nuevaEspecializacion.cantidad"
-                      placeholder="Ingresa la cantidad"
-                      value={formik.values.nuevaEspecializacion.cantidad}
-                      onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
-                    />
-                  </div>
-                  <div className="field col-12 md:col-2">
-                    <Calendar
-                      value={formik.values.nuevaEspecializacion.fechaInicio}
-                      onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
-                      placeholder="Fecha de Inicio"
-                      dateFormat="yy-mm-dd"
-                      showIcon
-                      className="w-full"
-                      minDate={new Date(formik.values.fechaSolicitud)}  
-                      
-                    />
-                  </div>
-                  <div className="field col-12 md:col-2">
-                    <Calendar
-                      value={formik.values.nuevaEspecializacion.fechaFin}
-                      onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
-                      placeholder="Fecha de Fin"
-                      dateFormat="yy-mm-dd"
-                      showIcon
-                      className="w-full"
-                      minDate={
-                              formik.values.nuevaEspecializacion.fechaInicio
-                                ? new Date(formik.values.nuevaEspecializacion.fechaInicio)
-                                : new Date()
-                            }
-                    />
-                  </div>
-                  <div className="field col-12 md:col-10">
-                  <InputText
-                      type={"text"}
-                      name="nuevaEspecializacion.descripcion"
-                      placeholder="Ingresa la Descripción"
-                      value={formik.values.nuevaEspecializacion.descripcion}
-                      onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
-                    />
-                  </div>
-                  <div className="field col-12 md:col-2">
-                    <Boton
-                        type="button"
-                        label="Agregar Especialización"
-                        style={{ fontSize: 13, borderRadius: 15 }}
-                        onClick={() => {
-                          const nueva = formik.values.nuevaEspecializacion;
-                          console.log("NUEVA",nueva)
-                          console.log("FECHAA INICIO",nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null)
-
-                          console.log("FECHAA FIN",nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null)
-                          if (!nueva.idFrente || !nueva.idSubFrente) {
-                            alert("Completa todos los campos de la especialización");
-                            return;
-                          }
-
-                          const especializacionesActuales = Array.isArray(formik.values.frenteSubFrentes)
-                            ? formik.values.frenteSubFrentes
-                            : [];
-
-                          // const yaExiste = especializacionesActuales.some(
-                          //   (item) =>
-                          //     Number(item.idFrente) === Number(nueva.idFrente) &&
-                          //     Number(item.idSubFrente) === Number(nueva.idSubFrente)
-                          // );
-
-                          // if (yaExiste) {
-                          //   alert("Esta especialización ya fue agregada");
-                          //   return;
-                          // }
-
-                          formik.setFieldValue("frenteSubFrentes", [
-                            ...especializacionesActuales,
-                            {
-                              id: Number(nueva.id),
-                              idFrente: Number(nueva.idFrente),
-                              idSubFrente: Number(nueva.idSubFrente),
-                              cantidad: Number(nueva.cantidad),
-                              fechaInicio: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
-                              fechaFin: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
-                            // fechaInicio: nueva.fechaInicio ? nueva.fechaInicio.toISOString().split('T')[0] : null,
-                            //  fechaFin: nueva.fechaFin ? nueva.fechaFin.toISOString().split('T')[0] : null,
-
-                              activo:true,
-                              descripcion:nueva.descripcion
-
-                            },
-                          ]);
-                          setSubfrentesSeleccionados((prev) => {
-                          const yaEsta = prev.some((sf) => sf.idSubFrente === nueva.idSubFrente);
-                          if (yaEsta) return prev;
-
-                          const subfrenteSeleccionado = subfrentes.find(
-                            (s) => s.id === nueva.idSubFrente
-                          );
-
-                          if (!subfrenteSeleccionado) return prev;
-
-                          // ✅ Solo guarda los campos necesarios
-                          const nuevo = {
-                            idSubFrente: subfrenteSeleccionado.id,
-                            idFrente: subfrenteSeleccionado.idFrente,
-                            nombre: subfrenteSeleccionado.nombre,
-                          };
-                          console.log("nuevo",nuevo)
-                          return [...prev, nuevo];
-                        });
-                          console.log("formik",Date(nueva.fechaInicio))
-                          formik.setFieldValue("nuevaEspecializacion", {
-                            id: "",
-                            idFrente: "",
-                            idSubFrente: "",
-                            cantidad: "",
-                            fechaInicio:"",
-                            fechaFin:"",
-                            activo:true,
-                            descripcion:""
-                          });
-                        }}
-                      />
-                  </div>
-                    
-              <div className="field col-12 md:col-12">
-                 {frentes.length === 0 ? (
-                <p>Cargando frentes...</p> 
-              ) : (
-
-                <>
-              <DatatableDefault showSearch={false} paginator={false}   value={formik.values.frenteSubFrentes.filter((item) => item.activo)}>
-                  <Column
-                    field="idFrente"
-                    header="Frente"
-                    body={(rowData) =>
-                      frentes.find((f) => f.id === rowData.idFrente)?.nombre || "—"
-                    }
-                  />
-                  <Column
-                    field="idSubFrente"
-                    header="Subfrente"
-                    body={(rowData) => {
-                      const idFrente = rowData.idFrente;
-                      // const frenteactual = frentes.filter(sf => sf.id === idFrente);
-                      // const subfrentesDelFrente = frenteactual[0].subFrente
-                      
-                      const frenteactual = frentes? frentes.find(sf => sf.id === idFrente):[]
-                      const subfrentesDelFrente = frenteactual?.subFrente || [];
-
-                      const subfrente = subfrentesDelFrente.find(sf => sf.id === rowData.idSubFrente);
-                      return subfrente?.nombre || "—";
-                    }}
-                    />     
-                     <Column
-                    field="cantidad"
-                    header="Cantidad"
-                      body={(rowData) => rowData.cantidad ?? "—"}
-                  />
-                   <Column
-                    field="FechaInicio"
-                    header="Fecha Inicio"
-                      body={(row) => row.fechaInicio ? new Date(row.fechaInicio).toLocaleDateString() : ""}
-                  />
-                  <Column
-                    field="FechaFin"
-                    header="Fecha Fin"
-                      body={(row) => row.fechaFin ? new Date(row.fechaFin).toLocaleDateString() : ""}
-                  />
-                      <Column
-                        header="Descripción"
-                        body={(rowData) => (
-                          <Button
-                          type="button"
-                            icon="pi pi-eye"
-                            className="p-button-text p-button-sm"
-                            onClick={() => verDescripcion(rowData)}
-                            tooltip="Ver descripción"
-                          />
-                        )}
-                      />
-
-                      <Column
-                        header="Acciones"
-                        body={accion} 
-                      />   
-                     
-              </DatatableDefault>
-
-               <Dialog
-                header="Descripción"
-                visible={visibleDescripcion}
-                style={{ width: "450px" }}
-                modal
-                onHide={() => setVisibleDescripcion(false)}
-              >
-                <p>{rowSeleccionada?.descripcion || "Sin descripción"}</p>
-              </Dialog>
-              </>
-              )}
-              </div>
-              </>
-             )}
-
-            {!permisosActual.divsOcultos.includes("divAsignacionConsultor") && (
-             <>
-              <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
-              <div className="field col-12">
+          {!permisosActual.divsOcultos.includes("divAsignacionConsultor") && (
+              <>
+                <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
+                <div className="field col-12">
                   <label style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "10px", display: "block" }}>
                     Asignaciones
                   </label>
-              </div>
-              <div className="field col-12 md:col-12">
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100 text-left">
-                    <th className="p-2 border">Subfrente</th>
-                    <th className="p-2 border">Consultor</th>
-                    <th className="p-2 border">Fecha Inicio</th>
-                    <th className="p-2 border">Fecha Fin</th>
-                    <th className="p-2 border">Horas Planificadas</th>
-                    <th className="p-2 border">Horas Trabajadas</th>
-                    <th className="p-2 border">Horas</th>
-
-                      {!permisosActual.controlesOcultos.includes("btnEliminar") && (
-                   <>
-                    <th className="p-2 border">Acciones</th>
-                    </>)}
-                  </tr>
-                </thead>
-               
-             
-                    <tbody>
-                      {formik.values.asignaciones
-                        .filter((asignacion) => asignacion.Activo !== false)
-                        .map((asignacion,index) => (
-                          <tr key={asignacion.idUnico} className="border-t">
-                          {/* IdSubFrente */}
-                            <td className="p-2 border">
-                            <DropdownDefault
-                              id={`IdSubFrente-${index}`}
-                              name={`asignaciones[${index}].IdSubFrente`}
-                              placeholder="Seleccione"
-                              value={formik.values.asignaciones[index].IdSubFrente}
-                              options={subfrentesSeleccionados}
-                              optionLabel="nombre"
-                              optionValue="idSubFrente"
-                              onChange={async (e) => {
-                                const idSubFrente = e.value;
-                                const maxPermitido = obtenerCantidadPermitida(idSubFrente);
-                                const asignados = contarAsignaciones(idSubFrente);
-                                 if (asignados >= maxPermitido) {
-                                   toast.current.show({
-                                    severity: "warn",
-                                    summary: "Campos incompletos",
-                                    detail: `Solo se permiten ${maxPermitido} asignaciones para este subfrente`,
-                                    life: 5000,
-                                  });
-                                  // alert(`Solo se permiten ${maxPermitido} asignaciones para este subfrente`);
-                                  return; 
-                                }
-                                const seleccionado = subfrentesSeleccionados.find(s => s.idSubFrente === idSubFrente);
-                                const idFrente = seleccionado?.idFrente; 
-                                formik.setFieldValue(`asignaciones[${index}].IdSubFrente`, idSubFrente);
-                                  formik.setFieldValue(`asignaciones[${index}].IdFrente`, idFrente);
-
-      
-                                if (idSubFrente) {
-                                  const data = await ObtenerConsultoresPorFrente(idFrente, idSubFrente);
-                                  setConsultoresPorFila((prev) => ({
-                                    ...prev,
-                                    [index]: data
-                                  }));
-                                }
-                              }}
-                              onBlur={formik.handleBlur}
-                              disabled={
-                                permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                                formik.values.asignaciones[index].IdSubFrente !== "" &&
-                                formik.values.asignaciones[index].Activo === true
-                              }
-                            />
-                            <small className="p-error">
-                              {formik.touched.asignaciones?.[index]?.IdSubFrente &&
-                                formik.errors.asignaciones?.[index]?.IdSubFrente}
-                            </small>
-                          </td>
-                          {/* CONSULTOR */}
-                          <td className="p-2 border">
-                            <DropdownDefault
-                            id={`IdConsultor-${asignacion.idUnico}`}
-                            name={`asignaciones.${asignacion.idUnico}.IdConsultor`} // no usar index
-                            placeholder="Seleccione"
-                            value={asignacion.IdConsultor}
-                            //options={consultoresPorFila[index] || []}
-                                                        options={
-                              !formik.values.asignaciones?.[index]?.IdSubFrente
-                                ? consultores
-                                : (consultoresPorFila[index] || [])
-                            }
-
-                            optionLabel="nombre"
-                            optionValue="id"
-                            onChange={(e) => {
-                              const idx = formik.values.asignaciones.findIndex(a => a.idUnico === asignacion.idUnico);
-                              if(idx !== -1){
-                                formik.setFieldValue(`asignaciones[${idx}].IdConsultor`, e.value);
-                              }
-                            }}
-                            onBlur={formik.handleBlur}
-                            disabled={permisosActual.divsBloqueados.includes("divAsignaciones") && asignacion.IdConsultor !== "" && asignacion.Activo === true}
-                            />
-                          </td>
-
-                         
-                            <td className="p-2 border">
-                            <Calendar
-                              id={`FechaAsignacion-${index}`}
-                              name={`asignaciones[${index}].FechaAsignacion`}
-                              value={
-                                formik.values.asignaciones?.[index]?.FechaAsignacion
-                                  ? new Date(formik.values.asignaciones[index].FechaAsignacion)
-                                  : null
-                              }
-                              onChange={(e) => {
-                                // Solo actualizar si e.value es una fecha válida (no null/undefined)
-                                // y si viene del selector (no del input manual mientras se escribe)
-                                if (e.value instanceof Date && !isNaN(e.value)) {
-                                  const d = e.value;
-                                  const pad = (n, z = 2) => n.toString().padStart(z, '0');
-                                  const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
-                                  formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, localString);
-                                  console.log("FechaAsignacion guardada:", localString);
-                                } else if (e.value === null) {
-                                  formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, null);
-                                }
-                              }}
-                              onBlur={(e) => {
-                                formik.handleBlur(e);
-                                // Validar y guardar cuando el usuario termina de escribir
-                                const inputValue = e.target.value;
-                                if (inputValue) {
-                                  try {
-                                    const parsedDate = new Date(inputValue);
-                                    if (!isNaN(parsedDate)) {
-                                      const pad = (n, z = 2) => n.toString().padStart(z, '0');
-                                      const localString = `${parsedDate.getFullYear()}-${pad(parsedDate.getMonth() + 1)}-${pad(parsedDate.getDate())}T${pad(parsedDate.getHours())}:${pad(parsedDate.getMinutes())}:${pad(parsedDate.getSeconds())}.${pad(parsedDate.getMilliseconds(), 3)}`;
-                                      formik.setFieldValue(`asignaciones[${index}].FechaAsignacion`, localString);
-                                    }
-                                  } catch (error) {
-                                    console.error("Error parseando fecha:", error);
-                                  }
-                                }
-                              }}
-                              showTime
-                              hourFormat="24"
-                              stepMinute={1}
-                              showSeconds={false}
-                              minDate={new Date(formik.values.fechaSolicitud)}
-                              dateFormat="dd/mm/yy"
-                              touchUI={false}
-                              keepInvalid={true}
-                            />
-                            </td>
-
-                          {/* FECHA DESASIGNACION */}
-                          {/* <td className="p-2 border">
-                            <Calendar
-                              id={`FechaDesasignacion-${asignacion.idUnico}`}
-                              name={`asignaciones[${asignacion.idUnico}].FechaDesasignacion`}
-                              value={asignacion.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null}
-                             
-                                onChange={(e) => {
-                                if (e.value) {
-                                  const d = e.value;
-                                  const pad = (n, z = 2) => n.toString().padStart(z, '0');
-                                  const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
-                                  formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, localString);
-                                  console.log("FechaDesasignacion guardada:", localString);
-                                } else {
-                                  formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, null);
-                                }
-                              }}
-                              onBlur={formik.handleBlur}
-                              showTime
-                              hourFormat="24"
-                              minDate={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : new Date()}
-                              dateFormat="dd/mm/yy"
-                            />
-                          </td> */}
-                          <td className="p-2 border">
-                            <Calendar
-                              id={`FechaDesasignacion-${asignacion.idUnico}`}
-                              name={`asignaciones[${asignacion.idUnico}].FechaDesasignacion`}
-                              value={asignacion.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null}
-                              onChange={(e) => {
-                                // Solo actualizar si e.value es una fecha válida (no null/undefined)
-                                // y si viene del selector (no del input manual mientras se escribe)
-                                if (e.value instanceof Date && !isNaN(e.value)) {
-                                  const d = e.value;
-                                  const pad = (n, z = 2) => n.toString().padStart(z, '0');
-                                  const localString = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
-                                  formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, localString);
-                                  console.log("FechaDesasignacion guardada:", localString);
-                                } else if (e.value === null) {
-                                  formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, null);
-                                }
-                              }}
-                              onBlur={(e) => {
-                                formik.handleBlur(e);
-                                // Validar y guardar cuando el usuario termina de escribir
-                                const inputValue = e.target.value;
-                                if (inputValue) {
-                                  try {
-                                    const parsedDate = new Date(inputValue);
-                                    if (!isNaN(parsedDate)) {
-                                      const pad = (n, z = 2) => n.toString().padStart(z, '0');
-                                      const localString = `${parsedDate.getFullYear()}-${pad(parsedDate.getMonth() + 1)}-${pad(parsedDate.getDate())}T${pad(parsedDate.getHours())}:${pad(parsedDate.getMinutes())}:${pad(parsedDate.getSeconds())}.${pad(parsedDate.getMilliseconds(), 3)}`;
-                                      formik.setFieldValue(`asignaciones[${index}].FechaDesasignacion`, localString);
-                                    }
-                                  } catch (error) {
-                                    console.error("Error parseando fecha:", error);
-                                  }
-                                }
-                              }}
-                              showTime
-                              hourFormat="24"
-                              stepMinute={1}
-                              showSeconds={false}
-                              minDate={asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : new Date()}
-                              dateFormat="dd/mm/yy"
-                              touchUI={false}
-                              keepInvalid={true}
-                            />
-                          </td>
-                     
-
-                          {/* BOTON PLANIFICAT / VER PLANIFICACION */}
-                           <td className="p-2 border">
-                          <Button
-                              label={""}
-                               icon={"pi pi-plus"}
-                              // icon={
-                              // !permisosActual.divsBloqueados.includes("divHorasTareo")
-                              //     ? "pi pi-plus"
-                              //     : "pi pi-eye"
-                              // }
-                              onClick={() => setVisibleIndexPlanificacion(index)}
-                              disabled={
-                              !(
-                                  asignacion.IdConsultor == window.localStorage.getItem("idConsultor")
-                              ) && !permisosActual.divsBloqueados.includes("divHorasTareo")
-                              }
-                              className="w-full"
-                              type="button"
-                          />
-                          <Dialog
-                              header={
-                              !permisosActual.divsBloqueados.includes("divHorasTareo")
-                                  ? "Planificar  Horas"
-                                  : "Ver Planificación"
-                              }
-                              visible={visibleIndexPlanificacion === index}
-                              style={{ width: "60vw" }}
-                              modal
-                              onHide={() => setVisibleIndexPlanificacion(null)}
-                              // footer={!permisosActual.divsBloqueados.includes("divHorasTareo") ? footer : null}
-                              footer={footer }
-
-                          >
-                          
-                              {!permisosActual.divsOcultos.includes("divHorasTareo") && (
-                              <>
-                              <div className="p-fluid formgrid grid">
-                              {/* <div className="field col-12 md:col-6">
-                                  <label>Fecha Inicio</label>
-                                  <Calendar
-                                  value={nuevoDetallePlanificacion.FechaInicio}
-                                  onChange={(e) => {
-                                      const fechaInicio = e.value;
-                                      let fechaFin = nuevoDetallePlanificacion.FechaFin;
-
-                                      if (fechaInicio && nuevoDetallePlanificacion.Horas) {
-                                      fechaFin = new Date(fechaInicio);
-                                      fechaFin.setHours(fechaFin.getHours() + nuevoDetallePlanificacion.Horas);
-                                      }
-
-                                      setNuevoDetallePlanificacion({ ...nuevoDetallePlanificacion, FechaInicio: fechaInicio, FechaFin: fechaFin });
-                                  }}
-                                  dateFormat="yy-mm-dd"
-                                  showIcon
-                                  className="w-full"
-                                  minDate={formik.values.asignaciones[index].FechaAsignacion
-                                  ? new Date(formik.values.asignaciones[index].FechaAsignacion)
-                                  : null} 
-                                  // maxDate={ new Date()}
-                                   maxDate={formik.values.asignaciones[index].FechaDesasignacion
-                                  ? new Date(formik.values.asignaciones[index].FechaDesasignacion)
-                                  : null} 
-                                  />
-                              </div>
-
-
-
-                              <div className="field col-12 md:col-6">
-                                  <label>Fecha Fin</label>
-                                  <Calendar
-                                  value={nuevoDetallePlanificacion.FechaFin}
-                                  readOnlyInput
-                                  disabled
-                                  dateFormat="yy-mm-dd"
-                                  showIcon
-                                  className="w-full"
-                                  />
-                              </div>
-
-                              <div className="field col-12 md:col-6">
-                                  <label>Horas</label>
-                                  <InputNumber
-                                  value={nuevoDetallePlanificacion.Horas}
-                                  onValueChange={(e) => {
-                                      const horas = e.value;
-                                      let fechaFin = nuevoDetallePlanificacion.FechaFin;
-
-                                      if (nuevoDetallePlanificacion.FechaInicio && horas) {
-                                      fechaFin = new Date(nuevoDetallePlanificacion.FechaInicio);
-                                      fechaFin.setHours(fechaFin.getHours() + horas);
-                                      }
-
-                                      setNuevoDetallePlanificacion({ ...nuevoDetallePlanificacion, Horas: horas, FechaFin: fechaFin });
-                                  }}
-                                  min={1}
-                                  className="w-full"
-                                  />
-                              </div> */}
-
-                              <div className="field col-12 md:col-6">
-                                  <label>Fecha Inicio</label>
-                                  <Calendar
-                                      value={nuevoDetallePlanificacion.FechaInicio}
-                                      onChange={(e) => {
-                                          const fechaInicio = e.value;
-                                          let fechaFin = nuevoDetallePlanificacion.FechaFin;
-
-                                          if (fechaInicio && nuevoDetallePlanificacion.Horas) {
-                                              const horas = nuevoDetallePlanificacion.Horas;
-                                              
-                                              // Calcular días completos (máximo 16 horas por día)
-                                              const diasCompletos = Math.floor(horas / 16);
-                                              const horasRestantes = horas % 16;
-                                              
-                                              // Crear nueva fecha fin comenzando desde fecha inicio
-                                              fechaFin = new Date(fechaInicio);
-                                              
-                                              // Si hay horas restantes, se trabaja ese día adicional
-                                              if (horasRestantes > 0) {
-                                                  fechaFin.setDate(fechaFin.getDate() + diasCompletos);
-                                              } else if (diasCompletos > 0) {
-                                                  // Si son exactamente múltiplos de 16, termina en el último día
-                                                  fechaFin.setDate(fechaFin.getDate() + diasCompletos - 1);
-                                              }
-                                          }
-
-                                          setNuevoDetallePlanificacion({ 
-                                              ...nuevoDetallePlanificacion, 
-                                              FechaInicio: fechaInicio, 
-                                              FechaFin: fechaFin 
-                                          });
-                                      }}
-                                      dateFormat="yy-mm-dd"
-                                      showIcon
-                                      className="w-full"
-                                      minDate={formik.values.asignaciones[index].FechaAsignacion
-                                          ? new Date(formik.values.asignaciones[index].FechaAsignacion)
-                                          : null} 
-                                      maxDate={formik.values.asignaciones[index].FechaDesasignacion
-                                          ? new Date(formik.values.asignaciones[index].FechaDesasignacion)
-                                          : null} 
-                                  />
-                              </div>
-
-                              <div className="field col-12 md:col-6">
-                                  <label>Fecha Fin</label>
-                                  <Calendar
-                                      value={nuevoDetallePlanificacion.FechaFin}
-                                      readOnlyInput
-                                      disabled
-                                      dateFormat="yy-mm-dd"
-                                      showIcon
-                                      className="w-full"
-                                  />
-                              </div>
-
-                              <div className="field col-12 md:col-6">
-                                  <label>Horas</label>
-                                  <InputNumber
-                                      value={nuevoDetallePlanificacion.Horas}
-                                      onValueChange={(e) => {
-                                          const horas = e.value;
-                                          let fechaFin = nuevoDetallePlanificacion.FechaFin;
-
-                                          if (nuevoDetallePlanificacion.FechaInicio && horas) {
-                                              // Calcular días completos (máximo 16 horas por día)
-                                              const diasCompletos = Math.floor(horas / 16);
-                                              const horasRestantes = horas % 16;
-                                              
-                                              // Crear nueva fecha fin comenzando desde fecha inicio
-                                              fechaFin = new Date(nuevoDetallePlanificacion.FechaInicio);
-                                              
-                                              // Si hay horas restantes, se trabaja ese día adicional
-                                              if (horasRestantes > 0) {
-                                                  fechaFin.setDate(fechaFin.getDate() + diasCompletos);
-                                              } else if (diasCompletos > 0) {
-                                                  // Si son exactamente múltiplos de 16, termina en el último día
-                                                  fechaFin.setDate(fechaFin.getDate() + diasCompletos - 1);
-                                              }
-                                          }
-
-                                          setNuevoDetallePlanificacion({ 
-                                              ...nuevoDetallePlanificacion, 
-                                              Horas: horas, 
-                                              FechaFin: fechaFin 
-                                          });
-                                      }}
-                                      min={1}
-                                      className="w-full"
-                                  />
-                                  <small className="block mt-1 text-gray-500">Máximo 16 horas laborables por día</small>
-                              </div>
-
-                              <div className="field col-12 md:col-6">
-                              <label>Tipo de Actividad</label>
-                              <DropdownDefault
-                                  value={nuevoDetallePlanificacion.IdTipoActividad}
-                              options={parametros?.filter((item) => item.tipoParametro === "TipoActividad" &&
-                              codFrentes.includes(item.valor1) )}
-                                  onChange={(e) => {
-                                      console.log("Dropdown onChange:", e.value);
-
-                                  const tipoPlanificion = e.value;
-                                  setNuevoDetallePlanificacion({ ...nuevoDetallePlanificacion, IdTipoActividad: tipoPlanificion });
-                                  }}
-                                  optionLabel="nombre"  
-                                  optionValue="id"    
-                                  placeholder="Seleccione tipo"
-                                  className="w-full"
-                              />
-                              </div>
-                              <div className="field col-12 md:col-6">
-                              <label>Descripción</label>
-                              <InputText
-                                  value={nuevoDetallePlanificacion.Descripcion}
-                                  onChange={(e) => setNuevoDetallePlanificacion({ ...nuevoDetallePlanificacion, Descripcion: e.target.value })}
-                                  className="w-full"
-
-
-                              />
-                              </div>
-                              </div>
-                              <div className="mb-4">
-                                  <Button
-                                  label="Añadir"
-                                  icon="pi pi-plus"
-                                  severity="success"
-                                  onClick={agregarDetallePlanificacion}
-                                  />
-                              </div>
-                              </>
-                              )}
-                              <DataTable
-                              value={
-                                  (formik.values.asignaciones[visibleIndexPlanificacion]?.DetallePlanificacionConsultor || [])
-                                  .filter((d) => d.Activo) 
-                              }
-                              responsiveLayout="scroll"
-                              className="w-full"
-                              >
-                              <Column
-                                  field="FechaInicio"
-                                  header="Fecha Inicio"
-                                  body={(row) => row.FechaInicio ? new Date(row.FechaInicio).toLocaleDateString() : ""}
-                              />
-                              <Column
-                                  field="FechaFin"
-                                  header="Fecha Fin"
-                                  body={(row) => row.FechaFin ? new Date(row.FechaFin).toLocaleDateString() : ""}
-                              />
-                              <Column field="Horas" header="Horas" />
-                              <Column
-                                  field="IdTipoActividad"
-                                  header="Tipo de Actividad"
-                                  body={(rowData) => {
-                                  const tipo = parametros?.find(
-                                      (item) =>
-                                      item.tipoParametro === "TipoActividad" &&
-                                      codFrentes.includes(item.valor1) &&
-                                      item.id === rowData.IdTipoActividad
-                                  );
-                                  return tipo?.nombre || "—";
-                                  }}
-                              />
-                              <Column field="Descripcion" header="Descripción"  />
-                              {!permisosActual.divsBloqueados.includes("divPlanificacion") && (
-                          
-                              <Column
-                                  header="Acciones"
-                                  body={(rowData) => (
-                                  <Button
-                                      icon="pi pi-trash"
-                                      severity="danger"
-                                      text
-                                      
-                                      onClick={() => {
-                                        setEliminarPlanificacion(false)
-                                      const updated = [...formik.values.asignaciones[visibleIndexPlanificacion].DetallePlanificacionConsultor];
-                                      const index = updated.findIndex(
-                                          (d) =>
-                                          d.FechaInicio === rowData.FechaInicio &&
-                                          d.FechaFin === rowData.FechaFin &&
-                                          d.Horas === rowData.Horas &&
-                                          d.Descripcion === rowData.Descripcion
-                                      );
-                                      if (index !== -1) {
-                                          updated[index] = { ...updated[index], Activo: false };
-                                          formik.setFieldValue(
-                                          `asignaciones[${visibleIndexPlanificacion}].DetallePlanificacionConsultor`,
-                                          updated
-                                          );
-                                      }
-                                      }}
-                                  />
-                                  )}
-                              />
-                              )}
-                              </DataTable>
-                          
-                          </Dialog>
-                          </td>
-
-                             {/* HORAS TRABAJADAS */}
-                          <td className="p-2 border text-center">
-                            {totalesFijos?.[index]?.totalHoras || 0}
-                          </td>
-
-
-                           {/* BOTON ASIGNAR / VER HORAS */}
-                          <td className="p-2 border">
-                            <Button
-                              label={""}
-                              icon={
-                                !permisosActual.divsBloqueados.includes("divHorasTareo")
-                                  ? "pi pi-plus"
-                                  : "pi pi-eye"
-                              }
-                              onClick={() => setVisibleIndex(index)}
-                              disabled={
-                                !(
-                                  asignacion.IdConsultor == window.localStorage.getItem("idConsultor")
-                                ) && !permisosActual.divsBloqueados.includes("divHorasTareo")
-                              }
-                              className="w-full"
-                              type="button"
-                            />
-
-                            <Dialog
-                              header={
-                                !permisosActual.divsBloqueados.includes("divHorasTareo")
-                                  ? "Asignar Horas"
-                                  : "Ver Horas"
-                              }
-                              visible={visibleIndex === index}
-                              style={{ width: "60vw" }}
-                              modal
-                              onHide={() => setVisibleIndex(null)}
-                              footer={!permisosActual.divsBloqueados.includes("divHorasTareo") ? footer : null}
-                            >
-                            
-                  {!permisosActual.divsOcultos.includes("divHorasTareo") && (
-                                            <>
-                                            <div className="p-fluid formgrid grid">
-                                            
-                                              <div className="field col-12 md:col-6">
-    <label>Fecha Inicio</label>
-    <Calendar
-        value={nuevoDetalle.FechaInicio}
-        onChange={(e) => {
-            const fechaInicio = e.value;
-            let fechaFin = null;
-
-            if (fechaInicio && nuevoDetalle.Horas) {
-                const horas = nuevoDetalle.Horas;
-                
-                // Calcular días completos (máximo 16 horas por día)
-                const diasCompletos = Math.floor(horas / 16);
-                const horasRestantes = horas % 16;
-                
-                // Crear nueva fecha fin comenzando desde fecha inicio
-                fechaFin = new Date(fechaInicio);
-                
-                // Si hay horas restantes, se trabaja ese día adicional
-                if (horasRestantes > 0) {
-                    fechaFin.setDate(fechaFin.getDate() + diasCompletos);
-                } else if (diasCompletos > 0) {
-                    // Si son exactamente múltiplos de 16, termina en el último día
-                    fechaFin.setDate(fechaFin.getDate() + diasCompletos - 1);
-                }
-            }
-
-            setNuevoDetalle({ ...nuevoDetalle, FechaInicio: fechaInicio, FechaFin: fechaFin });
-        }}
-        dateFormat="yy-mm-dd"
-        showIcon
-        className="w-full"
-        minDate={formik.values.asignaciones[index].FechaAsignacion
-            ? new Date(formik.values.asignaciones[index].FechaAsignacion)
-            : null} 
-        maxDate={new Date()}
-    />
-</div>
-
-<div className="field col-12 md:col-6">
-    <label>Fecha Fin</label>
-    <Calendar
-        value={nuevoDetalle.FechaFin}
-        readOnlyInput
-        disabled
-        dateFormat="yy-mm-dd"
-        showIcon
-        className="w-full"
-    />
-</div>
-
-<div className="field col-12 md:col-6">
-    <label>Horas</label>
-    <InputNumber
-        value={nuevoDetalle.Horas}
-        onValueChange={(e) => {
-            const horas = e.value;
-            let fechaFin = null;
-
-            if (nuevoDetalle.FechaInicio && horas) {
-                // Calcular días completos (máximo 16 horas por día)
-                const diasCompletos = Math.floor(horas / 16);
-                const horasRestantes = horas % 16;
-                
-                // Crear nueva fecha fin comenzando desde fecha inicio
-                fechaFin = new Date(nuevoDetalle.FechaInicio);
-                
-                // Si hay horas restantes, se trabaja ese día adicional
-                if (horasRestantes > 0) {
-                    fechaFin.setDate(fechaFin.getDate() + diasCompletos);
-                } else if (diasCompletos > 0) {
-                    // Si son exactamente múltiplos de 16, termina en el último día
-                    fechaFin.setDate(fechaFin.getDate() + diasCompletos - 1);
-                }
-            }
-
-            setNuevoDetalle({ ...nuevoDetalle, Horas: horas, FechaFin: fechaFin });
-        }}
-        min={1}
-        className="w-full"
-        // disabled={formik.values.idEstadoTicket==63}
-        // disabled={
-        //     formik.values.idEstadoTicket === 
-        //     parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-        //   }
-    />
-    <small className="block mt-1 text-gray-500">Máximo 16 horas laborables por día</small>
-</div>
-                                          <div className="field col-12 md:col-6">
-                                            <label>Tipo de Actividad</label>
-                                            <DropdownDefault
-                                              value={nuevoDetalle.IdTipoActividad}
-                                            options={parametros?.filter((item) => item.tipoParametro === "TipoActividad" &&
-                                            codFrentes.includes(item.valor1) )}
-                                              onChange={(e) => {
-                                                const tipo = e.value;
-                                                setNuevoDetalle({ ...nuevoDetalle, IdTipoActividad: tipo });
-                                              }}
-                                              optionLabel="nombre"  
-                                              optionValue="id"    
-                                              placeholder="Seleccione tipo"
-                                              className="w-full"
-                                            />
-                                          </div>
-                                              <div className="field col-12 md:col-6">
-                                                <label>Descripción</label>
-                                                <InputText
-                                                  value={nuevoDetalle.Descripcion}
-                                                  onChange={(e) => setNuevoDetalle({ ...nuevoDetalle, Descripcion: e.target.value })}
-                                                  className="w-full"
-                                                  // disabled={formik.values.idEstadoTicket==63}
-                                                  //  disabled={
-                                                  //   formik.values.idEstadoTicket === 
-                                                  //   parametros.find((item) => item.tipoParametro === "EstadoTicket" && item.codigo === "CERRADO")?.id
-                                                  // }
-
-                                                />
-                                              </div>
-                                            </div>
-                                            <div className="mb-4">
-                                              <Button
-                                                label="Añadir"
-                                                icon="pi pi-plus"
-                                                severity="success"
-                                                onClick={agregarDetalle}
-                                                
-                                              />
-                                            </div>
-                                            </>)}
-                                            <DataTable
-                                            value={
-                                                (formik.values.asignaciones[visibleIndex]?.DetalleTareasConsultor || [])
-                                                  .filter((d) => d.Activo) 
-                                              }
-                                            responsiveLayout="scroll"
-                                              className="w-full"
-                                            >
-                                              <Column
-                                                field="FechaInicio"
-                                                header="Fecha Inicio"
-                                                  body={(row) => row.FechaInicio ? new Date(row.FechaInicio).toLocaleDateString() : ""}
-                                              />
-                                              <Column
-                                                field="FechaFin"
-                                                header="Fecha Fin"
-                                                body={(row) => row.FechaFin ? new Date(row.FechaFin).toLocaleDateString() : ""}
-                                              />
-                                              <Column field="Horas" header="Horas" />
-                                            <Column
-                                                field="IdTipoActividad"
-                                                header="Tipo de Actividad"
-                                                body={(rowData) => {
-                                                  const tipo = parametros?.find(
-                                                    (item) =>
-                                                      item.tipoParametro === "TipoActividad" &&
-                                                      codFrentes.includes(item.valor1) &&
-                                                      item.id === rowData.IdTipoActividad
-                                                  );
-                                                  return tipo?.nombre || "—";
-                                                }}
-                                              />
-                                              <Column field="Descripcion" header="Descripción"  />
-                                              {!permisosActual.divsBloqueados.includes("divHorasTareo") && (
-                                          
-                                              <Column
-                                                header="Acciones"
-                                                body={(rowData) => (
-                                                  <Button
-                                                    icon="pi pi-trash"
-                                                    severity="danger"
-                                                    text
-                                                    
-                                                    onClick={() => {
-                                                      setEliminar(false)
-                                                      const updated = [...formik.values.asignaciones[visibleIndex].DetalleTareasConsultor];
-                                                      const index = updated.findIndex(
-                                                        (d) =>
-                                                          d.FechaInicio === rowData.FechaInicio &&
-                                                          d.FechaFin === rowData.FechaFin &&
-                                                          d.Horas === rowData.Horas &&
-                                                          d.Descripcion === rowData.Descripcion
-                                                      );
-                                                      if (index !== -1) {
-                                                        updated[index] = { ...updated[index], Activo: false };
-                                                        formik.setFieldValue(
-                                                          `asignaciones[${visibleIndex}].DetalleTareasConsultor`,
-                                                          updated
-                                                        );
-                                                      }
-                                                    }}
-                                                  />
-                                                )}
-                                              />
-                                              )}
-                                            </DataTable>
-                            
-                            </Dialog>
-                          </td>
-
-                          {/* ELIMINAR FILA */}
-                          {!permisosActual.controlesOcultos.includes("btnEliminar") && (
-                            <td className="p-2 border">
-                              <button
-                                type="button"
-                                onClick={() => removeRow(asignacion.idUnico)}
-                                className="text-red-600 hover:underline"
-                              >
-                                Eliminar
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                  </tbody>
-
-
-              </table>
-              {(
-                !permisosActual.controlesOcultos.includes("btnEliminar") ||
-                (permisosActual.controlesOcultos.includes("btnEliminar") && persona?.esCargaMasiva === true)
-              ) && (
-                <button
-                  type="button"
-                  onClick={addRow}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Agregar fila
-                </button>
-              )}
-              </div>
+                </div>
+                <Asignaciones
+                  formik={formik}
+                  permisosActual={permisosActual}
+                  subfrentesSeleccionados={subfrentesSeleccionados}
+                  consultores={consultores}
+                  consultoresPorFila={consultoresPorFila}
+                  setConsultoresPorFila={setConsultoresPorFila}
+                  ObtenerConsultoresPorFrente={ObtenerConsultoresPorFrente}
+                  obtenerCantidadPermitida={obtenerCantidadPermitida}
+                  contarAsignaciones={contarAsignaciones}
+                  totalesFijos={totalesFijos}
+                  toastRef={toast}
+                  parametros={parametros}
+                  codFrentes={codFrentes}
+                  addRow={addRow}
+                  removeRow={removeRow}
+                />
               </>
-             )}
-              <div  className="field col-12 md:col-12">
+            )}
 
+              <div  className="field col-12 md:col-12">
               </div>
               </>)}
             </div>
            <div className="zv-editarUsuario-footer">
-          {/* <button type="button" onClick={() => console.log("VALUES", formik.values)}>
-            Ver valores
-          </button> */}
-          
-          {/* {(!permisosActual.controlesOcultos.includes("btnEliminar") || persona?.esCargaMasiva==true ) &&( */}
 
-     
-<          Boton
+            <Boton
               label="Guardar cambios"
               style={{ fontSize: 12 }}
               color="primary"
