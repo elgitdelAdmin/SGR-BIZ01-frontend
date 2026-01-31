@@ -11,10 +11,10 @@ export const ListarParametros = async () => {
       "Accept": "application/json"
     },
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los parametros");
-    return res.json();
-  });
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener los parametros");
+      return res.json();
+    });
 };
 export const ListarPais = async () => {
   return await fetch(`${ENDPOINT}/api/Paises`, {
@@ -23,10 +23,10 @@ export const ListarPais = async () => {
       "Accept": "application/json"
     },
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los paises");
-    return res.json();
-  });
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener los paises");
+      return res.json();
+    });
 };
 
 
@@ -37,10 +37,10 @@ export const ListarFrentes = async () => {
       "Accept": "application/json"
     },
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los frentes");
-    return res.json();
-  });
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener los frentes");
+      return res.json();
+    });
 };
 
 export const RegistrarTiket = ({ formData }) => {
@@ -77,7 +77,7 @@ export const ActualizarTicket = ({ formData, idTicket }) => {
     body: formData,
   })
     .then((res) => {
-                  console.log("res1",res)
+      console.log("res1", res)
 
       if (!res.ok) {
         if (res.status === 401) {
@@ -90,7 +90,7 @@ export const ActualizarTicket = ({ formData, idTicket }) => {
       return res.json();
     })
     .then((res) => {
-                        console.log("res1",res)
+      console.log("res1", res)
 
       if (res.errors) throw new Error(res.errors[0]);
       const { data } = res;
@@ -98,77 +98,77 @@ export const ActualizarTicket = ({ formData, idTicket }) => {
     });
 };
 
-  export const ListarTicket= async ({idUser,codRol}) => {
+export const ListarTicket = async ({ idUser, codRol }) => {
   return await fetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
     },
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los ticket");
-    return res.json();
-  });
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener los ticket");
+      return res.json();
+    });
 };
 
 
 export const EliminarTicket = async ({ id }) => {
-    return await fetch(`${ENDPOINT}/api/Ticket/${id}`, {
-        method: "DELETE",
-        headers: {
-            "accept": "text/plain"
-        },
-    }).then(async res => {
-                  console.log("res",res);
+  return await fetch(`${ENDPOINT}/api/Ticket/${id}`, {
+    method: "DELETE",
+    headers: {
+      "accept": "text/plain"
+    },
+  }).then(async res => {
+    console.log("res", res);
 
-        if (!res.ok) {
-            if (res.status === 401) {
-                window.localStorage.removeItem('jwt');
-                window.location.reload();
-            } else {
-                throw new Error("No se recibió respuesta del servidor");
-            }
-        }
+    if (!res.ok) {
+      if (res.status === 401) {
+        window.localStorage.removeItem('jwt');
+        window.location.reload();
+      } else {
+        throw new Error("No se recibió respuesta del servidor");
+      }
+    }
 
-        if (res.status === 204) {
-            return true; 
-        }
+    if (res.status === 204) {
+      return true;
+    }
 
-        const result = await res.json();
+    const result = await res.json();
 
-        if (result.errors) throw new Error(result.errors[0]);
-        return result.data;
-    });
+    if (result.errors) throw new Error(result.errors[0]);
+    return result.data;
+  });
 }
 
-export const ObtenerTicket = async ({id}) =>{
-    return await fetch(`${ENDPOINT}/api/Ticket/${id}`,{
-        method: "GET",
-        headers:{
-            "accept": "text/plain"
-        },
-        
-    })
-    .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los ticket");
-    return res.json();
-  });
+export const ObtenerTicket = async ({ id }) => {
+  return await fetch(`${ENDPOINT}/api/Ticket/${id}`, {
+    method: "GET",
+    headers: {
+      "accept": "text/plain"
+    },
 
-  
-    
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener los ticket");
+      return res.json();
+    });
+
+
+
 }
 
 export const ListarGestorConsultoria = async () => {
-    return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/6/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
+  return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/6/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
     },
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los Gestores");
-    return res.json();
-  });
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener los Gestores");
+      return res.json();
+    });
 };
 
 export const ListarGestorCuenta = async () => {
@@ -178,10 +178,10 @@ export const ListarGestorCuenta = async () => {
       "Accept": "application/json"
     },
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los Gestores");
-    return res.json();
-  });
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener los Gestores");
+      return res.json();
+    });
 };
 export const DescargarArchivoTicket = async ({ idTicket, orden }) => {
   return fetch(`${ENDPOINT}/api/Ticket/${idTicket}/desgarcarArchivo/${orden}`, {

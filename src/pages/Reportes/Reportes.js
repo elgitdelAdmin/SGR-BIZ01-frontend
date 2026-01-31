@@ -1,0 +1,431 @@
+import React, { useState, useEffect, useContext, useMemo } from "react";
+import Context from "../../context/usuarioContext";
+import { Dropdown } from "primereact/dropdown";
+import { MultiSelect } from "primereact/multiselect";
+import { Calendar } from "primereact/calendar";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { InputText } from "primereact/inputtext";
+import Boton from "../../components/Boton/Boton";
+import "./Reportes.scss";
+import { TIPO_PARAMETRO, CODIGOS } from "../../constants/codigosBD";
+import { ListarConsultores, ListarConsultoresPorSocio } from "../../service/ConsultorService";
+import { ListarEmpresas, ListarEmpresasPorSocio } from "../../service/EmpresaService";
+import { ListarTicket } from "../../service/TiketService";
+import { GenerarReporteExcel, ConsultarDetalleReporte } from "../../service/ReporteService";
+
+// Componentes
+import ModalSeleccionTickets from "./Components/ModalSeleccionTickets";
+
+const Reportes = () => {
+    const { parametros } = useContext(Context);
+    const codRol = localStorage.getItem("codRol");
+    const idUser = localStorage.getItem("idUser");
+    const idSocio = localStorage.getItem("idSocio");
+
+    // Estados para los filtros
+    const [tipoReporteSeleccionado, setTipoReporteSeleccionado] = useState(null);
+    const [empresasSeleccionadas, setEmpresasSeleccionadas] = useState([]);
+    const [ticketsExcluidos, setTicketsExcluidos] = useState(new Set());
+    const [tiposSeleccionados, setTiposSeleccionados] = useState([]);
+    const [subtiposSeleccionados, setSubtiposSeleccionados] = useState([]);
+    const [estadosSeleccionados, setEstadosSeleccionados] = useState([]);
+    const [consultoresSeleccionados, setConsultoresSeleccionados] = useState([]);
+    const [rangoFechas, setRangoFechas] = useState(null);
+
+    // Estados de carga y resultados
+    const [loadingExcel, setLoadingExcel] = useState(false);
+    const [loadingBusqueda, setLoadingBusqueda] = useState(false);
+    const [dataResultados, setDataResultados] = useState([]);
+    const [columnasDinamicas, setColumnasDinamicas] = useState([]);
+
+    // Estados para los datos maestros
+    const [consultores, setConsultores] = useState([]);
+    const [empresas, setEmpresas] = useState([]);
+    const [tickets, setTickets] = useState([]);
+
+    // Estado para el modal de tickets
+    const [mostrarModalTickets, setMostrarModalTickets] = useState(false);
+
+    // CARGA ÚNICA AL INGRESAR AL MÓDULO
+    useEffect(() => {
+        const loadAllData = async () => {
+            try {
+                const [resConsultores, resEmpresas, resTickets] = await Promise.all([
+                    (codRol === "SUPERADMIN" ? ListarConsultores() : ListarConsultoresPorSocio()),
+                    (codRol === "SUPERADMIN" ? ListarEmpresas() : ListarEmpresasPorSocio()),
+                    ListarTicket({ idUser, codRol })
+                ]);
+
+                setConsultores(resConsultores.map(c => ({
+                    ...c,
+                    nombreCompleto: `${c.persona?.nombres || ''} ${c.persona?.apellidoPaterno || ''} ${c.persona?.apellidoMaterno || ''}`.trim() || c.persona?.username || 'Sin nombre'
+                })));
+
+                const empresasUnicas = [];
+                const idsMap = new Set();
+                resEmpresas.forEach(e => {
+                    if (!idsMap.has(e.id)) {
+                        idsMap.add(e.id);
+                        empresasUnicas.push(e);
+                    }
+                });
+                setEmpresas(empresasUnicas);
+
+                setTickets(resTickets.map(t => ({
+                    ...t,
+                    label: `${t.codTicket} - ${t.titulo}`
+                })));
+            } catch (error) {
+                console.error("Error cargando datos maestros:", error);
+            }
+        };
+
+        loadAllData();
+    }, []);
+
+    // Opciones de parámetros (se mantienen igual)
+    const opcionesTipoReporte = useMemo(() =>
+        parametros.filter(p => p.tipoParametro === TIPO_PARAMETRO.TipoReporte),
+        [parametros]);
+
+    const opcionesTipo = useMemo(() =>
+        parametros.filter(p => p.tipoParametro === TIPO_PARAMETRO.TipoTicket),
+        [parametros]);
+
+    const opcionesSubtipo = useMemo(() => {
+        if (!tiposSeleccionados || tiposSeleccionados.length === 0) return [];
+        const tiposSeleccionadosData = opcionesTipo.filter(t => tiposSeleccionados.includes(t.id));
+        const codigosTiposMap = {};
+        tiposSeleccionadosData.forEach(t => {
+            const code = t.codigo?.trim();
+            if (code) codigosTiposMap[code] = t.nombre;
+        });
+        const codigosSeleccionados = Object.keys(codigosTiposMap);
+        return parametros
+            .filter(p => p.tipoParametro === TIPO_PARAMETRO.Subtipos && codigosSeleccionados.includes(String(p.valor1).trim()))
+            .map(p => ({
+                ...p,
+                nombreConPadre: `${p.nombre} (${codigosTiposMap[String(p.valor1).trim()] || ''})`
+            }));
+    }, [parametros, tiposSeleccionados, opcionesTipo]);
+
+    const opcionesEstado = useMemo(() =>
+        parametros.filter(p => p.tipoParametro === TIPO_PARAMETRO.EstadoTicket),
+        [parametros]);
+
+    const reporteActual = useMemo(() =>
+        opcionesTipoReporte.find(r => r.id === tipoReporteSeleccionado)
+        , [tipoReporteSeleccionado, opcionesTipoReporte]);
+
+    const mostrarFiltroConsultores = useMemo(() =>
+        reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CargabilidadPorConsultor
+        , [reporteActual]);
+
+    const mostrarFiltroEmpresas = useMemo(() =>
+        reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CargabilidadPorCliente
+        , [reporteActual]);
+
+    const mostrarFiltroTickets = useMemo(() =>
+        reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CargabilidadPorTicket
+        , [reporteActual]);
+
+    // Visibilidad condicional y Auto-selección
+    useEffect(() => {
+        if (mostrarFiltroConsultores) {
+            setConsultoresSeleccionados(consultores.map(c => c.id));
+        } else {
+            setConsultoresSeleccionados([]);
+        }
+    }, [mostrarFiltroConsultores]);
+
+    useEffect(() => {
+        if (mostrarFiltroEmpresas) {
+            setEmpresasSeleccionadas(empresas.map(e => e.id));
+        } else {
+            setEmpresasSeleccionadas([]);
+        }
+    }, [mostrarFiltroEmpresas]);
+
+    useEffect(() => {
+        if (mostrarFiltroTickets) {
+            setTicketsExcluidos(new Set());
+        } else {
+            setTicketsExcluidos(new Set());
+        }
+    }, [mostrarFiltroTickets]);
+
+    // Preparar Payload común
+    const getPayload = () => {
+        const ticketsSeleccionadosFinal = tickets
+            .filter(t => !ticketsExcluidos.has(t.id))
+            .map(t => t.id);
+
+        return {
+            idTipoReporte: tipoReporteSeleccionado,
+            codigoReporte: reporteActual?.codigo,
+            idEmpresas: empresasSeleccionadas,
+            idTickets: ticketsSeleccionadosFinal,
+            idTiposTicket: tiposSeleccionados,
+            idSubtiposTicket: subtiposSeleccionados,
+            idEstadosTicket: estadosSeleccionados,
+            idConsultores: consultoresSeleccionados,
+            fechaInicio: rangoFechas?.[0] || null,
+            fechaFin: rangoFechas?.[1] || null,
+            idSocio: (idSocio && codRol !== "SUPERADMIN") ? parseInt(idSocio) : null
+        };
+    };
+
+    const handleBuscarReporte = async () => {
+        if (!tipoReporteSeleccionado) return;
+        setLoadingBusqueda(true);
+        try {
+            const data = await ConsultarDetalleReporte(getPayload());
+            setDataResultados(data);
+
+            // Generar columnas dinámicamente basadas en las llaves del primer objeto
+            if (data && data.length > 0) {
+                const llaves = Object.keys(data[0]);
+                setColumnasDinamicas(llaves.map(k => ({
+                    field: k,
+                    header: k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')
+                })));
+            } else {
+                setColumnasDinamicas([]);
+            }
+        } catch (error) {
+            console.error("Error al buscar reporte:", error);
+            setDataResultados([]);
+        } finally {
+            setLoadingBusqueda(false);
+        }
+    };
+
+    const handleGenerarReporteExcel = async () => {
+        if (!tipoReporteSeleccionado) return;
+        setLoadingExcel(true);
+        try {
+            const blob = await GenerarReporteExcel(getPayload());
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Reporte_${reporteActual?.nombre}_${new Date().getTime()}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error al generar reporte:", error);
+        } finally {
+            setLoadingExcel(false);
+        }
+    };
+
+    return (
+        <div className="zv-reportes" style={{ paddingTop: 16 }}>
+            <div className="header-titulo">Reportes</div>
+
+            <div className="card" style={{ marginTop: 16 }}>
+                <div className="p-fluid grid">
+                    <div className="field col-12">
+                        <label className="font-bold">Tipo Reporte</label>
+                        <Dropdown
+                            value={tipoReporteSeleccionado}
+                            options={opcionesTipoReporte}
+                            onChange={(e) => {
+                                setTipoReporteSeleccionado(e.value);
+                                setDataResultados([]); // Limpiar al cambiar tipo
+                            }}
+                            optionLabel="nombre"
+                            optionValue="id"
+                            placeholder="Seleccione el Tipo de Reporte a Generar"
+                            filter
+                            showClear
+                        />
+                    </div>
+
+                    {mostrarFiltroTickets && (
+                        <div className="field col-12">
+                            <label className="font-bold">Tickets</label>
+                            <div className="flex gap-2">
+                                <div className="p-inputgroup flex-1">
+                                    <span className="p-inputgroup-addon">
+                                        <i className="pi pi-ticket"></i>
+                                    </span>
+                                    <InputText
+                                        readOnly
+                                        value={`${tickets.length - ticketsExcluidos.size} tickets seleccionados`}
+                                        placeholder="Seleccione Tickets"
+                                        onClick={() => setMostrarModalTickets(true)}
+                                        style={{ cursor: 'pointer' }}
+                                    />
+                                    <Boton
+                                        icon="pi pi-list"
+                                        className="p-button-primary"
+                                        onClick={() => setMostrarModalTickets(true)}
+                                        tooltip="Gestionar Selección"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <ModalSeleccionTickets
+                        visible={mostrarModalTickets}
+                        onHide={() => setMostrarModalTickets(false)}
+                        tickets={tickets}
+                        ticketsExcluidos={ticketsExcluidos}
+                        setTicketsExcluidos={setTicketsExcluidos}
+                    />
+
+                    {mostrarFiltroEmpresas && (
+                        <div className="field col-12">
+                            <label className="font-bold">Empresas</label>
+                            <MultiSelect
+                                value={empresasSeleccionadas}
+                                options={empresas}
+                                onChange={(e) => setEmpresasSeleccionadas(e.value)}
+                                optionLabel="nombreComercial"
+                                optionValue="id"
+                                placeholder="Seleccione Empresas"
+                                display="chip"
+                                filter
+                            />
+                        </div>
+                    )}
+
+                    {mostrarFiltroConsultores && (
+                        <div className="field col-12">
+                            <label className="font-bold">Consultores</label>
+                            <MultiSelect
+                                value={consultoresSeleccionados}
+                                options={consultores}
+                                onChange={(e) => setConsultoresSeleccionados(e.value)}
+                                optionLabel="nombreCompleto"
+                                optionValue="id"
+                                placeholder="Seleccione Consultores"
+                                display="chip"
+                                filter
+                            />
+                        </div>
+                    )}
+
+                    <div className="field col-12 md:col-3">
+                        <label className="font-bold">Tipo Ticket</label>
+                        <MultiSelect
+                            value={tiposSeleccionados}
+                            options={opcionesTipo}
+                            onChange={(e) => setTiposSeleccionados(e.value)}
+                            optionLabel="nombre"
+                            optionValue="id"
+                            placeholder="Tipo Ticket"
+                            display="chip"
+                            filter
+                        />
+                    </div>
+
+                    <div className="field col-12 md:col-3">
+                        <label className="font-bold">Subtipo Ticket</label>
+                        <MultiSelect
+                            value={subtiposSeleccionados}
+                            options={opcionesSubtipo}
+                            onChange={(e) => setSubtiposSeleccionados(e.value)}
+                            optionLabel="nombreConPadre"
+                            optionValue="id"
+                            placeholder="Subtipos"
+                            disabled={!tiposSeleccionados || tiposSeleccionados.length === 0}
+                            display="chip"
+                            filter
+                        />
+                    </div>
+
+                    <div className="field col-12 md:col-3">
+                        <label className="font-bold">Estados</label>
+                        <MultiSelect
+                            value={estadosSeleccionados}
+                            options={opcionesEstado}
+                            onChange={(e) => setEstadosSeleccionados(e.value)}
+                            optionLabel="nombre"
+                            optionValue="id"
+                            placeholder="Estados"
+                            display="chip"
+                            filter
+                        />
+                    </div>
+
+                    <div className="field col-12 md:col-3">
+                        <label className="font-bold">Rango Fecha Solicitud</label>
+                        <Calendar
+                            value={rangoFechas}
+                            onChange={(e) => setRangoFechas(e.value)}
+                            selectionMode="range"
+                            readOnlyInput
+                            placeholder="Seleccione fechas"
+                            showIcon
+                        />
+                    </div>
+                </div>
+
+                <div className="flex justify-content-end gap-2" style={{ marginTop: 16 }}>
+                    <Boton
+                        label="Buscar"
+                        icon="pi pi-search"
+                        className="p-button-secondary"
+                        loading={loadingBusqueda}
+                        disabled={!tipoReporteSeleccionado || loadingBusqueda || loadingExcel}
+                        onClick={handleBuscarReporte}
+                    />
+                    <Boton
+                        label="Descargar Excel"
+                        icon="pi pi-file-excel"
+                        color="primary"
+                        loading={loadingExcel}
+                        disabled={!tipoReporteSeleccionado || loadingExcel || loadingBusqueda}
+                        onClick={handleGenerarReporteExcel}
+                    />
+                </div>
+            </div>
+
+            <div className="zv-reportes-results" style={{ marginTop: 16 }}>
+                <div className="card">
+                    <div className="flex justify-content-between align-items-center mb-3">
+                        <h5 className="m-0">Vista Previa de Resultados</h5>
+                        {dataResultados.length > 0 && (
+                            <span className="text-sm font-bold border-round bg-primary px-2 py-1">
+                                {dataResultados.length} registros encontrados
+                            </span>
+                        )}
+                    </div>
+
+                    {dataResultados.length > 0 ? (
+                        <DataTable
+                            value={dataResultados}
+                            paginator
+                            rows={10}
+                            rowsPerPageOptions={[10, 20, 50]}
+                            className="p-datatable-sm shadow-1"
+                            responsiveLayout="scroll"
+                            stripedRows
+                            showGridlines
+                        >
+                            {columnasDinamicas.map((col, i) => (
+                                <Column key={i} field={col.field} header={col.header} sortable />
+                            ))}
+                        </DataTable>
+                    ) : (
+                        <div className="text-center p-5 surface-50 border-round">
+                            <i className="pi pi-info-circle text-4xl text-400 mb-3 block"></i>
+                            <p className="text-600 m-0">
+                                {loadingBusqueda
+                                    ? "Cargando datos..."
+                                    : "Seleccione los filtros y haga clic en 'Buscar' para previsualizar los resultados."}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Reportes;

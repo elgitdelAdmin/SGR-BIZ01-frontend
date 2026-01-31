@@ -17,24 +17,28 @@ import useUsuario from "./hooks/useUsuario";
 import PrimeReact from "primereact/api";
 
 import { Home } from "iconsax-react";
-import  Dashboard  from "./pages/Dashboard/Dashboard"
-import  Consultores  from "./pages/Consultores/Consultores"
-import  EditarConsultor from "./pages/Consultores/EditarConsultor";
-import  Gestores  from "./pages/Gestores/Gestores"
-import  EditarGestor from "./pages/Gestores/EditarGestor";
-import  Empresas  from "./pages/Empresas/Empresas"
-import  EditarEmpresa from "./pages/Empresas/EditarEmpresa";
-import  Gestiontikets  from "./pages/Gestiontikets/Gestiontikets"
-import  Editar from "./pages/Gestiontikets/Editar";
-import  Cargabilidad from "./pages/Cargabilidad/Cargabilidad"
-import  Usuarios  from "./pages/Usuarios/Usuarios"
-import  EditarUsuario from "./pages/Usuarios/EditarUsuario";
-import  Socios  from "./pages/Socios/Socios"
-import  EditarSocio from "./pages/Socios/EditarSocio";
-import  CargaMasiva from "./pages/CargaMasiva/CargaMasiva";
-import  CambiarContraseña from "./pages/Configuracion/CambiarContraseña";
-import  RecuperarContrasena from "./pages/Login/RecuperarContrasena";
-import  CambiarEmail from "./pages/Configuracion/CambiarEmail";
+import Dashboard from "./pages/Dashboard/Dashboard"
+import Consultores from "./pages/Consultores/Consultores"
+import EditarConsultor from "./pages/Consultores/EditarConsultor";
+import Gestores from "./pages/Gestores/Gestores"
+import EditarGestor from "./pages/Gestores/EditarGestor";
+import Empresas from "./pages/Empresas/Empresas"
+import EditarEmpresa from "./pages/Empresas/EditarEmpresa";
+import Gestiontikets from "./pages/Gestiontikets/Gestiontikets"
+import Editar from "./pages/Gestiontikets/Editar";
+import Cargabilidad from "./pages/Cargabilidad/Cargabilidad"
+import Usuarios from "./pages/Usuarios/Usuarios"
+import EditarUsuario from "./pages/Usuarios/EditarUsuario";
+import Socios from "./pages/Socios/Socios"
+import EditarSocio from "./pages/Socios/EditarSocio";
+import CargaMasiva from "./pages/CargaMasiva/CargaMasiva";
+import CambiarContraseña from "./pages/Configuracion/CambiarContraseña";
+import RecuperarContrasena from "./pages/Login/RecuperarContrasena";
+import CambiarEmail from "./pages/Configuracion/CambiarEmail";
+import Reportes from "./pages/Reportes/Reportes";
+import { ListarParametros } from "./service/TiketService";
+import Context from "./context/usuarioContext";
+import { useContext } from "react";
 
 
 
@@ -50,6 +54,21 @@ function App() {
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileTopbarMenuActive, setMobileTopbarMenuActive] = useState(false);
   PrimeReact.ripple = true;
+  const { parametros, setParametros } = useContext(Context);
+
+  useEffect(() => {
+    if (isLogged && (!parametros || parametros.length === 0)) {
+      const getParametros = async () => {
+        try {
+          const data = await ListarParametros();
+          setParametros(data);
+        } catch (error) {
+          console.error("Error cargando parámetros globales:", error);
+        }
+      };
+      getParametros();
+    }
+  }, [isLogged, parametros, setParametros]);
 
   let menuClick = false;
   let mobileTopbarMenuClick = false;
@@ -163,9 +182,9 @@ function App() {
         ></TopBar>
         {/* <div className="layout-sidebar zv-slider-left" onClick={onSidebarClick}> */}
         <div
-  className={`menu-lateral layout-sidebar zv-slider-left ${!isDesktop() && mobileMenuActive ? "activo" : ""}`}
-  onClick={onSidebarClick}
->
+          className={`menu-lateral layout-sidebar zv-slider-left ${!isDesktop() && mobileMenuActive ? "activo" : ""}`}
+          onClick={onSidebarClick}
+        >
 
           <AppMenu
             model={[]}
@@ -179,38 +198,40 @@ function App() {
               <Route path="Dashboard" element={<Dashboard />}></Route>
 
               <Route path="Consultores" element={<Consultores />}></Route>
-              <Route path="Consultores/CrearConsultor" element={<EditarConsultor/>}></Route>
+              <Route path="Consultores/CrearConsultor" element={<EditarConsultor />}></Route>
               <Route path="Consultores/Editar/:id" element={<EditarConsultor />}></Route>
 
               <Route path="Tickets/user/:idUser/rol/:codRol" element={<Gestiontikets />}></Route>
-              <Route path="Tickets/user/:idUser/rol/:codRol/Crear" element={<Editar/>}></Route>
+              <Route path="Tickets/user/:idUser/rol/:codRol/Crear" element={<Editar />}></Route>
               <Route path="Tickets/user/:idUser/rol/:codRol/Editar/:id" element={<Editar />}></Route>
 
-              <Route path="Gestores" element={<Gestores/>}></Route>
-              <Route path="Gestores/CrearGestor" element={<EditarGestor/>}></Route>
+              <Route path="Gestores" element={<Gestores />}></Route>
+              <Route path="Gestores/CrearGestor" element={<EditarGestor />}></Route>
               <Route path="Gestores/EditarGestor/:id" element={<EditarGestor />}></Route>
 
-              <Route path="Empresas" element={<Empresas/>}></Route>
-              <Route path="Empresas/CrearEmpresa" element={<EditarEmpresa/>}></Route>
+              <Route path="Empresas" element={<Empresas />}></Route>
+              <Route path="Empresas/CrearEmpresa" element={<EditarEmpresa />}></Route>
               <Route path="Empresas/EditarEmpresa/:id" element={<EditarEmpresa />}></Route>
 
-              <Route path="Usuarios" element={<Usuarios/>}></Route>
-              <Route path="Usuarios/CrearUsuario" element={<EditarUsuario/>}></Route>
+              <Route path="Usuarios" element={<Usuarios />}></Route>
+              <Route path="Usuarios/CrearUsuario" element={<EditarUsuario />}></Route>
               <Route path="Usuarios/EditarUsuario/:id" element={<EditarUsuario />}></Route>
 
-              <Route path="Socios" element={<Socios/>}></Route>
-              <Route path="Socios/CrearSocio" element={<EditarSocio/>}></Route>
+              <Route path="Socios" element={<Socios />}></Route>
+              <Route path="Socios/CrearSocio" element={<EditarSocio />}></Route>
               <Route path="Socios/EditarSocio/:id" element={<EditarSocio />}></Route>
 
-               <Route path="Cargamasiva" element={<CargaMasiva/>}></Route>
+              <Route path="Cargamasiva" element={<CargaMasiva />}></Route>
 
 
               <Route path="Cargabilidad" element={<Cargabilidad />}></Route>
 
-              <Route path="Configuracion/CambiarContraseña" element={<CambiarContraseña/>}></Route>    
-              <Route path="Configuracion/CambiarEmail" element={<CambiarEmail/>}></Route>           
-       
-              <Route path="Login/RecuperarContrasena" element={<RecuperarContrasena/>}></Route>           
+              <Route path="reportes" element={<Reportes />}></Route>
+
+              <Route path="Configuracion/CambiarContraseña" element={<CambiarContraseña />}></Route>
+              <Route path="Configuracion/CambiarEmail" element={<CambiarEmail />}></Route>
+
+              <Route path="Login/RecuperarContrasena" element={<RecuperarContrasena />}></Route>
 
             </Routes>
           </div>
