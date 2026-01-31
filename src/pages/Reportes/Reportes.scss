@@ -1,0 +1,16 @@
+.zv-reportes {
+    .header-titulo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #005691;
+    }
+
+    .zv-reportes-body {
+        .card {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    }
+}
