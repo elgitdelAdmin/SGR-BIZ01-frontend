@@ -3,10 +3,9 @@ import Context from "../../context/usuarioContext";
 import { Dropdown } from "primereact/dropdown";
 import { MultiSelect } from "primereact/multiselect";
 import { Calendar } from "primereact/calendar";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import Boton from "../../components/Boton/Boton";
+import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import "./Reportes.scss";
 import { TIPO_PARAMETRO, CODIGOS } from "../../constants/codigosBD";
 import { ListarConsultores, ListarConsultoresPorSocio } from "../../service/ConsultorService";
@@ -117,6 +116,10 @@ const Reportes = () => {
     const reporteActual = useMemo(() =>
         opcionesTipoReporte.find(r => r.id === tipoReporteSeleccionado)
         , [tipoReporteSeleccionado, opcionesTipoReporte]);
+
+    // Validación: ambas fechas obligatorias
+    const fechasValidas = useMemo(() =>
+        rangoFechas && rangoFechas[0] && rangoFechas[1], [rangoFechas]);
 
     const mostrarFiltroConsultores = useMemo(() =>
         reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CargabilidadPorConsultor
@@ -354,7 +357,9 @@ const Reportes = () => {
                     </div>
 
                     <div className="field col-12 md:col-3">
-                        <label className="font-bold">Rango Fecha Solicitud</label>
+                        <label className="font-bold">
+                            Rango Fecha Solicitud <span style={{ color: 'red' }}>*</span>
+                        </label>
                         <Calendar
                             value={rangoFechas}
                             onChange={(e) => setRangoFechas(e.value)}
@@ -362,7 +367,11 @@ const Reportes = () => {
                             readOnlyInput
                             placeholder="Seleccione fechas"
                             showIcon
+                            className={!fechasValidas && tipoReporteSeleccionado ? 'p-invalid' : ''}
                         />
+                        {!fechasValidas && tipoReporteSeleccionado && (
+                            <small className="p-error">Debe seleccionar fecha inicio y fin.</small>
+                        )}
                     </div>
                 </div>
 
@@ -372,7 +381,7 @@ const Reportes = () => {
                         icon="pi pi-search"
                         className="p-button-secondary"
                         loading={loadingBusqueda}
-                        disabled={!tipoReporteSeleccionado || loadingBusqueda || loadingExcel}
+                        disabled={!tipoReporteSeleccionado || !fechasValidas || loadingBusqueda || loadingExcel}
                         onClick={handleBuscarReporte}
                     />
                     <Boton
@@ -380,7 +389,7 @@ const Reportes = () => {
                         icon="pi pi-file-excel"
                         color="primary"
                         loading={loadingExcel}
-                        disabled={!tipoReporteSeleccionado || loadingExcel || loadingBusqueda}
+                        disabled={!tipoReporteSeleccionado || !fechasValidas || loadingExcel || loadingBusqueda}
                         onClick={handleGenerarReporteExcel}
                     />
                 </div>
@@ -398,20 +407,15 @@ const Reportes = () => {
                     </div>
 
                     {dataResultados.length > 0 ? (
-                        <DataTable
+                        <DatatableDinamic
                             value={dataResultados}
-                            paginator
+                            columns={columnasDinamicas}
+                            loading={loadingBusqueda}
                             rows={10}
-                            rowsPerPageOptions={[10, 20, 50]}
-                            className="p-datatable-sm shadow-1"
-                            responsiveLayout="scroll"
-                            stripedRows
-                            showGridlines
-                        >
-                            {columnasDinamicas.map((col, i) => (
-                                <Column key={i} field={col.field} header={col.header} sortable />
-                            ))}
-                        </DataTable>
+                            exportable={false}
+                            serverSide={false}
+                            emptyMessage="No se encontraron registros."
+                        />
                     ) : (
                         <div className="text-center p-5 surface-50 border-round">
                             <i className="pi pi-info-circle text-4xl text-400 mb-3 block"></i>
