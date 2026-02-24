@@ -444,13 +444,13 @@ const Editar = () => {
       fechaSolicitud: persona ? new Date(persona.fechaSolicitud) : null,
       idTipoTicket: persona ? Number(persona.idTipoTicket) : null,
       idSubtipoTicket: persona ? Number(persona.idSubTipoTicket ?? persona.idSubtipoTicket) : null,
-      idEstadoTicket: persona ? persona.idEstadoTicket : 54,
+      idEstadoTicket: (persona && persona.idEstadoTicket) ? persona.idEstadoTicket : 0,
       idEmpresa: persona ? persona.idEmpresa : null,
       idUsuarioResponsableCliente: persona ? persona.idUsuarioResponsableCliente : null,
       idPrioridad: persona ? persona.idPrioridad : null,
       descripcion: persona ? persona.descripcion : "",
       urlArchivos: persona ? persona.urlArchivos : "",
-      idGestor: persona ? persona.empresa.idGestor : null,
+      idGestor: persona ? persona.empresa?.idGestor : null,
       nuevaEspecializacion: {
         id: "",
         idFrente: "",
@@ -643,21 +643,32 @@ const Editar = () => {
     const estadoActual = parametros.find(
       (item) => item.id === formik.values.idEstadoTicket
     );
-    const codigosPermitidos = estadoActual?.valor1?.split(",") || [];
-
-    let opciones = parametros.filter(
-      (item) =>
-        item.tipoParametro === "EstadoTicket"
-        && codigosPermitidos.includes(item.codigo)
-    );
-    const yaIncluido = opciones.some(item => item.id === estadoActual?.id);
-    if (!yaIncluido && estadoActual) {
-      opciones = [estadoActual, ...opciones];
+    let opciones = [];
+    if (estadoActual) {
+      const codigosPermitidos = estadoActual?.valor1?.split(",") || [];
+      opciones = parametros.filter(
+        (item) =>
+          item.tipoParametro === "EstadoTicket"
+          && codigosPermitidos.includes(item.codigo)
+      );
+      const yaIncluido = opciones.some(item => item.id === estadoActual?.id);
+      if (!yaIncluido) {
+        opciones = [estadoActual, ...opciones];
+      }
+    } else {
+      // Si no hay estado actual (es 0 o null), mostrar todos los estados para que el usuario pueda corregirlo
+      opciones = parametros.filter((item) => item.tipoParametro === "EstadoTicket");
     }
 
     setOpcionesEstadoTicket(opciones);
-    const rolesPermitidos = estadoActual?.valor2?.split(",") || [];
-    setBloquearDropdown(!rolesPermitidos.includes(codRol));
+
+    // Bloquear dropdown solo si hay estado actual y no tiene permisos
+    let bloquear = false;
+    if (estadoActual) {
+      const rolesPermitidos = estadoActual?.valor2?.split(",") || [];
+      bloquear = !rolesPermitidos.includes(codRol);
+    }
+    setBloquearDropdown(bloquear);
   }, [parametros, formik.values.idEstadoTicket]);
   useEffect(() => {
     if (
@@ -1227,7 +1238,7 @@ const Editar = () => {
                             label="Repositorios"
                             icon="pi pi-link"
                             severity="secondary"
-                            //onClick={() => setVisibleRepos(true)}
+                            onClick={() => setVisibleRepos(true)}
                             disabled={permisosActual.controlesBloqueados.includes("btnRepositorios")}
                           />
                         </div>

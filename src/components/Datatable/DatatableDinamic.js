@@ -40,6 +40,11 @@ const DatatableDinamic = ({
     showSearch = true,
     dataKey = 'id',
     headerExtra,
+    actionBody,
+    actionHeader = 'Acciones',
+    actionWidth = '80px',
+    onFilterChange,
+    onSortChange,
     ...rest
 }) => {
     // ── Estado de paginación ──────────────────────────────────────────
@@ -49,7 +54,9 @@ const DatatableDinamic = ({
     // ── Filtros ───────────────────────────────────────────────────────
     const [globalFilterValue, setGlobalFilterValue] = useState('');
     const [columnFilters, setColumnFilters] = useState({});
-    const [filteredData, setFilteredData] = useState(value);
+
+    // ── Para Excel export: datos visibles después de filtrar ──────────
+    const [visibleData, setVisibleData] = useState(value);
 
     // ── Refs ──────────────────────────────────────────────────────────
     const dt = useRef(null);
@@ -93,42 +100,15 @@ const DatatableDinamic = ({
         return f;
     }, [globalFilterValue, columnFilters, resolvedColumns]);
 
-    // ── Obtener valor anidado (soporta "empresa.razonSocial") ─────────
-    const getFieldValue = useCallback((obj, field) => {
-        return field.split('.').reduce((acc, part) => acc && acc[part], obj);
-    }, []);
-
-    // ── Aplicar filtros locales ───────────────────────────────────────
+    // ── Resetear paginación cuando cambian filtros ────────────────────
     useEffect(() => {
-        if (serverSide) {
-            setFilteredData(value);
-            return;
-        }
-
-        let data = [...value];
-
-        // Filtro global
-        if (globalFilterValue) {
-            const gv = globalFilterValue.toLowerCase();
-            data = data.filter((item) =>
-                Object.values(item).some((val) => val && val.toString().toLowerCase().includes(gv))
-            );
-        }
-
-        // Filtros por columna
-        Object.entries(columnFilters).forEach(([field, val]) => {
-            if (val) {
-                const fv = val.toLowerCase();
-                data = data.filter((item) => {
-                    const fieldVal = getFieldValue(item, field);
-                    return fieldVal != null && fieldVal.toString().toLowerCase().includes(fv);
-                });
-            }
-        });
-
-        setFilteredData(data);
         setFirst(0);
-    }, [value, globalFilterValue, columnFilters, serverSide, getFieldValue]);
+    }, [globalFilterValue, columnFilters]);
+
+    // ── Sincronizar visibleData con value cuando no hay filtros ────
+    useEffect(() => {
+        setVisibleData(value);
+    }, [value]);
 
     // ── Eventos de paginación ─────────────────────────────────────────
     const handlePage = (e) => {
@@ -137,6 +117,11 @@ const DatatableDinamic = ({
         if (serverSide && onPageChange) {
             onPageChange(Math.floor(e.first / e.rows), e.rows);
         }
+    };
+
+    // ── Capturar datos filtrados por PrimeReact ───────────────────────
+    const handleValueChange = (filteredValue) => {
+        setVisibleData(filteredValue);
     };
 
     // ── Scroll sincronizado ────────────────────────────────────────────
@@ -167,13 +152,23 @@ const DatatableDinamic = ({
             scrollSync.removeEventListener('scroll', syncBack);
             ro.disconnect();
         };
-    }, [filteredData]);
+    }, [value]);
 
     // ── Handlers de filtros ───────────────────────────────────────────
-    const onGlobalChange = (e) => setGlobalFilterValue(e.target.value);
+    const onGlobalChange = (e) => {
+        const val = e.target.value;
+        setGlobalFilterValue(val);
+        if (serverSide && onFilterChange) {
+            onFilterChange({ global: val, columns: columnFilters });
+        }
+    };
 
     const onColumnFilterChange = (field, val) => {
-        setColumnFilters((prev) => ({ ...prev, [field]: val }));
+        const newFilters = { ...columnFilters, [field]: val };
+        setColumnFilters(newFilters);
+        if (serverSide && onFilterChange) {
+            onFilterChange({ global: globalFilterValue, columns: newFilters });
+        }
     };
 
     // ── Template de filtro por columna ────────────────────────────────
@@ -194,7 +189,7 @@ const DatatableDinamic = ({
             header: c.header,
             body: c.body,
         }));
-        generateExcelNew(serverSide ? value : filteredData, colsInfo);
+        generateExcelNew(visibleData, colsInfo);
     };
 
     // ── Header ────────────────────────────────────────────────────────
@@ -225,7 +220,7 @@ const DatatableDinamic = ({
     );
 
     // ── Total de registros ────────────────────────────────────────────
-    const totalRecords = serverSide ? (totalRecordsProp || 0) : filteredData.length;
+    const totalRecords = serverSide ? (totalRecordsProp || 0) : visibleData.length;
 
     // ── Render ────────────────────────────────────────────────────────
     return (
@@ -326,21 +321,25 @@ const DatatableDinamic = ({
                 <div className="dt-dinamic-content" ref={tableWrapperRef}>
                     <DataTable
                         ref={dt}
-                        value={serverSide ? value : filteredData}
+                        value={value}
                         lazy={serverSide}
                         paginator
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
                         first={first}
                         rows={rows}
-                        totalRecords={totalRecords}
+                        totalRecords={serverSide ? (totalRecordsProp || 0) : undefined}
                         rowsPerPageOptions={[10, 25, 50, 100]}
                         onPage={handlePage}
+                        onSort={(e) => {
+                            if (serverSide && onSortChange) onSortChange(e);
+                        }}
                         dataKey={dataKey}
                         filters={primeFilters}
                         filterDisplay="row"
-                        loading={loading}
                         globalFilterFields={resolvedColumns.map((c) => c.field)}
+                        onValueChange={handleValueChange}
+                        loading={loading}
                         header={renderHeader()}
                         emptyMessage={emptyMessage}
                         stripedRows
@@ -350,6 +349,15 @@ const DatatableDinamic = ({
                         scrollHeight="100%"
                         {...rest}
                     >
+                        {actionBody && (
+                            <Column
+                                body={actionBody}
+                                header={actionHeader}
+                                style={{ width: actionWidth, minWidth: actionWidth }}
+                                headerStyle={{ padding: '0.5rem', whiteSpace: 'nowrap' }}
+                                bodyStyle={{ padding: '0.5rem', textAlign: 'center' }}
+                            />
+                        )}
                         {resolvedColumns.map((col, idx) => (
                             <Column
                                 key={col.field || idx}
@@ -391,3 +399,4 @@ const DatatableDinamic = ({
 };
 
 export default DatatableDinamic;
+

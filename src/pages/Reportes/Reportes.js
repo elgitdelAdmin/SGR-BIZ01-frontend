@@ -10,11 +10,12 @@ import "./Reportes.scss";
 import { TIPO_PARAMETRO, CODIGOS } from "../../constants/codigosBD";
 import { ListarConsultores, ListarConsultoresPorSocio } from "../../service/ConsultorService";
 import { ListarEmpresas, ListarEmpresasPorSocio } from "../../service/EmpresaService";
-import { ListarTicket } from "../../service/TiketService";
+import { ListarTicket, ObtenerTicket } from "../../service/TiketService";
 import { GenerarReporteExcel, ConsultarDetalleReporte } from "../../service/ReporteService";
 
 // Componentes
 import ModalSeleccionTickets from "./Components/ModalSeleccionTickets";
+import ModalCargabilidad from "./Components/ModalCargabilidad";
 
 const Reportes = () => {
     const { parametros } = useContext(Context);
@@ -45,6 +46,12 @@ const Reportes = () => {
 
     // Estado para el modal de tickets
     const [mostrarModalTickets, setMostrarModalTickets] = useState(false);
+
+    // Estado para el modal de cargabilidad
+    const [modalCargaVisible, setModalCargaVisible] = useState(false);
+    const [ticketDetalle, setTicketDetalle] = useState(null);
+    const [loadingDetalle, setLoadingDetalle] = useState(false);
+    const [consultorNombreModal, setConsultorNombreModal] = useState("");
 
     // CARGA ÚNICA AL INGRESAR AL MÓDULO
     useEffect(() => {
@@ -189,10 +196,40 @@ const Reportes = () => {
             // Generar columnas dinámicamente basadas en las llaves del primer objeto
             if (data && data.length > 0) {
                 const llaves = Object.keys(data[0]);
-                setColumnasDinamicas(llaves.map(k => ({
-                    field: k,
-                    header: k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')
-                })));
+                const isCargaConsultor = reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CargabilidadPorConsultor;
+
+                const cols = llaves.map(k => {
+                    const col = {
+                        field: k,
+                        header: k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')
+                    };
+
+                    // Si es CARGA_CONSULTOR, inyectar botón dentro de la celda HorasTicketConsultor
+                    if (isCargaConsultor && k === 'HorasTicketConsultor') {
+                        col.body = (rowData) => (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span>{rowData.HorasTicketConsultor ?? 0}</span>
+                                <button
+                                    type="button"
+                                    style={{
+                                        width: '28px', height: '28px',
+                                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                        border: 'none', cursor: 'pointer', borderRadius: '50%',
+                                        background: '#6366f1', color: '#fff', flexShrink: 0
+                                    }}
+                                    onClick={() => handleVerCargabilidad(rowData)}
+                                    title="Ver Cargabilidad"
+                                >
+                                    <i className="pi pi-eye" style={{ fontSize: '12px' }} />
+                                </button>
+                            </div>
+                        );
+                    }
+
+                    return col;
+                });
+
+                setColumnasDinamicas(cols);
             } else {
                 setColumnasDinamicas([]);
             }
@@ -201,6 +238,29 @@ const Reportes = () => {
             setDataResultados([]);
         } finally {
             setLoadingBusqueda(false);
+        }
+    };
+
+    // Handler para abrir modal de cargabilidad
+    const handleVerCargabilidad = async (rowData) => {
+        const ticketId = rowData.Id || rowData.id;
+        if (!ticketId) {
+            console.error("No se encontró el ID del ticket en la fila");
+            return;
+        }
+
+        setConsultorNombreModal(rowData.Consultor || rowData.consultor || "");
+        setLoadingDetalle(true);
+        setModalCargaVisible(true);
+
+        try {
+            const data = await ObtenerTicket({ id: ticketId });
+            setTicketDetalle(data);
+        } catch (error) {
+            console.error("Error al obtener ticket:", error);
+            setTicketDetalle(null);
+        } finally {
+            setLoadingDetalle(false);
         }
     };
 
@@ -428,6 +488,15 @@ const Reportes = () => {
                     )}
                 </div>
             </div>
+
+            <ModalCargabilidad
+                visible={modalCargaVisible}
+                onHide={() => { setModalCargaVisible(false); setTicketDetalle(null); }}
+                ticketData={ticketDetalle}
+                consultorNombre={consultorNombreModal}
+                loading={loadingDetalle}
+                parametros={parametros}
+            />
         </div>
     );
 };

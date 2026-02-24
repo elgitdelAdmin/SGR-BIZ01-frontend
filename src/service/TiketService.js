@@ -111,6 +111,40 @@ export const ListarTicket = async ({ idUser, codRol }) => {
     });
 };
 
+export const ListarTicketPaginado = async ({ idUser, codRol, page = 0, pageSize = 10, estadoIds, globalFilter, sortField, sortOrder, columnFilters }) => {
+  const params = new URLSearchParams();
+  params.append('page', page);
+  params.append('pageSize', pageSize);
+  if (estadoIds && estadoIds.length > 0) params.append('estadoIds', estadoIds.join(','));
+  if (globalFilter) params.append('globalFilter', globalFilter);
+  if (sortField) params.append('sortField', sortField);
+  if (sortOrder) params.append('sortOrder', sortOrder);
+
+  // Filtros de columna específicos
+  if (columnFilters) {
+    if (columnFilters.codTicket) params.append('codTicket', columnFilters.codTicket);
+    if (columnFilters.codTicketInterno) params.append('codTicketInterno', columnFilters.codTicketInterno);
+    if (columnFilters.titulo) params.append('titulo', columnFilters.titulo);
+    if (columnFilters.fechaSolicitud) params.append('fechaSolicitud', columnFilters.fechaSolicitud);
+    if (columnFilters.estadoNombre) params.append('estado', columnFilters.estadoNombre);
+    if (columnFilters.prioridadNombre) params.append('prioridad', columnFilters.prioridadNombre);
+    if (columnFilters['empresa.razonSocial'] || columnFilters.empresaRazonSocial) {
+      params.append('empresa', columnFilters['empresa.razonSocial'] || columnFilters.empresaRazonSocial);
+    }
+  }
+
+  return await fetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}/paged?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    },
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener los tickets paginados");
+      return res.json();
+    });
+};
+
 
 export const EliminarTicket = async ({ id }) => {
   return await fetch(`${ENDPOINT}/api/Ticket/${id}`, {
