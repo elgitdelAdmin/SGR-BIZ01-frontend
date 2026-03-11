@@ -45,6 +45,8 @@ const DatatableDinamic = ({
     actionWidth = '80px',
     onFilterChange,
     onSortChange,
+    initialGlobalFilter = '',
+    initialColumnFilters = {},
     ...rest
 }) => {
     // ── Estado de paginación ──────────────────────────────────────────
@@ -52,8 +54,8 @@ const DatatableDinamic = ({
     const [rows, setRows] = useState(rowsProp);
 
     // ── Filtros ───────────────────────────────────────────────────────
-    const [globalFilterValue, setGlobalFilterValue] = useState('');
-    const [columnFilters, setColumnFilters] = useState({});
+    const [globalFilterValue, setGlobalFilterValue] = useState(initialGlobalFilter);
+    const [columnFilters, setColumnFilters] = useState(initialColumnFilters);
 
     // ── Para Excel export: datos visibles después de filtrar ──────────
     const [visibleData, setVisibleData] = useState(value);

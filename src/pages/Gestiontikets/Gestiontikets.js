@@ -17,23 +17,39 @@ const Gestiontikets = () => {
     let { idUser } = useParams();
     let { codRol } = useParams();
 
+    // ── Clave de sessionStorage ───────────────────────────────────────
+    const STORAGE_KEY = `ticketFilters_${idUser}_${codRol}`;
+
+    // ── Leer estado guardado ─────────────────────────────────────────
+    const savedFilters = (() => {
+        try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || {}; }
+        catch { return {}; }
+    })();
+
     // ── Estado principal ──────────────────────────────────────────────
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [totalRecords, setTotalRecords] = useState(0);
 
     // ── Paginación y Filtros y Ordenamiento ───────────────────────────
-    const [page, setPage] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
-    const [globalFilter, setGlobalFilter] = useState("");
-    const [columnFilters, setColumnFilters] = useState({});
-    const [sortField, setSortField] = useState(null);
-    const [sortOrder, setSortOrder] = useState(null);
+    const [page, setPage] = useState(savedFilters.page ?? 0);
+    const [pageSize, setPageSize] = useState(savedFilters.pageSize ?? 10);
+    const [globalFilter, setGlobalFilter] = useState(savedFilters.globalFilter ?? "");
+    const [columnFilters, setColumnFilters] = useState(savedFilters.columnFilters ?? {});
+    const initSortOrder = () => {
+        const val = savedFilters.sortOrder;
+        if (val === "asc") return 1;
+        if (val === "desc") return -1;
+        if (typeof val === "number") return val;
+        return null;
+    };
+    const [sortField, setSortField] = useState(savedFilters.sortField ?? null);
+    const [sortOrder, setSortOrder] = useState(initSortOrder());
 
     // ── Parámetros / filtros ──────────────────────────────────────────
     const [parametros, setParametro] = useState([]);
     const [parametrosPrioridad, setParametroPrioridad] = useState([]);
-    const [estadosSeleccionados, setEstadosSeleccionados] = useState([]);
+    const [estadosSeleccionados, setEstadosSeleccionados] = useState(savedFilters.estadosSeleccionados ?? []);
 
     const { permisos } = useUsuario();
     const permisosActual = permisos["/tickets"] || {
@@ -54,6 +70,14 @@ const Gestiontikets = () => {
         };
         getParametro();
     }, []);
+
+    // ── Persistir filtros en sessionStorage ───────────────────────────
+    useEffect(() => {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+            page, pageSize, globalFilter, columnFilters,
+            sortField, sortOrder, estadosSeleccionados
+        }));
+    }, [page, pageSize, globalFilter, columnFilters, sortField, sortOrder, estadosSeleccionados]);
 
     // ── Seleccionar estados por defecto (excluye Cerrado y Anulado) ──
     useEffect(() => {
@@ -80,7 +104,7 @@ const Gestiontikets = () => {
             estadoIds: estadosSeleccionados,
             globalFilter,
             sortField,
-            sortOrder,
+            sortOrder: sortOrder === 1 ? "asc" : sortOrder === -1 ? "desc" : null,
             columnFilters
         })
             .then((result) => {
@@ -113,7 +137,7 @@ const Gestiontikets = () => {
 
     const handleSortChange = (e) => {
         setSortField(e.sortField);
-        setSortOrder(e.sortOrder === 1 ? "asc" : "desc");
+        setSortOrder(e.sortOrder);
     };
 
     // ── Acciones ──────────────────────────────────────────────────────
@@ -204,6 +228,10 @@ const Gestiontikets = () => {
                         onPageChange={handlePageChange}
                         onFilterChange={handleFilterChange}
                         onSortChange={handleSortChange}
+                        initialGlobalFilter={globalFilter}
+                        initialColumnFilters={columnFilters}
+                        sortField={sortField}
+                        sortOrder={sortOrder}
                     >
                         <Column field="codTicket" header={<div>Codigo Ticket <br />Conecta</div>} sortable style={{ width: '130px', minWidth: '180px' }} />
                         <Column field="codTicketInterno" header="Codigo Interno" sortable style={{ width: '110px', minWidth: '130px' }} />
@@ -234,6 +262,7 @@ const Gestiontikets = () => {
                             style={{ width: '140px', minWidth: '140px' }}
                         />
                         <Column field="empresaRazonSocial" header="Empresa" sortable style={{ width: '150px', minWidth: '150px' }} />
+                        <Column field="nombreGestor" header="Gestor" sortable style={{ width: '150px', minWidth: '150px' }} />
                         <Column field="horasTrabajadas" header={<div>Horas <br />Trabajadas</div>} sortable style={{ width: '100px', minWidth: '100px' }} />
                         <Column field="horasPlanificadas" header={<div>Horas <br />Planificadas</div>} body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />
                     </DatatableDinamic>

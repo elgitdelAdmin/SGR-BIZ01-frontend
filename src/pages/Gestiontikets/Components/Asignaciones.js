@@ -3,6 +3,7 @@ import DropdownDefault from "../../../components/Dropdown/DropdownDefault";
 import Horas from "./Horas";
 import CalendarFormik from "../../../components/Calendar/CalendarFormik";
 import * as Iconsax from "iconsax-react";
+import Boton from "../../../components/Boton/Boton";
 
 const Asignaciones = ({
   formik,
@@ -23,6 +24,33 @@ const Asignaciones = ({
 }) => {
   return (
     <div className="field col-12 md:col-12">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", width: "100%" }}>
+        <label style={{ fontWeight: "bold", fontSize: 20, margin: 0 }}>
+          Asignaciones
+        </label>
+
+        {!permisosActual.controlesOcultos.includes("btnAgregarAsignacion") && (
+          <Boton
+            icon="pi pi-plus"
+            label="Agregar Asignación"
+            color="primary"
+            type="button"
+            onClick={addRow}
+            style={{
+              height: 42,
+              padding: "0 18px",
+              minWidth: "auto",
+              width: "fit-content",
+              whiteSpace: "nowrap",
+              borderRadius: 20,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          />
+        )}
+      </div>
       <table className="w-full border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-100 text-left">
@@ -137,37 +165,37 @@ const Asignaciones = ({
                 </td>
 
                 {/* FECHA INICIO */}
-                    <td className="p-2 border">
-                    <CalendarFormik
-                        name={`asignaciones[${index}].FechaAsignacion`}
-                        value={asignacion.FechaAsignacion}
-                        setFieldValue={formik.setFieldValue}
-                        minDate={
-                        formik.values.fechaSolicitud
-                            ? new Date(formik.values.fechaSolicitud)
-                            : null
-                        }
-                        showSeconds={false}
-                    />
-                    </td>
+                <td className="p-2 border">
+                  <CalendarFormik
+                    name={`asignaciones[${index}].FechaAsignacion`}
+                    value={asignacion.FechaAsignacion}
+                    setFieldValue={formik.setFieldValue}
+                    minDate={
+                      formik.values.fechaSolicitud
+                        ? new Date(formik.values.fechaSolicitud)
+                        : null
+                    }
+                    showSeconds={false}
+                  />
+                </td>
 
-            
+
                 {/* FECHA FIN */}
                 <td className="p-2 border">
-                <CalendarFormik
+                  <CalendarFormik
                     name={`asignaciones[${index}].FechaDesasignacion`}
                     value={asignacion.FechaDesasignacion}
                     setFieldValue={formik.setFieldValue}
                     minDate={
-                    asignacion.FechaAsignacion
+                      asignacion.FechaAsignacion
                         ? new Date(asignacion.FechaAsignacion)
                         : new Date()
                     }
                     showSeconds={false}
-                />
+                  />
                 </td>
 
-       
+
 
                 {/* HORAS PLANIFICADAS */}
                 <td className="p-2 border">
@@ -204,40 +232,27 @@ const Asignaciones = ({
 
                 {/* ELIMINAR FILA */}
                 {!permisosActual.controlesOcultos.includes("btnEliminar") && (
-                <td className="p-2 border">
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <div className="profesor-datatable-accion">
-                    <div
-                        className="accion-eliminar"
-                        onClick={() => removeRow(asignacion.idUnico)}
-                        title="Eliminar"
-                    >
-                        <span>
-                        <Iconsax.Trash color="#ffffff" />
-                        </span>
+                  <td className="p-2 border">
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <div className="profesor-datatable-accion">
+                        <div
+                          className="accion-eliminar"
+                          onClick={() => removeRow(asignacion.idUnico)}
+                          title="Eliminar"
+                        >
+                          <span>
+                            <Iconsax.Trash color="#ffffff" />
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    </div>
-                </div>
-                </td>
+                  </td>
                 )}
               </tr>
             ))}
         </tbody>
       </table>
 
-      {(
-        !permisosActual.controlesOcultos.includes("btnEliminar") ||
-        (permisosActual.controlesOcultos.includes("btnEliminar") &&
-          formik.values?.esCargaMasiva === true)
-      ) && (
-        <button
-          type="button"
-          onClick={addRow}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Agregar fila
-        </button>
-      )}
     </div>
   );
 };

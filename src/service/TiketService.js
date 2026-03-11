@@ -131,6 +131,7 @@ export const ListarTicketPaginado = async ({ idUser, codRol, page = 0, pageSize 
     if (columnFilters['empresa.razonSocial'] || columnFilters.empresaRazonSocial) {
       params.append('empresa', columnFilters['empresa.razonSocial'] || columnFilters.empresaRazonSocial);
     }
+    if (columnFilters.nombreGestor) params.append('gestor', columnFilters.nombreGestor);
   }
 
   return await fetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}/paged?${params.toString()}`, {

@@ -18,6 +18,7 @@ const Especializaciones = ({
   frentes,
   permisosActual,
   setSubfrentesSeleccionados,
+  toastRef,
 }) => {
   const [subfrentes, setSubfrentes] = useState([]);
   const [visibleDescripcion, setVisibleDescripcion] = useState(false);
@@ -83,7 +84,22 @@ const Especializaciones = ({
     const nueva = formik.values.nuevaEspecializacion;
 
     if (!nueva.idFrente || !nueva.idSubFrente) {
-      alert("Completa todos los campos de la especialización");
+      toastRef.current.show({
+        severity: "warn",
+        summary: "Atención",
+        detail: "Completa todos los campos de la especialización",
+        life: 5000,
+      });
+      return;
+    }
+
+    if (!nueva.cantidad || Number(nueva.cantidad) < 1) {
+      toastRef.current.show({
+        severity: "warn",
+        summary: "Atención",
+        detail: "La cantidad de consultores en Especializaciones debe ser mayor o igual a 1",
+        life: 5000,
+      });
       return;
     }
 
@@ -156,137 +172,138 @@ const Especializaciones = ({
 
   return (
     <>
-      <div className="field col-12">
-        <label style={{ fontWeight: "bold", fontSize: 16, marginBottom: 10, display: "block" }}>
+      {/* Contenedor flexible para alinear título y botón */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", width: "100%" }}>
+        <label style={{ fontWeight: "bold", fontSize: 20, margin: 0 }}>
           Especializaciones
         </label>
+
+        <Boton
+          icon="pi pi-plus"
+          label="Agregar Especialización"
+          color="primary"
+          type="button"
+          onClick={agregarEspecializacion}
+          disabled={!puedeAgregar}
+          style={{
+            height: 42,
+            padding: "0 18px",
+            minWidth: "auto",
+            width: "fit-content",
+            whiteSpace: "nowrap",
+            borderRadius: 20,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+          }}
+        />
       </div>
 
       {/* ✅ UNA SOLA FILA */}
-<div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    width: "100%",
-  }}
->
-  {/* Frente (fijo) */}
-  <div style={{ width: 180 }}>
-    <DropdownDefault
-      value={formik.values.nuevaEspecializacion.idFrente}
-      options={frentes}
-      optionLabel="nombre"
-      optionValue="id"
-      onChange={handleFrenteChange}
-      placeholder="Frente"
-    />
-  </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          width: "100%",
+        }}
+      >
+        {/* Frente (fijo) */}
+        <div style={{ width: 180 }}>
+          <DropdownDefault
+            value={formik.values.nuevaEspecializacion.idFrente}
+            options={frentes}
+            optionLabel="nombre"
+            optionValue="id"
+            onChange={handleFrenteChange}
+            placeholder="Frente"
+          />
+        </div>
 
-  {/* Subfrente (fijo) */}
-  <div style={{ width: 180 }}>
-    <DropdownDefault
-      value={formik.values.nuevaEspecializacion.idSubFrente}
-      options={subfrentes}
-      optionLabel="nombre"
-      optionValue="id"
-      onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idSubFrente", e.value)}
-      placeholder="Subfrente"
-    />
-  </div>
+        {/* Subfrente (fijo) */}
+        <div style={{ width: 180 }}>
+          <DropdownDefault
+            value={formik.values.nuevaEspecializacion.idSubFrente}
+            options={subfrentes}
+            optionLabel="nombre"
+            optionValue="id"
+            onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idSubFrente", e.value)}
+            placeholder="Subfrente"
+          />
+        </div>
 
-  {/* Cantidad (fijo) */}
-  <div style={{ width: 90 }}>
-    <InputText
-      type="number"
-      name="nuevaEspecializacion.cantidad"
-      placeholder="Cant."
-      value={formik.values.nuevaEspecializacion.cantidad}
-      onBlur={formik.handleBlur}
-      onChange={formik.handleChange}
-      style={{ width: "100%" }}
-    />
-  </div>
+        {/* Cantidad (fijo) */}
+        <div style={{ width: 90 }}>
+          <InputText
+            type="number"
+            name="nuevaEspecializacion.cantidad"
+            placeholder="Cant."
+            value={formik.values.nuevaEspecializacion.cantidad}
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+            min="1"
+            style={{ width: "100%" }}
+          />
+        </div>
 
-  {/* Inicio (fijo) */}
-  <div style={{ width: 170 }}>
-    <Calendar
-      value={formik.values.nuevaEspecializacion.fechaInicio}
-      onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
-      placeholder="Inicio"
-      dateFormat="yy-mm-dd"
-      showIcon
-      style={{ width: "100%" }}
-      minDate={formik.values.fechaSolicitud ? new Date(formik.values.fechaSolicitud) : undefined}
-    />
-  </div>
+        {/* Inicio (fijo) */}
+        <div style={{ width: 170 }}>
+          <Calendar
+            value={formik.values.nuevaEspecializacion.fechaInicio}
+            onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
+            placeholder="Inicio"
+            dateFormat="yy-mm-dd"
+            showIcon
+            style={{ width: "100%" }}
+            minDate={formik.values.fechaSolicitud ? new Date(formik.values.fechaSolicitud) : undefined}
+          />
+        </div>
 
-  {/* Fin (fijo) */}
-  <div style={{ width: 170 }}>
-    <Calendar
-      value={formik.values.nuevaEspecializacion.fechaFin}
-      onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
-      placeholder="Fin"
-      dateFormat="yy-mm-dd"
-      showIcon
-      style={{ width: "100%" }}
-      minDate={
-        formik.values.nuevaEspecializacion.fechaInicio
-          ? new Date(formik.values.nuevaEspecializacion.fechaInicio)
-          : new Date()
-      }
-    />
-  </div>
+        {/* Fin (fijo) */}
+        <div style={{ width: 170 }}>
+          <Calendar
+            value={formik.values.nuevaEspecializacion.fechaFin}
+            onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
+            placeholder="Fin"
+            dateFormat="yy-mm-dd"
+            showIcon
+            style={{ width: "100%" }}
+            minDate={
+              formik.values.nuevaEspecializacion.fechaInicio
+                ? new Date(formik.values.nuevaEspecializacion.fechaInicio)
+                : new Date()
+            }
+          />
+        </div>
 
-  {/* ✅ Descripción (todo lo restante) + botón */}
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-      flexGrow: 1,
-      minWidth: 0,
-    }}
-  >
-    <InputText
-      type="text"
-      name="nuevaEspecializacion.descripcion"
-      placeholder="Descripción"
-      value={formik.values.nuevaEspecializacion.descripcion}
-      onBlur={formik.handleBlur}
-      onChange={formik.handleChange}
-      style={{
-        width: "100%",
-        flexGrow: 1,
-        minWidth: 0,
-        maxWidth: 800
-      }}
-    />
+        {/* ✅ Descripción (todo lo restante) + botón */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexGrow: 1,
+            minWidth: 0,
+          }}
+        >
+          <InputText
+            type="text"
+            name="nuevaEspecializacion.descripcion"
+            placeholder="Descripción"
+            value={formik.values.nuevaEspecializacion.descripcion}
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+            style={{
+              width: "100%",
+              flexGrow: 1,
+              minWidth: 0,
+              maxWidth: 800
+            }}
+          />
 
-<Boton
-  icon="pi pi-plus"
-  label="Agregar"
-  color="primary"
-  type="button"
-  onClick={agregarEspecializacion}
-  disabled={!puedeAgregar}
-  style={{
-    height: 42,
-    padding: "0 18px",        // 👈 más aire horizontal
-    marginLeft: 12,           // 👈 separación del input
-    marginRight: 8,           // 👈 margen derecho
-    minWidth: "auto",
-    width: "fit-content",
-    whiteSpace: "nowrap",
-    borderRadius: 20,         // 👈 curva más suave
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  }}
-/>
-  </div>
-</div>
+        </div>
+      </div>
 
 
       {/* Tabla */}

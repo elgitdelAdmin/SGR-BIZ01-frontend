@@ -640,6 +640,17 @@ const Editar = () => {
 
   useEffect(() => {
     if (!parametros?.length) return;
+
+    if (!modoEdicion && formik.values.idEstadoTicket === 0) {
+      const estadoPendiente = parametros.find(
+        (item) => item.tipoParametro === "EstadoTicket" && item.codigo === "PENDIENTE_ATENCION"
+      );
+      if (estadoPendiente) {
+        formik.setFieldValue("idEstadoTicket", estadoPendiente.id);
+        return;
+      }
+    }
+
     const estadoActual = parametros.find(
       (item) => item.id === formik.values.idEstadoTicket
     );
@@ -1174,10 +1185,10 @@ const Editar = () => {
                     {/* Descripción */}
                     <div className="field col-12 md:col-6">
                       <label className="label-form">Descripción</label>
-                      {formik.values.descripcion && formik.values.descripcion.includes("<img src=") ? (
+                      {formik.values.descripcion && /<[a-z][\s\S]*>/i.test(formik.values.descripcion) ? (
                         <div
                           className="w-full border-1 surface-border border-round p-3"
-                          style={{ minHeight: '150px', overflow: 'auto' }}
+                          style={{ minHeight: '150px', overflow: 'auto', background: '#fff' }}
                           dangerouslySetInnerHTML={{ __html: formik.values.descripcion }}
                         />
                       ) : (
@@ -1295,6 +1306,7 @@ const Editar = () => {
                       frentes={frentes}
                       permisosActual={permisosActual}
                       setSubfrentesSeleccionados={setSubfrentesSeleccionados}
+                      toastRef={toast}
                     />
                   </>
                 )}
@@ -1303,11 +1315,6 @@ const Editar = () => {
                 {!permisosActual.divsOcultos.includes("divAsignacionConsultor") && (
                   <>
                     <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
-                    <div className="field col-12">
-                      <label style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "10px", display: "block" }}>
-                        Asignaciones
-                      </label>
-                    </div>
                     <Asignaciones
                       formik={formik}
                       permisosActual={permisosActual}
@@ -1335,12 +1342,24 @@ const Editar = () => {
           <div className="zv-editarUsuario-footer">
 
             <Boton
+              icon="pi pi-save"
               label="Guardar cambios"
-              style={{ fontSize: 12 }}
               color="primary"
               type="submit"
               loading={formik.isSubmitting}
-            ></Boton>
+              style={{
+                height: 42,
+                padding: "0 18px",
+                minWidth: "auto",
+                width: "fit-content",
+                whiteSpace: "nowrap",
+                borderRadius: 20,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            />
 
           </div>
         </form>
