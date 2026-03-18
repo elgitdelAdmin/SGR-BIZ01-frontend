@@ -242,3 +242,24 @@ export const DescargarArchivoTicket = async ({ idTicket, orden }) => {
       return blob;
     });
 };
+
+export const MigrarTicketSgr = async ({ codTicketInterno }) => {
+  return await fetch(`${ENDPOINT}/api/Ticket/migrarsgr/${codTicketInterno}`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json"
+    },
+  })
+    .then(async res => {
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.localStorage.removeItem('jwt');
+          window.location.reload();
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.mensaje || "Error al sincronizar ticket desde SGR");
+        }
+      }
+      return res.json();
+    });
+};

@@ -63,9 +63,8 @@ export const RegistrarEmpresa = ({ jsonData }) => {
         return res.json();
       })
       .then((res) => {
-        if (res.errors) throw new Error(res.errors[0]);
-        const { data } = res;
-        return data;
+        if (res.errors) throw new Error(res.errors[0]); // Para validaciones por defecto ModelState si 400
+        return res; // Se retorna todo el ApiResponse {success, message, data}
       });
   };
   export const ActualizarEmpresa= ({jsonData,idEmpresa}) =>{

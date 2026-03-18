@@ -325,18 +325,28 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
 
   const Registrar = ({ jsonData }) => {
     RegistrarEmpresa({ jsonData})
-      .then((data) => {
+      .then((res) => {
         formik.setSubmitting(false);
-        toast.current.show({
-          severity: "success",
-          summary: "Éxito",
-          detail: "Registro exitoso.",
-          life: 7000,
-        });
 
-        setTimeout(() => {
-          navigate(-1);
-        }, 1000);
+        if (res.success) {
+            toast.current.show({
+              severity: "success",
+              summary: "Éxito",
+              detail: res.message || "Registro exitoso.",
+              life: 7000,
+            });
+
+            setTimeout(() => {
+              navigate(-1);
+            }, 1000);
+        } else {
+            toast.current.show({
+              severity: "warn",
+              summary: "Validación",
+              detail: res.message || "Ocurrió un error de validación.",
+              life: 7000,
+            });
+        }
       })
       .catch((errors) => {
         toast.current.show({

@@ -8,9 +8,11 @@ import Boton from "../../components/Boton/Boton";
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import useUsuario from "../../hooks/useUsuario";
-import { ListarTicketPaginado, EliminarTicket, ListarParametros } from "../../service/TiketService";
+import { ListarTicketPaginado, EliminarTicket, ListarParametros, MigrarTicketSgr } from "../../service/TiketService";
 import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import { MultiSelect } from 'primereact/multiselect';
+import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
 
 const Gestiontikets = () => {
     const navigate = useNavigate();
@@ -30,6 +32,11 @@ const Gestiontikets = () => {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [totalRecords, setTotalRecords] = useState(0);
+
+    // ── Estado Modal Sincronización ───────────────────────────────────
+    const [displayDialogSync, setDisplayDialogSync] = useState(false);
+    const [codTicketInterno, setCodTicketInterno] = useState("");
+    const [loadingSync, setLoadingSync] = useState(false);
 
     // ── Paginación y Filtros y Ordenamiento ───────────────────────────
     const [page, setPage] = useState(savedFilters.page ?? 0);
@@ -172,6 +179,26 @@ const Gestiontikets = () => {
         });
     };
 
+    const handleSyncTicket = async () => {
+        if (!codTicketInterno || codTicketInterno.trim() === '') {
+            toast.current.show({ severity: 'warn', summary: 'Atención', detail: 'Por favor, ingrese un Código Interno', life: 3000 });
+            return;
+        }
+
+        setLoadingSync(true);
+        try {
+            const data = await MigrarTicketSgr({ codTicketInterno: codTicketInterno.trim() });
+            toast.current.show({ severity: 'success', summary: 'Éxito', detail: data.mensaje || "Se migró el ticket exitosamente.", life: 5000 });
+            setDisplayDialogSync(false);
+            setCodTicketInterno("");
+            loadTickets(); // recargar la tabla para mostrar el nuevo ticket
+        } catch (error) {
+            toast.current.show({ severity: 'error', summary: 'Error', detail: error.message || 'Error al sincronizar ticket', life: 7000 });
+        } finally {
+            setLoadingSync(false);
+        }
+    };
+
     return (
         <div className="zv-usuario" style={{ paddingTop: 16 }}>
             <ConfirmDialog />
@@ -204,12 +231,24 @@ const Gestiontikets = () => {
                             </div>
                             {!permisosActual.controlesOcultos.includes("btnCrear") && (
                                 <>
-                                    <Boton
-                                        icon="pi pi-plus"
-                                        style={{ fontSize: 15, borderRadius: 15 }}
-                                        color="primary"
-                                        onClick={() => navigate("Crear/")}
-                                    />
+                                    <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                                        <Boton
+                                            icon="pi pi-plus"
+                                            style={{ fontSize: 15, borderRadius: 15 }}
+                                            color="primary"
+                                            onClick={() => navigate("Crear/")}
+                                        />
+                                        { !permisosActual.controlesOcultos.includes("BtnMdlMigracionSgr") && (
+                                            <Boton
+                                                id="BtnMdlMigracionSgr"
+                                                icon="pi pi-sync"
+                                                style={{ fontSize: 15, borderRadius: 15 }}
+                                                color="primary"
+                                                onClick={() => setDisplayDialogSync(true)}
+                                                tooltip="Sincronizar Ticket desde SGR"
+                                            />
+                                        )}
+                                    </div>
                                 </>)}
                         </div>
                     </div>
@@ -269,6 +308,38 @@ const Gestiontikets = () => {
 
                 </div>
             </div>
+
+            <Dialog header="Sincronizar Ticket" visible={displayDialogSync} style={{ width: '10vw', minWidth: '350px' }} 
+                onHide={() => { setDisplayDialogSync(false); setCodTicketInterno(""); }}>
+                <div>
+                    <div className="field p-fluid">
+                        <label htmlFor="codigoInterno">Código de Ticket (Ej. CAD-2020-0073)</label>
+                        <InputText 
+                            id="codigoInterno" 
+                            value={codTicketInterno} 
+                            onChange={(e) => setCodTicketInterno(e.target.value)} 
+                            disabled={loadingSync}
+                            autoFocus
+                        />
+                    </div>
+                    <div className="flex justify-content-end mt-3" style={{ gap: "10px" }}>
+                        <Boton 
+                            label="Cancelar" 
+                            color="secondary" 
+                            onClick={() => { setDisplayDialogSync(false); setCodTicketInterno(""); }} 
+                            disabled={loadingSync}
+                        />
+                        <Boton 
+                            label={loadingSync ? "Sincronizando..." : "Sincronizar"} 
+                            color="primary" 
+                            icon={loadingSync ? "pi pi-spin pi-spinner" : "pi pi-sync"}
+                            onClick={handleSyncTicket} 
+                            disabled={loadingSync}
+                        />
+                    </div>
+                </div>
+            </Dialog>
+
         </div>
     );
 }
