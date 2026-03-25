@@ -186,6 +186,7 @@ const Editar = () => {
 
   let { id } = useParams();
   const toast = useRef(null);
+  const descripcionRef = useRef(null);
 
 
   useEffect(() => {
@@ -241,6 +242,16 @@ const Editar = () => {
     getFrentes();
   }, []);
 
+
+  // Sincroniza el contenido HTML del editor cuando carga el ticket
+  useEffect(() => {
+    if (descripcionRef.current && persona?.descripcion !== undefined) {
+      // Solo actualiza si el contenido difiere (evita mover el cursor mientras el usuario escribe)
+      if (descripcionRef.current.innerHTML !== (persona.descripcion || '')) {
+        descripcionRef.current.innerHTML = persona.descripcion || '';
+      }
+    }
+  }, [persona]);
 
   useEffect(() => {
     if (!id || frentes.length === 0) return;
@@ -1185,26 +1196,29 @@ const Editar = () => {
                     {/* Descripción */}
                     <div className="field col-12 md:col-6">
                       <label className="label-form">Descripción</label>
-                      {formik.values.descripcion && /<[a-z][\s\S]*>/i.test(formik.values.descripcion) ? (
-                        <div
-                          className="w-full border-1 surface-border border-round p-3"
-                          style={{ minHeight: '150px', overflow: 'auto', background: '#fff' }}
-                          dangerouslySetInnerHTML={{ __html: formik.values.descripcion }}
-                        />
-                      ) : (
-                        <InputTextarea
-                          id="descripcion"
-                          name="descripcion"
-                          placeholder="Escribe aquí"
-                          value={formik.values.descripcion}
-                          onBlur={formik.handleBlur}
-                          onChange={formik.handleChange}
-                          rows={5}
-                          autoResize
-                          disabled={permisosActual.controlesBloqueados.includes("cboDescripcion")}
-                          className="w-full"
-                        />
-                      )}
+                      <div
+                        ref={descripcionRef}
+                        contentEditable={!permisosActual.controlesBloqueados.includes("cboDescripcion")}
+                        suppressContentEditableWarning
+                        dangerouslySetInnerHTML={{ __html: formik.values.descripcion || '' }}
+                        onBlur={(e) => {
+                          formik.setFieldValue('descripcion', e.currentTarget.innerHTML);
+                          formik.setFieldTouched('descripcion', true);
+                        }}
+                        style={{
+                          minHeight: '150px',
+                          maxHeight: '400px',
+                          overflow: 'auto',
+                          background: '#fff',
+                          padding: '0.5rem',
+                          border: '1px solid #ced4da',
+                          borderRadius: '6px',
+                          outline: 'none',
+                          cursor: permisosActual.controlesBloqueados.includes("cboDescripcion") ? 'not-allowed' : 'text',
+                          lineHeight: '1.5',
+                          wordBreak: 'break-word',
+                        }}
+                      />
                       <div className="p-error">
                         {formik.touched.descripcion && formik.errors.descripcion}
                       </div>
