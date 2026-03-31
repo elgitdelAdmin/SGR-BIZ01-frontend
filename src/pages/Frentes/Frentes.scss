@@ -1,0 +1,42 @@
+.datatable-accion-editar
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:#404BD9;
+    width: 20%;
+    padding: 4px;
+    cursor: pointer;
+    
+}
+.zv-editarUsuario-footer
+{
+    display: inline-flex;
+    gap: 16px;
+}
+.accion-detalle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #404BD9;
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 7px;
+}
+.detalle-datatable-accion
+{
+    display: flex;
+    gap:12px;
+    align-items: center;
+    margin-left: 53px;
+}
+.subfrente-expansion {
+    padding: 16px 24px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 8px 0;
+}
+.subfrente-expansion h5 {
+    color: #404BD9;
+    font-weight: 600;
+}

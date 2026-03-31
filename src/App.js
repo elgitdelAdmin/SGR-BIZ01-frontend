@@ -31,6 +31,7 @@ import Usuarios from "./pages/Usuarios/Usuarios"
 import EditarUsuario from "./pages/Usuarios/EditarUsuario";
 import Socios from "./pages/Socios/Socios"
 import EditarSocio from "./pages/Socios/EditarSocio";
+import Frentes from "./pages/Frentes/Frentes";
 import CargaMasiva from "./pages/CargaMasiva/CargaMasiva";
 import CambiarContraseña from "./pages/Configuracion/CambiarContraseña";
 import RecuperarContrasena from "./pages/Login/RecuperarContrasena";
@@ -220,6 +221,8 @@ function App() {
               <Route path="Socios" element={<Socios />}></Route>
               <Route path="Socios/CrearSocio" element={<EditarSocio />}></Route>
               <Route path="Socios/EditarSocio/:id" element={<EditarSocio />}></Route>
+
+              <Route path="Frentes" element={<Frentes />}></Route>
 
               <Route path="Cargamasiva" element={<CargaMasiva />}></Route>
 
