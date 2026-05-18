@@ -296,6 +296,15 @@ const Reportes = () => {
                             value={tipoReporteSeleccionado}
                             options={opcionesTipoReporte}
                             onChange={(e) => {
+                                const seleccionado = opcionesTipoReporte.find(r => r.id === e.value);
+                                if (seleccionado?.codigo?.trim() === CODIGOS.TipoReporte.DashboardCargabilidadPorConsultor) {
+                                    // Abrir Dashboard en nueva pestaña (ruta relativa para que funcione en cualquier ambiente)
+                                    const basePath = window.location.pathname.replace(/\/reportes.*/i, '');
+                                    window.open(`${basePath}/Reportes/DashboardCargabilidadConsultor`, '_blank');
+                                    setTipoReporteSeleccionado(null);
+                                    setDataResultados([]);
+                                    return;
+                                }
                                 setTipoReporteSeleccionado(e.value);
                                 setDataResultados([]); // Limpiar al cambiar tipo
                             }}

@@ -24,6 +24,7 @@ import { Accordion, AccordionTab } from 'primereact/accordion';
 import Asignaciones from "./Components/Asignaciones";
 import Especializaciones from "./Components/Especializaciones";
 import ModalRepositorios from "./Components/ModalRepositorios";
+import { CODIGOS } from "../../constants/codigosBD";
 
 const Editar = () => {
   const navigate = useNavigate();
@@ -528,6 +529,48 @@ const Editar = () => {
     validationSchema: schema,
 
     onSubmit: (values) => {
+      // Validación: Si el estado es "EN_ATENCION", verificar que exista al menos una planificación
+      const estadoSeleccionado = parametros.find(
+        (p) => p.tipoParametro === "EstadoTicket" && Number(p.id) === Number(values.idEstadoTicket)
+      );
+      if (estadoSeleccionado) {
+        if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
+          let tienePlanificacion = false;
+          if (values.asignaciones && values.asignaciones.length > 0) {
+            tienePlanificacion = values.asignaciones.some(a =>
+              a.DetallePlanificacionConsultor && a.DetallePlanificacionConsultor.some(p => p.Activo)
+            );
+          }
+          if (!tienePlanificacion) {
+            toast.current?.show({
+              severity: "warn",
+              summary: "Advertencia",
+              detail: "Debe llenar la planificación para pasar el ticket a estado En Atención.",
+              life: 5000,
+            });
+            return; // Prevenir submit
+          }
+        }
+
+        if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
+          let tieneHoras = false;
+          if (values.asignaciones && values.asignaciones.length > 0) {
+            tieneHoras = values.asignaciones.some(a =>
+              a.DetalleTareasConsultor && a.DetalleTareasConsultor.some(t => t.Activo)
+            );
+          }
+          if (!tieneHoras) {
+            toast.current?.show({
+              severity: "warn",
+              summary: "Advertencia",
+              detail: "Debe llenar las tareas realizadas (horas) para pasar el ticket a estado Cerrado.",
+              life: 5000,
+            });
+            return; // Prevenir submit
+          }
+        }
+      }
+
       const formData = new FormData();
       formData.append("CodTicketInterno", values.codTicketInterno);
       formData.append("titulo", values.titulo);
@@ -1155,8 +1198,52 @@ const Editar = () => {
                         placeholder="Seleccione"
                         value={formik.values.idEstadoTicket}
                         onChange={(e) => {
-                          formik.setFieldValue("idEstadoTicket", "");
-                          formik.handleChange(e);
+                          const nuevoEstadoId = e.value;
+                          const estadoSeleccionado = parametros.find(
+                            (p) => p.tipoParametro === "EstadoTicket" && Number(p.id) === Number(nuevoEstadoId)
+                          );
+
+                          if (estadoSeleccionado) {
+                            // Validar En Atención
+                            if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
+                              let tienePlanificacion = false;
+                              if (formik.values.asignaciones && formik.values.asignaciones.length > 0) {
+                                tienePlanificacion = formik.values.asignaciones.some(a =>
+                                  a.DetallePlanificacionConsultor && a.DetallePlanificacionConsultor.some(p => p.Activo)
+                                );
+                              }
+                              if (!tienePlanificacion) {
+                                toast.current?.show({
+                                  severity: "warn",
+                                  summary: "Advertencia",
+                                  detail: "Debe llenar la planificación para pasar el ticket a estado En Atención.",
+                                  life: 5000,
+                                });
+                                return; // Evitar que cambie el valor
+                              }
+                            }
+
+                            // Validar Cerrado
+                            if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
+                              let tieneHoras = false;
+                              if (formik.values.asignaciones && formik.values.asignaciones.length > 0) {
+                                tieneHoras = formik.values.asignaciones.some(a =>
+                                  a.DetalleTareasConsultor && a.DetalleTareasConsultor.some(t => t.Activo)
+                                );
+                              }
+                              if (!tieneHoras) {
+                                toast.current?.show({
+                                  severity: "warn",
+                                  summary: "Advertencia",
+                                  detail: "Debe llenar las tareas realizadas (horas) para pasar el ticket a estado Cerrado.",
+                                  life: 5000,
+                                });
+                                return; // Evitar que cambie el valor
+                              }
+                            }
+                          }
+
+                          formik.setFieldValue("idEstadoTicket", nuevoEstadoId);
                         }}
                         disabled={!modoEdicion || (bloquearDropdown && formik.values.idEstadoTicket !== 0)}
                         onBlur={formik.handleBlur}

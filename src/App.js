@@ -37,6 +37,7 @@ import CambiarContraseña from "./pages/Configuracion/CambiarContraseña";
 import RecuperarContrasena from "./pages/Login/RecuperarContrasena";
 import CambiarEmail from "./pages/Configuracion/CambiarEmail";
 import Reportes from "./pages/Reportes/Reportes";
+import DashboardCargabilidadConsultor from "./pages/Reportes/Dashboard/DashboardCargabilidadConsultor";
 import { ListarParametros } from "./service/TiketService";
 import Context from "./context/usuarioContext";
 import { useContext } from "react";
@@ -56,6 +57,14 @@ function App() {
   const [mobileTopbarMenuActive, setMobileTopbarMenuActive] = useState(false);
   PrimeReact.ripple = true;
   const { parametros, setParametros } = useContext(Context);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname.includes("Dashboard")) {
+      setStaticMenuInactive(true);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     if (isLogged && (!parametros || parametros.length === 0)) {
@@ -197,6 +206,8 @@ function App() {
           <div className="layout-main">
             <Routes>
               <Route path="Dashboard" element={<Dashboard />}></Route>
+              <Route path="Dashboard/Dashboard" element={<Dashboard />}></Route>
+              <Route path="Reportes/DashboardCargabilidadConsultor" element={<DashboardCargabilidadConsultor />}></Route>
 
               <Route path="Consultores" element={<Consultores />}></Route>
               <Route path="Consultores/CrearConsultor" element={<EditarConsultor />}></Route>

@@ -4,7 +4,8 @@ export const CODIGOS = {
         CargabilidadPorTicket: "CARGA_TICKETS",
         CargabilidadPorConsultor: "CARGA_CONSULTOR",
         RankingDeConsultoresQueNoRegistranHoras: "RANK_CONS_SIN_HORAS",
-        RankingDeConsultoresRegistranMayorCantidadDeHoras: "RANK_CONS_HORAS"
+        RankingDeConsultoresRegistranMayorCantidadDeHoras: "RANK_CONS_HORAS",
+        DashboardCargabilidadPorConsultor: "DBD_CARGA_CONSULTOR"
     },
     Prioridad: {
         Baja: "BAJA",

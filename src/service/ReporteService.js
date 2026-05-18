@@ -51,3 +51,26 @@ export const GenerarReporteExcel = async (filtros) => {
             return res.blob();
         });
 };
+
+/**
+ * Servicio para obtener el dashboard de tickets por consultor.
+ * @returns {Promise<Array>} - Retorna un array con los datos del dashboard.
+ */
+export const DashboardTicketsConsultor = async () => {
+    return await fetch(`${ENDPOINT}/api/Reportes/DashboardTicketsConsultor`, {
+        method: "GET",
+        headers: {
+            "Accept": "application/json"
+        },
+    })
+        .then(async (res) => {
+            if (!res.ok) {
+                if (res.status === 401) {
+                    window.localStorage.removeItem("jwt");
+                    window.location.reload();
+                }
+                throw new Error("Error al consultar el dashboard de tickets");
+            }
+            return res.json();
+        });
+};
