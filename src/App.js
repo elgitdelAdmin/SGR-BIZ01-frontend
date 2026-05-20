@@ -61,7 +61,7 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname.includes("Dashboard")) {
+    if (location.pathname.includes("DashboardCargabilidadConsultor")) {
       setStaticMenuInactive(true);
     }
   }, [location.pathname]);

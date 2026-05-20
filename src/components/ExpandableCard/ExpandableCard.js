@@ -118,6 +118,10 @@ const ExpandableCard = ({ ticket }) => {
                         <span className="expandable-card__detail-label">Subtipo</span>
                         <span className="expandable-card__detail-value">{ticket.SubtipoTicket || "—"}</span>
                     </div>
+                    <div className="expandable-card__detail-item">
+                        <span className="expandable-card__detail-label">Gestor</span>
+                        <span className="expandable-card__detail-value">{ticket.NombreCompletoGestor || "—"}</span>
+                    </div>
 
                     <div className="expandable-card__divider"></div>
 
