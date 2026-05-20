@@ -302,6 +302,7 @@ const Gestiontikets = () => {
                         />
                         <Column field="empresaRazonSocial" header="Empresa" sortable style={{ width: '150px', minWidth: '150px' }} />
                         <Column field="nombreGestor" header="Gestor" sortable style={{ width: '150px', minWidth: '150px' }} />
+                        <Column field="nombreConsultores" header="Consultores" sortable style={{ width: '180px', minWidth: '180px' }} />
                         <Column field="horasTrabajadas" header={<div>Horas <br />Trabajadas</div>} sortable style={{ width: '100px', minWidth: '100px' }} />
                         <Column field="horasPlanificadas" header={<div>Horas <br />Planificadas</div>} body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />
                     </DatatableDinamic>
