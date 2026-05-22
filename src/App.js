@@ -38,7 +38,9 @@ import RecuperarContrasena from "./pages/Login/RecuperarContrasena";
 import CambiarEmail from "./pages/Configuracion/CambiarEmail";
 import Reportes from "./pages/Reportes/Reportes";
 import DashboardCargabilidadConsultor from "./pages/Reportes/Dashboard/DashboardCargabilidadConsultor";
-import { ListarParametros } from "./service/TiketService";
+import { ListarParametros, ListarTicket } from "./service/TiketService";
+import { ListarConsultores, ListarConsultoresPorSocio } from "./service/ConsultorService";
+import { ListarEmpresas, ListarEmpresasPorSocio } from "./service/EmpresaService";
 import Context from "./context/usuarioContext";
 import { useContext } from "react";
 
@@ -56,7 +58,12 @@ function App() {
   const [mobileMenuActive, setMobileMenuActive] = useState(false);
   const [mobileTopbarMenuActive, setMobileTopbarMenuActive] = useState(false);
   PrimeReact.ripple = true;
-  const { parametros, setParametros } = useContext(Context);
+  const {
+    parametros, setParametros,
+    consultores, setConsultores,
+    empresas, setEmpresas,
+    tickets, setTickets
+  } = useContext(Context);
 
   const location = useLocation();
 
@@ -67,18 +74,70 @@ function App() {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (isLogged && (!parametros || parametros.length === 0)) {
+    if (isLogged) {
       const getParametros = async () => {
-        try {
-          const data = await ListarParametros();
-          setParametros(data);
-        } catch (error) {
-          console.error("Error cargando parámetros globales:", error);
+        if (!parametros || parametros.length === 0) {
+          try {
+            const data = await ListarParametros();
+            setParametros(data);
+          } catch (error) {
+            console.error("Error cargando parámetros globales:", error);
+          }
         }
       };
+
+      const getMasterData = async () => {
+        const codRol = localStorage.getItem("codRol");
+        const idUser = localStorage.getItem("idUser");
+
+        try {
+          if (!consultores || consultores.length === 0) {
+            const resConsultores = await (codRol === "SUPERADMIN" ? ListarConsultores() : ListarConsultoresPorSocio());
+            const mappedConsultores = resConsultores.map(c => ({
+              ...c,
+              nombreCompleto: `${c.persona?.nombres || ''} ${c.persona?.apellidoPaterno || ''} ${c.persona?.apellidoMaterno || ''}`.trim() || c.persona?.username || 'Sin nombre'
+            }));
+            setConsultores(mappedConsultores);
+          }
+        } catch (error) {
+          console.error("Error cargando consultores globales:", error);
+        }
+
+        try {
+          if (!empresas || empresas.length === 0) {
+            const resEmpresas = await (codRol === "SUPERADMIN" ? ListarEmpresas() : ListarEmpresasPorSocio());
+            const empresasUnicas = [];
+            const idsMap = new Set();
+            resEmpresas.forEach(e => {
+              if (!idsMap.has(e.id)) {
+                idsMap.add(e.id);
+                empresasUnicas.push(e);
+              }
+            });
+            setEmpresas(empresasUnicas);
+          }
+        } catch (error) {
+          console.error("Error cargando empresas globales:", error);
+        }
+
+        try {
+          if (!tickets || tickets.length === 0) {
+            const resTickets = await ListarTicket({ idUser, codRol });
+            const mappedTickets = resTickets.map(t => ({
+              ...t,
+              label: `${t.codTicket} - ${t.titulo}`
+            }));
+            setTickets(mappedTickets);
+          }
+        } catch (error) {
+          console.error("Error cargando tickets globales:", error);
+        }
+      };
+
       getParametros();
+      getMasterData();
     }
-  }, [isLogged, parametros, setParametros]);
+  }, [isLogged, parametros, setParametros, consultores, setConsultores, empresas, setEmpresas, tickets, setTickets]);
 
   let menuClick = false;
   let mobileTopbarMenuClick = false;

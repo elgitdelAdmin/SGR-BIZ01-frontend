@@ -534,7 +534,7 @@ const Editar = () => {
         (p) => p.tipoParametro === "EstadoTicket" && Number(p.id) === Number(values.idEstadoTicket)
       );
       if (estadoSeleccionado) {
-        if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
+      /*  if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
           let tienePlanificacion = false;
           if (values.asignaciones && values.asignaciones.length > 0) {
             tienePlanificacion = values.asignaciones.some(a =>
@@ -551,7 +551,7 @@ const Editar = () => {
             return; // Prevenir submit
           }
         }
-
+        */
         if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
           let tieneHoras = false;
           if (values.asignaciones && values.asignaciones.length > 0) {
@@ -1205,7 +1205,7 @@ const Editar = () => {
 
                           if (estadoSeleccionado) {
                             // Validar En Atención
-                            if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
+                        /*    if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
                               let tienePlanificacion = false;
                               if (formik.values.asignaciones && formik.values.asignaciones.length > 0) {
                                 tienePlanificacion = formik.values.asignaciones.some(a =>
@@ -1221,7 +1221,7 @@ const Editar = () => {
                                 });
                                 return; // Evitar que cambie el valor
                               }
-                            }
+                            }*/
 
                             // Validar Cerrado
                             if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {

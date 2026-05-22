@@ -56,8 +56,24 @@ export const GenerarReporteExcel = async (filtros) => {
  * Servicio para obtener el dashboard de tickets por consultor.
  * @returns {Promise<Array>} - Retorna un array con los datos del dashboard.
  */
-export const DashboardTicketsConsultor = async () => {
-    return await fetch(`${ENDPOINT}/api/Reportes/DashboardTicketsConsultor`, {
+export const DashboardTicketsConsultor = async (filtros) => {
+    const params = new URLSearchParams();
+    if (filtros) {
+        if (filtros.consultores && filtros.consultores.length > 0) {
+            filtros.consultores.forEach(id => params.append('consultores', id));
+        }
+        if (filtros.tipos && filtros.tipos.length > 0) {
+            filtros.tipos.forEach(id => params.append('tipos', id));
+        }
+        if (filtros.tickets && filtros.tickets.length > 0) {
+            filtros.tickets.forEach(cod => params.append('tickets', cod));
+        }
+        if (filtros.estados && filtros.estados.length > 0) {
+            filtros.estados.forEach(id => params.append('estados', id));
+        }
+    }
+    const url = `${ENDPOINT}/api/Reportes/DashboardTicketsConsultor?${params.toString()}`;
+    return await fetch(url, {
         method: "GET",
         headers: {
             "Accept": "application/json"

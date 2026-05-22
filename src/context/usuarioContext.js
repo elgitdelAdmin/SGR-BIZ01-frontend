@@ -8,18 +8,27 @@ export function UsuarioContextProvider({ children }) {
     const [configuraciones, setConfiguraciones] = useState([]);
     const [parametros, setParametros] = useState([]);
     const [estadoCursoGeneral, setEstadoCursoGeneral] = useState(0);
+
+    // Datos maestros globales
+    const [consultores, setConsultores] = useState([]);
+    const [empresas, setEmpresas] = useState([]);
+    const [tickets, setTickets] = useState([]);
+
     return <Context.Provider value={{
         perfil,
         permisos,
         jwt,
         configuraciones,
         parametros,
+        estadoCursoGeneral, setEstadoCursoGeneral,
         setPerfil,
         setPermisos,
         setJwt,
         setConfiguraciones,
         setParametros,
-        estadoCursoGeneral, setEstadoCursoGeneral
+        consultores, setConsultores,
+        empresas, setEmpresas,
+        tickets, setTickets
     }}>
         {children}
     </Context.Provider>
