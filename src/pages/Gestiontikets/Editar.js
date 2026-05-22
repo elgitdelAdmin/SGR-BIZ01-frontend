@@ -534,25 +534,25 @@ const Editar = () => {
         (p) => p.tipoParametro === "EstadoTicket" && Number(p.id) === Number(values.idEstadoTicket)
       );
       if (estadoSeleccionado) {
-      /*  if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
-          let tienePlanificacion = false;
-          if (values.asignaciones && values.asignaciones.length > 0) {
-            tienePlanificacion = values.asignaciones.some(a =>
-              a.DetallePlanificacionConsultor && a.DetallePlanificacionConsultor.some(p => p.Activo)
-            );
+        /*  if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
+            let tienePlanificacion = false;
+            if (values.asignaciones && values.asignaciones.length > 0) {
+              tienePlanificacion = values.asignaciones.some(a =>
+                a.DetallePlanificacionConsultor && a.DetallePlanificacionConsultor.some(p => p.Activo)
+              );
+            }
+            if (!tienePlanificacion) {
+              toast.current?.show({
+                severity: "warn",
+                summary: "Advertencia",
+                detail: "Debe llenar la planificación para pasar el ticket a estado En Atención.",
+                life: 5000,
+              });
+              return; // Prevenir submit
+            }
           }
-          if (!tienePlanificacion) {
-            toast.current?.show({
-              severity: "warn",
-              summary: "Advertencia",
-              detail: "Debe llenar la planificación para pasar el ticket a estado En Atención.",
-              life: 5000,
-            });
-            return; // Prevenir submit
-          }
-        }
-        */
-        if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
+          */
+        /*if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
           let tieneHoras = false;
           if (values.asignaciones && values.asignaciones.length > 0) {
             tieneHoras = values.asignaciones.some(a =>
@@ -568,7 +568,7 @@ const Editar = () => {
             });
             return; // Prevenir submit
           }
-        }
+        }*/
       }
 
       const formData = new FormData();
@@ -1205,30 +1205,30 @@ const Editar = () => {
 
                           if (estadoSeleccionado) {
                             // Validar En Atención
-                        /*    if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
-                              let tienePlanificacion = false;
-                              if (formik.values.asignaciones && formik.values.asignaciones.length > 0) {
-                                tienePlanificacion = formik.values.asignaciones.some(a =>
-                                  a.DetallePlanificacionConsultor && a.DetallePlanificacionConsultor.some(p => p.Activo)
-                                );
-                              }
-                              if (!tienePlanificacion) {
-                                toast.current?.show({
-                                  severity: "warn",
-                                  summary: "Advertencia",
-                                  detail: "Debe llenar la planificación para pasar el ticket a estado En Atención.",
-                                  life: 5000,
-                                });
-                                return; // Evitar que cambie el valor
-                              }
-                            }*/
+                            /*    if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
+                                  let tienePlanificacion = false;
+                                  if (formik.values.asignaciones && formik.values.asignaciones.length > 0) {
+                                    tienePlanificacion = formik.values.asignaciones.some(a =>
+                                      a.DetallePlanificacionConsultor && a.DetallePlanificacionConsultor.some(p => p.Activo)
+                                    );
+                                  }
+                                  if (!tienePlanificacion) {
+                                    toast.current?.show({
+                                      severity: "warn",
+                                      summary: "Advertencia",
+                                      detail: "Debe llenar la planificación para pasar el ticket a estado En Atención.",
+                                      life: 5000,
+                                    });
+                                    return; // Evitar que cambie el valor
+                                  }
+                                }*/
 
                             // Validar Cerrado
-                            if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
+                           /* if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
                               let tieneHoras = false;
                               if (formik.values.asignaciones && formik.values.asignaciones.length > 0) {
                                 tieneHoras = formik.values.asignaciones.some(a =>
-                                  a.DetalleTareasConsultor && a.DetalleTareasConsultor.some(t => t.Activo)
+                                  a.DetalleTareasConsultor && a.DetalleTareasConsultor.some(t => t.Activo && t.Horas > 0)
                                 );
                               }
                               if (!tieneHoras) {
@@ -1240,7 +1240,7 @@ const Editar = () => {
                                 });
                                 return; // Evitar que cambie el valor
                               }
-                            }
+                            }*/
                           }
 
                           formik.setFieldValue("idEstadoTicket", nuevoEstadoId);
