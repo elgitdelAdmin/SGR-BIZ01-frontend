@@ -612,10 +612,16 @@ const EditarUsuario = () => {
                 }}
                 onBlur={formik.handleBlur}
                 // options={parametros?.filter((item) => item.tipoParametro === "TipoDocumento")}
-                options={rol}
+                 options={
+                   modoEdicion
+                     ? (rol || []).filter(
+                         (r) => (r.codigo || r.Codigo) !== "ADMIN" && (r.codigo || r.Codigo) !== "EMPRESA"
+                       )
+                     : rol
+                 }
                 optionLabel="nombre"
                 optionValue="id"
-                disabled={modoEdicion}
+              //disabled={modoEdicion}
               ></DropdownDefault>
               <small className="p-error">
                 {formik.touched.idRol && formik.errors.idRol}

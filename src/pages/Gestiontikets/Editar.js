@@ -259,22 +259,55 @@ const Editar = () => {
     const getTicket = async () => {
       await ObtenerTicket({ id }).then((data) => {
         setTituloPagina(`Datos del Ticket:  ${data.codTicket}`);
+
+        // Asegurar que existan filas de asignaciones (incluso vacías) para cada especialización activa
+        // Vincular por IdTicketFrenteSubFrente (el Id único de cada TicketFrenteSubFrente)
+        const existingAsignaciones = [...(data.consultorAsignaciones || [])];
+        (data.frenteSubFrentes || []).forEach((fsf) => {
+          if (fsf.activo !== false) {
+            // Buscar asignación vinculada por IdTicketFrenteSubFrente (id de la especialización)
+            const tieneAsig = existingAsignaciones.some(
+              (a) => a.activo !== false && Number(a.idTicketFrenteSubFrente) === Number(fsf.id)
+            );
+            if (!tieneAsig) {
+              existingAsignaciones.push({
+                id: 0,
+                idTicket: data.id,
+                idSubFrente: fsf.idSubFrente,
+                idFrente: fsf.idFrente,
+                idTicketFrenteSubFrente: fsf.id, // Vínculo directo a la especialización
+                idConsultor: 0, // Placeholder
+                idTipoActividad: 25,
+                fechaAsignacion: fsf.fechaInicio,
+                fechaDesasignacion: fsf.fechaFin,
+                activo: true,
+                detalleTareasConsultor: [],
+                detallePlanificacionConsultor: [],
+                esPlaceholder: true,
+              });
+            }
+          }
+        });
+        data.consultorAsignaciones = existingAsignaciones;
+
         setTicket(data);
         setModoEdicion(true);
         if (!frentes || frentes.length === 0) return;
 
-        const subfrentes = (data.frenteSubFrentes || []).map((f) => {
-          const frenteEncontrado = frentes.find((fr) => fr.id === f.idFrente);
-          const subfrenteEncontrado = frenteEncontrado?.subFrente?.find(
-            (sf) => sf.id === f.idSubFrente
-          );
+        const subfrentes = (data.frenteSubFrentes || [])
+          .filter((f) => f.activo !== false)
+          .map((f) => {
+            const frenteEncontrado = frentes.find((fr) => fr.id === f.idFrente);
+            const subfrenteEncontrado = frenteEncontrado?.subFrente?.find(
+              (sf) => sf.id === f.idSubFrente
+            );
 
-          return {
-            idFrente: f.idFrente,
-            idSubFrente: f.idSubFrente,
-            nombre: subfrenteEncontrado ? subfrenteEncontrado.nombre : "",
-          };
-        });
+            return {
+              idFrente: f.idFrente,
+              idSubFrente: f.idSubFrente,
+              nombre: subfrenteEncontrado ? subfrenteEncontrado.nombre : "",
+            };
+          });
         setSubfrentesSeleccionados(subfrentes);
         const totalHorasPorConsultor = data.consultorAsignaciones.map(asig => {
           const total = (asig.detalleTareasConsultor || [])
@@ -423,7 +456,7 @@ const Editar = () => {
             Horas: Yup.string().required("Horas es obligatorio"),
             Descripcion: Yup.string().required("Descripción es obligatoria"),
             Activo: Yup.boolean().required(),
-            IdTicketConsultorAsignacion: Yup.number(),
+            IdTicketConsultorAsignacion: Yup.number().nullable().notRequired(),
             Id: Yup.number(),
 
           })
@@ -435,7 +468,6 @@ const Editar = () => {
             Horas: Yup.string().required("Horas es obligatorio"),
             Descripcion: Yup.string().required("Descripción es obligatoria"),
             Activo: Yup.boolean().required(),
-            IdTicketConsultorAsignacion: Yup.number(),
             Id: Yup.number(),
 
           })
@@ -448,9 +480,8 @@ const Editar = () => {
 
   });
 
-  const formik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
+  const initialValues = useMemo(() => {
+    return {
       codTicketInterno: persona ? persona.codTicketInterno : "",
       titulo: persona ? persona.titulo : "",
       fechaSolicitud: persona ? new Date(persona.fechaSolicitud) : null,
@@ -473,59 +504,73 @@ const Editar = () => {
         activo: true,
         descripcion: ""
       },
-      frenteSubFrentes: persona ? persona.frenteSubFrentes : [],
-      asignaciones: persona ? (persona.consultorAsignaciones.map((a) => ({
-        idUnico: a.id.toString(),
-        Id: a.id,
-        IdSubFrente: a.idSubFrente,
-        // IdSubFrente: String(a.idSubFrente),
-        IdConsultor: a.idConsultor,
-        IdTipoActividad: a.idTipoActividad,
-        FechaAsignacion: a.fechaAsignacion,
-        FechaDesasignacion: a.fechaDesasignacion,
-        Activo: a.activo,
-        // DetalleTareasConsultor:a.detalleTareasConsultor
-        DetalleTareasConsultor: a.detalleTareasConsultor.map((d) => ({
-          FechaInicio: d.fechaInicio,
-          FechaFin: d.fechaFin,
-          Horas: d.horas,
-          Descripcion: d.descripcion,
-          Activo: d.activo,
-          IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion,
-          Id: d.id,
-          IdTipoActividad: d.idTipoActividad
-        })),
-        DetallePlanificacionConsultor: a.detallePlanificacionConsultor.map((d) => ({
-          FechaInicio: d.fechaInicio,
-          FechaFin: d.fechaFin,
-          Horas: d.horas,
-          Descripcion: d.descripcion,
-          Activo: d.activo,
-          IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion,
-          Id: d.id,
-          IdTipoActividad: d.idTipoActividad
-        }))
+      frenteSubFrentes: persona ? persona.frenteSubFrentes.map((fsf) => ({
+        ...fsf,
+        _uid: fsf.id > 0 ? `db_${fsf.id}` : generateUUID(),
+      })) : [],
+      asignaciones: persona ? (persona.consultorAsignaciones.map((a) => {
+        // Vincular la asignación a su especialización por IdTicketFrenteSubFrente
+        const fsfId = a.idTicketFrenteSubFrente || 0;
+        const linkedFsf = fsfId > 0
+          ? (persona.frenteSubFrentes || []).find((f) => f.id === fsfId)
+          : null;
+        const frenteSubFrenteUid = linkedFsf ? `db_${linkedFsf.id}` : (a._frenteSubFrenteUid || null);
 
-      }))) : [],
-      // asignaciones:persona ? persona.consultorAsignaciones : [],
+        return {
+          idUnico: a.id > 0 ? a.id.toString() : (a.idUnico || generateUUID()),
+          Id: a.id,
+          IdSubFrente: a.idSubFrente,
+          IdConsultor: a.idConsultor,
+          IdTipoActividad: a.idTipoActividad,
+          IdTicketFrenteSubFrente: fsfId,
+          _frenteSubFrenteUid: frenteSubFrenteUid,
+          FechaAsignacion: a.fechaAsignacion,
+          FechaDesasignacion: a.fechaDesasignacion,
+          Activo: a.activo,
+          DetalleTareasConsultor: (a.detalleTareasConsultor || []).map((d) => ({
+            FechaInicio: d.fechaInicio,
+            FechaFin: d.fechaFin,
+            Horas: d.horas,
+            Descripcion: d.descripcion,
+            Activo: d.activo,
+            IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion ?? 0,
+            Id: d.id,
+            IdTipoActividad: d.idTipoActividad
+          })),
+          DetallePlanificacionConsultor: (a.detallePlanificacionConsultor || []).map((d) => ({
+            FechaInicio: d.fechaInicio,
+            FechaFin: d.fechaFin,
+            Horas: d.horas,
+            Descripcion: d.descripcion,
+            Activo: d.activo,
+            IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion ?? 0,
+            Id: d.id,
+            IdTipoActividad: d.idTipoActividad
+          })),
+          esPlaceholder: a.esPlaceholder !== undefined ? a.esPlaceholder : (Number(a.idConsultor) === 0)
+        };
+      })) : [],
       usuarioCreacion: persona?.usuarioCreacion || window.localStorage.getItem("username"),
       nombrePersonaResponsable: "",
       zipFile: null,
       idGestorConsultoria: persona ? persona.idGestorConsultoria : null,
       reposLinks: (() => {
         try {
-          // backend guarda JSON como [{ Orden, Url, FechaInsert }]
           const arr = persona?.repositorios ? JSON.parse(persona.repositorios)
             : persona?.Repositorios ? JSON.parse(persona.Repositorios)
               : persona?.urlRepositorios ? JSON.parse(persona.urlRepositorios)
                 : [];
-
           return Array.isArray(arr) ? arr : [];
         } catch {
           return [];
         }
       })(),
-    },
+    };
+  }, [persona]);
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues,
     validationSchema: schema,
 
     onSubmit: (values) => {
@@ -605,12 +650,28 @@ const Editar = () => {
           // ✅ mandar eliminadas SOLO si existían en BD (Id>0)
           return Number(a.Id) > 0 && a.Activo === false;
         })
-        .map(a => ({
-          ...a,
-          // Normaliza fechas a string ISO local (por si vienen como Date)
-          FechaAsignacion: a.FechaAsignacion ? toLocalISOString(a.FechaAsignacion) : null,
-          FechaDesasignacion: a.FechaDesasignacion ? toLocalISOString(a.FechaDesasignacion) : null,
-        }));
+        .map(a => {
+          // Resolver IdTicketFrenteSubFrente desde _frenteSubFrenteUid
+          let resolvedFrenteSubFrenteId = a.IdTicketFrenteSubFrente || null;
+          if (a._frenteSubFrenteUid && !resolvedFrenteSubFrenteId) {
+            // Buscar en frenteSubFrentes el que tenga este _uid
+            const linkedFsf = (values.frenteSubFrentes || []).find(
+              (f) => f._uid === a._frenteSubFrenteUid
+            );
+            if (linkedFsf && linkedFsf.id > 0) {
+              resolvedFrenteSubFrenteId = linkedFsf.id;
+            }
+          }
+
+          const { _frenteSubFrenteUid, esPlaceholder, idUnico, ...rest } = a;
+          return {
+            ...rest,
+            IdTicketFrenteSubFrente: resolvedFrenteSubFrenteId,
+            // Normaliza fechas a string ISO local (por si vienen como Date)
+            FechaAsignacion: a.FechaAsignacion ? toLocalISOString(a.FechaAsignacion) : null,
+            FechaDesasignacion: a.FechaDesasignacion ? toLocalISOString(a.FechaDesasignacion) : null,
+          };
+        });
 
       // 2) Usa este payload en lugar del array original
       formData.append("consultorAsignaciones", JSON.stringify(asignacionesPayload));
@@ -625,7 +686,8 @@ const Editar = () => {
           FechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
           FechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
           Activo: e.activo,
-          Descripcion: e.descripcion
+          Descripcion: e.descripcion,
+          IdDetallePlanificacionConsultor: e.idDetallePlanificacionConsultor ?? null
 
         })))
       );
@@ -651,6 +713,12 @@ const Editar = () => {
 
 
   });
+
+  useEffect(() => {
+    if (Object.keys(formik.errors).length > 0) {
+      console.log("Formik Validation Errors:", formik.errors);
+    }
+  }, [formik.errors]);
 
   const recalcularSubtipos = (idTipoTicket) => {
     if (!idTipoTicket || !parametros?.length) return;
@@ -736,15 +804,31 @@ const Editar = () => {
     setBloquearDropdown(bloquear);
   }, [parametros, formik.values.idEstadoTicket]);
   useEffect(() => {
-    if (
-      formik.submitCount > 0 &&
-      Object.keys(formik.errors).length > 0
-    ) {
+    if (formik.submitCount > 0 && Object.keys(formik.errors).length > 0) {
+      console.log("Formik Validation Errors:", formik.errors);
+
+      const getErrorMessages = (obj) => {
+        let messages = [];
+        const traverse = (o) => {
+          if (!o) return;
+          if (typeof o === "string") {
+            messages.push(o);
+          } else if (Array.isArray(o)) {
+            o.forEach(item => traverse(item));
+          } else if (typeof o === "object") {
+            Object.values(o).forEach(val => traverse(val));
+          }
+        };
+        traverse(obj);
+        return messages;
+      };
+
+      const errorMsgs = getErrorMessages(formik.errors);
       toast.current.show({
         severity: "warn",
         summary: "Campos incompletos",
-        detail: Object.values(formik.errors).join(", "),
-        life: 5000,
+        detail: errorMsgs.length > 0 ? errorMsgs.join(", ") : "Revisa los datos ingresados.",
+        life: 7000,
       });
     }
   }, [formik.submitCount, formik.errors]);
@@ -784,40 +868,56 @@ const Editar = () => {
       }
     }
   }, [persona, empresa]);
+  const asignacionesKey = useMemo(() => {
+    return (formik.values.asignaciones || [])
+      .map(a => `${a.IdSubFrente}-${a.Activo}`)
+      .join(',');
+  }, [formik.values.asignaciones]);
+
+  const ObtenerConsultoresPorFrente = (idFrente, idSubFrente) => {
+    if (!Array.isArray(consultores)) return [];
+    return consultores.filter(c =>
+      c.especializaciones.some(e =>
+        Number(e.idSubFrente) === Number(idSubFrente)
+      )
+    );
+  };
+
   useEffect(() => {
     if (!Array.isArray(consultores) || consultores.length === 0) return;
     if (!formik.values.asignaciones) return;
 
+    const nuevasConsultoresPorFila = {};
     formik.values.asignaciones.forEach((a, index) => {
       if (a.IdSubFrente) {
         const seleccionado = subfrentesSeleccionados.find(
-          s => s.idSubFrente == a.IdSubFrente
+          s => Number(s.idSubFrente) === Number(a.IdSubFrente)
         );
         const idFrente = seleccionado?.idFrente;
         if (idFrente) {
-          ObtenerConsultoresPorFrente(idFrente, a.IdSubFrente).then(data => {
-            setConsultoresPorFila(prev => ({
-              ...prev,
-              [index]: data
-            }));
-          });
+          const data = ObtenerConsultoresPorFrente(idFrente, a.IdSubFrente);
+          nuevasConsultoresPorFila[index] = data;
         }
       }
     });
-  }, [
-    formik.values.asignaciones,
-    subfrentesSeleccionados,
-    consultores
-  ]);
 
-  const ObtenerConsultoresPorFrente = async (idFrente, idSubFrente) => {
-    const resultado = consultores.filter(c =>
-      c.especializaciones.some(e =>
-        e.idSubFrente === idSubFrente
-      )
-    );
-    return resultado;
-  };
+    // Comparar si realmente cambió
+    const hasChanged = Object.keys(nuevasConsultoresPorFila).length !== Object.keys(consultoresPorFila).length ||
+      Object.keys(nuevasConsultoresPorFila).some(key => {
+        const arr1 = nuevasConsultoresPorFila[key] || [];
+        const arr2 = consultoresPorFila[key] || [];
+        return arr1.length !== arr2.length || arr1.some((val, i) => val.id !== arr2[i].id);
+      });
+
+    if (hasChanged) {
+      setConsultoresPorFila(nuevasConsultoresPorFila);
+    }
+  }, [
+    asignacionesKey,
+    subfrentesSeleccionados,
+    consultores,
+    consultoresPorFila
+  ]);
 
   const Registrar = ({ formData }) => {
     RegistrarTiket({ formData })
@@ -942,10 +1042,74 @@ const Editar = () => {
 
   // Eliminar fila por idUnico
   const removeRow = (idUnico) => {
-    const newAsignaciones = formik.values.asignaciones.map((a) =>
-      a.idUnico === idUnico ? { ...a, Activo: false } : a
+    // 1. Encontrar la asignación que se va a eliminar
+    const asignacionAEliminar = formik.values.asignaciones.find((a) => a.idUnico === idUnico);
+    if (!asignacionAEliminar) return;
+
+    let nuevasAsignaciones = [...formik.values.asignaciones];
+
+    // 2. Si no es placeholder y tiene subfrente asignado, debemos mover su planificación a un placeholder
+    if (!asignacionAEliminar.esPlaceholder && asignacionAEliminar.IdSubFrente) {
+      const frenteSubFrenteUid = asignacionAEliminar._frenteSubFrenteUid;
+
+      // Buscar si ya existe un placeholder activo para esta especialización (por _uid)
+      const placeholderIdx = nuevasAsignaciones.findIndex(
+        (a) => a.Activo !== false && a.esPlaceholder && a._frenteSubFrenteUid === frenteSubFrenteUid
+      );
+
+      if (placeholderIdx !== -1) {
+        // Si ya existe, le agregamos las planificaciones que no tenga repetidas
+        const placeholder = nuevasAsignaciones[placeholderIdx];
+        const planificacionesExistentes = placeholder.DetallePlanificacionConsultor || [];
+        const planificacionesACopiar = asignacionAEliminar.DetallePlanificacionConsultor || [];
+
+        const planificacionesCombinadas = [...planificacionesExistentes];
+        planificacionesACopiar.forEach((p) => {
+          const yaExiste = planificacionesCombinadas.some(
+            (pc) => (p.Id > 0 && pc.Id === p.Id) || (pc.Descripcion === p.Descripcion && pc.FechaInicio === p.FechaInicio)
+          );
+          if (!yaExiste) {
+            planificacionesCombinadas.push(p);
+          }
+        });
+
+        nuevasAsignaciones[placeholderIdx] = {
+          ...placeholder,
+          DetallePlanificacionConsultor: planificacionesCombinadas,
+        };
+      } else {
+        // Si no existe, creamos un placeholder y le pasamos las planificaciones
+        const nuevoPlaceholder = {
+          idUnico: generateUUID(),
+          Id: 0,
+          IdSubFrente: Number(asignacionAEliminar.IdSubFrente),
+          IdFrente: asignacionAEliminar.IdFrente,
+          IdConsultor: 0,
+          IdTipoActividad: 25,
+          FechaAsignacion: asignacionAEliminar.FechaAsignacion,
+          FechaDesasignacion: asignacionAEliminar.FechaDesasignacion,
+          DetalleTareasConsultor: [],
+          DetallePlanificacionConsultor: asignacionAEliminar.DetallePlanificacionConsultor || [],
+          Activo: true,
+          esPlaceholder: true,
+          _frenteSubFrenteUid: frenteSubFrenteUid,
+        };
+        nuevasAsignaciones.push(nuevoPlaceholder);
+      }
+    }
+
+    // 3. Desactivar la asignación eliminada y limpiar su planificación ya que fue transferida
+    nuevasAsignaciones = nuevasAsignaciones.map((a) =>
+      a.idUnico === idUnico
+        ? {
+            ...a,
+            Activo: false,
+            DetallePlanificacionConsultor: [],
+          }
+        : a
     );
-    formik.setFieldValue("asignaciones", newAsignaciones);
+
+    formik.setFieldValue("asignaciones", nuevasAsignaciones);
   };
 
   useEffect(() => {
@@ -993,14 +1157,13 @@ const Editar = () => {
   );
 
   const obtenerCantidadPermitida = (idSubFrente) => {
-    const especializacion = formik.values.frenteSubFrentes.find(
-      (e) => e.idSubFrente === idSubFrente && e.activo
-    );
-    return especializacion?.cantidad ?? 0;
+    return (formik.values.frenteSubFrentes || [])
+      .filter((e) => e.idSubFrente === idSubFrente && e.activo !== false)
+      .reduce((sum, e) => sum + (e.cantidad ?? 0), 0);
   };
   const contarAsignaciones = (idSubFrente) => {
     return formik.values.asignaciones.filter(
-      (a) => a.IdSubFrente === idSubFrente && a.Activo !== false
+      (a) => a.IdSubFrente === idSubFrente && a.Activo !== false && !a.esPlaceholder
     ).length;
   };
 
@@ -1408,6 +1571,9 @@ const Editar = () => {
                       permisosActual={permisosActual}
                       setSubfrentesSeleccionados={setSubfrentesSeleccionados}
                       toastRef={toast}
+                      consultores={consultores}
+                      parametros={parametros}
+                      codFrentes={codFrentes}
                     />
                   </>
                 )}

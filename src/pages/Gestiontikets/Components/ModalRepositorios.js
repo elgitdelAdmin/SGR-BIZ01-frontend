@@ -99,7 +99,7 @@ const handleAdd = async () => {
     <Button
       icon="pi pi-trash"
       severity="danger"
-      text
+      className="p-button-text"
       onClick={() => handleRemove(row)}
       tooltip="Quitar"
       tooltipOptions={{ position: "top" }}

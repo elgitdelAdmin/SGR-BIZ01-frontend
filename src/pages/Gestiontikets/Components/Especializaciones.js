@@ -12,6 +12,49 @@ import * as Iconsax from "iconsax-react";
 import DropdownDefault from "../../../components/Dropdown/DropdownDefault";
 import DatatableDefault from "../../../components/Datatable/DatatableDefault";
 import Boton from "../../../components/Boton/Boton";
+import Horas from "./Horas";
+
+const normalizeHHMM = (raw) => {
+  const s = String(raw ?? "").trim();
+  if (!s) return "";
+
+  const cleaned = s.replace(/[^0-9.]/g, "");
+  if (!cleaned) return "";
+
+  const parts = cleaned.split(".");
+  const hhStr = parts[0] ?? "0";
+  const mmStrRaw = parts[1] ?? "";
+
+  const hh = String(Number(hhStr || "0"));
+
+  let mm = mmStrRaw;
+  if (mm === "") mm = "00";
+  if (mm.length === 1) mm = `${mm}0`;
+  if (mm.length > 2) mm = mm.slice(0, 2);
+
+  return `${hh}.${mm}`;
+};
+
+const hhmmToMinutes = (hhmm) => {
+  if (!hhmm) return 0;
+  const norm = normalizeHHMM(hhmm);
+  const [hhStr, mmStr = "00"] = norm.split(".");
+  const hh = Number(hhStr);
+  const mm = Number(mmStr);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return 0;
+  if (mm < 0 || mm > 59) return 0;
+  return hh * 60 + mm;
+};
+
+const calcularTotalHorasPlan = (asignacion) => {
+  const detalles = asignacion?.DetallePlanificacionConsultor || [];
+  const totalMin = detalles
+    .filter((d) => d.Activo)
+    .reduce((acc, it) => acc + hhmmToMinutes(it.Horas), 0);
+  const hh = Math.floor(totalMin / 60);
+  const mm = totalMin % 60;
+  return `${hh}.${String(mm).padStart(2, "0")}`;
+};
 
 const Especializaciones = ({
   formik,
@@ -19,16 +62,39 @@ const Especializaciones = ({
   permisosActual,
   setSubfrentesSeleccionados,
   toastRef,
+  consultores,
+  parametros,
+  codFrentes,
 }) => {
   const [subfrentes, setSubfrentes] = useState([]);
   const [visibleDescripcion, setVisibleDescripcion] = useState(false);
   const [rowSeleccionada, setRowSeleccionada] = useState(null);
+  const [visibleModal, setVisibleModal] = useState(false);
 
   const frentesById = useMemo(() => {
     const map = new Map();
     (frentes || []).forEach((f) => map.set(f.id, f));
     return map;
   }, [frentes]);
+
+  const getAsignacionVinculada = (rowData) => {
+    return (formik.values.asignaciones || []).find(
+      (a) => a.Activo !== false && a._frenteSubFrenteUid === rowData._uid
+    );
+  };
+
+  const getIndexAsignacion = (rowData) => {
+    return (formik.values.asignaciones || []).findIndex(
+      (a) => a.Activo !== false && a._frenteSubFrenteUid === rowData._uid
+    );
+  };
+
+  const getConsultorName = (rowData) => {
+    const asignacion = getAsignacionVinculada(rowData);
+    if (!asignacion) return "—";
+    const consultor = (consultores || []).find((c) => Number(c.id) === Number(asignacion.IdConsultor));
+    return consultor ? consultor.nombre : "—";
+  };
 
   const handleFrenteChange = (e) => {
     const idFrenteSeleccionado = e.value;
@@ -53,6 +119,14 @@ const Especializaciones = ({
     setVisibleDescripcion(true);
   };
 
+  const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  };
+
   const confirmarEliminacion = (rowData) => {
     confirmDialog({
       message: "¿Está seguro de desactivar esta especialización?",
@@ -66,6 +140,25 @@ const Especializaciones = ({
           esp === rowData ? { ...esp, activo: false } : esp
         );
         formik.setFieldValue("frenteSubFrentes", nuevas);
+
+        // Desactivar asignaciones vinculadas a esta especialización por _uid
+        const uid = rowData._uid;
+        const nuevasAsig = (formik.values.asignaciones || []).map((a) =>
+          a._frenteSubFrenteUid === uid ? { ...a, Activo: false } : a
+        );
+        formik.setFieldValue("asignaciones", nuevasAsig);
+
+        // Quitar de subfrentes seleccionados para la lista de asignación
+        // Solo quitar si no hay otra especialización activa con el mismo subfrente
+        const subFrenteId = Number(rowData.idSubFrente);
+        const otraEspActiva = (nuevas || []).some(
+          (esp) => esp.activo !== false && Number(esp.idSubFrente) === subFrenteId && esp._uid !== uid
+        );
+        if (!otraEspActiva) {
+          setSubfrentesSeleccionados((prev) =>
+            prev.filter((sf) => Number(sf.idSubFrente) !== subFrenteId)
+          );
+        }
       },
     });
   };
@@ -90,22 +183,15 @@ const Especializaciones = ({
         detail: "Completa todos los campos de la especialización",
         life: 5000,
       });
-      return;
-    }
-
-    if (!nueva.cantidad || Number(nueva.cantidad) < 1) {
-      toastRef.current.show({
-        severity: "warn",
-        summary: "Atención",
-        detail: "La cantidad de consultores en Especializaciones debe ser mayor o igual a 1",
-        life: 5000,
-      });
-      return;
+      return false;
     }
 
     const especializacionesActuales = Array.isArray(formik.values.frenteSubFrentes)
       ? formik.values.frenteSubFrentes
       : [];
+
+    // Generar un _uid único para esta nueva especialización
+    const nuevaUid = generateUUID();
 
     formik.setFieldValue("frenteSubFrentes", [
       ...especializacionesActuales,
@@ -113,11 +199,12 @@ const Especializaciones = ({
         id: Number(nueva.id || 0),
         idFrente: Number(nueva.idFrente),
         idSubFrente: Number(nueva.idSubFrente),
-        cantidad: Number(nueva.cantidad || 0),
+        cantidad: 1,
         fechaInicio: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
         fechaFin: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
         activo: true,
         descripcion: nueva.descripcion || "",
+        _uid: nuevaUid,
       },
     ]);
 
@@ -140,6 +227,29 @@ const Especializaciones = ({
       ];
     });
 
+    // SIEMPRE crear asignación placeholder para esta especialización (vinculada por _uid)
+    const subFrenteId = Number(nueva.idSubFrente);
+    const asignacionesActuales = Array.isArray(formik.values.asignaciones)
+      ? formik.values.asignaciones
+      : [];
+
+    const placeholderAsig = {
+      idUnico: generateUUID(),
+      Id: 0,
+      IdSubFrente: subFrenteId,
+      IdFrente: Number(nueva.idFrente),
+      IdConsultor: 0,
+      IdTipoActividad: 25,
+      FechaAsignacion: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
+      FechaDesasignacion: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
+      DetalleTareasConsultor: [],
+      DetallePlanificacionConsultor: [],
+      Activo: true,
+      esPlaceholder: true,
+      _frenteSubFrenteUid: nuevaUid,
+    };
+    formik.setFieldValue("asignaciones", [...asignacionesActuales, placeholderAsig]);
+
     formik.setFieldValue("nuevaEspecializacion", {
       id: "",
       idFrente: "",
@@ -152,23 +262,47 @@ const Especializaciones = ({
     });
 
     setSubfrentes([]);
+    return true;
   };
 
-  const puedeAgregar =
-    Boolean(formik.values.nuevaEspecializacion?.idFrente) &&
-    Boolean(formik.values.nuevaEspecializacion?.idSubFrente);
-
-  // Estilo botón como tu imagen (cuadrado azul + blanco)
-  const btnPlusStyle = {
-    width: 44,
-    height: 44,
-    minWidth: 44,
-    borderRadius: 6,
-    backgroundColor: "#4F46E5",
-    border: "none",
+  const handleCloseModal = () => {
+    setVisibleModal(false);
+    formik.setFieldValue("nuevaEspecializacion", {
+      id: "",
+      idFrente: "",
+      idSubFrente: "",
+      cantidad: "",
+      fechaInicio: "",
+      fechaFin: "",
+      activo: true,
+      descripcion: "",
+    });
+    setSubfrentes([]);
   };
 
-  const btnPlusIconStyle = { color: "#fff", fontSize: 16 };
+  const handleAgregar = () => {
+    const ok = agregarEspecializacion();
+    if (ok) {
+      setVisibleModal(false);
+    }
+  };
+
+  const modalFooter = (
+    <div className="flex justify-content-end gap-2">
+      <Button
+        label="Cancelar"
+        icon="pi pi-times"
+        className="p-button-danger"
+        onClick={handleCloseModal}
+      />
+      <Button
+        label="Agregar"
+        icon="pi pi-plus"
+        className="p-button-primary"
+        onClick={handleAgregar}
+      />
+    </div>
+  );
 
   return (
     <>
@@ -183,8 +317,7 @@ const Especializaciones = ({
           label="Agregar Especialización"
           color="primary"
           type="button"
-          onClick={agregarEspecializacion}
-          disabled={!puedeAgregar}
+          onClick={() => setVisibleModal(true)}
           style={{
             height: 42,
             padding: "0 18px",
@@ -200,111 +333,92 @@ const Especializaciones = ({
         />
       </div>
 
-      {/* ✅ UNA SOLA FILA */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          width: "100%",
-        }}
+      {/* ✅ Modal draggable para el formulario de especializaciones */}
+      <Dialog
+        header="Agregar Especialización"
+        visible={visibleModal}
+        onHide={handleCloseModal}
+        style={{ width: "min(600px, 90vw)" }}
+        footer={modalFooter}
+        modal
+        draggable={true}
+        resizable={false}
       >
-        {/* Frente (fijo) */}
-        <div style={{ width: 180 }}>
-          <DropdownDefault
-            value={formik.values.nuevaEspecializacion.idFrente}
-            options={frentes}
-            optionLabel="nombre"
-            optionValue="id"
-            onChange={handleFrenteChange}
-            placeholder="Frente"
-          />
+        <div className="p-fluid grid">
+          {/* Frente */}
+          <div className="field col-12 md:col-6">
+            <label className="label-form">Frente</label>
+            <DropdownDefault
+              value={formik.values.nuevaEspecializacion.idFrente}
+              options={frentes}
+              optionLabel="nombre"
+              optionValue="id"
+              onChange={handleFrenteChange}
+              placeholder="Frente"
+            />
+          </div>
+
+          {/* Subfrente */}
+          <div className="field col-12 md:col-6">
+            <label className="label-form">Subfrente</label>
+            <DropdownDefault
+              value={formik.values.nuevaEspecializacion.idSubFrente}
+              options={subfrentes}
+              optionLabel="nombre"
+              optionValue="id"
+              onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idSubFrente", e.value)}
+              placeholder="Subfrente"
+              disabled={!formik.values.nuevaEspecializacion.idFrente}
+            />
+          </div>
+
+          {/* Inicio */}
+          <div className="field col-12 md:col-6">
+            <label className="label-form">Inicio</label>
+            <Calendar
+              value={formik.values.nuevaEspecializacion.fechaInicio}
+              onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
+              placeholder="Inicio"
+              dateFormat="yy-mm-dd"
+              showIcon
+              style={{ width: "100%" }}
+              minDate={formik.values.fechaSolicitud ? new Date(formik.values.fechaSolicitud) : undefined}
+            />
+          </div>
+
+          {/* Fin */}
+          <div className="field col-12 md:col-6">
+            <label className="label-form">Fin</label>
+            <Calendar
+              value={formik.values.nuevaEspecializacion.fechaFin}
+              onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
+              placeholder="Fin"
+              dateFormat="yy-mm-dd"
+              showIcon
+              style={{ width: "100%" }}
+              minDate={
+                formik.values.nuevaEspecializacion.fechaInicio
+                  ? new Date(formik.values.nuevaEspecializacion.fechaInicio)
+                  : new Date()
+              }
+            />
+          </div>
+
+          {/* Descripción */}
+          <div className="field col-12">
+            <label className="label-form">Descripción</label>
+            <InputText
+              type="text"
+              name="nuevaEspecializacion.descripcion"
+              placeholder="Descripción"
+              value={formik.values.nuevaEspecializacion.descripcion}
+              onBlur={formik.handleBlur}
+              onChange={formik.handleChange}
+              style={{ width: "100%" }}
+            />
+          </div>
         </div>
-
-        {/* Subfrente (fijo) */}
-        <div style={{ width: 180 }}>
-          <DropdownDefault
-            value={formik.values.nuevaEspecializacion.idSubFrente}
-            options={subfrentes}
-            optionLabel="nombre"
-            optionValue="id"
-            onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idSubFrente", e.value)}
-            placeholder="Subfrente"
-          />
-        </div>
-
-        {/* Cantidad (fijo) */}
-        <div style={{ width: 90 }}>
-          <InputText
-            type="number"
-            name="nuevaEspecializacion.cantidad"
-            placeholder="Cant."
-            value={formik.values.nuevaEspecializacion.cantidad}
-            onBlur={formik.handleBlur}
-            onChange={formik.handleChange}
-            min="1"
-            style={{ width: "100%" }}
-          />
-        </div>
-
-        {/* Inicio (fijo) */}
-        <div style={{ width: 170 }}>
-          <Calendar
-            value={formik.values.nuevaEspecializacion.fechaInicio}
-            onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
-            placeholder="Inicio"
-            dateFormat="yy-mm-dd"
-            showIcon
-            style={{ width: "100%" }}
-            minDate={formik.values.fechaSolicitud ? new Date(formik.values.fechaSolicitud) : undefined}
-          />
-        </div>
-
-        {/* Fin (fijo) */}
-        <div style={{ width: 170 }}>
-          <Calendar
-            value={formik.values.nuevaEspecializacion.fechaFin}
-            onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
-            placeholder="Fin"
-            dateFormat="yy-mm-dd"
-            showIcon
-            style={{ width: "100%" }}
-            minDate={
-              formik.values.nuevaEspecializacion.fechaInicio
-                ? new Date(formik.values.nuevaEspecializacion.fechaInicio)
-                : new Date()
-            }
-          />
-        </div>
-
-        {/* ✅ Descripción (todo lo restante) + botón */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            flexGrow: 1,
-            minWidth: 0,
-          }}
-        >
-          <InputText
-            type="text"
-            name="nuevaEspecializacion.descripcion"
-            placeholder="Descripción"
-            value={formik.values.nuevaEspecializacion.descripcion}
-            onBlur={formik.handleBlur}
-            onChange={formik.handleChange}
-            style={{
-              width: "100%",
-              flexGrow: 1,
-              minWidth: 0,
-              maxWidth: 800
-            }}
-          />
-
-        </div>
-      </div>
-
+      </Dialog>
 
       {/* Tabla */}
       <div className="field col-12" style={{ marginTop: 8 }}>
@@ -333,8 +447,6 @@ const Especializaciones = ({
                 }}
               />
 
-              <Column field="cantidad" header="Cantidad" body={(rowData) => rowData.cantidad ?? "—"} />
-
               <Column
                 header="Fecha Inicio"
                 body={(row) => (row.fechaInicio ? new Date(row.fechaInicio).toLocaleDateString() : "")}
@@ -343,6 +455,60 @@ const Especializaciones = ({
               <Column
                 header="Fecha Fin"
                 body={(row) => (row.fechaFin ? new Date(row.fechaFin).toLocaleDateString() : "")}
+              />
+
+              <Column
+                header="Consultor"
+                body={getConsultorName}
+              />
+
+              <Column
+                header="Planificación"
+                body={(rowData) => {
+                  const asignacion = getAsignacionVinculada(rowData);
+                  const idx = getIndexAsignacion(rowData);
+                  if (idx === -1 || !asignacion) {
+                    return (
+                      <span title="Primero agregue una asignación para este subfrente">
+                        <Button
+                          type="button"
+                          icon="pi pi-plus"
+                          disabled
+                          className="p-button-text p-button-sm"
+                          style={{ width: '42px', height: '35px', justifyContent: 'center' }}
+                        />
+                      </span>
+                    );
+                  }
+                  return (
+                    <Horas
+                      mode="PLAN"
+                      index={idx}
+                      asignacion={asignacion}
+                      formik={formik}
+                      permisosActual={permisosActual}
+                      parametros={parametros}
+                      codFrentes={codFrentes}
+                      toastRef={toastRef}
+                    />
+                  );
+                }}
+                align="center"
+                alignHeader="center"
+                style={{ width: "95px", textAlign: "center" }}
+                headerStyle={{ textAlign: "center", justifyContent: "center" }}
+              />
+
+              <Column
+                header="H. Planificadas"
+                body={(rowData) => {
+                  const asignacion = getAsignacionVinculada(rowData);
+                  return asignacion ? calcularTotalHorasPlan(asignacion) : "0.00";
+                }}
+                align="center"
+                alignHeader="center"
+                style={{ width: "95px", textAlign: "center" }}
+                headerStyle={{ textAlign: "center", justifyContent: "center" }}
               />
 
               <Column
@@ -377,4 +543,4 @@ const Especializaciones = ({
   );
 };
 
-export default Especializaciones;
+export default Especializaciones;

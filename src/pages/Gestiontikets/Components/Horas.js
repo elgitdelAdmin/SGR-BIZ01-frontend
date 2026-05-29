@@ -124,7 +124,12 @@ const Horas = ({
   const [errorHoras, setErrorHoras] = useState("");
 
   // ========= Permisos =========
-  const estaBloqueado = permisosActual?.divsBloqueados?.includes(permKey);
+  const estaBloqueado = useMemo(() => {
+    // Si es planificación, no se bloquea por permisos para que el Gestor de Consultoría
+    // pueda ingresar la planificación después de agregar la asignación correspondiente.
+    if (isPlan) return false;
+    return permisosActual?.divsBloqueados?.includes(permKey);
+  }, [permisosActual, permKey, isPlan]);
 
   const localIdConsultor = window.localStorage.getItem("idConsultor");
   const isOwner = asignacion?.IdConsultor == localIdConsultor;
@@ -417,6 +422,7 @@ const Horas = ({
       <Button
         label="Registrar"
         severity="secondary"
+        type="button"
         disabled={addDisabledGate && delDisabledGate}
         onClick={() => {
           formik.handleSubmit();
@@ -433,7 +439,8 @@ const Horas = ({
         icon={iconBtn}
         onClick={() => setVisible(true)}
         disabled={false}
-        className="w-full"
+        className="p-button-sm"
+        style={{ width: '42px', height: '35px', justifyContent: 'center' }}
         type="button"
       />
 
@@ -601,7 +608,7 @@ const Horas = ({
                 <Button
                   icon="pi pi-trash"
                   severity="danger"
-                  text
+                  className="p-button-text"
                   onClick={() => eliminar(rowData)}
                   type="button"
                 />

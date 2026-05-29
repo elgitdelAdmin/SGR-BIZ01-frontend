@@ -5,6 +5,48 @@ import CalendarFormik from "../../../components/Calendar/CalendarFormik";
 import * as Iconsax from "iconsax-react";
 import Boton from "../../../components/Boton/Boton";
 
+const normalizeHHMM = (raw) => {
+  const s = String(raw ?? "").trim();
+  if (!s) return "";
+
+  const cleaned = s.replace(/[^0-9.]/g, "");
+  if (!cleaned) return "";
+
+  const parts = cleaned.split(".");
+  const hhStr = parts[0] ?? "0";
+  const mmStrRaw = parts[1] ?? "";
+
+  const hh = String(Number(hhStr || "0"));
+
+  let mm = mmStrRaw;
+  if (mm === "") mm = "00";
+  if (mm.length === 1) mm = `${mm}0`;
+  if (mm.length > 2) mm = mm.slice(0, 2);
+
+  return `${hh}.${mm}`;
+};
+
+const hhmmToMinutes = (hhmm) => {
+  if (!hhmm) return 0;
+  const norm = normalizeHHMM(hhmm);
+  const [hhStr, mmStr = "00"] = norm.split(".");
+  const hh = Number(hhStr);
+  const mm = Number(mmStr);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return 0;
+  if (mm < 0 || mm > 59) return 0;
+  return hh * 60 + mm;
+};
+
+const calcularTotalHorasPlan = (asignacion) => {
+  const detalles = asignacion?.DetallePlanificacionConsultor || [];
+  const totalMin = detalles
+    .filter((d) => d.Activo)
+    .reduce((acc, it) => acc + hhmmToMinutes(it.Horas), 0);
+  const hh = Math.floor(totalMin / 60);
+  const mm = totalMin % 60;
+  return `${hh}.${String(mm).padStart(2, "0")}`;
+};
+
 const Asignaciones = ({
   formik,
   permisosActual,
@@ -22,6 +64,40 @@ const Asignaciones = ({
   addRow,
   removeRow,
 }) => {
+  const obtenerOpcionesSubfrente = (currentIdSubFrente) => {
+    // 1. Obtener la lista única (distinct) de subfrentes de las especializaciones seleccionadas
+    const subfrentesUnicosMap = new Map();
+    (subfrentesSeleccionados || []).forEach((sf) => {
+      if (sf.idSubFrente) {
+        subfrentesUnicosMap.set(Number(sf.idSubFrente), sf);
+      }
+    });
+    const subfrentesUnicos = Array.from(subfrentesUnicosMap.values());
+
+    // 2. Filtrar aquellos subfrentes que ya han completado su límite permitido
+    return subfrentesUnicos.filter((sf) => {
+      const idSubFrente = Number(sf.idSubFrente);
+      
+      // Si este es el subfrente seleccionado en la fila actual, debemos mostrarlo siempre
+      if (currentIdSubFrente && Number(currentIdSubFrente) === idSubFrente) {
+        return true;
+      }
+
+      // Obtener el límite máximo permitido
+      const maxPermitido = obtenerCantidadPermitida(idSubFrente);
+
+      // Contar asignaciones de consultores reales (con idConsultor > 0)
+      const asignados = (formik.values.asignaciones || []).filter(
+        (a) =>
+          a.Activo !== false &&
+          !a.esPlaceholder &&
+          Number(a.IdSubFrente) === idSubFrente
+      ).length;
+
+      return asignados < maxPermitido;
+    });
+  };
+
   return (
     <div className="field col-12 md:col-12">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", width: "100%" }}>
@@ -58,7 +134,7 @@ const Asignaciones = ({
             <th className="p-2 border">Consultor</th>
             <th className="p-2 border">Fecha Inicio</th>
             <th className="p-2 border">Fecha Fin</th>
-            <th className="p-2 border">Planificación</th>
+            <th className="p-2 border">H. Planificadas</th>
             <th className="p-2 border">H. Trabajadas</th>
             <th className="p-2 border">Tareo</th>
             {!permisosActual.controlesOcultos.includes("btnEliminar") && (
@@ -69,187 +145,235 @@ const Asignaciones = ({
 
         <tbody>
           {(formik.values.asignaciones || [])
-            .filter((a) => a.Activo !== false)
-            .map((asignacion, index) => (
-              <tr key={asignacion.idUnico} className="border-t">
-                {/* SUBFRENTE */}
-                <td className="p-2 border">
-                  <DropdownDefault
-                    id={`IdSubFrente-${index}`}
-                    name={`asignaciones[${index}].IdSubFrente`}
-                    placeholder="Seleccione"
-                    value={formik.values.asignaciones[index].IdSubFrente}
-                    options={subfrentesSeleccionados}
-                    optionLabel="nombre"
-                    optionValue="idSubFrente"
-                    onChange={async (e) => {
-                      const idSubFrente = e.value;
-                      const maxPermitido = obtenerCantidadPermitida(idSubFrente);
-                      const asignados = contarAsignaciones(idSubFrente);
+            .filter((a) => a.Activo !== false && !a.esPlaceholder)
+            .map((asignacion, idxMap) => {
+              const originalIndex = (formik.values.asignaciones || []).findIndex(
+                (a) => a.idUnico === asignacion.idUnico
+              );
+              if (originalIndex === -1) return null;
 
-                      if (asignados >= maxPermitido) {
-                        toastRef?.current?.show?.({
-                          severity: "warn",
-                          summary: "Límite",
-                          detail: `Solo se permiten ${maxPermitido} asignaciones para este subfrente`,
-                          life: 5000,
-                        });
-                        return;
-                      }
+              return (
+                <tr key={asignacion.idUnico} className="border-t">
+                  {/* SUBFRENTE */}
+                  <td className="p-2 border">
+                    <DropdownDefault
+                      id={`IdSubFrente-${originalIndex}`}
+                      name={`asignaciones[${originalIndex}].IdSubFrente`}
+                      placeholder="Seleccione"
+                      value={formik.values.asignaciones[originalIndex].IdSubFrente}
+                      options={obtenerOpcionesSubfrente(formik.values.asignaciones[originalIndex].IdSubFrente)}
+                      optionLabel="nombre"
+                      optionValue="idSubFrente"
+                      onChange={async (e) => {
+                        const idSubFrente = e.value;
+                        const maxPermitido = obtenerCantidadPermitida(idSubFrente);
+                        const asignados = contarAsignaciones(idSubFrente);
 
-                      const seleccionado = subfrentesSeleccionados.find(
-                        (s) => s.idSubFrente === idSubFrente
-                      );
-                      const idFrente = seleccionado?.idFrente;
+                        if (asignados >= maxPermitido) {
+                          toastRef?.current?.show?.({
+                            severity: "warn",
+                            summary: "Límite",
+                            detail: `Solo se permiten ${maxPermitido} asignaciones para este subfrente`,
+                            life: 5000,
+                          });
+                          return;
+                        }
 
-                      formik.setFieldValue(
-                        `asignaciones[${index}].IdSubFrente`,
-                        idSubFrente
-                      );
-                      formik.setFieldValue(
-                        `asignaciones[${index}].IdFrente`,
-                        idFrente
-                      );
-
-                      if (idSubFrente) {
-                        const data = await ObtenerConsultoresPorFrente(
-                          idFrente,
-                          idSubFrente
+                        const seleccionado = subfrentesSeleccionados.find(
+                          (s) => s.idSubFrente === idSubFrente
                         );
-                        setConsultoresPorFila((prev) => ({
-                          ...prev,
-                          [index]: data,
-                        }));
-                      }
-                    }}
-                    onBlur={formik.handleBlur}
-                    disabled={
-                      permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                      formik.values.asignaciones[index].IdSubFrente !== "" &&
-                      formik.values.asignaciones[index].Activo === true
-                    }
-                  />
-                </td>
+                        const idFrente = seleccionado?.idFrente;
 
-                {/* CONSULTOR */}
-                <td className="p-2 border">
-                  <DropdownDefault
-                    id={`IdConsultor-${asignacion.idUnico}`}
-                    placeholder="Seleccione"
-                    value={asignacion.IdConsultor}
-                    options={
-                      !formik.values.asignaciones?.[index]?.IdSubFrente
-                        ? consultores
-                        : consultoresPorFila[index] || []
-                    }
-                    optionLabel="nombre"
-                    optionValue="id"
-                    onChange={(e) => {
-                      const idx = (formik.values.asignaciones || []).findIndex(
-                        (a) => a.idUnico === asignacion.idUnico
-                      );
-                      if (idx !== -1) {
+                        // Buscar placeholder vinculado a la misma especialización que esta asignación
+                        // o un placeholder para este subfrente sin vínculo específico
+                        const currentFsfUid = asignacion._frenteSubFrenteUid;
+                        const placeholderIdx = (formik.values.asignaciones || []).findIndex(
+                          (a) => a.Activo !== false && a.esPlaceholder &&
+                            (currentFsfUid
+                              ? a._frenteSubFrenteUid === currentFsfUid
+                              : Number(a.IdSubFrente) === Number(idSubFrente))
+                        );
+
+                        if (placeholderIdx !== -1) {
+                          // Encontró una asignación placeholder. La activamos (esPlaceholder: false)
+                          // y removemos el nuevo renglón vacío que se estaba editando (en originalIndex).
+                          const placeholder = formik.values.asignaciones[placeholderIdx];
+
+                          if (idSubFrente) {
+                            const data = await ObtenerConsultoresPorFrente(
+                              idFrente,
+                              idSubFrente
+                            );
+                            setConsultoresPorFila((prev) => ({
+                              ...prev,
+                              [placeholderIdx]: data,
+                            }));
+                          }
+
+                          const especializacion = formik.values.frenteSubFrentes.find(
+                            (esp) => esp.activo && esp._uid === placeholder._frenteSubFrenteUid
+                          );
+
+                          // Construir la nueva lista de asignaciones aplicando todos los cambios en un solo paso
+                          const uuidAEliminar = asignacion.idUnico;
+                          const nuevasAsig = (formik.values.asignaciones || [])
+                            .filter((a) => a.idUnico !== uuidAEliminar)
+                            .map((a) => {
+                              if (a.idUnico === placeholder.idUnico) {
+                                const updated = {
+                                  ...a,
+                                  esPlaceholder: false,
+                                };
+                                if (especializacion) {
+                                  if (!updated.FechaAsignacion && especializacion.fechaInicio) {
+                                    updated.FechaAsignacion = especializacion.fechaInicio;
+                                  }
+                                  if (!updated.FechaDesasignacion && especializacion.fechaFin) {
+                                    updated.FechaDesasignacion = especializacion.fechaFin;
+                                  }
+                                }
+                                return updated;
+                              }
+                              return a;
+                            });
+
+                          formik.setFieldValue("asignaciones", nuevasAsig);
+
+                        } else {
+                          // Flujo normal: actualizar la fila que se está editando
+                          formik.setFieldValue(
+                            `asignaciones[${originalIndex}].IdSubFrente`,
+                            idSubFrente
+                          );
+                          formik.setFieldValue(
+                            `asignaciones[${originalIndex}].IdFrente`,
+                            idFrente
+                          );
+
+                          if (idSubFrente) {
+                            const data = await ObtenerConsultoresPorFrente(
+                              idFrente,
+                              idSubFrente
+                            );
+                            setConsultoresPorFila((prev) => ({
+                              ...prev,
+                              [originalIndex]: data,
+                            }));
+                          }
+                        }
+                      }}
+                      onBlur={formik.handleBlur}
+                      disabled={
+                        permisosActual.divsBloqueados.includes("divAsignaciones") &&
+                        formik.values.asignaciones[originalIndex].IdSubFrente !== "" &&
+                        formik.values.asignaciones[originalIndex].Activo === true
+                      }
+                    />
+                  </td>
+
+                  {/* CONSULTOR */}
+                  <td className="p-2 border">
+                    <DropdownDefault
+                      id={`IdConsultor-${asignacion.idUnico}`}
+                      placeholder="Seleccione"
+                      value={asignacion.IdConsultor}
+                      options={
+                        !formik.values.asignaciones?.[originalIndex]?.IdSubFrente
+                          ? consultores
+                          : consultoresPorFila[originalIndex] || []
+                      }
+                      optionLabel="nombre"
+                      optionValue="id"
+                      onChange={(e) => {
                         formik.setFieldValue(
-                          `asignaciones[${idx}].IdConsultor`,
+                          `asignaciones[${originalIndex}].IdConsultor`,
                           e.value
                         );
+                      }}
+                      onBlur={formik.handleBlur}
+                      disabled={
+                        permisosActual.divsBloqueados.includes("divAsignaciones") &&
+                        asignacion.IdConsultor !== "" &&
+                        asignacion.Activo === true
                       }
-                    }}
-                    onBlur={formik.handleBlur}
-                    disabled={
-                      permisosActual.divsBloqueados.includes("divAsignaciones") &&
-                      asignacion.IdConsultor !== "" &&
-                      asignacion.Activo === true
-                    }
-                  />
-                </td>
+                    />
+                  </td>
 
-                {/* FECHA INICIO */}
-                <td className="p-2 border">
-                  <CalendarFormik
-                    name={`asignaciones[${index}].FechaAsignacion`}
-                    value={asignacion.FechaAsignacion}
-                    setFieldValue={formik.setFieldValue}
-                    minDate={
-                      formik.values.fechaSolicitud
-                        ? new Date(formik.values.fechaSolicitud)
-                        : null
-                    }
-                    showSeconds={false}
-                  />
-                </td>
-
-
-                {/* FECHA FIN */}
-                <td className="p-2 border">
-                  <CalendarFormik
-                    name={`asignaciones[${index}].FechaDesasignacion`}
-                    value={asignacion.FechaDesasignacion}
-                    setFieldValue={formik.setFieldValue}
-                    minDate={
-                      asignacion.FechaAsignacion
-                        ? new Date(asignacion.FechaAsignacion)
-                        : new Date()
-                    }
-                    showSeconds={false}
-                  />
-                </td>
-
-
-
-                {/* HORAS PLANIFICADAS */}
-                <td className="p-2 border">
-                  <Horas
-                    mode="PLAN"
-                    index={index}
-                    asignacion={asignacion}
-                    formik={formik}
-                    permisosActual={permisosActual}
-                    parametros={parametros}
-                    codFrentes={codFrentes}
-                    toastRef={toastRef}
-                  />
-                </td>
-
-                {/* HORAS TRABAJADAS */}
-                <td className="p-2 border text-center">
-                  {totalesFijos?.[index]?.totalHoras || 0}
-                </td>
-
-                {/* HORAS (TAREO) */}
-                <td className="p-2 border">
-                  <Horas
-                    mode="TAREO"
-                    index={index}
-                    asignacion={asignacion}
-                    formik={formik}
-                    permisosActual={permisosActual}
-                    parametros={parametros}
-                    codFrentes={codFrentes}
-                    toastRef={toastRef}
-                  />
-                </td>
-
-                {/* ELIMINAR FILA */}
-                {!permisosActual.controlesOcultos.includes("btnEliminar") && (
+                  {/* FECHA INICIO */}
                   <td className="p-2 border">
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                      <div className="profesor-datatable-accion">
-                        <div
-                          className="accion-eliminar"
-                          onClick={() => removeRow(asignacion.idUnico)}
-                          title="Eliminar"
-                        >
-                          <span>
-                            <Iconsax.Trash color="#ffffff" />
-                          </span>
+                    <CalendarFormik
+                      name={`asignaciones[${originalIndex}].FechaAsignacion`}
+                      value={asignacion.FechaAsignacion}
+                      setFieldValue={formik.setFieldValue}
+                      minDate={
+                        formik.values.fechaSolicitud
+                          ? new Date(formik.values.fechaSolicitud)
+                          : null
+                      }
+                      showSeconds={false}
+                    />
+                  </td>
+
+                  {/* FECHA FIN */}
+                  <td className="p-2 border">
+                    <CalendarFormik
+                      name={`asignaciones[${originalIndex}].FechaDesasignacion`}
+                      value={asignacion.FechaDesasignacion}
+                      setFieldValue={formik.setFieldValue}
+                      minDate={
+                        asignacion.FechaAsignacion
+                          ? new Date(asignacion.FechaAsignacion)
+                          : new Date()
+                      }
+                      showSeconds={false}
+                    />
+                  </td>
+
+                  {/* HORAS PLANIFICADAS */}
+                  <td className="p-2 border text-center">
+                    {calcularTotalHorasPlan(asignacion)}
+                  </td>
+
+                  {/* HORAS TRABAJADAS */}
+                  <td className="p-2 border text-center">
+                    {totalesFijos?.[originalIndex]?.totalHoras || 0}
+                  </td>
+
+                  {/* HORAS (TAREO) */}
+                  <td className="p-2 border">
+                    <Horas
+                      mode="TAREO"
+                      index={originalIndex}
+                      asignacion={asignacion}
+                      formik={formik}
+                      permisosActual={permisosActual}
+                      parametros={parametros}
+                      codFrentes={codFrentes}
+                      toastRef={toastRef}
+                    />
+                  </td>
+
+                  {/* ELIMINAR FILA */}
+                  {!permisosActual.controlesOcultos.includes("btnEliminar") && (
+                    <td className="p-2 border">
+                      <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <div className="profesor-datatable-accion">
+                          <div
+                            className="accion-eliminar"
+                            onClick={() => removeRow(asignacion.idUnico)}
+                            title="Eliminar"
+                          >
+                            <span>
+                              <Iconsax.Trash color="#ffffff" />
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                )}
-              </tr>
-            ))}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
         </tbody>
       </table>
 

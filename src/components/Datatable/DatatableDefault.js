@@ -5,7 +5,7 @@ import classNames from "classnames";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { generateExcel, handleCopyToClipboard } from '../../helpers/helpers';
-const DatatableDefault = (props) => {
+const DatatableDefault = ({ export: exportProp, showSearch, paginator, ...restProps }) => {
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;    
     const [globalFilterValue, setGlobalFilterValue] = useState('');
@@ -28,8 +28,8 @@ const DatatableDefault = (props) => {
         return (
         <div className='flex justify-content-between flex-wrap'>
             {
-                props.export && 
-                props.export == true && 
+                exportProp && 
+                exportProp == true && 
                 <div  className='flex  flex-wrapjustify-content-center' style={{gap:8}}>
                     <div className="flex">
                         <Button type="button" label='Copiar' icon="pi pi-copy" severity="success" onClick={()=>handleCopyToClipboard(dt)}/>
@@ -39,7 +39,7 @@ const DatatableDefault = (props) => {
                     </div>
                 </div>
             }
-            {props.showSearch !== false && (
+            {showSearch !== false && (
                 <div className="flex justify-content-end">
                     <span className="p-input-icon-left">
                         <i className="pi pi-search" />
@@ -95,14 +95,14 @@ const DatatableDefault = (props) => {
   <DataTable
     ref={dt}
     header={header}
-    {...props}
+    {...restProps}
     filters={filters}
     size="small"
     stripedRows
     scrollable
     // scrollHeight="500px"     // ← Scroll vertical
     style={{ width: '100%', minWidth: '900px' }}
-    paginator={props.paginator !== false}
+    paginator={paginator !== false}
     paginatorLeft={paginatorLeft}
     paginatorRight={paginatorRight}
     responsiveLayout="scroll"
@@ -116,6 +116,3 @@ const DatatableDefault = (props) => {
 }
  
 export default DatatableDefault;
-
-
-
