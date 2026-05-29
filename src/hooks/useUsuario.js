@@ -1,8 +1,8 @@
 import { useCallback, useContext, useState } from 'react';
 import Context from "../context/usuarioContext"
-import loginService from "../service/LoginService";
+import loginService, { loginStep2 } from "../service/LoginService";
+
 export default function useUsuario(){
-    // const {jwt,setJwt,permisos,configuraciones,estadoCursoGeneral, setEstadoCursoGeneral} = useContext(Context)
     const {jwt,setJwt,permisos} = useContext(Context)
 
     const [state,setState] = useState({loading:false,error:false})
@@ -12,33 +12,9 @@ export default function useUsuario(){
     const [usuariosTotal, setUsuariosTotal] = useState([]);
     const [usersGerencias,setUsersGerencias] = useState([]);
   
-const login = useCallback(async({userName,password},onSuccess) => {
-    await loginService({userName,password})
-    .then(res => {
-        const { accessToken, refreshToken, expiresAt, user,notificacionTicket ,idConsultor} = res;
-
-        console.log("success: ", accessToken);
-
-        window.localStorage.setItem('jwt', accessToken);
-        window.localStorage.setItem('refreshToken', refreshToken);
-        window.localStorage.setItem('expiresAt', expiresAt);
-        window.localStorage.setItem('username', user.username);
-        window.localStorage.setItem('nombreSocio', user.socio.nombreComercial);
-        window.localStorage.setItem('idsocio', user.socio.id);
-        window.localStorage.setItem('idRol', user.idRol);
-        window.localStorage.setItem('idUser', user.id);
-        window.localStorage.setItem('codRol', user.rol.codigo);
-        window.localStorage.setItem("notificacionTicket", JSON.stringify(notificacionTicket));
-        window.localStorage.setItem('idConsultor', idConsultor);
-
-        
-
-
-        setState({ loading: false, error: false });
-        setJwt(accessToken);
-    })
-    .catch(err => {
-        window.localStorage.removeItem('jwt');
+    const logout = useCallback(()=>{
+        window.localStorage.removeItem('jwt')
+        window.localStorage.removeItem('reset')
         window.localStorage.removeItem('refreshToken');
         window.localStorage.removeItem('expiresAt');
         window.localStorage.removeItem('username');
@@ -47,45 +23,70 @@ const login = useCallback(async({userName,password},onSuccess) => {
         window.localStorage.removeItem('idRol');
         window.localStorage.removeItem('idUser');
         window.localStorage.removeItem('codRol');
-        window.localStorage.removeItem('notificacionTicket');
         window.localStorage.removeItem('idConsultor');
-
-
-
-
-        setState({ loading: false, error: true });
-        logout();
-        console.error("error: ", err);
-        onSuccess();
-    });
-}, [setJwt]);
-
-
-    const logout = useCallback(()=>{
-        window.localStorage.removeItem('jwt')
-        window.localStorage.removeItem('reset')
-         window.localStorage.removeItem('refreshToken');
-        window.localStorage.removeItem('expiresAt');
-        window.localStorage.removeItem('username');
-        window.localStorage.removeItem('nombreSocio');
-        window.localStorage.removeItem('idsocio');
-        window.localStorage.removeItem('idRol');
-        window.localStorage.removeItem('idUser');
-        window.localStorage.removeItem('codRol');
-        window.localStorage.removeItem('idConsultor');
+        window.localStorage.removeItem("notificacionTicket");
 
         setJwt(null)
     },[setJwt])
 
-    
+    const saveSessionData = useCallback((res) => {
+        const { accessToken, refreshToken, expiresAt, user, notificacionTicket, idConsultor, idRolSeleccionado, idSocioSeleccionado, codRolSeleccionado, nombreSocioSeleccionado } = res;
+        window.localStorage.setItem('jwt', accessToken);
+        window.localStorage.setItem('refreshToken', refreshToken);
+        window.localStorage.setItem('expiresAt', expiresAt);
+        window.localStorage.setItem('username', user.username);
+        window.localStorage.setItem('nombreSocio', nombreSocioSeleccionado || (user.socio ? user.socio.nombreComercial : ''));
+        window.localStorage.setItem('idsocio', idSocioSeleccionado || (user.socio ? user.socio.id : ''));
+        window.localStorage.setItem('idRol', idRolSeleccionado || user.idRol);
+        window.localStorage.setItem('idUser', user.id);
+        window.localStorage.setItem('codRol', codRolSeleccionado || (user.rol ? user.rol.codigo : ''));
+        window.localStorage.setItem("notificacionTicket", JSON.stringify(notificacionTicket));
+        window.localStorage.setItem('idConsultor', idConsultor || '');
+        setJwt(accessToken);
+    }, [setJwt]);
+
+    const login = useCallback(async({userName,password}) => {
+        setState({ loading: true, error: false });
+        try {
+            const res = await loginService({userName, password});
+            if (res.requiereSeleccionRol) {
+                setState({ loading: false, error: false });
+                return res;
+            } else {
+                saveSessionData(res);
+                setState({ loading: false, error: false });
+                return res;
+            }
+        } catch (err) {
+            logout();
+            setState({ loading: false, error: true });
+            console.error("error: ", err);
+            throw err;
+        }
+    }, [saveSessionData, logout]);
+
+    const completarLogin = useCallback(async ({ idUser, idRol, idSocio, tempToken }) => {
+        setState({ loading: true, error: false });
+        try {
+            const res = await loginStep2({ idUser, idRol, idSocio, tempToken });
+            saveSessionData(res);
+            setState({ loading: false, error: false });
+            return res;
+        } catch (err) {
+            logout();
+            setState({ loading: false, error: true });
+            console.error("error step 2: ", err);
+            throw err;
+        }
+    }, [saveSessionData, logout]);
+
     return{
         isLogged: Boolean(jwt),
         isloginLoading : state.loading,
         hasLoginError : state.error,
         permisos,
-        // configuraciones,
         login,
+        completarLogin,
         logout,
-        // estadoCursoGeneral, setEstadoCursoGeneral
     }
 }

@@ -170,7 +170,7 @@
 // }
 
 // //export default Login;
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Formik, useFormik } from "formik";
 import classNames from "classnames";
 import * as Yup from "yup";
@@ -185,6 +185,7 @@ import { Password } from 'primereact/password';
 import { Dialog } from 'primereact/dialog';
 import { Toast } from "primereact/toast";
 import { Checkbox } from "primereact/checkbox";
+import { Dropdown } from "primereact/dropdown";
 import {EnviarCorreo,RecuperarContraseña} from "../../service/LoginService";
 
 export default function Login() {
@@ -192,6 +193,60 @@ export default function Login() {
     const [pasoActual, setPasoActual] = useState(1); // 1: Email, 2: Código, 3: Nueva contraseña
     const [emailRecuperacion, setEmailRecuperacion] = useState("");
     const toast = useRef(null);
+
+    // Estados para login multi-rol/multi-socio
+    const [showRolSocioDialog, setShowRolSocioDialog] = useState(false);
+    const [rolSociosDisponibles, setRolSociosDisponibles] = useState([]);
+    const [selectedSocio, setSelectedSocio] = useState(null);
+    const [selectedRol, setSelectedRol] = useState(null);
+    const [tempToken, setTempToken] = useState("");
+    const [idUser, setIdUser] = useState(null);
+    const [loginErrorMsg, setLoginErrorMsg] = useState("");
+
+    // Obtener socios únicos a partir de rolSociosDisponibles
+    const sociosOptions = useMemo(() => {
+        const unique = [];
+        const map = new Map();
+        rolSociosDisponibles.forEach(item => {
+            if (!map.has(item.idSocio)) {
+                const s = { id: item.idSocio, nombre: item.socioNombre };
+                map.set(item.idSocio, s);
+                unique.push(s);
+            }
+        });
+        return unique;
+    }, [rolSociosDisponibles]);
+
+    // Obtener roles filtrados por el socio seleccionado
+    const rolesOptions = useMemo(() => {
+        if (!selectedSocio) return [];
+        return rolSociosDisponibles
+            .filter(item => item.idSocio === selectedSocio.id)
+            .map(item => ({ id: item.idRol, nombre: item.rolNombre, codigo: item.rolCodigo }));
+    }, [selectedSocio, rolSociosDisponibles]);
+
+    const showRolField = useMemo(() => {
+        if (!selectedSocio) return false;
+        return !rolesOptions.some(r => r.codigo === "ADMIN");
+    }, [selectedSocio, rolesOptions]);
+
+    const handleSocioChange = (e) => {
+        const socio = e.value;
+        setSelectedSocio(socio);
+        // Filtrar y pre-seleccionar el primer rol disponible para este socio
+        const filtered = rolSociosDisponibles
+            .filter(item => item.idSocio === (socio ? socio.id : null))
+            .map(item => ({ id: item.idRol, nombre: item.rolNombre, codigo: item.rolCodigo }));
+        
+        const adminRol = filtered.find(r => r.codigo === "ADMIN");
+        if (adminRol) {
+            setSelectedRol(adminRol);
+        } else if (filtered.length > 0) {
+            setSelectedRol(filtered[0]);
+        } else {
+            setSelectedRol(null);
+        }
+    };
 
     // Estados para validación de contraseña
     const [passwordValidation, setPasswordValidation] = useState({
@@ -201,7 +256,7 @@ export default function Login() {
         hasMinLength: false,
     });
 
-    const { isloginLoading, hasLoginError, login, isLogged } = useUsuario();
+    const { isloginLoading, hasLoginError, login, completarLogin, isLogged } = useUsuario();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -257,10 +312,89 @@ export default function Login() {
     };
 
     const Logarse = async (userName, password, setSubmitting) => {
-        await login({ userName, password }, (success) => {
+        setLoginErrorMsg("");
+        try {
+            const res = await login({ userName, password });
             setSubmitting(false);
-            if (success) navigate("/Dashboard/Dashboard");
-        });
+            if (res.requiereSeleccionRol) {
+                const available = res.rolSociosDisponibles || [];
+                setRolSociosDisponibles(available);
+                setTempToken(res.accessToken);
+                setIdUser(res.user.id);
+                
+                // Calcular socios únicos
+                const unique = [];
+                const map = new Map();
+                available.forEach(item => {
+                    if (!map.has(item.idSocio)) {
+                        const s = { id: item.idSocio, nombre: item.socioNombre };
+                        map.set(item.idSocio, s);
+                        unique.push(s);
+                    }
+                });
+
+                if (unique.length > 0) {
+                    setSelectedSocio(unique[0]);
+                    const filteredRoles = available
+                        .filter(item => item.idSocio === unique[0].id)
+                        .map(item => ({ id: item.idRol, nombre: item.rolNombre, codigo: item.rolCodigo }));
+                    
+                    const adminRol = filteredRoles.find(r => r.codigo === "ADMIN");
+                    if (adminRol) {
+                        setSelectedRol(adminRol);
+                    } else if (filteredRoles.length > 0) {
+                        setSelectedRol(filteredRoles[0]);
+                    } else {
+                        setSelectedRol(null);
+                    }
+                } else {
+                    setSelectedSocio(null);
+                    setSelectedRol(null);
+                }
+
+                setShowRolSocioDialog(true);
+            } else {
+                navigate("/Dashboard/Dashboard");
+            }
+        } catch (err) {
+            setSubmitting(false);
+            setLoginErrorMsg(err.message || "Credenciales no válidas");
+            toast.current?.show({
+                severity: "error",
+                summary: "Error de autenticación",
+                detail: err.message || "Credenciales no válidas",
+                life: 5000
+            });
+        }
+    }
+
+    const handleCompletarLogin = async () => {
+        if (!selectedSocio || !selectedRol) {
+            toast.current?.show({
+                severity: "warn",
+                summary: "Advertencia",
+                detail: "Por favor seleccione un Socio y un Rol.",
+                life: 3000
+            });
+            return;
+        }
+        try {
+            await completarLogin({
+                idUser,
+                idRol: selectedRol.id,
+                idSocio: selectedSocio.id,
+                tempToken
+            });
+            setShowRolSocioDialog(false);
+            navigate("/Dashboard/Dashboard");
+        } catch (err) {
+            toast.current?.show({
+                severity: "error",
+                summary: "Error",
+                detail: err.message || "No se pudo completar la selección de rol.",
+                life: 5000
+            });
+        }
     }
 
     // Formik para paso 1: Email
@@ -467,6 +601,75 @@ export default function Login() {
     return (
         <>
             <Toast ref={toast} position="top-center" />
+
+            {/* Dialog de Selección de Rol + Socio */}
+            <Dialog
+                header="Seleccione Rol y Socio"
+                visible={showRolSocioDialog}
+                style={{ width: '450px' }}
+                onHide={() => setShowRolSocioDialog(false)}
+                closable={false}
+                draggable={false}
+                resizable={false}
+            >
+                <div style={{ padding: '10px 0' }}>
+                    <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>
+                        Tu usuario tiene múltiples roles/socios asignados. Selecciona con cuál deseas ingresar:
+                    </p>
+
+                    <div className="p-fluid">
+                        <div className="field" style={{ marginBottom: '15px' }}>
+                            <label htmlFor="socioSelect" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                                Socio
+                            </label>
+                            <Dropdown
+                                id="socioSelect"
+                                value={selectedSocio}
+                                options={sociosOptions}
+                                onChange={handleSocioChange}
+                                optionLabel="nombre"
+                                placeholder="Selecciona un Socio"
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        {showRolField && (
+                            <div className="field" style={{ marginBottom: '20px' }}>
+                                <label htmlFor="rolSelect" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                                    Rol
+                                </label>
+                                <Dropdown
+                                    id="rolSelect"
+                                    value={selectedRol}
+                                    options={rolesOptions}
+                                    onChange={(e) => setSelectedRol(e.value)}
+                                    optionLabel="nombre"
+                                    placeholder={selectedSocio ? "Selecciona un Rol" : "Primero seleccione un Socio"}
+                                    disabled={!selectedSocio}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                        <Button
+                            label="Cancelar"
+                            type="button"
+                            onClick={() => setShowRolSocioDialog(false)}
+                            className="p-button-text"
+                            style={{ color: '#666' }}
+                        />
+                        <Button
+                            label="Ingresar"
+                            type="button"
+                            onClick={handleCompletarLogin}
+                            style={{ background: "#404BD9", border: "none" }}
+                            loading={isloginLoading}
+                        />
+                    </div>
+                </div>
+            </Dialog>
 
             {/* Dialog de Recuperar Contraseña */}
             <Dialog

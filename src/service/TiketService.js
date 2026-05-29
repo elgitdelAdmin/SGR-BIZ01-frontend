@@ -99,7 +99,8 @@ export const ActualizarTicket = ({ formData, idTicket }) => {
 };
 
 export const ListarTicket = async ({ idUser, codRol }) => {
-  return await fetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}`, {
+  const idSocio = window.localStorage.getItem("idsocio");
+  return await fetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}?idSocio=${idSocio || ''}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -119,6 +120,9 @@ export const ListarTicketPaginado = async ({ idUser, codRol, page = 0, pageSize 
   if (globalFilter) params.append('globalFilter', globalFilter);
   if (sortField) params.append('sortField', sortField);
   if (sortOrder) params.append('sortOrder', sortOrder);
+
+  const idSocio = window.localStorage.getItem("idsocio");
+  if (idSocio) params.append('idSocio', idSocio);
 
   // Filtros de columna específicos
   if (columnFilters) {

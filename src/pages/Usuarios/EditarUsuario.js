@@ -28,6 +28,7 @@ import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { Calendar } from 'primereact/calendar';
+import { MultiSelect } from 'primereact/multiselect';
 import { ListarParametros } from "../../service/GestorService";
 import { RegistrarUsuario, ListaRoles, ListaSocio, ObtenerUsuario, ActualizarUsuario } from "../../service/UsuarioService";
 import { ObtenerPersonaResponsable } from "../../service/EmpresaService";
@@ -136,11 +137,13 @@ const EditarUsuario = () => {
       then: (schema) => schema.required("password es un campo obligatorio"),
       otherwise: (schema) => schema.notRequired()
     }),
-    idRol: Yup.number().required("Rol es un campo obligatorio"),
+    rolSociosList: Yup.array().of(
+      Yup.object().shape({
+        idSocio: Yup.number().required("Socio es obligatorio"),
+        idRoles: Yup.array().min(1, "Debe seleccionar al menos un rol").required("Debe seleccionar al menos un rol")
+      })
+    ).min(1, "Debe tener al menos una asignación de Socio/Rol"),
     email: Yup.string(),
-
-
-
   });
 
 
@@ -161,22 +164,48 @@ const EditarUsuario = () => {
       username: usuario?.username || "",
       password: usuario?.password || "",
       email: usuario?.email || "",
-      idSocio: usuario?.socio.id || (window.localStorage.getItem("idRol") == 1 ? "" : Number(window.localStorage.getItem("idsocio"))),
-      idRol: usuario?.idRol || "",
+      rolSociosList: usuario && usuario.rolSocios && usuario.rolSocios.length > 0
+        ? (() => {
+            const grouped = {};
+            usuario.rolSocios.forEach(rs => {
+              if (!grouped[rs.idSocio]) {
+                grouped[rs.idSocio] = [];
+              }
+              grouped[rs.idSocio].push(rs.idRol);
+            });
+            return Object.keys(grouped).map(idSocio => ({
+              idSocio: Number(idSocio),
+              idRoles: grouped[idSocio]
+            }));
+          })()
+        : [{ idSocio: (window.localStorage.getItem("idRol") == 1 ? "" : Number(window.localStorage.getItem("idsocio"))), idRoles: [] }],
       usuarioCreacion: usuario?.usuarioCreacion || window.localStorage.getItem("username"),
-      // fechaCreacion: usuario?.fechaCreacion ? new Date(usuario.fechaCreacion) : new Date(),
     },
     validationSchema: schema,
     onSubmit: (values) => {
+      const rolSocios = [];
+      values.rolSociosList.forEach(item => {
+          if (item.idSocio && item.idRoles && item.idRoles.length > 0) {
+              item.idRoles.forEach(idRol => {
+                  rolSocios.push({
+                      idRol: Number(idRol),
+                      idSocio: Number(item.idSocio)
+                  });
+              });
+          }
+      });
+
+      const firstSocio = values.rolSociosList.length > 0 && values.rolSociosList[0].idSocio 
+          ? Number(values.rolSociosList[0].idSocio) 
+          : 0;
 
       const data = {
         ...(modoEdicion && { id: usuario.id }),
         username: values.username,
-        email: values.password,
+        email: values.correo || "",
         password: values.password,
-        idSocio: values.idSocio,
-        idRol: values.idRol,
-        // usuarioCreacion:values.usuarioCreacion,
+        idSocio: firstSocio,
+        rolSocios: rolSocios,
         ...(modoEdicion
           ? { usuarioActualizacion: window.localStorage.getItem("username") }
           : { usuarioCreacion: values.usuarioCreacion || window.localStorage.getItem("username") }),
@@ -192,7 +221,6 @@ const EditarUsuario = () => {
           direccion: values.direccion || "",
           correo: values.correo || "",
           fechaNacimiento: new Date(values.fechaNacimiento).toISOString(),
-          // usuarioCreacion:values.usuarioCreacionPersona,
           ...(modoEdicion
             ? { usuarioActualizacion: window.localStorage.getItem("username") }
             : { usuarioCreacion: values.usuarioCreacionPersona }),
@@ -313,7 +341,8 @@ const EditarUsuario = () => {
         {tituloPagina}
       </div>
       <div className="zv-editarUsuario-body" style={{ marginTop: 16 }}>
-        <form onSubmit={formik.handleSubmit}>
+        <FormikProvider value={formik}>
+          <form onSubmit={formik.handleSubmit}>
           <div className="p-fluid formgrid grid">
             <div className="field col-12 md:col-6">
               <label className="label-form">Tipo documento de Identidad</label>
@@ -598,59 +627,99 @@ const EditarUsuario = () => {
             </div>
 
 
-            <div className="field col-12 md:col-6">
-              <label className="label-form">Rol</label>
-              <DropdownDefault
-                type={"text"}
-                id="idRol"
-                name="idRol"
-                placeholder="Seleccione"
-                value={formik.values.idRol}
-                onChange={(e) => {
-                  formik.setFieldValue("idRol", "");
-                  formik.handleChange(e);
-                }}
-                onBlur={formik.handleBlur}
-                // options={parametros?.filter((item) => item.tipoParametro === "TipoDocumento")}
-                 options={
-                   modoEdicion
-                     ? (rol || []).filter(
-                         (r) => (r.codigo || r.Codigo) !== "ADMIN" && (r.codigo || r.Codigo) !== "EMPRESA"
-                       )
-                     : rol
-                 }
-                optionLabel="nombre"
-                optionValue="id"
-              //disabled={modoEdicion}
-              ></DropdownDefault>
-              <small className="p-error">
-                {formik.touched.idRol && formik.errors.idRol}
-              </small>
+            <div className="field col-12" style={{ marginTop: '20px' }}>
+              <Divider align="left">
+                <span className="p-tag" style={{ background: '#404BD9' }}>Asignación de Socios y Roles</span>
+              </Divider>
             </div>
 
-            {window.localStorage.getItem("idRol") == 1 && (
-              <div className="field col-12 md:col-6">
-                <label className="label-form">Socio</label>
-                <DropdownDefault
-                  id="idSocio"
-                  name="idSocio"
-                  placeholder="Seleccione"
-                  value={formik.values.idSocio}
-                  onChange={(e) => {
-                    formik.setFieldValue("idSocio", e.value);
-                  }}
-                  onBlur={formik.handleBlur}
-                  options={socio}
-                  optionLabel="nombre"
-                  optionValue="id"
-                  disabled={modoEdicion}
+            <div className="col-12">
+              <FieldArray name="rolSociosList">
+                {({ push, remove }) => (
+                  <div>
+                    {formik.values.rolSociosList.map((item, index) => {
+                      const socioError = formik.errors.rolSociosList?.[index]?.idSocio;
+                      const rolesError = formik.errors.rolSociosList?.[index]?.idRoles;
 
-                />
-                <small className="p-error">
-                  {formik.touched.idSocio && formik.errors.idSocio}
-                </small>
-              </div>
-            )}
+                      return (
+                        <div key={index} className="grid align-items-center" style={{ marginBottom: '16px', borderBottom: '1px dashed #ccc', paddingBottom: '16px' }}>
+                          <div className="field col-12 md:col-5">
+                            <label className="label-form">Socio</label>
+                            <DropdownDefault
+                              id={`rolSociosList[${index}].idSocio`}
+                              name={`rolSociosList[${index}].idSocio`}
+                              placeholder="Seleccione Socio"
+                              value={item.idSocio}
+                              onChange={(e) => {
+                                formik.setFieldValue(`rolSociosList[${index}].idSocio`, e.value);
+                              }}
+                              onBlur={formik.handleBlur}
+                              options={socio}
+                              optionLabel="nombre"
+                              optionValue="id"
+                            />
+                            {socioError && (
+                              <small className="p-error">{socioError}</small>
+                            )}
+                          </div>
+
+                          <div className="field col-12 md:col-5">
+                            <label className="label-form">Roles</label>
+                            <MultiSelect
+                              id={`rolSociosList[${index}].idRoles`}
+                              name={`rolSociosList[${index}].idRoles`}
+                              placeholder="Seleccione Roles"
+                              value={item.idRoles}
+                              onChange={(e) => {
+                                formik.setFieldValue(`rolSociosList[${index}].idRoles`, e.value);
+                              }}
+                              onBlur={formik.handleBlur}
+                              options={
+                                modoEdicion
+                                  ? (rol || []).filter(
+                                      (r) => (r.codigo || r.Codigo) !== "ADMIN" && (r.codigo || r.Codigo) !== "EMPRESA"
+                                    )
+                                  : rol
+                              }
+                              optionLabel="nombre"
+                              optionValue="id"
+                              display="chip"
+                            />
+                            {rolesError && (
+                              <small className="p-error">{rolesError}</small>
+                            )}
+                          </div>
+
+                          <div className="field col-12 md:col-2" style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                            {formik.values.rolSociosList.length > 1 && (
+                              <Boton
+                                icon="pi pi-trash"
+                                color="danger"
+                                type="button"
+                                label="Eliminar"
+                                onClick={() => remove(index)}
+                                style={{ borderRadius: '20px', height: '40px' }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    <div style={{ marginTop: '16px' }}>
+                      <Boton
+                        icon="pi pi-plus"
+                        color="secondary"
+                        type="button"
+                        label="Agregar Asignación"
+                        onClick={() => push({ idSocio: "", idRoles: [] })}
+                        style={{ borderRadius: '20px', height: '40px' }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </FieldArray>
+            </div>
 
           </div>
 
@@ -679,6 +748,7 @@ const EditarUsuario = () => {
             />
           </div>
         </form>
+        </FormikProvider>
       </div>
     </div>
   );

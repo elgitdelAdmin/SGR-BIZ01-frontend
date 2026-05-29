@@ -17,7 +17,8 @@ export const ListarEmpresas = async () => {
 };
 
 export const ListarEmpresasporRol = async ({idUser,codRol}) => {
-  return await fetch(`${ENDPOINT}/api/Empresas/user/${idUser}/rol/${codRol}`, {
+  const idSocio = window.localStorage.getItem("idsocio");
+  return await fetch(`${ENDPOINT}/api/Empresas/user/${idUser}/rol/${codRol}?idSocio=${idSocio || ''}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"

@@ -41,6 +41,22 @@ export default async function login ({userName,password}) {
     
 }
 
+export async function loginStep2 ({ idUser, idRol, idSocio, tempToken }) {
+    return await fetch(`${ENDPOINT}/api/Auth/login-step2`,{
+        method: "POST",
+        headers:{
+            'Content-Type': 'application/json'
+        },
+        body:JSON.stringify({ idUser, idRol, idSocio, tempToken })
+    }).then(res=>{
+        if(!res.ok) throw new Error("Response is Not Ok")
+        return res.json()
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0])
+        return res
+    })
+}
+
 export const EnviarCorreo = ({ jsonData }) => {
     console.log(jsonData)
     return fetch(`${ENDPOINT}/api/Auth/forgot-password`, {
