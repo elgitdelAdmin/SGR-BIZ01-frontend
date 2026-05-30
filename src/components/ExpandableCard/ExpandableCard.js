@@ -31,9 +31,12 @@ const ExpandableCard = ({ ticket }) => {
         }
     };
 
-    const parseJsonArray = (jsonStr) => {
+    const parseJsonArray = (val) => {
+        if (val === null || val === undefined) return [];
+        if (Array.isArray(val)) return val;
+        if (typeof val === "object") return [val];
         try {
-            return JSON.parse(jsonStr) || [];
+            return typeof val === "string" ? JSON.parse(val) : val;
         } catch {
             return [];
         }
