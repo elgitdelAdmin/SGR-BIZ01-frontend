@@ -85,7 +85,8 @@ const loadLazyData = () => {
         g.nombres?.toLowerCase().includes(search) ||
         g.apellidoPaterno?.toLowerCase().includes(search) ||
         g.apellidoMaterno?.toLowerCase().includes(search) ||
-        (g.telefono && g.telefono.toString().toLowerCase().includes(search))
+        (g.telefono && g.telefono.toString().toLowerCase().includes(search)) ||
+        g.nombreSocio?.toLowerCase().includes(search)
     );
 }
 
@@ -293,6 +294,7 @@ const loadLazyData = () => {
                              <Column field="apellidoMaterno" header="Apellido Materno" sortable style={{ width: '120px', minWidth: '120px' }} />
                             <Column field="telefono" header="Teléfono"   sortable style={{ width: '120px', minWidth: '120px' }}/>
                             <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                            <Column field="nombreSocio" header="Socio" sortable style={{ width: '120px', minWidth: '120px' }}  />
 
                             <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
                            </DatatableDefaultNew>

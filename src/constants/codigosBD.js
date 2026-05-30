@@ -147,3 +147,17 @@ export const TIPO_PARAMETRO = {
     TipoActividad: "TipoActividad",
     TipoCargaMasiva: "TipoCargaMasiva"
 };
+
+export const ROLES = {
+    Superadministrador: "SUPERADMIN",
+    Administrador: "ADMIN",
+    Consultor: "CONSULTOR",
+    Empresa: "EMPRESA",
+    GestorCuenta: "GESTORCUENTA",
+    GestorConsultoria: "GESTORCONSULTORIA",
+    Seniority: "Seniority",
+    NivelExperiencia: "NivelExperiencia",
+    ModalidadLaboral: "ModalidadLaboral",
+    TipoActividad: "TipoActividad",
+    TipoCargaMasiva: "TipoCargaMasiva"
+};

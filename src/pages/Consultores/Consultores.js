@@ -78,18 +78,19 @@ const loadLazyData = () => {
                 const end = start + pageSize;
                 let filteredData = dataConEstado;
                 console.log("filteredData",filteredData)
-               if (globalFilterValue) {
-                        const search = globalFilterValue.toLowerCase();
-                        filteredData = data.filter(c =>
-                            c.persona?.nombres?.toLowerCase().includes(search) ||
-                            c.persona?.apellidoPaterno?.toLowerCase().includes(search) ||
-                            c.persona?.apellidoMaterno?.toLowerCase().includes(search) ||
-                            c.persona?.correo?.toLowerCase().includes(search) ||
-                            c.persona?.username?.toLowerCase().includes(search) ||
-                            c.persona?.estadoNombre?.toLowerCase().includes(search) ||
-
-                           (c.persona?.telefono && c.persona.telefono.toString().toLowerCase().includes(search))                          );
-                        }
+                if (globalFilterValue) {
+                    const search = globalFilterValue.toLowerCase();
+                    filteredData = data.filter(c =>
+                        c.persona?.nombres?.toLowerCase().includes(search) ||
+                        c.persona?.apellidoPaterno?.toLowerCase().includes(search) ||
+                        c.persona?.apellidoMaterno?.toLowerCase().includes(search) ||
+                        c.persona?.correo?.toLowerCase().includes(search) ||
+                        c.persona?.username?.toLowerCase().includes(search) ||
+                        c.persona?.estadoNombre?.toLowerCase().includes(search) ||
+                        c.socio?.nombreComercial?.toLowerCase().includes(search) ||
+                        (c.persona?.telefono && c.persona.telefono.toString().toLowerCase().includes(search))
+                    );
+                }
                  //Agrego
 filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
                 // const paginatedData = filteredData.slice(start, end);
@@ -299,6 +300,7 @@ const onPage = (event) => {
                                 body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}  sortable style={{ width: '130px', minWidth: '180px' }} 
                             /> */}
                             <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                            <Column field="socio.nombreComercial" header="Socio" sortable style={{ width: '120px', minWidth: '120px' }}  />
 
                             <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
                            </DatatableDefaultNew>

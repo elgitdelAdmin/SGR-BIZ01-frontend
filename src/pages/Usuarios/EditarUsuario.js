@@ -22,13 +22,15 @@ import { Checkbox } from "primereact/checkbox";
 import { TabView, TabPanel } from "primereact/tabview";
 import DatatableDefault from "../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
-import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog"; // For confirmDialog method
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { handleSoloLetras, handleSoloLetrastest } from "../../helpers/helpers";
 import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
 import { Calendar } from 'primereact/calendar';
 import { MultiSelect } from 'primereact/multiselect';
+import { Dialog } from 'primereact/dialog';
+import { Button } from 'primereact/button';
 import { ListarParametros } from "../../service/GestorService";
 import { RegistrarUsuario, ListaRoles, ListaSocio, ObtenerUsuario, ActualizarUsuario } from "../../service/UsuarioService";
 import { ObtenerPersonaResponsable } from "../../service/EmpresaService";
@@ -46,6 +48,13 @@ const EditarUsuario = () => {
   const toast = useRef(null);
   const [socio, setSocio] = useState(null);
   const [mostrarInputPassword, setMostrarInputPassword] = useState(false);
+  const [visibleModal, setVisibleModal] = useState(false);
+  const [nuevaAsignacion, setNuevaAsignacion] = useState({ idSocio: "", idRoles: [] });
+
+  // Datos de sesión
+  const codRol = window.localStorage.getItem("codRol");
+  const idSocioSesion = Number(window.localStorage.getItem("idsocio")) || 0;
+  const nombreSocioSesion = window.localStorage.getItem("nombreSocio") || "";
 
   useEffect(() => {
     const getPersona = async () => {
@@ -178,7 +187,7 @@ const EditarUsuario = () => {
               idRoles: grouped[idSocio]
             }));
           })()
-        : [{ idSocio: (window.localStorage.getItem("idRol") == 1 ? "" : Number(window.localStorage.getItem("idsocio"))), idRoles: [] }],
+        : [],
       usuarioCreacion: usuario?.usuarioCreacion || window.localStorage.getItem("username"),
     },
     validationSchema: schema,
@@ -628,97 +637,213 @@ const EditarUsuario = () => {
 
 
             <div className="field col-12" style={{ marginTop: '20px' }}>
-              <Divider align="left">
-                <span className="p-tag" style={{ background: '#404BD9' }}>Asignación de Socios y Roles</span>
-              </Divider>
+              {/* Contenedor flexible para alinear título y botón — igual que Especializaciones */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", width: "100%" }}>
+                <label style={{ fontWeight: "bold", fontSize: 20, margin: 0 }}>
+                  Asignación de Socios y Roles
+                </label>
+
+                <Boton
+                  icon="pi pi-plus"
+                  label="Agregar Asignación"
+                  color="primary"
+                  type="button"
+                  onClick={() => {
+                    // Si NO es SUPERADMIN, pre-seleccionar el socio de la sesión y cargar sus roles existentes
+                    if (codRol !== "SUPERADMIN") {
+                      const existing = (formik.values.rolSociosList || []).find(
+                        (item) => Number(item.idSocio) === Number(idSocioSesion)
+                      );
+                      setNuevaAsignacion({
+                        idSocio: idSocioSesion,
+                        idRoles: existing ? existing.idRoles : []
+                      });
+                    } else {
+                      setNuevaAsignacion({ idSocio: "", idRoles: [] });
+                    }
+                    setVisibleModal(true);
+                  }}
+                  style={{
+                    height: 42,
+                    padding: "0 18px",
+                    minWidth: "auto",
+                    width: "fit-content",
+                    whiteSpace: "nowrap",
+                    borderRadius: 20,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                />
+              </div>
             </div>
 
-            <div className="col-12">
-              <FieldArray name="rolSociosList">
-                {({ push, remove }) => (
-                  <div>
-                    {formik.values.rolSociosList.map((item, index) => {
-                      const socioError = formik.errors.rolSociosList?.[index]?.idSocio;
-                      const rolesError = formik.errors.rolSociosList?.[index]?.idRoles;
+            {/* ✅ Modal para agregar asignación Socio/Roles */}
+            <Dialog
+              header="Agregar Asignación de Socio y Roles"
+              visible={visibleModal}
+              onHide={() => { setVisibleModal(false); setNuevaAsignacion({ idSocio: "", idRoles: [] }); }}
+              style={{ width: "min(550px, 90vw)" }}
+              modal
+              draggable={true}
+              resizable={false}
+              footer={
+                <div className="flex justify-content-end gap-2">
+                  <Button
+                    label="Cancelar"
+                    icon="pi pi-times"
+                    className="p-button-danger"
+                    onClick={() => { setVisibleModal(false); setNuevaAsignacion({ idSocio: "", idRoles: [] }); }}
+                  />
+                  <Button
+                    label="Agregar"
+                    icon="pi pi-plus"
+                    className="p-button-primary"
+                    onClick={() => {
+                      // Validar
+                      if (!nuevaAsignacion.idSocio) {
+                        toast.current.show({ severity: "warn", summary: "Atención", detail: "Debe seleccionar un Socio", life: 4000 });
+                        return;
+                      }
+                      if (!nuevaAsignacion.idRoles || nuevaAsignacion.idRoles.length === 0) {
+                        toast.current.show({ severity: "warn", summary: "Atención", detail: "Debe seleccionar al menos un Rol", life: 4000 });
+                        return;
+                      }
 
-                      return (
-                        <div key={index} className="grid align-items-center" style={{ marginBottom: '16px', borderBottom: '1px dashed #ccc', paddingBottom: '16px' }}>
-                          <div className="field col-12 md:col-5">
-                            <label className="label-form">Socio</label>
-                            <DropdownDefault
-                              id={`rolSociosList[${index}].idSocio`}
-                              name={`rolSociosList[${index}].idSocio`}
-                              placeholder="Seleccione Socio"
-                              value={item.idSocio}
-                              onChange={(e) => {
-                                formik.setFieldValue(`rolSociosList[${index}].idSocio`, e.value);
-                              }}
-                              onBlur={formik.handleBlur}
-                              options={socio}
-                              optionLabel="nombre"
-                              optionValue="id"
-                            />
-                            {socioError && (
-                              <small className="p-error">{socioError}</small>
-                            )}
-                          </div>
-
-                          <div className="field col-12 md:col-5">
-                            <label className="label-form">Roles</label>
-                            <MultiSelect
-                              id={`rolSociosList[${index}].idRoles`}
-                              name={`rolSociosList[${index}].idRoles`}
-                              placeholder="Seleccione Roles"
-                              value={item.idRoles}
-                              onChange={(e) => {
-                                formik.setFieldValue(`rolSociosList[${index}].idRoles`, e.value);
-                              }}
-                              onBlur={formik.handleBlur}
-                              options={
-                                modoEdicion
-                                  ? (rol || []).filter(
-                                      (r) => (r.codigo || r.Codigo) !== "ADMIN" && (r.codigo || r.Codigo) !== "EMPRESA"
-                                    )
-                                  : rol
-                              }
-                              optionLabel="nombre"
-                              optionValue="id"
-                              display="chip"
-                            />
-                            {rolesError && (
-                              <small className="p-error">{rolesError}</small>
-                            )}
-                          </div>
-
-                          <div className="field col-12 md:col-2" style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-                            {formik.values.rolSociosList.length > 1 && (
-                              <Boton
-                                icon="pi pi-trash"
-                                color="danger"
-                                type="button"
-                                label="Eliminar"
-                                onClick={() => remove(index)}
-                                style={{ borderRadius: '20px', height: '40px' }}
-                              />
-                            )}
-                          </div>
-                        </div>
+                      const existingIndex = (formik.values.rolSociosList || []).findIndex(
+                        (item) => Number(item.idSocio) === Number(nuevaAsignacion.idSocio)
                       );
-                    })}
 
-                    <div style={{ marginTop: '16px' }}>
-                      <Boton
-                        icon="pi pi-plus"
-                        color="secondary"
-                        type="button"
-                        label="Agregar Asignación"
-                        onClick={() => push({ idSocio: "", idRoles: [] })}
-                        style={{ borderRadius: '20px', height: '40px' }}
-                      />
-                    </div>
+                      const currentList = [...(formik.values.rolSociosList || [])];
+                      if (existingIndex > -1) {
+                        // Reemplazar roles asignados (ya que el multiselect incluye los existentes y los nuevos/modificados)
+                        currentList[existingIndex] = {
+                          idSocio: Number(nuevaAsignacion.idSocio),
+                          idRoles: nuevaAsignacion.idRoles,
+                        };
+                      } else {
+                        // Agregar nueva fila
+                        currentList.push({
+                          idSocio: Number(nuevaAsignacion.idSocio),
+                          idRoles: nuevaAsignacion.idRoles,
+                        });
+                      }
+                      formik.setFieldValue("rolSociosList", currentList);
+
+                      setNuevaAsignacion({ idSocio: "", idRoles: [] });
+                      setVisibleModal(false);
+                    }}
+                  />
+                </div>
+              }
+            >
+              <div className="p-fluid grid">
+                {/* Socio — solo visible para SUPERADMIN */}
+                {codRol === "SUPERADMIN" ? (
+                  <div className="field col-12">
+                    <label className="label-form">Socio</label>
+                    <DropdownDefault
+                      placeholder="Seleccione Socio"
+                      value={nuevaAsignacion.idSocio}
+                      onChange={(e) => {
+                        const selectedId = e.value;
+                        const existing = (formik.values.rolSociosList || []).find(
+                          (item) => Number(item.idSocio) === Number(selectedId)
+                        );
+                        setNuevaAsignacion({
+                          idSocio: selectedId,
+                          idRoles: existing ? existing.idRoles : []
+                        });
+                      }}
+                      options={socio}
+                      optionLabel="nombre"
+                      optionValue="id"
+                    />
+                  </div>
+                ) : (
+                  <div className="field col-12">
+                    <label className="label-form">Socio</label>
+                    <InputText
+                      value={(socio || []).find(s => s.id === idSocioSesion)?.nombre || nombreSocioSesion || `Socio #${idSocioSesion}`}
+                      disabled
+                      style={{ background: '#f0f0f0' }}
+                    />
                   </div>
                 )}
-              </FieldArray>
+
+                {/* Roles */}
+                <div className="field col-12">
+                  <label className="label-form">Roles</label>
+                  <MultiSelect
+                    placeholder="Seleccione Roles"
+                    value={nuevaAsignacion.idRoles}
+                    onChange={(e) => setNuevaAsignacion(prev => ({ ...prev, idRoles: e.value }))}
+                    options={rol}
+                    optionLabel="nombre"
+                    optionValue="id"
+                    display="chip"
+                  />
+                </div>
+              </div>
+            </Dialog>
+
+            {/* ✅ Tabla resumen de asignaciones Socio/Roles */}
+            <div className="col-12">
+              <DatatableDefault
+                showSearch={false}
+                paginator={false}
+                value={formik.values.rolSociosList || []}
+              >
+                <Column
+                  header="Socio"
+                  body={(rowData) => {
+                    const s = (socio || []).find(s => s.id === Number(rowData.idSocio));
+                    return s ? s.nombre : `Socio #${rowData.idSocio}`;
+                  }}
+                />
+                <Column
+                  header="Roles"
+                  body={(rowData) => {
+                    if (!rowData.idRoles || rowData.idRoles.length === 0) return "—";
+                    return rowData.idRoles.map(idR => {
+                      const r = (rol || []).find(r => r.id === idR);
+                      return r ? r.nombre : `Rol #${idR}`;
+                    }).join(", ");
+                  }}
+                />
+                <Column
+                  header="Acciones"
+                  body={(rowData, { rowIndex }) => (
+                    <div className="profesor-datatable-accion">
+                      <div
+                        className="accion-eliminar"
+                        onClick={() => {
+                          confirmDialog({
+                            message: "¿Está seguro de eliminar esta asignación?",
+                            header: "Confirmación",
+                            icon: "pi pi-exclamation-triangle",
+                            acceptClassName: "p-button-danger",
+                            acceptLabel: "Eliminar",
+                            rejectLabel: "Cancelar",
+                            accept: () => {
+                              const newList = [...(formik.values.rolSociosList || [])];
+                              newList.splice(rowIndex, 1);
+                              formik.setFieldValue("rolSociosList", newList);
+                            }
+                          });
+                        }}
+                      >
+                        <span><Iconsax.Trash color="#ffffff" /></span>
+                      </div>
+                    </div>
+                  )}
+                  style={{ width: '80px' }}
+                />
+              </DatatableDefault>
+              {formik.errors.rolSociosList && typeof formik.errors.rolSociosList === 'string' && (
+                <small className="p-error" style={{ display: 'block', marginTop: '8px' }}>{formik.errors.rolSociosList}</small>
+              )}
             </div>
 
           </div>

@@ -86,7 +86,8 @@ const loadLazyData = () => {
     emp.numDocContribuyente?.toString().includes(search) ||
     emp.telefono?.toString().includes(search) ||
     emp.direccion?.toLowerCase().includes(search) ||
-    emp.email?.toLowerCase().includes(search)
+    emp.email?.toLowerCase().includes(search) ||
+    emp.nombreSocio?.toLowerCase().includes(search)
   );
 }
 
@@ -279,13 +280,14 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                             showSearch={false} 
                             loading={loading}
                         >
-                                <Column field="nombreComercial" header="Nombre Comercial"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="nombreComercial" header="Nombre Comercial"  sortable style={{ width: '120px', minWidth: '120px' }} />
                              <Column field="razonSocial" header="Razon social" sortable style={{ width: '120px', minWidth: '120px' }}  />
                             <Column field="numDocContribuyente" header="RUC" sortable style={{ width: '120px', minWidth: '120px' }}  />
                             <Column field="telefono" header="Telefono"  sortable style={{ width: '120px', minWidth: '120px' }} />
                             <Column field="direccion" header="Direccion"  sortable style={{ width: '120px', minWidth: '120px' }} />
                             <Column field="email" header="Correo"  sortable style={{ width: '120px', minWidth: '120px' }} />
                             <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                            <Column field="nombreSocio" header="Socio" sortable style={{ width: '120px', minWidth: '120px' }}  />
                            
                             <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
                            </DatatableDefaultNew>

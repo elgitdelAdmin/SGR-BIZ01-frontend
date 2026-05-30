@@ -132,13 +132,32 @@ const TopBar = (props) => {
     
             <div
                 style={{
-                    color: "#2D5B97",
-                    marginLeft: '20px',
-                    fontWeight: 'bold',
-                    fontSize: '25px' 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginLeft: '20px'
                 }}
             >
-                Hola, {window.localStorage.getItem("username")}
+                <div
+                    style={{
+                        color: "#2D5B97",
+                        fontWeight: 'bold',
+                        fontSize: '24px' 
+                    }}
+                >
+                    Hola, {window.localStorage.getItem("username")}
+                </div>
+                <div
+                    style={{
+                        color: "#6c757d",
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        marginTop: '2px'
+                    }}
+                >
+                    Rol: {window.localStorage.getItem("nombreRol") || window.localStorage.getItem("codRol")}
+                </div>
             </div>
 
             <div

@@ -274,7 +274,3 @@ export const ConfirmarEmail = ({ jsonData }) => {
       return data;
     });
 };
-
-
-
-

@@ -19,6 +19,7 @@ export default function useUsuario(){
         window.localStorage.removeItem('expiresAt');
         window.localStorage.removeItem('username');
         window.localStorage.removeItem('nombreSocio');
+        window.localStorage.removeItem('nombreRol');
         window.localStorage.removeItem('idsocio');
         window.localStorage.removeItem('idRol');
         window.localStorage.removeItem('idUser');
@@ -30,12 +31,13 @@ export default function useUsuario(){
     },[setJwt])
 
     const saveSessionData = useCallback((res) => {
-        const { accessToken, refreshToken, expiresAt, user, notificacionTicket, idConsultor, idRolSeleccionado, idSocioSeleccionado, codRolSeleccionado, nombreSocioSeleccionado } = res;
+        const { accessToken, refreshToken, expiresAt, user, notificacionTicket, idConsultor, idRolSeleccionado, idSocioSeleccionado, codRolSeleccionado, nombreSocioSeleccionado, nombreRolSeleccionado } = res;
         window.localStorage.setItem('jwt', accessToken);
         window.localStorage.setItem('refreshToken', refreshToken);
         window.localStorage.setItem('expiresAt', expiresAt);
         window.localStorage.setItem('username', user.username);
         window.localStorage.setItem('nombreSocio', nombreSocioSeleccionado || (user.socio ? user.socio.nombreComercial : ''));
+        window.localStorage.setItem('nombreRol', nombreRolSeleccionado || (user.rol ? user.rol.nombre : ''));
         window.localStorage.setItem('idsocio', idSocioSeleccionado || (user.socio ? user.socio.id : ''));
         window.localStorage.setItem('idRol', idRolSeleccionado || user.idRol);
         window.localStorage.setItem('idUser', user.id);
