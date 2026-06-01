@@ -46,8 +46,8 @@ const hhmmToMinutes = (hhmm) => {
   return hh * 60 + mm;
 };
 
-const calcularTotalHorasPlan = (asignacion) => {
-  const detalles = asignacion?.DetallePlanificacionConsultor || [];
+const calcularTotalHorasPlan = (frenteSubFrente) => {
+  const detalles = frenteSubFrente?.DetallePlanificacionConsultor || [];
   const totalMin = detalles
     .filter((d) => d.Activo)
     .reduce((acc, it) => acc + hhmmToMinutes(it.Horas), 0);
@@ -205,6 +205,7 @@ const Especializaciones = ({
         activo: true,
         descripcion: nueva.descripcion || "",
         _uid: nuevaUid,
+        DetallePlanificacionConsultor: [],
       },
     ]);
 
@@ -243,7 +244,6 @@ const Especializaciones = ({
       FechaAsignacion: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
       FechaDesasignacion: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
       DetalleTareasConsultor: [],
-      DetallePlanificacionConsultor: [],
       Activo: true,
       esPlaceholder: true,
       _frenteSubFrenteUid: nuevaUid,
@@ -465,26 +465,15 @@ const Especializaciones = ({
               <Column
                 header="Planificación"
                 body={(rowData) => {
-                  const asignacion = getAsignacionVinculada(rowData);
-                  const idx = getIndexAsignacion(rowData);
-                  if (idx === -1 || !asignacion) {
-                    return (
-                      <span title="Primero agregue una asignación para este subfrente">
-                        <Button
-                          type="button"
-                          icon="pi pi-plus"
-                          disabled
-                          className="p-button-text p-button-sm"
-                          style={{ width: '42px', height: '35px', justifyContent: 'center' }}
-                        />
-                      </span>
-                    );
-                  }
+                  const idx = (formik.values.frenteSubFrentes || []).findIndex(
+                    (f) => f._uid === rowData._uid
+                  );
+                  if (idx === -1) return null;
                   return (
                     <Horas
                       mode="PLAN"
                       index={idx}
-                      asignacion={asignacion}
+                      frenteSubFrente={rowData}
                       formik={formik}
                       permisosActual={permisosActual}
                       parametros={parametros}
@@ -502,8 +491,7 @@ const Especializaciones = ({
               <Column
                 header="H. Planificadas"
                 body={(rowData) => {
-                  const asignacion = getAsignacionVinculada(rowData);
-                  return asignacion ? calcularTotalHorasPlan(asignacion) : "0.00";
+                  return calcularTotalHorasPlan(rowData);
                 }}
                 align="center"
                 alignHeader="center"

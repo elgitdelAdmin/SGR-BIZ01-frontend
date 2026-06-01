@@ -89,6 +89,7 @@ const Horas = ({
   mode, // "TAREO" | "PLAN"
   index,
   asignacion,
+  frenteSubFrente,
   formik,
   permisosActual,
   parametros,
@@ -163,16 +164,19 @@ const Horas = ({
       Horas: "",
       Descripcion: "",
       Activo: true,
-      IdTicketConsultorAsignacion: asignacion?.Id ?? 0,
+      IdTicketConsultorAsignacion: isTareo ? (asignacion?.Id ?? 0) : 0,
+      IdTicketFrenteSubFrente: isPlan ? (frenteSubFrente?.id ?? frenteSubFrente?.Id ?? 0) : 0,
       Id: 0,
       IdTipoActividad: 0,
     });
-  }, [visible, asignacion?.Id]);
+  }, [visible, asignacion?.Id, frenteSubFrente?.id, frenteSubFrente?.Id, isPlan, isTareo]);
 
   const current = useMemo(() => {
-    const arr = formik.values.asignaciones?.[index]?.[fieldKey] || [];
+    const arr = isPlan
+      ? (formik.values.frenteSubFrentes?.[index]?.DetallePlanificacionConsultor || [])
+      : (formik.values.asignaciones?.[index]?.[fieldKey] || []);
     return Array.isArray(arr) ? arr : [];
-  }, [formik.values.asignaciones, index, fieldKey]);
+  }, [formik.values.frenteSubFrentes, formik.values.asignaciones, index, isPlan, fieldKey]);
 
   const currentActivos = useMemo(() => current.filter((d) => d.Activo), [current]);
 
@@ -194,8 +198,12 @@ const Horas = ({
     );
   }, [parametros, codFrentes]);
 
-  const minFechaPlan = asignacion?.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : null;
-  const maxFechaPlan = asignacion?.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null;
+  const minFechaPlan = isPlan
+    ? (frenteSubFrente?.fechaInicio ? new Date(frenteSubFrente.fechaInicio) : null)
+    : (asignacion?.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : null);
+  const maxFechaPlan = isPlan
+    ? (frenteSubFrente?.fechaFin ? new Date(frenteSubFrente.fechaFin) : null)
+    : (asignacion?.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null);
 
   // ✅ En TAREO: si ya tienes Horas válida y cambias FechaInicio => recalcula FechaFin
   const recalcularFechaFinTareoSiAplica = (FechaInicio, horasRaw) => {
@@ -375,11 +383,16 @@ const Horas = ({
         Horas: horasNorm,
         FechaFin: finalFechaFin,
         Activo: true,
-        IdTicketConsultorAsignacion: formik.values.asignaciones[index].Id,
+        IdTicketConsultorAsignacion: isTareo ? (formik.values.asignaciones[index]?.Id ?? 0) : 0,
+        IdTicketFrenteSubFrente: isPlan ? (formik.values.frenteSubFrentes[index]?.id ?? formik.values.frenteSubFrentes[index]?.Id ?? 0) : 0,
       },
     ];
 
-    formik.setFieldValue(`asignaciones[${index}].${fieldKey}`, updated);
+    if (isPlan) {
+      formik.setFieldValue(`frenteSubFrentes[${index}].DetallePlanificacionConsultor`, updated);
+    } else {
+      formik.setFieldValue(`asignaciones[${index}].${fieldKey}`, updated);
+    }
 
     setNuevo({
       FechaInicio: null,
@@ -387,7 +400,8 @@ const Horas = ({
       Horas: "",
       Descripcion: "",
       Activo: true,
-      IdTicketConsultorAsignacion: formik.values.asignaciones[index].Id,
+      IdTicketConsultorAsignacion: isTareo ? (formik.values.asignaciones[index]?.Id ?? 0) : 0,
+      IdTicketFrenteSubFrente: isPlan ? (formik.values.frenteSubFrentes[index]?.id ?? formik.values.frenteSubFrentes[index]?.Id ?? 0) : 0,
       Id: 0,
       IdTipoActividad: 0,
     });
@@ -409,7 +423,11 @@ const Horas = ({
 
     if (idx !== -1) {
       updated[idx] = { ...updated[idx], Activo: false };
-      formik.setFieldValue(`asignaciones[${index}].${fieldKey}`, updated);
+      if (isPlan) {
+        formik.setFieldValue(`frenteSubFrentes[${index}].DetallePlanificacionConsultor`, updated);
+      } else {
+        formik.setFieldValue(`asignaciones[${index}].${fieldKey}`, updated);
+      }
     }
   };
 

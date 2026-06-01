@@ -440,6 +440,16 @@ const Editar = () => {
         fechaInicio: Yup.string().nullable(),
         fechaFin: Yup.string().nullable(),
         descripcion: Yup.string().nullable(),
+        DetallePlanificacionConsultor: Yup.array().of(
+          Yup.object().shape({
+            FechaInicio: Yup.date().required("Fecha inicio es obligatorio"),
+            FechaFin: Yup.date().required(),
+            Horas: Yup.string().required("Horas es obligatorio"),
+            Descripcion: Yup.string().required("Descripción es obligatoria"),
+            Activo: Yup.boolean().required(),
+            Id: Yup.number(),
+          })
+        )
       })
     ),
     asignaciones: Yup.array().of(
@@ -458,18 +468,6 @@ const Editar = () => {
             Activo: Yup.boolean().required(),
             IdTicketConsultorAsignacion: Yup.number().nullable().notRequired(),
             Id: Yup.number(),
-
-          })
-        ),
-        DetallePlanificacionConsultor: Yup.array().of(
-          Yup.object().shape({
-            FechaInicio: Yup.date().required("Fecha inicio es obligatorio"),
-            FechaFin: Yup.date().required(),
-            Horas: Yup.string().required("Horas es obligatorio"),
-            Descripcion: Yup.string().required("Descripción es obligatoria"),
-            Activo: Yup.boolean().required(),
-            Id: Yup.number(),
-
           })
         )
       })
@@ -507,6 +505,16 @@ const Editar = () => {
       frenteSubFrentes: persona ? persona.frenteSubFrentes.map((fsf) => ({
         ...fsf,
         _uid: fsf.id > 0 ? `db_${fsf.id}` : generateUUID(),
+        DetallePlanificacionConsultor: (fsf.detallePlanificacionConsultor || []).map((d) => ({
+          FechaInicio: d.fechaInicio ? new Date(d.fechaInicio) : null,
+          FechaFin: d.fechaFin ? new Date(d.fechaFin) : null,
+          Horas: d.horas,
+          Descripcion: d.descripcion,
+          Activo: d.activo,
+          IdTicketFrenteSubFrente: d.idTicketFrenteSubFrente,
+          Id: d.id,
+          IdTipoActividad: d.idTipoActividad
+        }))
       })) : [],
       asignaciones: persona ? (persona.consultorAsignaciones.map((a) => {
         // Vincular la asignación a su especialización por IdTicketFrenteSubFrente
@@ -528,16 +536,6 @@ const Editar = () => {
           FechaDesasignacion: a.fechaDesasignacion,
           Activo: a.activo,
           DetalleTareasConsultor: (a.detalleTareasConsultor || []).map((d) => ({
-            FechaInicio: d.fechaInicio,
-            FechaFin: d.fechaFin,
-            Horas: d.horas,
-            Descripcion: d.descripcion,
-            Activo: d.activo,
-            IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion ?? 0,
-            Id: d.id,
-            IdTipoActividad: d.idTipoActividad
-          })),
-          DetallePlanificacionConsultor: (a.detallePlanificacionConsultor || []).map((d) => ({
             FechaInicio: d.fechaInicio,
             FechaFin: d.fechaFin,
             Horas: d.horas,
@@ -579,24 +577,23 @@ const Editar = () => {
         (p) => p.tipoParametro === "EstadoTicket" && Number(p.id) === Number(values.idEstadoTicket)
       );
       if (estadoSeleccionado) {
-        /*  if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
-            let tienePlanificacion = false;
-            if (values.asignaciones && values.asignaciones.length > 0) {
-              tienePlanificacion = values.asignaciones.some(a =>
-                a.DetallePlanificacionConsultor && a.DetallePlanificacionConsultor.some(p => p.Activo)
-              );
-            }
-            if (!tienePlanificacion) {
-              toast.current?.show({
-                severity: "warn",
-                summary: "Advertencia",
-                detail: "Debe llenar la planificación para pasar el ticket a estado En Atención.",
-                life: 5000,
-              });
-              return; // Prevenir submit
-            }
+        if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
+          let tienePlanificacion = false;
+          if (values.frenteSubFrentes && values.frenteSubFrentes.length > 0) {
+            tienePlanificacion = values.frenteSubFrentes.some(fsf =>
+              fsf.activo !== false && fsf.DetallePlanificacionConsultor && fsf.DetallePlanificacionConsultor.some(p => p.Activo)
+            );
           }
-          */
+          if (!tienePlanificacion) {
+            toast.current?.show({
+              severity: "warn",
+              summary: "Advertencia",
+              detail: "Debe llenar la planificación para pasar el ticket a estado En Atención.",
+              life: 5000,
+            });
+            return; // Prevenir submit
+          }
+        }
         /*if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
           let tieneHoras = false;
           if (values.asignaciones && values.asignaciones.length > 0) {
@@ -663,7 +660,7 @@ const Editar = () => {
             }
           }
 
-          const { _frenteSubFrenteUid, esPlaceholder, idUnico, ...rest } = a;
+          const { _frenteSubFrenteUid, esPlaceholder, idUnico, DetallePlanificacionConsultor, ...rest } = a;
           return {
             ...rest,
             IdTicketFrenteSubFrente: resolvedFrenteSubFrenteId,
@@ -687,8 +684,16 @@ const Editar = () => {
           FechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
           Activo: e.activo,
           Descripcion: e.descripcion,
-          IdDetallePlanificacionConsultor: e.idDetallePlanificacionConsultor ?? null
-
+          DetallePlanificacionConsultor: (e.DetallePlanificacionConsultor || []).map(p => ({
+            Id: p.Id,
+            IdTicketFrenteSubFrente: p.IdTicketFrenteSubFrente,
+            IdTipoActividad: p.IdTipoActividad,
+            FechaInicio: p.FechaInicio ? toLocalISOString(p.FechaInicio) : null,
+            FechaFin: p.FechaFin ? toLocalISOString(p.FechaFin) : null,
+            Horas: p.Horas,
+            Descripcion: p.Descripcion,
+            Activo: p.Activo
+          }))
         })))
       );
 
@@ -1042,71 +1047,11 @@ const Editar = () => {
 
   // Eliminar fila por idUnico
   const removeRow = (idUnico) => {
-    // 1. Encontrar la asignación que se va a eliminar
     const asignacionAEliminar = formik.values.asignaciones.find((a) => a.idUnico === idUnico);
     if (!asignacionAEliminar) return;
 
-    let nuevasAsignaciones = [...formik.values.asignaciones];
-
-    // 2. Si no es placeholder y tiene subfrente asignado, debemos mover su planificación a un placeholder
-    if (!asignacionAEliminar.esPlaceholder && asignacionAEliminar.IdSubFrente) {
-      const frenteSubFrenteUid = asignacionAEliminar._frenteSubFrenteUid;
-
-      // Buscar si ya existe un placeholder activo para esta especialización (por _uid)
-      const placeholderIdx = nuevasAsignaciones.findIndex(
-        (a) => a.Activo !== false && a.esPlaceholder && a._frenteSubFrenteUid === frenteSubFrenteUid
-      );
-
-      if (placeholderIdx !== -1) {
-        // Si ya existe, le agregamos las planificaciones que no tenga repetidas
-        const placeholder = nuevasAsignaciones[placeholderIdx];
-        const planificacionesExistentes = placeholder.DetallePlanificacionConsultor || [];
-        const planificacionesACopiar = asignacionAEliminar.DetallePlanificacionConsultor || [];
-
-        const planificacionesCombinadas = [...planificacionesExistentes];
-        planificacionesACopiar.forEach((p) => {
-          const yaExiste = planificacionesCombinadas.some(
-            (pc) => (p.Id > 0 && pc.Id === p.Id) || (pc.Descripcion === p.Descripcion && pc.FechaInicio === p.FechaInicio)
-          );
-          if (!yaExiste) {
-            planificacionesCombinadas.push(p);
-          }
-        });
-
-        nuevasAsignaciones[placeholderIdx] = {
-          ...placeholder,
-          DetallePlanificacionConsultor: planificacionesCombinadas,
-        };
-      } else {
-        // Si no existe, creamos un placeholder y le pasamos las planificaciones
-        const nuevoPlaceholder = {
-          idUnico: generateUUID(),
-          Id: 0,
-          IdSubFrente: Number(asignacionAEliminar.IdSubFrente),
-          IdFrente: asignacionAEliminar.IdFrente,
-          IdConsultor: 0,
-          IdTipoActividad: 25,
-          FechaAsignacion: asignacionAEliminar.FechaAsignacion,
-          FechaDesasignacion: asignacionAEliminar.FechaDesasignacion,
-          DetalleTareasConsultor: [],
-          DetallePlanificacionConsultor: asignacionAEliminar.DetallePlanificacionConsultor || [],
-          Activo: true,
-          esPlaceholder: true,
-          _frenteSubFrenteUid: frenteSubFrenteUid,
-        };
-        nuevasAsignaciones.push(nuevoPlaceholder);
-      }
-    }
-
-    // 3. Desactivar la asignación eliminada y limpiar su planificación ya que fue transferida
-    nuevasAsignaciones = nuevasAsignaciones.map((a) =>
-      a.idUnico === idUnico
-        ? {
-            ...a,
-            Activo: false,
-            DetallePlanificacionConsultor: [],
-          }
-        : a
+    let nuevasAsignaciones = formik.values.asignaciones.map((a) =>
+      a.idUnico === idUnico ? { ...a, Activo: false } : a
     );
 
     formik.setFieldValue("asignaciones", nuevasAsignaciones);
@@ -1370,9 +1315,9 @@ const Editar = () => {
                             // Validar En Atención
                             /*    if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.EnAtencion) {
                                   let tienePlanificacion = false;
-                                  if (formik.values.asignaciones && formik.values.asignaciones.length > 0) {
-                                    tienePlanificacion = formik.values.asignaciones.some(a =>
-                                      a.DetallePlanificacionConsultor && a.DetallePlanificacionConsultor.some(p => p.Activo)
+                                  if (formik.values.frenteSubFrentes && formik.values.frenteSubFrentes.length > 0) {
+                                    tienePlanificacion = formik.values.frenteSubFrentes.some(fsf =>
+                                      fsf.activo !== false && fsf.DetallePlanificacionConsultor && fsf.DetallePlanificacionConsultor.some(p => p.Activo)
                                     );
                                   }
                                   if (!tienePlanificacion) {
@@ -1387,23 +1332,23 @@ const Editar = () => {
                                 }*/
 
                             // Validar Cerrado
-                           /* if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
-                              let tieneHoras = false;
-                              if (formik.values.asignaciones && formik.values.asignaciones.length > 0) {
-                                tieneHoras = formik.values.asignaciones.some(a =>
-                                  a.DetalleTareasConsultor && a.DetalleTareasConsultor.some(t => t.Activo && t.Horas > 0)
-                                );
-                              }
-                              if (!tieneHoras) {
-                                toast.current?.show({
-                                  severity: "warn",
-                                  summary: "Advertencia",
-                                  detail: "Debe llenar las tareas realizadas (horas) para pasar el ticket a estado Cerrado.",
-                                  life: 5000,
-                                });
-                                return; // Evitar que cambie el valor
-                              }
-                            }*/
+                            /* if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
+                               let tieneHoras = false;
+                               if (formik.values.asignaciones && formik.values.asignaciones.length > 0) {
+                                 tieneHoras = formik.values.asignaciones.some(a =>
+                                   a.DetalleTareasConsultor && a.DetalleTareasConsultor.some(t => t.Activo && t.Horas > 0)
+                                 );
+                               }
+                               if (!tieneHoras) {
+                                 toast.current?.show({
+                                   severity: "warn",
+                                   summary: "Advertencia",
+                                   detail: "Debe llenar las tareas realizadas (horas) para pasar el ticket a estado Cerrado.",
+                                   life: 5000,
+                                 });
+                                 return; // Evitar que cambie el valor
+                               }
+                             }*/
                           }
 
                           formik.setFieldValue("idEstadoTicket", nuevoEstadoId);

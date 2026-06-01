@@ -37,8 +37,29 @@ const hhmmToMinutes = (hhmm) => {
   return hh * 60 + mm;
 };
 
-const calcularTotalHorasPlan = (asignacion) => {
-  const detalles = asignacion?.DetallePlanificacionConsultor || [];
+const calcularTotalHorasPlan = (asignacion, frenteSubFrentes) => {
+  const especializacion = (frenteSubFrentes || []).find((esp) => {
+    if (esp.activo === false) return false;
+
+    if (asignacion._frenteSubFrenteUid && esp._uid) {
+      return asignacion._frenteSubFrenteUid === esp._uid;
+    }
+
+    if (asignacion.IdTicketFrenteSubFrente && esp.id) {
+      return Number(asignacion.IdTicketFrenteSubFrente) === Number(esp.id);
+    }
+
+    if (
+      Number(asignacion.IdFrente) === Number(esp.idFrente) &&
+      Number(asignacion.IdSubFrente) === Number(esp.idSubFrente)
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+
+  const detalles = especializacion?.DetallePlanificacionConsultor || [];
   const totalMin = detalles
     .filter((d) => d.Activo)
     .reduce((acc, it) => acc + hhmmToMinutes(it.Horas), 0);
@@ -331,7 +352,7 @@ const Asignaciones = ({
 
                   {/* HORAS PLANIFICADAS */}
                   <td className="p-2 border text-center">
-                    {calcularTotalHorasPlan(asignacion)}
+                    {calcularTotalHorasPlan(asignacion, formik.values.frenteSubFrentes)}
                   </td>
 
                   {/* HORAS TRABAJADAS */}
