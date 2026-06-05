@@ -519,10 +519,15 @@ const Editar = () => {
       asignaciones: persona ? (persona.consultorAsignaciones.map((a) => {
         // Vincular la asignación a su especialización por IdTicketFrenteSubFrente
         const fsfId = a.idTicketFrenteSubFrente || 0;
-        const linkedFsf = fsfId > 0
+        let linkedFsf = fsfId > 0
           ? (persona.frenteSubFrentes || []).find((f) => f.id === fsfId)
           : null;
-        const frenteSubFrenteUid = linkedFsf ? `db_${linkedFsf.id}` : (a._frenteSubFrenteUid || null);
+        if (!linkedFsf && a.idSubFrente) {
+          linkedFsf = (persona.frenteSubFrentes || []).find(
+            (f) => f.activo !== false && Number(f.idSubFrente) === Number(a.idSubFrente)
+          );
+        }
+        const frenteSubFrenteUid = linkedFsf ? (linkedFsf.id > 0 ? `db_${linkedFsf.id}` : linkedFsf._uid) : (a._frenteSubFrenteUid || null);
 
         return {
           idUnico: a.id > 0 ? a.id.toString() : (a.idUnico || generateUUID()),
@@ -530,7 +535,7 @@ const Editar = () => {
           IdSubFrente: a.idSubFrente,
           IdConsultor: a.idConsultor,
           IdTipoActividad: a.idTipoActividad,
-          IdTicketFrenteSubFrente: fsfId,
+          IdTicketFrenteSubFrente: fsfId > 0 ? fsfId : (linkedFsf ? linkedFsf.id : 0),
           _frenteSubFrenteUid: frenteSubFrenteUid,
           FechaAsignacion: a.fechaAsignacion,
           FechaDesasignacion: a.fechaDesasignacion,
