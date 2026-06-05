@@ -573,7 +573,7 @@ const Editar = () => {
 
     onSubmit: (values) => {
       // Validación: Si el estado es "EN_ATENCION", verificar que exista al menos una planificación
-      const estadoSeleccionado = parametros.find(
+      /*const estadoSeleccionado = parametros.find(
         (p) => p.tipoParametro === "EstadoTicket" && Number(p.id) === Number(values.idEstadoTicket)
       );
       if (estadoSeleccionado) {
@@ -594,7 +594,7 @@ const Editar = () => {
             return; // Prevenir submit
           }
         }
-        /*if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
+        if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
           let tieneHoras = false;
           if (values.asignaciones && values.asignaciones.length > 0) {
             tieneHoras = values.asignaciones.some(a =>
@@ -610,8 +610,8 @@ const Editar = () => {
             });
             return; // Prevenir submit
           }
-        }*/
-      }
+        }
+      }*/
 
       const formData = new FormData();
       formData.append("CodTicketInterno", values.codTicketInterno);
