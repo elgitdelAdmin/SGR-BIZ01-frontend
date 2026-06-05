@@ -364,6 +364,7 @@ const Frentes = () => {
                     <Column field="codigo" header="Código" />
                     <Column field="nombre" header="Nombre" />
                     <Column field="descripcion" header="Descripción" />
+                    <Column field="valor1" header="Valor 1" />
                     <Column
                         field="activo"
                         header="Estado"

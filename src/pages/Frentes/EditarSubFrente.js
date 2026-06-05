@@ -73,6 +73,7 @@ const EditarSubFrente = ({ visible, onHide, onSave, id, frenteId }) => {
     idFrente: Yup.number()
       .required("El frente padre es obligatorio")
       .min(1, "Debe seleccionar un frente"),
+    valor1: Yup.string().nullable(),
   });
 
   const formik = useFormik({
@@ -84,6 +85,7 @@ const EditarSubFrente = ({ visible, onHide, onSave, id, frenteId }) => {
       idFrente: subFrente ? subFrente.idFrente : (frenteId ? parseInt(frenteId) : ""),
       activo: subFrente ? subFrente.activo : true,
       usuarioRegistro: subFrente?.usuarioRegistro || window.localStorage.getItem("username"),
+      valor1: subFrente ? subFrente.valor1 : "",
     },
     validationSchema: schema,
     onSubmit: (values) => {
@@ -93,6 +95,7 @@ const EditarSubFrente = ({ visible, onHide, onSave, id, frenteId }) => {
         descripcion: values.descripcion,
         idFrente: values.idFrente,
         activo: values.activo,
+        valor1: values.valor1,
         ...(modoEdicion
           ? { usuarioModificacion: window.localStorage.getItem("username") }
           : { usuarioRegistro: values.usuarioRegistro }),
@@ -303,6 +306,21 @@ const EditarSubFrente = ({ visible, onHide, onSave, id, frenteId }) => {
                 />
                 <div className="p-error">
                   {formik.touched.descripcion && formik.errors.descripcion}
+                </div>
+              </div>
+              <div className="field col-12 md:col-12">
+                <label className="label-form">Valor 1</label>
+                <InputText
+                  type="text"
+                  id="valor1"
+                  name="valor1"
+                  placeholder="Escribe aquí"
+                  value={formik.values.valor1}
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                />
+                <div className="p-error">
+                  {formik.touched.valor1 && formik.errors.valor1}
                 </div>
               </div>
             </div>
