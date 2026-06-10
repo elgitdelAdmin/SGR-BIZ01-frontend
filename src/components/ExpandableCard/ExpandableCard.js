@@ -1,8 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./ExpandableCard.scss";
+
+// Static helper functions moved outside the component to prevent recreating them on every render
+const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    if (isNaN(date)) return "—";
+    return date.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+};
+
+const getSemaforoColor = (colorStr) => {
+    switch ((colorStr || "").toUpperCase()) {
+        case "ROJO": return "#e53935";
+        case "VERDE": return "#4caf50";
+        case "AMARILLO": return "#ffb300";
+        default: return "#aaaaaa";
+    }
+};
+
+const parseJsonArray = (val) => {
+    if (val === null || val === undefined) return [];
+    if (Array.isArray(val)) return val;
+    if (typeof val === "object") return [val];
+    try {
+        return typeof val === "string" ? JSON.parse(val) : val;
+    } catch {
+        return [];
+    }
+};
 
 const ExpandableCard = ({ ticket }) => {
     const [expanded, setExpanded] = useState(false);
+    const [shouldRender, setShouldRender] = useState(false);
+
+    // Synchronize shouldRender with expanded, but delayed on collapse to keep the transition smooth
+    useEffect(() => {
+        if (expanded) {
+            setShouldRender(true);
+        } else {
+            const timer = setTimeout(() => {
+                setShouldRender(false);
+            }, 350); // Matches the 0.35s CSS transition duration
+            return () => clearTimeout(timer);
+        }
+    }, [expanded]);
 
     const toggleExpand = () => {
         setExpanded(!expanded);
@@ -15,35 +56,9 @@ const ExpandableCard = ({ ticket }) => {
 
     const headerLabel = `${ticket.NombreCompleto} — ${ticket.CodConecta}`;
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "—";
-        const date = new Date(dateString);
-        if (isNaN(date)) return "—";
-        return date.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
-    };
-
-    const getSemaforoColor = (colorStr) => {
-        switch ((colorStr || "").toUpperCase()) {
-            case "ROJO": return "#e53935";
-            case "VERDE": return "#4caf50";
-            case "AMARILLO": return "#ffb300";
-            default: return "#aaaaaa";
-        }
-    };
-
-    const parseJsonArray = (val) => {
-        if (val === null || val === undefined) return [];
-        if (Array.isArray(val)) return val;
-        if (typeof val === "object") return [val];
-        try {
-            return typeof val === "string" ? JSON.parse(val) : val;
-        } catch {
-            return [];
-        }
-    };
-
-    const detallesPlanificacion = parseJsonArray(ticket.DetallesPlanificacion);
-    const detallesTareas = parseJsonArray(ticket.DetallesTareas);
+    // Memoize derived data that involves JSON parsing
+    const detallesPlanificacion = useMemo(() => parseJsonArray(ticket.DetallesPlanificacion), [ticket.DetallesPlanificacion]);
+    const detallesTareas = useMemo(() => parseJsonArray(ticket.DetallesTareas), [ticket.DetallesTareas]);
 
     const renderDetallesList = (detalles, titulo) => {
         if (!detalles || detalles.length === 0) return null;
@@ -88,120 +103,122 @@ const ExpandableCard = ({ ticket }) => {
                 </span>
             </div>
             <div className={`expandable-card__body ${expanded ? "expandable-card__body--expanded" : ""}`}>
-                <div className="expandable-card__detail-grid">
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Cód. Conecta</span>
-                        <span className="expandable-card__detail-value">{ticket.CodConecta}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Cód. Migración</span>
-                        <span className="expandable-card__detail-value">{ticket.CodMigracion || "—"}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Título</span>
-                        <span className="expandable-card__detail-value">{ticket.Titulo}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Empresa</span>
-                        <span className="expandable-card__detail-value">{ticket.EmpresaNombre || "—"}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Socio</span>
-                        <span className="expandable-card__detail-value">{ticket.SocioNombre || "—"}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Estado</span>
-                        <span className="expandable-card__detail-value">{ticket.EstadoTicket || "—"}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Tipo</span>
-                        <span className="expandable-card__detail-value">{ticket.TipoTicket || "—"}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Subtipo</span>
-                        <span className="expandable-card__detail-value">{ticket.SubtipoTicket || "—"}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Gestor</span>
-                        <span className="expandable-card__detail-value">{ticket.NombreCompletoGestor || "—"}</span>
-                    </div>
+                {shouldRender && (
+                    <div className="expandable-card__detail-grid">
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Cód. Conecta</span>
+                            <span className="expandable-card__detail-value">{ticket.CodConecta}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Cód. Migración</span>
+                            <span className="expandable-card__detail-value">{ticket.CodMigracion || "—"}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Título</span>
+                            <span className="expandable-card__detail-value">{ticket.Titulo}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Empresa</span>
+                            <span className="expandable-card__detail-value">{ticket.EmpresaNombre || "—"}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Socio</span>
+                            <span className="expandable-card__detail-value">{ticket.SocioNombre || "—"}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Estado</span>
+                            <span className="expandable-card__detail-value">{ticket.EstadoTicket || "—"}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Tipo</span>
+                            <span className="expandable-card__detail-value">{ticket.TipoTicket || "—"}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Subtipo</span>
+                            <span className="expandable-card__detail-value">{ticket.SubtipoTicket || "—"}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Gestor</span>
+                            <span className="expandable-card__detail-value">{ticket.NombreCompletoGestor || "—"}</span>
+                        </div>
 
-                    <div className="expandable-card__divider"></div>
+                        <div className="expandable-card__divider"></div>
 
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">F. Inicio Plan</span>
-                        <span className="expandable-card__detail-value">{formatDate(ticket.FechaInicioPlanificada)}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">F. Fin Plan</span>
-                        <span className="expandable-card__detail-value">{formatDate(ticket.FechaFinPlanificada)}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">F. Inicio Real</span>
-                        <span className="expandable-card__detail-value">{formatDate(ticket.FechaInicioReal)}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">F. Fin Real</span>
-                        <span className="expandable-card__detail-value">{formatDate(ticket.FechaFinReal)}</span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Semáforo</span>
-                        <span className="expandable-card__detail-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <div style={{
-                                width: 12, height: 12, borderRadius: '50%',
-                                backgroundColor: getSemaforoColor(ticket.SemaforoFecha)
-                            }}></div>
-                            {ticket.SemaforoFecha || "—"}
-                        </span>
-                    </div>
-                    <div className="expandable-card__detail-item">
-                        <span className="expandable-card__detail-label">Días Trans. (Real)</span>
-                        <span className="expandable-card__detail-value">
-                            {ticket.DiasTranscurridosReal !== null && ticket.DiasTranscurridosReal !== undefined ? ticket.DiasTranscurridosReal : "—"}
-                        </span>
-                    </div>
-
-                    <div className="expandable-card__divider"></div>
-
-                    <div className="expandable-card__progress-section">
-                        <div className="expandable-card__progress-header">
-                            <span className="expandable-card__progress-label">Avance</span>
-                            <span className={`expandable-card__progress-percent ${
-                                porcentaje === null
-                                    ? "expandable-card__progress-percent--na"
-                                    : isOver
-                                        ? "expandable-card__progress-percent--over"
-                                        : "expandable-card__progress-percent--normal"
-                            }`}>
-                                {displayPercent}
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">F. Inicio Plan</span>
+                            <span className="expandable-card__detail-value">{formatDate(ticket.FechaInicioPlanificada)}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">F. Fin Plan</span>
+                            <span className="expandable-card__detail-value">{formatDate(ticket.FechaFinPlanificada)}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">F. Inicio Real</span>
+                            <span className="expandable-card__detail-value">{formatDate(ticket.FechaInicioReal)}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">F. Fin Real</span>
+                            <span className="expandable-card__detail-value">{formatDate(ticket.FechaFinReal)}</span>
+                        </div>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Semáforo</span>
+                            <span className="expandable-card__detail-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <div style={{
+                                    width: 12, height: 12, borderRadius: '50%',
+                                    backgroundColor: getSemaforoColor(ticket.SemaforoFecha)
+                                }}></div>
+                                {ticket.SemaforoFecha || "—"}
                             </span>
                         </div>
-                        <div className="expandable-card__progress-bar">
-                            <div
-                                className={`expandable-card__progress-fill ${
-                                    isOver
-                                        ? "expandable-card__progress-fill--over"
-                                        : "expandable-card__progress-fill--normal"
-                                }`}
-                                style={{ width: `${barWidth}%` }}
-                            ></div>
-                        </div>
-                        <div className="expandable-card__hours-row">
-                            <span className="expandable-card__hours-item">
-                                Planificadas: <span>{ticket.HorasPlanificadas}</span>
-                            </span>
-                            <span className="expandable-card__hours-item">
-                                Realizadas: <span>{ticket.HorasRealizadas}</span>
+                        <div className="expandable-card__detail-item">
+                            <span className="expandable-card__detail-label">Días Trans. (Real)</span>
+                            <span className="expandable-card__detail-value">
+                                {ticket.DiasTranscurridosReal !== null && ticket.DiasTranscurridosReal !== undefined ? ticket.DiasTranscurridosReal : "—"}
                             </span>
                         </div>
-                    </div>
 
-                    {renderDetallesList(detallesPlanificacion, "Detalles de Planificación")}
-                    {renderDetallesList(detallesTareas, "Detalles de Tareas")}
-                </div>
+                        <div className="expandable-card__divider"></div>
+
+                        <div className="expandable-card__progress-section">
+                            <div className="expandable-card__progress-header">
+                                <span className="expandable-card__progress-label">Avance</span>
+                                <span className={`expandable-card__progress-percent ${
+                                    porcentaje === null
+                                        ? "expandable-card__progress-percent--na"
+                                        : isOver
+                                            ? "expandable-card__progress-percent--over"
+                                            : "expandable-card__progress-percent--normal"
+                                }`}>
+                                    {displayPercent}
+                                </span>
+                            </div>
+                            <div className="expandable-card__progress-bar">
+                                <div
+                                    className={`expandable-card__progress-fill ${
+                                        isOver
+                                            ? "expandable-card__progress-fill--over"
+                                            : "expandable-card__progress-fill--normal"
+                                    }`}
+                                    style={{ width: `${barWidth}%` }}
+                                ></div>
+                            </div>
+                            <div className="expandable-card__hours-row">
+                                <span className="expandable-card__hours-item">
+                                    Planificadas: <span>{ticket.HorasPlanificadas}</span>
+                                </span>
+                                <span className="expandable-card__hours-item">
+                                    Realizadas: <span>{ticket.HorasRealizadas}</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        {renderDetallesList(detallesPlanificacion, "Detalles de Planificación")}
+                        {renderDetallesList(detallesTareas, "Detalles de Tareas")}
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
-export default ExpandableCard;
+export default React.memo(ExpandableCard);

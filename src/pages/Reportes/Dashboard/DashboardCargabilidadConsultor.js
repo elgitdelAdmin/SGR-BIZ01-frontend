@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect, useMemo, useContext } from "react";
+import React, { useState, useEffect, useMemo, useContext, useDeferredValue } from "react";
 import { useNavigate } from "react-router-dom";
 import { ConfirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { MultiSelect } from "primereact/multiselect";
+import { ProgressSpinner } from "primereact/progressspinner";
 import ExpandableCard from "../../../components/ExpandableCard/ExpandableCard";
 import { DashboardTicketsConsultor } from "../../../service/ReporteService";
 import Context from "../../../context/usuarioContext";
@@ -11,6 +12,16 @@ import { TIPO_PARAMETRO, CODIGOS } from "../../../constants/codigosBD";
 import { ListarConsultores, ListarConsultoresPorSocio } from "../../../service/ConsultorService";
 import { ListarEmpresas, ListarEmpresasPorSocio } from "../../../service/EmpresaService";
 import { ListarTicket } from "../../../service/TiketService";
+
+const arraysEqual = (a, b) => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+};
 
 const DashboardCargabilidadConsultor = () => {
     const navigate = useNavigate();
@@ -29,49 +40,50 @@ const DashboardCargabilidadConsultor = () => {
     
     const [isInitialized, setIsInitialized] = useState(() => {
         if (parametros && parametros.length > 0) {
-            const paramEjecucion = parametros.find(p => 
-                p.tipoParametro === TIPO_PARAMETRO.EstadoTicket && 
-                p.codigo === CODIGOS.EstadoTicket.EnEjecucion
-            );
-            return paramEjecucion ? true : false;
+            const paramsEstados = parametros.filter(p => p.tipoParametro === TIPO_PARAMETRO.EstadoTicket);
+            return paramsEstados.length > 0;
         }
         return false;
     });
 
     const [estadosSeleccionados, setEstadosSeleccionados] = useState(() => {
-        const paramEjecucion = (parametros || []).find(p => 
-            p.tipoParametro === TIPO_PARAMETRO.EstadoTicket && 
-            p.codigo === CODIGOS.EstadoTicket.EnEjecucion
-        );
-        return paramEjecucion ? [paramEjecucion.id] : [];
+        const paramsEstados = (parametros || []).filter(p => p.tipoParametro === TIPO_PARAMETRO.EstadoTicket);
+        return paramsEstados.map(p => p.id);
     });
     const [ticketsSeleccionados, setTicketsSeleccionados] = useState([]);
 
-    // Establecer estado inicial a "EN EJECUCION" cuando los parámetros estén disponibles
+    const deferredConsultores = useDeferredValue(consultoresSeleccionados);
+    const deferredEmpresas = useDeferredValue(empresasSeleccionadas);
+    const deferredTickets = useDeferredValue(ticketsSeleccionados);
+
+    const isFiltering = !arraysEqual(consultoresSeleccionados, deferredConsultores) ||
+                        !arraysEqual(empresasSeleccionadas, deferredEmpresas) ||
+                        !arraysEqual(ticketsSeleccionados, deferredTickets);
+
+    // Establecer estado inicial con TODOS los estados cuando los parámetros estén disponibles
     useEffect(() => {
         if (parametros && parametros.length > 0 && !isInitialized) {
-            const paramEjecucion = parametros.find(p => 
-                p.tipoParametro === TIPO_PARAMETRO.EstadoTicket && 
-                p.codigo === CODIGOS.EstadoTicket.EnEjecucion
-            );
-            if (paramEjecucion) {
-                setEstadosSeleccionados([paramEjecucion.id]);
+            const paramsEstados = parametros.filter(p => p.tipoParametro === TIPO_PARAMETRO.EstadoTicket);
+            if (paramsEstados.length > 0) {
+                setEstadosSeleccionados(paramsEstados.map(p => p.id));
                 setIsInitialized(true);
             }
         }
     }, [parametros, isInitialized]);
 
     // Limpiar selección de filtros locales cuando cambian los resultados principales
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        setConsultoresSeleccionados([]);
-        setEmpresasSeleccionadas([]);
-        setTicketsSeleccionados([]);
+        if (consultoresSeleccionados.length > 0) setConsultoresSeleccionados([]);
+        if (empresasSeleccionadas.length > 0) setEmpresasSeleccionadas([]);
+        if (ticketsSeleccionados.length > 0) setTicketsSeleccionados([]);
     }, [tickets]);
 
     // EFECTO PARA RECARGAR EL DASHBOARD CUANDO SE CAMBIEN LOS FILTROS
     useEffect(() => {
         if (!parametros || parametros.length === 0 || !isInitialized) return;
 
+        let active = true;
         const fetchData = async () => {
             try {
                 setLoading(true);
@@ -79,15 +91,25 @@ const DashboardCargabilidadConsultor = () => {
                     tipos: tiposSeleccionados,
                     estados: estadosSeleccionados
                 });
-                setTickets(data);
+                if (active) {
+                    setTickets(data);
+                }
             } catch (err) {
-                console.error("Error al cargar dashboard:", err);
-                setError("No se pudieron cargar los tickets del dashboard.");
+                if (active) {
+                    console.error("Error al cargar dashboard:", err);
+                    setError("No se pudieron cargar los tickets del dashboard.");
+                }
             } finally {
-                setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         };
         fetchData();
+
+        return () => {
+            active = false;
+        };
     }, [tiposSeleccionados, estadosSeleccionados, parametros, isInitialized]);
 
     // Combo de consultores alimentado por los tickets cargados desde el servidor
@@ -151,29 +173,32 @@ const DashboardCargabilidadConsultor = () => {
 
     // Filtrado local (Consultores, Empresas y Tickets se filtran localmente, lo demás lo filtra el backend)
     const ticketsFiltrados = useMemo(() => {
-        const consultoresSel = consultoresSeleccionados || [];
-        const empresasSel = empresasSeleccionadas || [];
-        const ticketsSel = ticketsSeleccionados || [];
+        const consultoresSel = new Set(deferredConsultores || []);
+        const empresasSel = new Set(deferredEmpresas || []);
+        const ticketsSel = new Set(deferredTickets || []);
 
         return tickets.filter(t => {
-            if (consultoresSel.length > 0) {
-                if (!consultoresSel.includes(t.NombreCompleto)) {
+            if (consultoresSel.size > 0) {
+                const nombre = t.NombreCompleto ? t.NombreCompleto.trim() : "";
+                if (!consultoresSel.has(nombre)) {
                     return false;
                 }
             }
-            if (empresasSel.length > 0) {
-                if (!empresasSel.includes(t.EmpresaNombre)) {
+            if (empresasSel.size > 0) {
+                const empresa = t.EmpresaNombre ? t.EmpresaNombre.trim() : "";
+                if (!empresasSel.has(empresa)) {
                     return false;
                 }
             }
-            if (ticketsSel.length > 0) {
-                if (!ticketsSel.includes(t.CodConecta)) {
+            if (ticketsSel.size > 0) {
+                const codigo = t.CodConecta ? t.CodConecta.trim() : "";
+                if (!ticketsSel.has(codigo)) {
                     return false;
                 }
             }
             return true;
         });
-    }, [tickets, consultoresSeleccionados, empresasSeleccionadas, ticketsSeleccionados]);
+    }, [tickets, deferredConsultores, deferredEmpresas, deferredTickets]);
 
     return (
         <div className="zv-usuario" style={{ paddingTop: 16 }}>
@@ -191,10 +216,13 @@ const DashboardCargabilidadConsultor = () => {
                             onChange={(e) => setConsultoresSeleccionados(e.value || [])}
                             optionLabel="label"
                             optionValue="value"
-                            placeholder="Todos los Consultores"
-                            display="chip"
+                            placeholder={loading || !isInitialized ? "Cargando consultores..." : (tickets.length === 0 ? "Sin consultores disponibles" : "Todos los Consultores")}
                             filter
                             showClear
+                            disabled={loading || !isInitialized || !tickets || tickets.length === 0}
+                            maxSelectedLabels={3}
+                            selectedItemsLabel="{0} consultores seleccionados"
+                            virtualScrollerOptions={{ itemSize: 43 }}
                         />
                     </div>
                     <div className="field col-12 md:col-4">
@@ -205,10 +233,13 @@ const DashboardCargabilidadConsultor = () => {
                             onChange={(e) => setEmpresasSeleccionadas(e.value || [])}
                             optionLabel="label"
                             optionValue="value"
-                            placeholder="Todas las Empresas"
-                            display="chip"
+                            placeholder={loading || !isInitialized ? "Cargando empresas..." : (tickets.length === 0 ? "Sin empresas disponibles" : "Todas las Empresas")}
                             filter
                             showClear
+                            disabled={loading || !isInitialized || !tickets || tickets.length === 0}
+                            maxSelectedLabels={3}
+                            selectedItemsLabel="{0} empresas seleccionadas"
+                            virtualScrollerOptions={{ itemSize: 43 }}
                         />
                     </div>
                     <div className="field col-12 md:col-4">
@@ -247,10 +278,13 @@ const DashboardCargabilidadConsultor = () => {
                             onChange={(e) => setTicketsSeleccionados(e.value || [])}
                             optionLabel="label"
                             optionValue="value"
-                            placeholder="Todos los Tickets"
-                            display="chip"
+                            placeholder={loading || !isInitialized ? "Cargando tickets..." : (tickets.length === 0 ? "Sin tickets disponibles" : "Todos los Tickets")}
                             filter
                             showClear
+                            disabled={loading || !isInitialized || !tickets || tickets.length === 0}
+                            maxSelectedLabels={3}
+                            selectedItemsLabel="{0} tickets seleccionados"
+                            virtualScrollerOptions={{ itemSize: 43 }}
                         />
                     </div>
                 </div>
@@ -263,9 +297,10 @@ const DashboardCargabilidadConsultor = () => {
                     </div>
                 )}
 
-                {parametros && parametros.length > 0 && loading && (
-                    <div style={{ textAlign: "center", padding: "40px 0", color: "#888" }}>
-                        Cargando tickets...
+                {parametros && parametros.length > 0 && (loading || isFiltering) && (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 0", gap: "16px" }}>
+                        <ProgressSpinner style={{ width: "50px", height: "50px" }} strokeWidth="4" />
+                        <span style={{ color: "#666", fontWeight: "500" }}>Cargando tickets del dashboard...</span>
                     </div>
                 )}
 
@@ -275,22 +310,28 @@ const DashboardCargabilidadConsultor = () => {
                     </div>
                 )}
 
-                {parametros && parametros.length > 0 && !loading && !error && ticketsFiltrados.length === 0 && (
+                {parametros && parametros.length > 0 && !loading && !isFiltering && !error && ticketsFiltrados.length === 0 && (
                     <div style={{ textAlign: "center", padding: "40px 0", color: "#888" }}>
                         No hay tickets para mostrar con los filtros actuales.
                     </div>
                 )}
 
-                {parametros && parametros.length > 0 && !loading && !error && ticketsFiltrados.length > 0 && (
-                    <div style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))",
-                        gap: "16px"
-                    }}>
-                        {ticketsFiltrados.map((ticket, index) => (
-                            <ExpandableCard key={index} ticket={ticket} />
-                        ))}
-                    </div>
+                {parametros && parametros.length > 0 && !loading && !isFiltering && !error && ticketsFiltrados.length > 0 && (
+                    <>
+                        <div style={{ marginBottom: "16px", fontSize: "14px", fontWeight: "600", color: "#4b5563", display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#3b82f6" }}></span>
+                            Mostrando {ticketsFiltrados.length} {ticketsFiltrados.length === 1 ? "ticket" : "tickets"} de {tickets.length} en total
+                        </div>
+                        <div style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))",
+                            gap: "16px"
+                        }}>
+                            {ticketsFiltrados.map((ticket, index) => (
+                                <ExpandableCard key={`${ticket.CodConecta}-${ticket.NombreCompleto || ""}-${index}`} ticket={ticket} />
+                            ))}
+                        </div>
+                    </>
                 )}
             </div>
         </div>
