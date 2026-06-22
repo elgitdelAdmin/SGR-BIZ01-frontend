@@ -771,105 +771,127 @@ export default function Login() {
                 validationSchema={schema}
                 initialValues={{ username: "", password: "" }}
                 onSubmit={(values, { setSubmitting }) => {
-                    let userName = values.username;
+                            let userName = values.username;
                     let password = values.password;
                     Logarse(userName, password, setSubmitting)
                 }}
             >
                 {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting, setSubmitting }) => (
                     <form onSubmit={handleSubmit}>
-                        <div style={{ background: "#f2f2f2", display: "flex", justifyContent: "center", minHeight: "100vh", alignItems: "center" }}>
-                            <div className="card contentLogin">
-                                <div className="text-center ">
-                                    <img src="images/fondo.jpg" alt="hyper" className="imgResponsive" />
-                                </div>
-                                <div className="form-login">
-                                    {
-                                        hasLoginError && <p className="error">Credenciales no validas</p>
-                                    }
-                                </div>
-                                <div className="login-container">
-                                    <div className="login-left">
+                        <div className="login-page-container">
+                            {/* Floating Logo Icons in background */}
+                            <img src="images/bizlogo.jpg" className="login-bg-icon float-1" alt="Logo" />
+                            <img src="images/bizlogo.jpg" className="login-bg-icon float-2" alt="Logo" />
+                            <img src="images/bizlogo.jpg" className="login-bg-icon float-3" alt="Logo" />
+                            <img src="images/bizlogo.jpg" className="login-bg-icon float-4" alt="Logo" />
+                            <img src="images/bizlogo.jpg" className="login-bg-icon float-5" alt="Logo" />
+                            <img src="images/bizlogo.jpg" className="login-bg-icon float-6" alt="Logo" />
+
+                            {/* Contenedor del Formulario Card */}
+                            <div className="login-card-container">
+                                <div className="login-card">
+                                    {/* Logo integrado en la tarjeta */}
+                                    <div className="login-card-logo">
                                         <img
                                             src="images/bizlogo.jpg"
-                                            style={{ width: '30%', maxHeight: '120px', objectFit: 'contain', marginBottom: '20px' }}
+                                            alt="Logo B"
+                                            style={{ height: '56px', width: 'auto', objectFit: 'contain' }}
                                         />
                                         <img
                                             src="images/bizletra.png"
-                                            style={{ width: '30%', maxHeight: '120px', objectFit: 'contain' }}
+                                            alt="Bizpartner"
+                                            style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
                                         />
                                     </div>
 
-                                    <div className="login-right">
-                                        <div className="login-form-wrapper">
-                                            <div className="p-fluid formgrid grid form-login" >
-                                                <div className="field col-12 md:col-12">
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                        <img
-                                                            src="images/correo.png"
-                                                            alt="icono"
-                                                            style={{ width: 34, height: 34 }}
-                                                        />
-                                                        <InputText
-                                                            id="CodigoColaborador"
-                                                            type="text"
-                                                            placeholder="Escribe aquí"
-                                                            name="username"
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            className={classNames({ 'p-invalid': touched.username && errors.username })}
-                                                            style={{ flex: 1 }}
-                                                        />
-                                                    </div>
-                                                    <small className="p-error">{errors.username && touched.username && errors.username}</small>
-                                                </div>
-                                                <div className="field col-12 md:col-12">
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                        <img
-                                                            src="images/contraseña.png"
-                                                            alt="clave"
-                                                            style={{ width: 34, height: 34 }}
-                                                        />
-                                                        <Password
-                                                            id="Password"
-                                                            name="password"
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            className={classNames({ 'p-invalid': touched.password && errors.password })}
-                                                            placeholder="Escribe aquí"
-                                                            toggleMask
-                                                            feedback={false}
-                                                            style={{ flex: 1 }}
-                                                        />
-                                                    </div>
-                                                    <small className="p-error">{errors.password && touched.password && errors.password}</small>
-                                                </div>
-                                                <div className="field col-12 md:col-12" style={{ textAlign: 'right', marginTop: '-10px' }}>
-                                                    <a
-                                                        href="#"
-                                                        onClick={handleOpenRecuperarDialog}
-                                                        style={{
-                                                            color: '#404BD9',
-                                                            textDecoration: 'none',
-                                                            fontSize: '13px',
-                                                            fontWeight: '500'
-                                                        }}
-                                                    >
-                                                        ¿Olvidaste tu contraseña?
-                                                    </a>
-                                                </div>
-                                            </div>
+                                    <div className="login-card-body">
+                                        <div className="login-welcome-text">
+                                            Hola de nuevo, ingresa tus datos
+                                        </div>
 
-                                            <div className="form-footer" >
-                                                <Button
-                                                    label="Iniciar sesión"
-                                                    style={{ background: "#404BD9", fontSize: 14, width: 160, height: 90, borderRadius: 6 }}
-                                                    loading={isSubmitting}
+                                        {hasLoginError && (
+                                            <div className="login-general-error">
+                                                Credenciales no válidas
+                                            </div>
+                                        )}
+
+                                        {/* Input Código de colaborador */}
+                                        <div className="login-field-group">
+                                            <label className="login-input-label" htmlFor="CodigoColaborador">Usuario</label>
+                                            <div className={classNames("login-input-wrapper", { "login-input-error": touched.username && errors.username })}>
+                                                <div className={classNames("login-icon-circle", { "login-icon-circle-error": touched.username && errors.username })}>
+                                                    <i className="pi pi-user"></i>
+                                                </div>
+                                                <InputText
+                                                    id="CodigoColaborador"
+                                                    type="text"
+                                                    placeholder="Escribe aquí"
+                                                    name="username"
+                                                    value={values.username}
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                    className="login-field-input"
                                                 />
                                             </div>
+                                            {touched.username && errors.username && (
+                                                <small className="login-error-text">{errors.username}</small>
+                                            )}
+                                        </div>
+
+                                        {/* Input Contraseña */}
+                                        <div className="login-field-group">
+                                            <label className="login-input-label" htmlFor="Password">Contraseña</label>
+                                            <div className={classNames("login-input-wrapper", { "login-input-error": touched.password && errors.password })}>
+                                                <div className={classNames("login-icon-circle", { "login-icon-circle-error": touched.password && errors.password })}>
+                                                    <i className="pi pi-lock"></i>
+                                                </div>
+                                                <Password
+                                                    id="Password"
+                                                    name="password"
+                                                    value={values.password}
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                    placeholder="Escribe aquí"
+                                                    toggleMask
+                                                    feedback={false}
+                                                    className="login-password-container"
+                                                    inputClassName="login-field-input"
+                                                />
+                                            </div>
+                                            {touched.password && errors.password && (
+                                                <small className="login-error-text">{errors.password}</small>
+                                            )}
+                                        </div>
+
+                                        {/* Enlace recuperar contraseña */}
+                                        <div className="login-forgot-password">
+                                            <a href="#" onClick={handleOpenRecuperarDialog}>
+                                                ¿Olvidaste tu contraseña?
+                                            </a>
+                                        </div>
+
+                                        {/* Botón de envío */}
+                                        <div className="login-action">
+                                            <Button
+                                                label={isSubmitting ? "Ingresando..." : "Iniciar sesión"}
+                                                type="submit"
+                                                loading={isSubmitting}
+                                                className="login-btn"
+                                            />
+                                        </div>
+
+                                        {/* Texto de soporte */}
+                                        <div className="login-support-text">
+                                            <i className="pi pi-comment" style={{ marginRight: '6px', fontSize: '13px' }}></i>
+                                            ¿Necesitas ayuda? <a href="#" className="login-support-link">Contacta a soporte</a>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Footer de la página */}
+                            <div className="login-footer">
+                                © 2026 Bizpartner — v1.0
                             </div>
                         </div>
                     </form>
