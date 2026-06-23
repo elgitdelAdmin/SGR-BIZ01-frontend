@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState ,useRef} from "react";
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
-import DatatableDefaultNew from "../../components/Datatable/DatatableDefaultNew";
+import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Gestores.scss"
@@ -54,54 +54,29 @@ const Gestores = () => {
     let networkTimeout = null;
 
     useEffect(() => {
-    loadLazyData();
-    }, [lazyState, globalFilterValue]);
+        loadLazyData();
+    }, []);
 
-
-const loadLazyData = () => {
-    if (networkTimeout) clearTimeout(networkTimeout);
-
-    networkTimeout = setTimeout(() => {
+    const loadLazyData = () => {
         setLoading(true);
-         const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
-         fetchFunction()
-        // ListarGestoresPorSocio()
+        const fetchFunction = codRol === "SUPERADMIN" ? ListarGestores : ListarGestoresPorSocio;
+        fetchFunction()
             .then((data) => {
                 const dataConEstado = data.map(consultor => ({
                     ...consultor,
                     estadoNombre:
                         consultor.activo ? "Activo" : "Inactivo"
-                   
                 }));
-                setTotalRecords(data.length);
-                const pageNumber = lazyState?.page ?? 0;
-                const pageSize = lazyState?.rows ?? 10;
-                const start = pageNumber * pageSize;
-                const end = start + pageSize;
-                let filteredData = dataConEstado;
-               if (globalFilterValue) {
-    const search = globalFilterValue.toLowerCase();
-    filteredData = data.filter(g =>
-        g.nombres?.toLowerCase().includes(search) ||
-        g.apellidoPaterno?.toLowerCase().includes(search) ||
-        g.apellidoMaterno?.toLowerCase().includes(search) ||
-        (g.telefono && g.telefono.toString().toLowerCase().includes(search))
-    );
-}
-
-                 //Agrego
-               filteredData.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
-                // const paginatedData = filteredData.slice(start, end);
-
-                setListaPersonasTotal(filteredData);
+                // 🔹 ordenar
+                dataConEstado.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion)).reverse();
+                setListaPersonas(dataConEstado);
                 setLoading(false);
             })
             .catch((error) => {
-                console.error("Error al cargar tickets:", error);
+                console.error("Error al cargar gestores:", error);
                 setLoading(false);
             });
-    }, Math.random() * 1000 + 250);
-};
+    };
 
     // const onPage = (event) => {
     //     setlazyState(event);
@@ -248,7 +223,7 @@ const loadLazyData = () => {
                                  <div style={{ marginLeft: "auto" }}>
                                      <Boton
                                      label="Crear Gestor"
-                                     style={{ fontSize: 12,borderRadius:15 }}
+                                     style={{ fontSize: 12,borderRadius:8 }}
                                      color="primary"
                                      onClick = {()=>navigate("CrearGestor/")}
                                      ></Boton>
@@ -281,21 +256,20 @@ const loadLazyData = () => {
                             />
                         </DatatableDefault> */}
 
-                         <DatatableDefaultNew 
-                            value={listaPersonas}  
-                            export={true}
-                            rows={lazyState.rows || 50}  
-                            showSearch={false} 
-                            loading={loading}
-                        >
+                          <DatatableDinamic 
+                             value={listaPersonas}  
+                             exportable={true}
+                             showSearch={false} 
+                             loading={loading}
+                         >
                                <Column field="nombres" header="Nombres"   sortable style={{ width: '120px', minWidth: '120px' }}/>
-                             <Column field="apellidoPaterno" header="Apellido Paterno"  sortable style={{ width: '120px', minWidth: '120px' }} />
-                             <Column field="apellidoMaterno" header="Apellido Materno" sortable style={{ width: '120px', minWidth: '120px' }} />
-                            <Column field="telefono" header="Teléfono"   sortable style={{ width: '120px', minWidth: '120px' }}/>
-                            <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                              <Column field="apellidoPaterno" header="Apellido Paterno"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                              <Column field="apellidoMaterno" header="Apellido Materno" sortable style={{ width: '120px', minWidth: '120px' }} />
+                             <Column field="telefono" header="Teléfono"   sortable style={{ width: '120px', minWidth: '120px' }}/>
+                             <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
 
-                            <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
-                           </DatatableDefaultNew>
+                             <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
+                            </DatatableDinamic>
                          <Dialog
                                 header="Especializaciones"
                                 visible={visible}

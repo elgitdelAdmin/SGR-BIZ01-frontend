@@ -214,8 +214,8 @@ const Reportes = () => {
                                     style={{
                                         width: '28px', height: '28px',
                                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                        border: 'none', cursor: 'pointer', borderRadius: '50%',
-                                        background: '#6366f1', color: '#fff', flexShrink: 0
+                                        border: 'none', cursor: 'pointer', borderRadius: '8px',
+                                        background: '#0e71ae', color: '#fff', flexShrink: 0
                                     }}
                                     onClick={() => handleVerCargabilidad(rowData)}
                                     title="Ver Cargabilidad"
@@ -486,9 +486,9 @@ const Reportes = () => {
                             emptyMessage="No se encontraron registros."
                         />
                     ) : (
-                        <div className="text-center p-5 surface-50 border-round">
-                            <i className="pi pi-info-circle text-4xl text-400 mb-3 block"></i>
-                            <p className="text-600 m-0">
+                        <div className="reportes-empty-state">
+                            <i className="pi pi-info-circle empty-icon"></i>
+                            <p className="empty-text">
                                 {loadingBusqueda
                                     ? "Cargando datos..."
                                     : "Seleccione los filtros y haga clic en 'Buscar' para previsualizar los resultados."}

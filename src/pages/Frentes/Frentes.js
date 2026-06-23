@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState, useRef } from "react";
-import DatatableDefault from "../../components/Datatable/DatatableDefault";
+import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Frentes.scss";
@@ -48,41 +47,21 @@ const Frentes = () => {
 
     useEffect(() => {
         loadLazyData();
-    }, [lazyState, globalFilterValue]);
+    }, []);
 
     const loadLazyData = () => {
-        if (networkTimeout) clearTimeout(networkTimeout);
-
-        networkTimeout = setTimeout(() => {
-            setLoading(true);
-            ListarFrentes()
-                .then((data) => {
-                    setTotalRecords(data.length);
-                    const pageNumber = lazyState?.page ?? 0;
-                    const pageSize = lazyState?.rows ?? 10;
-                    const start = pageNumber * pageSize;
-                    const end = start + pageSize;
-                    let filteredData = data;
-                    if (globalFilterValue) {
-                        const search = globalFilterValue.toLowerCase();
-                        filteredData = data.filter(frente =>
-                            frente.codigo?.toLowerCase().includes(search) ||
-                            frente.nombre?.toLowerCase().includes(search) ||
-                            frente.descripcion?.toLowerCase().includes(search)
-                        );
-                    }
-
-                    filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
-                    setTotalRecords(filteredData.length);
-                    const paginatedData = filteredData.slice(start, end);
-                    setListaFrentesTotal(paginatedData);
-                    setLoading(false);
-                })
-                .catch((error) => {
-                    console.error("Error al cargar frentes:", error);
-                    setLoading(false);
-                });
-        }, Math.random() * 1000 + 250);
+        setLoading(true);
+        ListarFrentes()
+            .then((data) => {
+                // 🔹 ordenar
+                data.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
+                setListaFrentes(data);
+                setLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error al cargar frentes:", error);
+                setLoading(false);
+            });
     };
 
     const onPage = (event) => {
@@ -244,11 +223,11 @@ const Frentes = () => {
     const botonSubFrentesTemplate = (rowData) => {
         return (
             <div className="profesor-datatable-accion" style={{ justifyContent: 'center' }}>
-                <div className="accion-editar" style={{ backgroundColor: "#14a1dd" }} onClick={() => {
+                <div className="accion-editar" style={{ backgroundColor: "#d0e5f0", borderRadius: "8px" }} onClick={() => {
                     setSelectedFrenteModal(rowData);
                     setShowModal(true);
                 }}>
-                    <span><Iconsax.TaskSquare color="#ffffff" variant="Bold" /></span>
+                    <span><Iconsax.TaskSquare color="#0e71ae" variant="Bold" /></span>
                 </div>
             </div>
         );
@@ -299,7 +278,7 @@ const Frentes = () => {
                         <div style={{ marginLeft: "auto" }}>
                             <Boton
                                 label="Crear Frente"
-                                style={{ fontSize: 12, borderRadius: 15 }}
+                                style={{ fontSize: 12, borderRadius: 8 }}
                                 color="primary"
                                 onClick={() => {
                                     setEditingFrenteId(null);
@@ -310,33 +289,33 @@ const Frentes = () => {
                     </div>
                 </div>
                 <div className="zv-usuario-body-listado" style={{ marginTop: 24 }}>
-                    <DatatableDefault value={listaFrentes}
-                        lazy
-                        globalFilterFields={['codigo', 'nombre', 'descripcion']}
+                    <DatatableDinamic 
+                        value={listaFrentes}
+                        exportable={true}
+                        showSearch={false}
                         loading={loading}
-                        onPage={onPage}
-                        first={lazyState.first}
-                        header={header}
-                        totalRecords={totalRecords}
                     >
-                        <Column field="codigo" header="Código" />
-                        <Column field="nombre" header="Nombre" />
-                        <Column field="descripcion" header="Descripción" />
+                        <Column field="codigo" header="Código" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="nombre" header="Nombre" sortable style={{ width: '140px', minWidth: '140px' }} />
+                        <Column field="descripcion" header="Descripción" sortable style={{ width: '200px', minWidth: '200px' }} />
                         <Column
                             header="SUBFRENTE"
                             body={botonSubFrentesTemplate}
-                            style={{ textAlign: 'center' }}
+                            style={{ textAlign: 'center', width: '100px', minWidth: '100px' }}
                         />
                         <Column
                             field="activo"
                             header="Estado"
+                            sortable
+                            style={{ width: '90px', minWidth: '90px' }}
                             body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
                         />
                         <Column
                             header="Acciones"
                             body={accionFrente}
+                            style={{ width: '80px', minWidth: '80px' }}
                         />
-                    </DatatableDefault>
+                    </DatatableDinamic>
                 </div>
             </div>
 
@@ -351,7 +330,7 @@ const Frentes = () => {
                 <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 15, marginTop: 10 }}>
                     <Boton
                         label="Crear Sub-Frente"
-                        style={{ fontSize: 12, borderRadius: 15 }}
+                        style={{ fontSize: 12, borderRadius: 8 }}
                         color="primary"
                         onClick={() => {
                             setParentFrenteId(selectedFrenteModal.id);

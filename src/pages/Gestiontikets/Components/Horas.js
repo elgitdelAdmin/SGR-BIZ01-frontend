@@ -2,6 +2,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
+import Boton from "../../../components/Boton/Boton";
 import { Calendar } from "primereact/calendar";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -437,9 +438,9 @@ const Horas = ({
         Total de horas:&nbsp;{totalHorasHHMM}
       </div>
 
-      <Button
+      <Boton
         label="Registrar"
-        severity="secondary"
+        color="secondary"
         type="button"
         disabled={addDisabledGate && delDisabledGate}
         onClick={() => {
@@ -452,13 +453,13 @@ const Horas = ({
 
   return (
     <>
-      <Button
+      <Boton
         label=""
         icon={iconBtn}
         onClick={() => setVisible(true)}
         disabled={false}
-        className="p-button-sm"
-        style={{ width: '42px', height: '35px', justifyContent: 'center' }}
+        color="primary"
+        style={{ width: '42px', height: '35px', justifyContent: 'center', minWidth: 'auto', borderRadius: '8px' }}
         type="button"
       />
 
@@ -577,10 +578,10 @@ const Horas = ({
             </div>
 
             <div className="mb-4">
-              <Button
+              <Boton
                 label="Añadir"
                 icon="pi pi-plus"
-                severity="success"
+                color="primary"
                 onClick={agregar}
                 type="button"
               />

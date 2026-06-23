@@ -1456,13 +1456,13 @@ const Editar = () => {
                         <div className="field col-12">
                           <label className="label-form">Repositorios</label>
 
-                          <Button
+                          <Boton
                             type="button"
                             className="w-full"
                             style={{ height: 46, justifyContent: "center" }}
                             label="Repositorios"
                             icon="pi pi-link"
-                            severity="secondary"
+                            color="secondary"
                             onClick={() => setVisibleRepos(true)}
                             disabled={permisosActual.controlesBloqueados.includes("btnRepositorios")}
                           />
@@ -1570,7 +1570,7 @@ const Editar = () => {
                 minWidth: "auto",
                 width: "fit-content",
                 whiteSpace: "nowrap",
-                borderRadius: 20,
+                borderRadius: 8,
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",

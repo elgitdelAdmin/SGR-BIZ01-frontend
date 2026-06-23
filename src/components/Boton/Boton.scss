@@ -1,30 +1,32 @@
+@import "../../styles/variables";
+
 .btnEd
 {
-    border-radius: 0;
+    border-radius: $radius-btn;
     font-weight: 600;
 }
 
 .btnEd-color-primary
 {
-     background-color: #404BD9;
+     background-color: $color-azul-vivo;
      cursor: pointer;
      color: #fff;
 }
 
 .btnEd-color-seconday
 {
-     background-color: #222222;
+     background-color: $color-azul-tonal;
      cursor: pointer;
-     color: #fff;
+     color: $color-azul-vivo;
 }
 
 
 .btnEd-color-primary:hover   {
-  background-color: #232ec7 !important;
+  background-color: darken($color-azul-vivo, 5%) !important;
 
 }
 
 .btnEd-color-seconday:hover   {
-  background: #000000 !important;
+  background-color: darken($color-azul-tonal, 5%) !important;
 
 }

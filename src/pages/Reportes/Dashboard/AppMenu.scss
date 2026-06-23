@@ -1,3 +1,5 @@
+@import "../../../styles/variables";
+
 .layout-sidebar {
     position: fixed;
     height: calc(100vh - 72px);
@@ -11,7 +13,7 @@
     transition: left 0.2s, -webkit-transform 0.2s;
     transition: transform 0.2s, left 0.2s;
     transition: transform 0.2s, left 0.2s, -webkit-transform 0.2s;
-    background-color: #2D5B97 !important;
+    background-color: $color-navy !important;
     padding: 1.5rem 0px 1.5rem 0px;
     box-shadow: 0px 3px 5px rgb(0 0 0 / 2%), 0px 0px 2px rgb(0 0 0 / 5%), 0px 1px 4px rgb(0 0 0 / 8%);
 }
@@ -27,7 +29,15 @@
 }
 .layout-menu li a.router-link-exact-active {
     font-weight: 700;
-    color: #fff;
+    color: $color-azul-vivo !important;
+    background-color: $color-azul-tonal !important;
+    border-left: 3px solid $color-azul-vivo !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    
+    i, svg {
+        color: $color-azul-vivo !important;
+    }
 }
 .menuitem-toggle-icon
 {

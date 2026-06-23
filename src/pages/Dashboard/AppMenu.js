@@ -72,15 +72,35 @@ const AppSubmenu = (props) => {
 
         if (item.to) {
             return (
-                // <NavLink aria-label={item.label} onKeyDown={onKeyDown} role="menuitem" className="p-ripple" activeClassName="router-link-active router-link-exact-active" to={item.to} onClick={(e) => onMenuItemClick(e, item, i)} exact target={item.target}>
-                <NavLink aria-label={item.label} onKeyDown={onKeyDown} role="menuitem"  className={({isActive})=>(isActive ? 'router-link-active router-link-exact-active' : 'p-ripple')} to={item.to} onClick={(e) => onMenuItemClick(e, item, i)} target={item.target}>
+                <NavLink 
+                    aria-label={item.label} 
+                    onKeyDown={onKeyDown} 
+                    role="menuitem"  
+                    className={({isActive})=>(isActive ? 'router-link-active router-link-exact-active' : 'p-ripple')} 
+                    to={item.to} 
+                    onClick={(e) => onMenuItemClick(e, item, i)} 
+                    target={item.target}
+                    onMouseEnter={(e) => props.onLinkMouseEnter && props.onLinkMouseEnter(e, item.label)}
+                    onMouseLeave={props.onLinkMouseLeave}
+                >
                     {content}
                 </NavLink>
             )
         }
         else {
             return (
-                <a tabIndex="0" aria-label={item.label} onKeyDown={onKeyDown} role="menuitem" href={item.url} className="p-ripple" onClick={(e) => onMenuItemClick(e, item, i)} target={item.target}>
+                <a 
+                    tabIndex="0" 
+                    aria-label={item.label} 
+                    onKeyDown={onKeyDown} 
+                    role="menuitem" 
+                    href={item.url} 
+                    className="p-ripple" 
+                    onClick={(e) => onMenuItemClick(e, item, i)} 
+                    target={item.target}
+                    onMouseEnter={(e) => props.onLinkMouseEnter && props.onLinkMouseEnter(e, item.label)}
+                    onMouseLeave={props.onLinkMouseLeave}
+                >
                     {content}
                 </a>
             );
@@ -97,7 +117,13 @@ const AppSubmenu = (props) => {
                 <li className={styleClass} key={i} role="none">
                     {props.root === true && <React.Fragment>
                         <div className="layout-menuitem-root-text" aria-label={item.label}>{item.label}</div>
-                        <AppSubmenu items={item.items} onMenuItemClick={props.onMenuItemClick} />
+                        <AppSubmenu 
+                            items={item.items} 
+                            onMenuItemClick={props.onMenuItemClick} 
+                            sidebarInactive={props.sidebarInactive}
+                            onLinkMouseEnter={props.onLinkMouseEnter}
+                            onLinkMouseLeave={props.onLinkMouseLeave}
+                        />
                     </React.Fragment>}
                 </li>
             );
@@ -109,7 +135,13 @@ const AppSubmenu = (props) => {
                     <li className={styleClass} key={i} role="none">
                         {renderLink(item, i)}
                         <CSSTransition classNames="layout-submenu-wrapper" timeout={{ enter: 1000, exit: 450 }} in={active} unmountOnExit>
-                            <AppSubmenu items={item.items} onMenuItemClick={props.onMenuItemClick} />
+                            <AppSubmenu 
+                                items={item.items} 
+                                onMenuItemClick={props.onMenuItemClick} 
+                                sidebarInactive={props.sidebarInactive}
+                                onLinkMouseEnter={props.onLinkMouseEnter}
+                                onLinkMouseLeave={props.onLinkMouseLeave}
+                            />
                         </CSSTransition>
                     </li>
                 );
@@ -276,40 +308,90 @@ export const AppMenu = (props) => {
 
 
 
-useEffect(() => {
-  const cargarMenu = async () => {
-    const data = await ObtenerMenu();
-   console.log(data)
+  useEffect(() => {
+    const cargarMenu = async () => {
+      const data = await ObtenerMenu();
+      console.log(data);
 
-    const permisosPorRuta = {};
-    const formattedMenuItems = data.menu.map((item) => {
-      permisosPorRuta[item.ruta] = {
-        divsOcultos: item.divsOcultos || [],
-        controlesBloqueados: item.controlesBloqueados || [],
-        controlesOcultos: item.controlesOcultos || [],
-        divsBloqueados:item.divsBloqueados || [],
-      };
-      return {
-        label: item.nombre,
-        icon: <Iconsax.Grid7 set="light" />,
-         to: item.ruta.includes("tickets") ? `${item.ruta}/user/${idUser}/rol/${codRol}` : item.ruta,
-        visible: true,
-        permiso: "verHome"
-      };
-    });
+      let menuData = data && data.menu ? [...data.menu] : [];
 
-    seMenuZegel([{ label: "", items: formattedMenuItems }]);
-    setPermisos(permisosPorRuta); 
-  };
+      // Ordenar por Id ascendente
+      menuData.sort((a, b) => a.id - b.id);
 
-  cargarMenu();
-}, []);
+      const permisosPorRuta = {};
+      const formattedMenuItems = menuData.map((item) => {
+        permisosPorRuta[item.ruta] = {
+          divsOcultos: item.divsOcultos || [],
+          controlesBloqueados: item.controlesBloqueados || [],
+          controlesOcultos: item.controlesOcultos || [],
+          divsBloqueados: item.divsBloqueados || [],
+        };
+
+        // Resolver el componente de ícono dinámicamente desde Iconsax usando la base de datos
+        const IconComponent = Iconsax[item.icono] || Iconsax.Grid7;
+
+        return {
+          label: item.nombre,
+          icon: <IconComponent set="light" />,
+          to: item.ruta.includes("tickets") ? `${item.ruta}/user/${idUser}/rol/${codRol}` : item.ruta,
+          visible: true,
+          permiso: "verHome"
+        };
+      });
+
+      seMenuZegel([{ label: "", items: formattedMenuItems }]);
+      setPermisos(permisosPorRuta); 
+    };
+
+    cargarMenu();
+  }, []);
 
     
+    const [tooltip, setTooltip] = useState({ text: "", x: 0, y: 0, visible: false });
+
+    const handleMouseEnter = (e, text) => {
+        if (!props.sidebarInactive) return; // Only show tooltip when sidebar is minimized
+        if (!text) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        
+        let x = rect.right;
+        let y = rect.top + rect.height / 2;
+
+        setTooltip({
+            text,
+            x,
+            y,
+            visible: true
+        });
+    };
+
+    const handleMouseLeave = () => {
+        setTooltip(prev => ({ ...prev, visible: false }));
+    };
+
     return ( 
         <div className="layout-menu-container">
-            <AppSubmenu items={menuZegel} className="layout-menu"  onMenuItemClick={props.onMenuItemClick} root={true} role="menu" />
-            
+            <AppSubmenu 
+                items={menuZegel} 
+                className="layout-menu"  
+                onMenuItemClick={props.onMenuItemClick} 
+                root={true} 
+                role="menu" 
+                sidebarInactive={props.sidebarInactive}
+                onLinkMouseEnter={handleMouseEnter}
+                onLinkMouseLeave={handleMouseLeave}
+            />
+            {tooltip.visible && (
+                <div
+                    className="custom-self-designed-tooltip sidebar-tooltip"
+                    style={{
+                        left: `${tooltip.x}px`,
+                        top: `${tooltip.y}px`,
+                    }}
+                >
+                    {tooltip.text}
+                </div>
+            )}
         </div>
     );
 }

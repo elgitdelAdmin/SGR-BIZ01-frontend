@@ -527,7 +527,7 @@ export default function Login() {
                                 <Button
                                     label="Enviar código"
                                     type="submit"
-                                    style={{ background: "#404BD9", border: "none" }}
+                                    style={{ background: "#0e71ae", border: "none" }}
                                     loading={formikEmail.isSubmitting}
                                 />
                             </div>
@@ -584,7 +584,7 @@ export default function Login() {
                                         handleReenviarCodigo();
                                     }}
                                     style={{
-                                        color: '#404BD9',
+                                        color: '#0e71ae',
                                         textDecoration: 'none',
                                         fontSize: '13px',
                                         fontWeight: '500'
@@ -605,7 +605,7 @@ export default function Login() {
                                 <Button
                                     label="Verificar"
                                     type="submit"
-                                    style={{ background: "#404BD9", border: "none" }}
+                                    style={{ background: "#0e71ae", border: "none" }}
                                     loading={formikCodigo.isSubmitting}
                                 />
                             </div>
@@ -757,7 +757,7 @@ export default function Login() {
                                 <Button
                                     label="Cambiar contraseña"
                                     type="submit"
-                                    style={{ background: "#404BD9", border: "none" }}
+                                    style={{ background: "#0e71ae", border: "none" }}
                                     loading={formikNuevaPassword.isSubmitting}
                                 />
                             </div>

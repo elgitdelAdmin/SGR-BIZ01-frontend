@@ -1,10 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+@import "../../styles/variables";
 
-// Colors
-$color-navy: #2e4878;
-$color-azul-vivo: #0e71ae;
-$color-gris-acero: #9198a7;
-$color-indigo: #0e71ae;
+// Colors (Login specific overrides if any, otherwise using globals)
 $color-error: #e0383d;
 $color-icon-bg: #e3f0f8;
 $color-icon-error-bg: #fdeaea;
@@ -297,9 +294,9 @@ $color-icon-error-bg: #fdeaea;
 .login-btn {
   width: 100% !important;
   height: 44px !important;
-  background-color: $color-indigo !important;
+  background-color: $color-azul-vivo !important;
   border: none !important;
-  border-radius: 12px !important;
+  border-radius: $radius-pill !important;
   color: #ffffff !important;
   font-weight: 600 !important;
   font-size: 14px !important;

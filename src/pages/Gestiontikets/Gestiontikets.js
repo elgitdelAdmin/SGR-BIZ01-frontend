@@ -66,6 +66,8 @@ const Gestiontikets = () => {
     };
     const toast = useRef(null);
 
+    // ── Tooltip personalizado diseñado por nosotros ─────────────────
+
     // ── Cargar parámetros (solo una vez) ──────────────────────────────
     useEffect(() => {
         const getParametro = async () => {
@@ -214,7 +216,7 @@ const Gestiontikets = () => {
                                 </label>
                                 <MultiSelect
                                     id="estados"
-                                    value={estadosSeleccionados}
+                                    value={parametros.length > 0 ? estadosSeleccionados : []}
                                     options={parametros}
                                     optionLabel="nombre"
                                     optionValue="id"
@@ -234,15 +236,15 @@ const Gestiontikets = () => {
                                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                                         <Boton
                                             icon="pi pi-plus"
-                                            style={{ fontSize: 15, borderRadius: 15 }}
+                                            style={{ fontSize: 15, borderRadius: 8 }}
                                             color="primary"
                                             onClick={() => navigate("Crear/")}
                                         />
-                                        { !permisosActual.controlesOcultos.includes("BtnMdlMigracionSgr") && (
+                                        {!permisosActual.controlesOcultos.includes("BtnMdlMigracionSgr") && (
                                             <Boton
                                                 id="BtnMdlMigracionSgr"
                                                 icon="pi pi-sync"
-                                                style={{ fontSize: 15, borderRadius: 15 }}
+                                                style={{ fontSize: 15, borderRadius: 8 }}
                                                 color="primary"
                                                 onClick={() => setDisplayDialogSync(true)}
                                                 tooltip="Sincronizar Ticket desde SGR"
@@ -262,6 +264,8 @@ const Gestiontikets = () => {
                         loading={loading}
                         dataKey="id"
                         actionBody={accion}
+                        actionHeader="Acciones"
+                        actionWidth="75px"
                         serverSide={true}
                         totalRecords={totalRecords}
                         onPageChange={handlePageChange}
@@ -272,74 +276,90 @@ const Gestiontikets = () => {
                         sortField={sortField}
                         sortOrder={sortOrder}
                     >
-                        <Column field="codTicket" header={<div>Codigo Ticket <br />Conecta</div>} sortable style={{ width: '130px', minWidth: '180px' }} />
-                        <Column field="codTicketInterno" header="Codigo Interno" sortable style={{ width: '110px', minWidth: '130px' }} />
-                        <Column field="titulo" header="Titulo" sortable style={{ width: '350px', minWidth: '350px' }} />
-
+                        <Column field="codTicket" header={<div>Cód. Conecta</div>} sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="codTicketInterno" header="Cód. Interno" sortable style={{ width: '100px', minWidth: '100px' }} />
                         <Column
                             field="fechaSolicitud"
-                            header="Fecha de Solicitud"
+                            header="F. Solicitud"
                             sortable
-                            style={{ width: '170px', minWidth: '170px' }}
+                            style={{ width: '90px', minWidth: '90px' }}
                             body={(rowData) => {
                                 const fecha = rowData?.fechaSolicitud;
                                 if (!fecha) return '';
-                                return fecha.replace('T', ' / ').split('.')[0];
+                                return fecha.split('T')[0];
                             }}
                         />
-
                         <Column
                             field="estadoNombre"
                             header="Estado"
                             sortable
-                            style={{ width: '140px', minWidth: '140px' }}
+                            style={{ width: '120px', minWidth: '120px' }}
+                        />
+                        <Column field="empresaRazonSocial" header="Empresa" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="nombreGestor" header="Gestor" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="nombreConsultores" header="Consultores" sortable style={{ width: '140px', minWidth: '140px' }} />
+                        <Column
+                            field="horasTrabajadas"
+                            header="Hrs. T"
+                            sortable
+                            style={{ width: '55px', minWidth: '55px' }}
+                            bodyStyle={{ textAlign: 'center' }}
+                            headerClassName="centered-column-header"
+                            className="centered-column-body"
                         />
                         <Column
-                            field="prioridadNombre"
-                            header="Prioridad"
+                            field="horasPlanificadas"
+                            header="Hrs. P"
                             sortable
-                            style={{ width: '140px', minWidth: '140px' }}
+                            style={{ width: '55px', minWidth: '55px' }}
+                            bodyStyle={{ textAlign: 'center' }}
+                            headerClassName="centered-column-header"
+                            className="centered-column-body"
+                            body={(rowData) => rowData.horasPlanificadas ?? '-'}
                         />
-                        <Column field="empresaRazonSocial" header="Empresa" sortable style={{ width: '150px', minWidth: '150px' }} />
-                        <Column field="nombreGestor" header="Gestor" sortable style={{ width: '150px', minWidth: '150px' }} />
-                        <Column field="nombreConsultores" header="Consultores" sortable style={{ width: '180px', minWidth: '180px' }} />
-                        <Column field="horasTrabajadas" header={<div>Horas <br />Trabajadas</div>} sortable style={{ width: '100px', minWidth: '100px' }} />
-                        <Column field="horasPlanificadas" header={<div>Horas <br />Planificadas</div>} body={(rowData) => rowData.horasPlanificadas ?? '-'} sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column
+                            field="titulo"
+                            header="Titulo"
+                            sortable
+                            style={{ minWidth: '250px' }}
+                        />
                     </DatatableDinamic>
 
                 </div>
             </div>
 
-            <Dialog header="Sincronizar Ticket" visible={displayDialogSync} style={{ width: '10vw', minWidth: '350px' }} 
+            <Dialog header="Sincronizar Ticket" visible={displayDialogSync} style={{ width: '10vw', minWidth: '350px' }}
                 onHide={() => { setDisplayDialogSync(false); setCodTicketInterno(""); }}>
                 <div>
                     <div className="field p-fluid">
                         <label htmlFor="codigoInterno">Código de Ticket (Ej. CAD-2020-0073)</label>
-                        <InputText 
-                            id="codigoInterno" 
-                            value={codTicketInterno} 
-                            onChange={(e) => setCodTicketInterno(e.target.value)} 
+                        <InputText
+                            id="codigoInterno"
+                            value={codTicketInterno}
+                            onChange={(e) => setCodTicketInterno(e.target.value)}
                             disabled={loadingSync}
                             autoFocus
                         />
                     </div>
                     <div className="flex justify-content-end mt-3" style={{ gap: "10px" }}>
-                        <Boton 
-                            label="Cancelar" 
-                            color="secondary" 
-                            onClick={() => { setDisplayDialogSync(false); setCodTicketInterno(""); }} 
+                        <Boton
+                            label="Cancelar"
+                            color="secondary"
+                            onClick={() => { setDisplayDialogSync(false); setCodTicketInterno(""); }}
                             disabled={loadingSync}
                         />
-                        <Boton 
-                            label={loadingSync ? "Sincronizando..." : "Sincronizar"} 
-                            color="primary" 
+                        <Boton
+                            label={loadingSync ? "Sincronizando..." : "Sincronizar"}
+                            color="primary"
                             icon={loadingSync ? "pi pi-spin pi-spinner" : "pi pi-sync"}
-                            onClick={handleSyncTicket} 
+                            onClick={handleSyncTicket}
                             disabled={loadingSync}
                         />
                     </div>
                 </div>
             </Dialog>
+
+
 
         </div>
     );

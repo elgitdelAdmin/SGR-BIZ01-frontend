@@ -163,9 +163,10 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
   };
   const footer = (
     <div className="flex gap-2 justify-end" style={{ float: "right" }}>
-      <Button
+      <Boton
         label="Crear Usuario"
         icon="pi pi-user-plus"
+        color="primary"
         onClick={() => {
           window.open("/usuarios/CrearUsuario/", "_blank"); // abre en nueva pestaña
           setShowModal(false);
@@ -620,7 +621,8 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 <Boton
                 type="button"
                 label="Buscar"
-                style={{ fontSize: 13, borderRadius: 15 }}
+                color="secondary"
+                style={{ fontSize: 13, borderRadius: 8 }}
                 onClick={handleBuscar}
               />
 

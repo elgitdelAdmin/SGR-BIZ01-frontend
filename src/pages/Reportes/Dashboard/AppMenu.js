@@ -276,34 +276,43 @@ export const AppMenu = (props) => {
 
 
 
-useEffect(() => {
-  const cargarMenu = async () => {
-    const data = await ObtenerMenu();
-   console.log(data)
+  useEffect(() => {
+    const cargarMenu = async () => {
+      const data = await ObtenerMenu();
+      console.log(data);
 
-    const permisosPorRuta = {};
-    const formattedMenuItems = data.menu.map((item) => {
-      permisosPorRuta[item.ruta] = {
-        divsOcultos: item.divsOcultos || [],
-        controlesBloqueados: item.controlesBloqueados || [],
-        controlesOcultos: item.controlesOcultos || [],
-        divsBloqueados:item.divsBloqueados || [],
-      };
-      return {
-        label: item.nombre,
-        icon: <Iconsax.Grid7 set="light" />,
-         to: item.ruta.includes("tickets") ? `${item.ruta}/user/${idUser}/rol/${codRol}` : item.ruta,
-        visible: true,
-        permiso: "verHome"
-      };
-    });
+      let menuData = data && data.menu ? [...data.menu] : [];
 
-    seMenuZegel([{ label: "", items: formattedMenuItems }]);
-    setPermisos(permisosPorRuta); 
-  };
+      // Ordenar por Id ascendente
+      menuData.sort((a, b) => a.id - b.id);
 
-  cargarMenu();
-}, []);
+      const permisosPorRuta = {};
+      const formattedMenuItems = menuData.map((item) => {
+        permisosPorRuta[item.ruta] = {
+          divsOcultos: item.divsOcultos || [],
+          controlesBloqueados: item.controlesBloqueados || [],
+          controlesOcultos: item.controlesOcultos || [],
+          divsBloqueados: item.divsBloqueados || [],
+        };
+
+        // Resolver el componente de ícono dinámicamente desde Iconsax usando la base de datos
+        const IconComponent = Iconsax[item.icono] || Iconsax.Grid7;
+
+        return {
+          label: item.nombre,
+          icon: <IconComponent set="light" />,
+          to: item.ruta.includes("tickets") ? `${item.ruta}/user/${idUser}/rol/${codRol}` : item.ruta,
+          visible: true,
+          permiso: "verHome"
+        };
+      });
+
+      seMenuZegel([{ label: "", items: formattedMenuItems }]);
+      setPermisos(permisosPorRuta); 
+    };
+
+    cargarMenu();
+  }, []);
 
     
     return ( 
