@@ -12,6 +12,7 @@ import { TIPO_PARAMETRO, CODIGOS } from "../../../constants/codigosBD";
 import { ListarConsultores, ListarConsultoresPorSocio } from "../../../service/ConsultorService";
 import { ListarEmpresas, ListarEmpresasPorSocio } from "../../../service/EmpresaService";
 import { ListarTicket } from "../../../service/TiketService";
+import "./DashboardCargabilidadConsultor.scss";
 
 const arraysEqual = (a, b) => {
     if (a === b) return true;
@@ -201,7 +202,7 @@ const DashboardCargabilidadConsultor = () => {
     }, [tickets, deferredConsultores, deferredEmpresas, deferredTickets]);
 
     return (
-        <div className="zv-usuario" style={{ paddingTop: 16 }}>
+        <div className="zv-dashboard-cargabilidad" style={{ paddingTop: 16 }}>
             <ConfirmDialog />
             <Toast position="top-center"></Toast>
             <div className="header-titulo">Dashboard</div>
@@ -318,8 +319,8 @@ const DashboardCargabilidadConsultor = () => {
 
                 {parametros && parametros.length > 0 && !loading && !isFiltering && !error && ticketsFiltrados.length > 0 && (
                     <>
-                        <div style={{ marginBottom: "16px", fontSize: "14px", fontWeight: "600", color: "#4b5563", display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#3b82f6" }}></span>
+                        <div className="ticket-count-label">
+                            <span className="indicator-dot"></span>
                             Mostrando {ticketsFiltrados.length} {ticketsFiltrados.length === 1 ? "ticket" : "tickets"} de {tickets.length} en total
                         </div>
                         <div style={{

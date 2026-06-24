@@ -11,10 +11,10 @@ const formatDate = (dateString) => {
 
 const getSemaforoColor = (colorStr) => {
     switch ((colorStr || "").toUpperCase()) {
-        case "ROJO": return "#e53935";
-        case "VERDE": return "#4caf50";
-        case "AMARILLO": return "#ffb300";
-        default: return "#aaaaaa";
+        case "ROJO": return "#dd4b39";     // $color-rojo-eliminar
+        case "VERDE": return "#1d9e75";    // $color-verde-activo
+        case "AMARILLO": return "#ffb300"; // amber/yellow
+        default: return "#9198a7";         // $color-gris-acero
     }
 };
 
@@ -87,11 +87,11 @@ const ExpandableCard = ({ ticket }) => {
                 <span className="expandable-card__title">{headerLabel}</span>
                 <div
                     title={detallesPlanificacion.length > 0 ? "Con planificación" : "Sin planificación"}
-                    style={{
+                style={{
                         width: 22,
                         height: 22,
                         borderRadius: '50%',
-                        backgroundColor: detallesPlanificacion.length > 0 ? '#4caf50' : '#e53935',
+                        backgroundColor: detallesPlanificacion.length > 0 ? '#1d9e75' : '#dd4b39',
                         border: '3px solid rgba(255,255,255,0.7)',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                         flexShrink: 0,

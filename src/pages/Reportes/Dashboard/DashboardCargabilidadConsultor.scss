@@ -1,0 +1,45 @@
+@import "../../../styles/variables";
+
+.zv-dashboard-cargabilidad {
+    .header-titulo {
+        font-size: 28px; // font-h1
+        font-weight: 700;
+        color: $color-navy;
+        font-family: $font-family-display;
+    }
+
+    .card {
+        background: #ffffff;
+        padding: 2rem;
+        border-radius: $radius-btn;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .label-form, label {
+        font-family: $font-family-body;
+        font-size: 13px; // font-label
+        font-weight: 600;
+        color: $color-navy;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .ticket-count-label {
+        font-family: $font-family-body;
+        font-size: 14px; // font-body
+        font-weight: 600;
+        color: $color-gris-acero;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+
+        .indicator-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: $color-azul-vivo;
+        }
+    }
+}

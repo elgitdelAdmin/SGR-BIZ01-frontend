@@ -333,7 +333,7 @@ const Reportes = () => {
                                     />
                                     <Boton
                                         icon="pi pi-list"
-                                        className="p-button-primary"
+                                        color="primary"
                                         onClick={() => setMostrarModalTickets(true)}
                                         tooltip="Gestionar Selección"
                                     />
@@ -444,11 +444,11 @@ const Reportes = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-content-end gap-2" style={{ marginTop: 16 }}>
+                <div className="flex justify-content-end" style={{ marginTop: 16, display: 'flex', gap: '12px' }}>
                     <Boton
                         label="Buscar"
                         icon="pi pi-search"
-                        className="p-button-secondary"
+                        color="secondary"
                         loading={loadingBusqueda}
                         disabled={!tipoReporteSeleccionado || !fechasValidas || loadingBusqueda || loadingExcel}
                         onClick={handleBuscarReporte}
