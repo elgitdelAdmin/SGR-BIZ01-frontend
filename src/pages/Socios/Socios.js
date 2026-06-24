@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState ,useRef} from "react";
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
-import DatatableDefault from "../../components/Datatable/DatatableDefault";
+import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Socios.scss"
@@ -56,50 +56,23 @@ const Gestores = () => {
     let networkTimeout = null;
 
     useEffect(() => {
-    loadLazyData();
-    }, [lazyState, globalFilterValue]);
+        loadLazyData();
+    }, []);
 
-
-const loadLazyData = () => {
-    if (networkTimeout) clearTimeout(networkTimeout);
-
-    networkTimeout = setTimeout(() => {
+    const loadLazyData = () => {
         setLoading(true);
-         ListarSocios()
+        ListarSocios()
             .then((data) => {
-                setTotalRecords(data.length);
-                const pageNumber = lazyState?.page ?? 0;
-                const pageSize = lazyState?.rows ?? 10;
-                const start = pageNumber * pageSize;
-                const end = start + pageSize;
-                let filteredData = data;
-               if (globalFilterValue) {
-                const search = globalFilterValue.toLowerCase();
-                filteredData = data.filter(socio =>
-                    socio.razonSocial?.toLowerCase().includes(search) ||
-                    socio.codigo?.toLowerCase().includes(search) ||
-                    socio.nombre?.toLowerCase().includes(search) ||
-                    socio.nombreComercial?.toLowerCase().includes(search) ||
-                    socio.numDocContribuyente?.toString().includes(search) ||
-                    socio.direccion?.toLowerCase().includes(search) ||
-                    socio.telefono1?.toString().includes(search) ||
-                    socio.telefono2?.toString().includes(search) ||
-                    socio.email?.toLowerCase().includes(search)
-                );
-            }
-
-               
-                filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
-                const paginatedData = filteredData.slice(start, end);
-                setListaSociosTotal(paginatedData);
+                // 🔹 ordenar
+                data.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
+                setListaPersonas(data);
                 setLoading(false);
             })
             .catch((error) => {
-                console.error("Error al cargar tickets:", error);
+                console.error("Error al cargar socios:", error);
                 setLoading(false);
             });
-    }, Math.random() * 1000 + 250);
-};
+    };
 
     // const onPage = (event) => {
     //     setlazyState(event);
@@ -240,7 +213,7 @@ const loadLazyData = () => {
                                  <div style={{ marginLeft: "auto" }}>
                                      <Boton
                                      label="Crear Socio"
-                                     style={{ fontSize: 12,borderRadius:15 }}
+                                     style={{ fontSize: 12,borderRadius:8 }}
                                      color="primary"
                                      onClick = {()=>navigate("CrearSocio/")}
                                      ></Boton>
@@ -248,45 +221,33 @@ const loadLazyData = () => {
                              </div>                        
                      </div>
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        <DatatableDefault value={listaPersonas} 
-                            lazy
-                            globalFilterFields={[
-                                    'razonSocial',
-                                    'codigo',
-                                    'nombre',
-                                    'nombreComercial',
-                                    'numDocContribuyente',
-                                    'direccion',
-                                    'telefono1',
-                                    'telefono2',
-                                    'email'
-                                ]}                            
+                        <DatatableDinamic
+                            value={listaPersonas}
+                            exportable={true}
                             loading={loading}
-                            onPage={onPage}
-                            first={lazyState.first}
-                            header = {header}
-                            totalRecords ={totalRecords}
-                            // resizableColumns columnResizeMode="expand"
                         >
-                            <Column field="razonSocial" header="Razon Social" />
-                            <Column field="codigo" header="Codigo" />
-                            <Column field="nombre" header="Nombre" />
-                            <Column field="nombreComercial" header="Nombre Comercial" />
-                            <Column field="numDocContribuyente" header="N° Documento Contribuyente" />
-                            <Column field="direccion" header="Direccion" />
-                            <Column field="telefono1" header="Telefono 1" />
-                            <Column field="telefono2" header="Telefono 2" />
-                            <Column field="email" header="Email" />
+                            <Column field="razonSocial" header="Razon Social" sortable style={{ width: '130px', minWidth: '130px' }} />
+                            <Column field="codigo" header="Codigo" sortable style={{ width: '90px', minWidth: '90px' }} />
+                            <Column field="nombre" header="Nombre" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="nombreComercial" header="Nombre Comercial" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="numDocContribuyente" header="N° Documento Contribuyente" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="direccion" header="Direccion" sortable style={{ width: '150px', minWidth: '150px' }} />
+                            <Column field="telefono1" header="Telefono 1" sortable style={{ width: '100px', minWidth: '100px' }} />
+                            <Column field="telefono2" header="Telefono 2" sortable style={{ width: '100px', minWidth: '100px' }} />
+                            <Column field="email" header="Email" sortable style={{ width: '140px', minWidth: '140px' }} />
                             <Column
                                 field="activo"
                                 header="Estado"
+                                sortable
+                                style={{ width: '90px', minWidth: '90px' }}
                                 body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
                             />
                             <Column
                                 header="Acciones"
-                                body={accion} 
+                                body={accion}
+                                style={{ width: '80px', minWidth: '80px' }}
                             />
-                        </DatatableDefault>
+                        </DatatableDinamic>
                        
                     </div>
             </div>

@@ -214,8 +214,8 @@ const Reportes = () => {
                                     style={{
                                         width: '28px', height: '28px',
                                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                        border: 'none', cursor: 'pointer', borderRadius: '50%',
-                                        background: '#6366f1', color: '#fff', flexShrink: 0
+                                        border: 'none', cursor: 'pointer', borderRadius: '8px',
+                                        background: '#0e71ae', color: '#fff', flexShrink: 0
                                     }}
                                     onClick={() => handleVerCargabilidad(rowData)}
                                     title="Ver Cargabilidad"
@@ -333,7 +333,7 @@ const Reportes = () => {
                                     />
                                     <Boton
                                         icon="pi pi-list"
-                                        className="p-button-primary"
+                                        color="primary"
                                         onClick={() => setMostrarModalTickets(true)}
                                         tooltip="Gestionar Selección"
                                     />
@@ -444,11 +444,11 @@ const Reportes = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-content-end gap-2" style={{ marginTop: 16 }}>
+                <div className="flex justify-content-end" style={{ marginTop: 16, display: 'flex', gap: '12px' }}>
                     <Boton
                         label="Buscar"
                         icon="pi pi-search"
-                        className="p-button-secondary"
+                        color="secondary"
                         loading={loadingBusqueda}
                         disabled={!tipoReporteSeleccionado || !fechasValidas || loadingBusqueda || loadingExcel}
                         onClick={handleBuscarReporte}
@@ -486,9 +486,9 @@ const Reportes = () => {
                             emptyMessage="No se encontraron registros."
                         />
                     ) : (
-                        <div className="text-center p-5 surface-50 border-round">
-                            <i className="pi pi-info-circle text-4xl text-400 mb-3 block"></i>
-                            <p className="text-600 m-0">
+                        <div className="reportes-empty-state">
+                            <i className="pi pi-info-circle empty-icon"></i>
+                            <p className="empty-text">
                                 {loadingBusqueda
                                     ? "Cargando datos..."
                                     : "Seleccione los filtros y haga clic en 'Buscar' para previsualizar los resultados."}

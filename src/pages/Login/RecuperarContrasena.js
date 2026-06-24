@@ -100,8 +100,8 @@ export default function RecuperarContrasena() {
                         style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}
                         onClick={() => navigate(-1)}
                       >
-                        <Iconsax.ArrowLeft size={24} color="#404BD9" />
-                        <span style={{ marginLeft: "8px", color: "#404BD9", fontSize: "14px" }}>
+                        <Iconsax.ArrowLeft size={24} color="#0e71ae" />
+                        <span style={{ marginLeft: "8px", color: "#0e71ae", fontSize: "14px" }}>
                           Volver al inicio de sesión
                         </span>
                       </span>
@@ -197,11 +197,11 @@ export default function RecuperarContrasena() {
                           <Button
                             label="Enviar enlace de recuperación"
                             style={{
-                              background: "#404BD9",
+                              background: "#0e71ae",
                               fontSize: 14,
                               width: "100%",
                               height: 50,
-                              borderRadius: 6,
+                              borderRadius: 8,
                               border: "none",
                             }}
                             loading={isSubmitting}
@@ -244,11 +244,11 @@ export default function RecuperarContrasena() {
                           <Button
                             label="Volver al inicio de sesión"
                             style={{
-                              background: "#404BD9",
+                              background: "#0e71ae",
                               fontSize: 14,
                               width: "100%",
                               height: 50,
-                              borderRadius: 6,
+                              borderRadius: 8,
                               border: "none",
                             }}
                             onClick={() => navigate(-1)}

@@ -259,6 +259,7 @@ function App() {
             model={[]}
             onMenuItemClick={onMenuItemClick}
             layoutColorMode={layoutColorMode}
+            sidebarInactive={staticMenuInactive}
           />
         </div>
         <div className="layout-main-container">

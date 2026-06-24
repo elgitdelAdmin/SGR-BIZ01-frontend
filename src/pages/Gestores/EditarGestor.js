@@ -708,7 +708,8 @@ useEffect(() => {
               <Boton
               type="button"
               label="Agregar especialización"
-              style={{ fontSize: 13, borderRadius: 15 }}
+              color="primary"
+              style={{ fontSize: 13, borderRadius: 8 }}
               onClick={() => {
                 const nueva = formik.values.nuevaEspecializacion;
 

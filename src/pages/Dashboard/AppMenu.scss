@@ -1,3 +1,5 @@
+@import "../../styles/variables";
+
 .layout-sidebar {
     position: fixed;
     height: calc(100vh - 72px);
@@ -7,13 +9,26 @@
     -webkit-user-select: none;
     user-select: none;
     top: 72px;
-    //left: 2rem;
-    transition: left 0.2s, -webkit-transform 0.2s;
-    transition: transform 0.2s, left 0.2s;
-    transition: transform 0.2s, left 0.2s, -webkit-transform 0.2s;
-    background-color: #2D5B97 !important;
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), left 0.2s;
+    background: linear-gradient(180deg, #2e4878 0%, #1e3052 100%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
     padding: 1.5rem 0px 1.5rem 0px;
     box-shadow: 0px 3px 5px rgb(0 0 0 / 2%), 0px 0px 2px rgb(0 0 0 / 5%), 0px 1px 4px rgb(0 0 0 / 8%);
+
+    /* Premium custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 3px;
+        &:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    }
 }
 .layout-menu {
     list-style-type: none;
@@ -27,7 +42,15 @@
 }
 .layout-menu li a.router-link-exact-active {
     font-weight: 700;
-    color: #fff;
+    color: $color-azul-vivo !important;
+    background-color: $color-azul-tonal !important;
+    border-left: 3px solid $color-azul-vivo !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    
+    i, svg {
+        color: $color-azul-vivo !important;
+    }
 }
 .menuitem-toggle-icon
 {
@@ -48,10 +71,14 @@
     display: flex;
     align-items: center;
     color: #fff;
-    transition: color 0.2s;
     border-radius: 12px;
     padding: 0.75rem 1rem;
-    transition: background-color 0.15s;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        color: #ffffff !important;
+    }
 }
 .layout-topbar-button {
     display: inline-flex;
@@ -67,10 +94,56 @@
 }
 @media (min-width: 992px)
 {
+    /* Override standard behaviour to keep a slim sidebar visible when inactive */
     .layout-wrapper.layout-static.layout-static-sidebar-inactive .layout-sidebar {
-        -webkit-transform: translateX(-100%);
-        transform: translateX(-100%);
-        left: 0;
+        -webkit-transform: none !important;
+        transform: none !important;
+        width: 75px !important;
+        left: 0 !important;
+        overflow-x: hidden !important;
+    }
+
+    /* Shift main container to leave exactly 75px margin for the collapsed sidebar */
+    .layout-wrapper.layout-static.layout-static-sidebar-inactive .layout-main-container {
+        margin-left: 75px !important;
+        padding-left: 2rem !important;
+        transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    /* Collapsed sidebar menu adjustments */
+    .layout-wrapper.layout-static.layout-static-sidebar-inactive {
+        .layout-menuitem-root-text {
+            display: none !important;
+        }
+
+        .layout-menu li a span {
+            display: none !important;
+        }
+
+        .menuitem-toggle-icon {
+            display: none !important;
+        }
+
+        .layout-menu li a {
+            justify-content: center !important;
+            padding: 0.75rem 0 !important;
+            border-radius: 0 !important;
+            border-left: 3px solid transparent;
+
+            i, svg {
+                margin: 0 !important;
+                font-size: 20px !important;
+            }
+        }
+
+        .layout-menu li a.router-link-exact-active {
+            border-left: 3px solid $color-azul-vivo !important;
+        }
+    }
+    
+    /* Make sure normal layout wrapper has smooth transition for the main container */
+    .layout-wrapper.layout-static .layout-main-container {
+        transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 }
 

@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
-import DatatableDefaultNew from "../../components/Datatable/DatatableDefaultNew";
+import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Usuarios.scss"
@@ -56,64 +56,32 @@ const Gestores = () => {
 
     useEffect(() => {
         loadLazyData();
-    }, [lazyState, globalFilterValue]);
+    }, []);
 
     const loadLazyData = () => {
-        if (networkTimeout) clearTimeout(networkTimeout);
+        setLoading(true);
 
-        networkTimeout = setTimeout(() => {
-            setLoading(true);
+        const fetchFunction =
+            codRol === "SUPERADMIN"
+                ? ListarUsuarios
+                : ListarUsuariosPorSocio;
 
-            const fetchFunction =
-                codRol === "SUPERADMIN"
-                    ? ListarUsuarios
-                    : ListarUsuariosPorSocio;
-
-            fetchFunction()
-                .then((data) => {
-                    let filteredData = data;
-
-                    // 🔹 filtro global
-                    if (globalFilterValue) {
-                        const search = globalFilterValue.toLowerCase();
-                        filteredData = filteredData.filter(usuario =>
-                            usuario.persona?.nombres?.toLowerCase().includes(search) ||
-                            usuario.persona?.apellidoPaterno?.toLowerCase().includes(search) ||
-                            usuario.persona?.apellidoMaterno?.toLowerCase().includes(search) ||
-                            usuario.persona?.numeroDocumento?.toLowerCase().includes(search) ||
-                            usuario.username?.toLowerCase().includes(search) ||
-                            usuario.persona?.correo?.toLowerCase().includes(search) ||
-                            usuario.rol?.nombre?.toLowerCase().includes(search) ||
-                            usuario.socio?.nombreComercial?.toLowerCase().includes(search)
-                        );
-                    }
-
-                    // 🔹 ordenar
-                    filteredData.sort((a, b) => {
-                        const fechaA = new Date(a.persona?.fechaCreacion);
-                        const fechaB = new Date(b.persona?.fechaCreacion);
-                        return fechaB - fechaA;
-                    });
-
-                    // 🔹 guardar TODO
-                    setListaPersonasTotal(filteredData);
-                    setTotalRecords(filteredData.length);
-
-                    // 🔹 paginar SOLO lo visible
-                    const pageNumber = lazyState?.page ?? 0;
-                    const pageSize = lazyState?.rows ?? 10;
-                    const start = pageNumber * pageSize;
-                    const end = start + pageSize;
-
-                    setListaPersonas(filteredData.slice(start, end));
-
-                    setLoading(false);
-                })
-                .catch((error) => {
-                    console.error("Error al cargar usuarios:", error);
-                    setLoading(false);
+        fetchFunction()
+            .then((data) => {
+                // 🔹 ordenar
+                data.sort((a, b) => {
+                    const fechaA = new Date(a.persona?.fechaCreacion);
+                    const fechaB = new Date(b.persona?.fechaCreacion);
+                    return fechaB - fechaA;
                 });
-        }, Math.random() * 1000 + 250);
+
+                setListaPersonas(data);
+                setLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error al cargar usuarios:", error);
+                setLoading(false);
+            });
     };
 
     // const loadLazyData = () => {
@@ -309,7 +277,7 @@ const Gestores = () => {
                         <div style={{ marginLeft: "auto" }}>
                             <Boton
                                 label="Crear Usuario"
-                                style={{ fontSize: 12, borderRadius: 15 }}
+                                style={{ fontSize: 12, borderRadius: 8 }}
                                 color="primary"
                                 onClick={() => navigate("CrearUsuario/")}
                             ></Boton>
@@ -351,11 +319,9 @@ const Gestores = () => {
 
 
 
-                    <DatatableDefaultNew
+                    <DatatableDinamic
                         value={listaPersonas}
-                        export={true}
-                        rows={lazyState.rows || 50}
-                        showSearch={false}
+                        exportable={true}
                         loading={loading}
                     >
                         <Column field="persona.nombres" header="Nombres" sortable style={{ width: '120px', minWidth: '120px' }} />
@@ -368,7 +334,7 @@ const Gestores = () => {
                         <Column field="rol.nombre" header="Rol" sortable style={{ width: '100px', minWidth: '100px' }} />
                         <Column field="socio.nombreComercial" header="Socio" sortable style={{ width: '120px', minWidth: '120px' }} />
                         <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
-                    </DatatableDefaultNew>
+                    </DatatableDinamic>
                 </div>
             </div>
         </div>

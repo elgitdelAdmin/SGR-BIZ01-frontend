@@ -124,9 +124,23 @@ const TopBar = (props) => {
                     type="button"
                     className="p-link layout-menu-button layout-topbar-button"
                     onClick={props.onToggleMenuClick}
-                    style={{ color: "white", backgroundColor: "#007bff" }}
+                    style={{
+                      color: "#0e71ae",
+                      backgroundColor: "#d0e5f0",
+                      borderRadius: "8px",
+                      width: "40px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "none",
+                      cursor: "pointer",
+                      transition: "background-color 0.2s"
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#b2d6ea"}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#d0e5f0"}
                 >
-                    <i className="pi pi-bars" />
+                    <Iconsax.HambergerMenu size="22" color="#0e71ae" />
                 </button>
             </div>
     

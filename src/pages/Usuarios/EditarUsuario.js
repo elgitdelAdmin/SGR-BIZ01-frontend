@@ -864,7 +864,7 @@ const EditarUsuario = () => {
                 minWidth: "auto",
                 width: "fit-content",
                 whiteSpace: "nowrap",
-                borderRadius: 20,
+                borderRadius: 8,
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",

@@ -1,7 +1,12 @@
-*{
-  //font-family: "Poppins";
-  font-family: poppins, sans-serif;
-  }
+@import "./styles/variables";
+
+* {
+  font-family: $font-family-body;
+}
+
+h1, h2, h3, .header-titulo, .header-subTitulo, .p-button {
+  font-family: $font-family-display;
+}
 
 ::placeholder { 
   color: #B5B5B5;
@@ -83,7 +88,7 @@ button{
     display: flex;
     align-items: center;
     justify-content: center;
-    background:#DD4B39;
+    background: $color-rojo-eliminar;
     //width: 20%;
     padding: 6px;
     cursor: pointer;
@@ -91,7 +96,7 @@ button{
       display: flex;
       align-items: center;
     }
-    border-radius: 7px;
+    border-radius: $radius-icon-btn;
 
 }
 
@@ -100,7 +105,7 @@ button{
     display: flex;
     align-items: center;
     justify-content: center;
-    background:#404BD9;
+    background: $color-azul-vivo;
     //width: 20%;
     padding: 6px;
     cursor: pointer;
@@ -108,9 +113,51 @@ button{
       display: flex;
       align-items: center;
     }
-    border-radius: 7px;
+    border-radius: $radius-icon-btn;
+}
 
+/* Overrides para Paginador de PrimeReact */
+.p-paginator {
+  background: white !important;
+  
+  .p-paginator-pages {
+    .p-paginator-page {
+      font-family: $font-family-display !important;
+      font-size: 13px !important;
+      color: $color-gris-acero !important;
+      border: none !important;
+      background: transparent !important;
+      border-radius: 50% !important;
+      transition: all 0.2s ease !important;
+      
+      &:not(.p-highlight):hover {
+        background: #f1f1f1 !important;
+        color: $color-navy !important;
+      }
+      
+      &.p-highlight {
+        background: $color-azul-tonal !important;
+        color: $color-azul-vivo !important;
+        font-weight: 700 !important;
+        box-shadow: none !important;
+      }
+    }
+  }
+
+  .p-paginator-first,
+  .p-paginator-prev,
+  .p-paginator-next,
+  .p-paginator-last {
+    color: $color-gris-acero !important;
+    border: none !important;
+    background: transparent !important;
+    border-radius: 50% !important;
     
+    &:not(.p-disabled):hover {
+      background: #f1f1f1 !important;
+      color: $color-navy !important;
+    }
+  }
 }
 .menu-lateral {
   position: fixed;
@@ -134,3 +181,129 @@ button{
     transition: none;
   }
 }
+
+/* Unificación de botones PrimeReact con el sistema de diseño */
+.p-button {
+  border-radius: $radius-btn !important;
+  font-family: $font-family-display !important;
+  font-weight: 600 !important;
+
+  /* Sobrescribir severity success (botón "Descargar" de las tablas) */
+  &.p-button-success {
+    background-color: $color-azul-vivo !important;
+    border-color: $color-azul-vivo !important;
+    color: #ffffff !important;
+    
+    &:hover {
+      background-color: darken($color-azul-vivo, 5%) !important;
+      border-color: darken($color-azul-vivo, 5%) !important;
+    }
+  }
+
+  /* Sobrescribir severity secondary (botón "Buscar" y otros secundarios) */
+  &.p-button-secondary {
+    background-color: $color-azul-tonal !important;
+    border-color: $color-azul-tonal !important;
+    color: $color-azul-vivo !important;
+    
+    &:hover {
+      background-color: darken($color-azul-tonal, 5%) !important;
+      border-color: darken($color-azul-tonal, 5%) !important;
+    }
+  }
+}
+
+/* Alinear botón del calendario de PrimeReact con el sistema de diseño */
+.p-calendar {
+  .p-datepicker-trigger {
+    background-color: $color-azul-tonal !important;
+    border-color: $color-azul-tonal !important;
+    color: $color-azul-vivo !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-top-right-radius: $radius-btn !important;
+    border-bottom-right-radius: $radius-btn !important;
+
+    &:hover {
+      background-color: darken($color-azul-tonal, 5%) !important;
+      border-color: darken($color-azul-tonal, 5%) !important;
+    }
+  }
+}
+
+/* Estilos premium y amigables para el globo (tooltip) reutilizable */
+.custom-self-designed-tooltip {
+  width: max-content;
+  min-width: 60px;
+  max-width: 320px;
+  background: linear-gradient(135deg, #0e71ae 0%, #09507c 100%);
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  padding: 10px 16px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(14, 113, 174, 0.35), 0 4px 10px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: normal;
+  word-break: break-word;
+  text-align: left;
+  animation: customTooltipFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  position: fixed;
+  z-index: 99999;
+  pointer-events: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px;
+    border-style: solid;
+    border-color: #09507c transparent transparent transparent;
+  }
+}
+
+@keyframes customTooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -100%) translateY(0px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%) translateY(-8px) scale(1);
+  }
+}
+
+/* Modificador específico para la barra lateral (más grande y posicionado a la derecha) */
+.custom-self-designed-tooltip.sidebar-tooltip {
+  font-size: 15px !important;
+  padding: 12px 18px !important;
+  animation: sidebarTooltipFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+
+  &::after {
+    top: 50% !important;
+    left: 0 !important;
+    bottom: auto !important;
+    transform: translateY(-50%) translateX(-100%) !important;
+    border-width: 8px !important;
+    border-color: transparent #09507c transparent transparent !important;
+  }
+}
+
+@keyframes sidebarTooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(0px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(8px) scale(1);
+  }
+}
+
+
+
+

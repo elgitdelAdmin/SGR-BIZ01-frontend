@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState ,useRef} from "react";
 import DropdownDefault from "../../components/Dropdown/DropdownDefault";
-import DatatableDefaultNew from "../../components/Datatable/DatatableDefaultNew";
+import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Empresas.scss"
@@ -53,59 +53,29 @@ const Empresas = () => {
     let networkTimeout = null;
 
     useEffect(() => {
-    loadLazyData();
-    }, [lazyState, globalFilterValue]);
+        loadLazyData();
+    }, []);
 
-
-const loadLazyData = () => {
-    if (networkTimeout) clearTimeout(networkTimeout);
-
-    networkTimeout = setTimeout(() => {
+    const loadLazyData = () => {
         setLoading(true);
-         const fetchFunction = codRol === "SUPERADMIN" ? ListarEmpresas : ListarEmpresasPorSocio;
-         fetchFunction()
-        // ListarEmpresasPorSocio()
+        const fetchFunction = codRol === "SUPERADMIN" ? ListarEmpresas : ListarEmpresasPorSocio;
+        fetchFunction()
             .then((data) => {
-                 const dataConEstado = data.map(consultor => ({
+                const dataConEstado = data.map(consultor => ({
                     ...consultor,
                     estadoNombre:
                         consultor.activo ? "Activo" : "Inactivo"
-                   
                 }));
-                setTotalRecords(data.length);
-                const pageNumber = lazyState?.page ?? 0;
-                const pageSize = lazyState?.rows ?? 10;
-                const start = pageNumber * pageSize;
-                const end = start + pageSize;
-                let filteredData = dataConEstado;
-              if (globalFilterValue) {
-  const search = globalFilterValue.toLowerCase();
-  filteredData = data.filter(emp =>
-    emp.nombreComercial?.toLowerCase().includes(search) ||
-    emp.razonSocial?.toLowerCase().includes(search) ||
-    emp.numDocContribuyente?.toString().includes(search) ||
-    emp.telefono?.toString().includes(search) ||
-    emp.direccion?.toLowerCase().includes(search) ||
-    emp.email?.toLowerCase().includes(search) ||
-    emp.nombreSocio?.toLowerCase().includes(search)
-  );
-}
-
-                 //Agrego
-filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
-                // const paginatedData = filteredData.slice(start, end);
-
-                setListaPersonasTotal(filteredData);
-                                // setListaPersonasTotal(paginatedData);
-
+                // 🔹 ordenar
+                dataConEstado.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
+                setListaPersonas(dataConEstado);
                 setLoading(false);
             })
             .catch((error) => {
-                console.error("Error al cargar tickets:", error);
+                console.error("Error al cargar empresas:", error);
                 setLoading(false);
             });
-    }, Math.random() * 1000 + 250);
-};
+    };
 
     // const onPage = (event) => {
     //     setlazyState(event);
@@ -240,7 +210,7 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                                  <div style={{ marginLeft: "auto" }}>
                                      <Boton
                                      label="Crear Empresa"
-                                     style={{ fontSize: 12,borderRadius:15 }}
+                                     style={{ fontSize: 12,borderRadius:8 }}
                                      color="primary"
                                      onClick = {()=>navigate("CrearEmpresa/")}
                                      ></Boton>
@@ -273,24 +243,22 @@ filteredData.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro
                                 body={accion} 
                             />
                         </DatatableDefault> */}
-                           <DatatableDefaultNew 
-                            value={listaPersonas}  
-                            export={true}
-                            rows={lazyState.rows || 50}  
-                            showSearch={false} 
-                            loading={loading}
-                        >
-                            <Column field="nombreComercial" header="Nombre Comercial"  sortable style={{ width: '120px', minWidth: '120px' }} />
-                             <Column field="razonSocial" header="Razon social" sortable style={{ width: '120px', minWidth: '120px' }}  />
-                            <Column field="numDocContribuyente" header="RUC" sortable style={{ width: '120px', minWidth: '120px' }}  />
-                            <Column field="telefono" header="Telefono"  sortable style={{ width: '120px', minWidth: '120px' }} />
-                            <Column field="direccion" header="Direccion"  sortable style={{ width: '120px', minWidth: '120px' }} />
-                            <Column field="email" header="Correo"  sortable style={{ width: '120px', minWidth: '120px' }} />
-                            <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
-                            <Column field="nombreSocio" header="Socio" sortable style={{ width: '120px', minWidth: '120px' }}  />
-                           
-                            <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
-                           </DatatableDefaultNew>
+                           <DatatableDinamic 
+                             value={listaPersonas}  
+                             exportable={true}
+                             showSearch={false} 
+                             loading={loading}
+                         >
+                                 <Column field="nombreComercial" header="Nombre Comercial"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                              <Column field="razonSocial" header="Razon social" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                             <Column field="numDocContribuyente" header="RUC" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                             <Column field="telefono" header="Telefono"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                             <Column field="direccion" header="Direccion"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                             <Column field="email" header="Correo"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                             <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                            
+                             <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
+                            </DatatableDinamic>
                          <Dialog
                                 header="Especializaciones"
                                 visible={visible}

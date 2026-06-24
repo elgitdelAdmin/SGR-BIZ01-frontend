@@ -519,10 +519,15 @@ const Editar = () => {
       asignaciones: persona ? (persona.consultorAsignaciones.map((a) => {
         // Vincular la asignación a su especialización por IdTicketFrenteSubFrente
         const fsfId = a.idTicketFrenteSubFrente || 0;
-        const linkedFsf = fsfId > 0
+        let linkedFsf = fsfId > 0
           ? (persona.frenteSubFrentes || []).find((f) => f.id === fsfId)
           : null;
-        const frenteSubFrenteUid = linkedFsf ? `db_${linkedFsf.id}` : (a._frenteSubFrenteUid || null);
+        if (!linkedFsf && a.idSubFrente) {
+          linkedFsf = (persona.frenteSubFrentes || []).find(
+            (f) => f.activo !== false && Number(f.idSubFrente) === Number(a.idSubFrente)
+          );
+        }
+        const frenteSubFrenteUid = linkedFsf ? (linkedFsf.id > 0 ? `db_${linkedFsf.id}` : linkedFsf._uid) : (a._frenteSubFrenteUid || null);
 
         return {
           idUnico: a.id > 0 ? a.id.toString() : (a.idUnico || generateUUID()),
@@ -530,7 +535,7 @@ const Editar = () => {
           IdSubFrente: a.idSubFrente,
           IdConsultor: a.idConsultor,
           IdTipoActividad: a.idTipoActividad,
-          IdTicketFrenteSubFrente: fsfId,
+          IdTicketFrenteSubFrente: fsfId > 0 ? fsfId : (linkedFsf ? linkedFsf.id : 0),
           _frenteSubFrenteUid: frenteSubFrenteUid,
           FechaAsignacion: a.fechaAsignacion,
           FechaDesasignacion: a.fechaDesasignacion,
@@ -573,7 +578,7 @@ const Editar = () => {
 
     onSubmit: (values) => {
       // Validación: Si el estado es "EN_ATENCION", verificar que exista al menos una planificación
-      const estadoSeleccionado = parametros.find(
+      /*const estadoSeleccionado = parametros.find(
         (p) => p.tipoParametro === "EstadoTicket" && Number(p.id) === Number(values.idEstadoTicket)
       );
       if (estadoSeleccionado) {
@@ -594,7 +599,7 @@ const Editar = () => {
             return; // Prevenir submit
           }
         }
-        /*if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
+        if (estadoSeleccionado.codigo === CODIGOS.EstadoTicket.Cerrado) {
           let tieneHoras = false;
           if (values.asignaciones && values.asignaciones.length > 0) {
             tieneHoras = values.asignaciones.some(a =>
@@ -610,8 +615,8 @@ const Editar = () => {
             });
             return; // Prevenir submit
           }
-        }*/
-      }
+        }
+      }*/
 
       const formData = new FormData();
       formData.append("CodTicketInterno", values.codTicketInterno);
@@ -1451,13 +1456,13 @@ const Editar = () => {
                         <div className="field col-12">
                           <label className="label-form">Repositorios</label>
 
-                          <Button
+                          <Boton
                             type="button"
                             className="w-full"
                             style={{ height: 46, justifyContent: "center" }}
                             label="Repositorios"
                             icon="pi pi-link"
-                            severity="secondary"
+                            color="secondary"
                             onClick={() => setVisibleRepos(true)}
                             disabled={permisosActual.controlesBloqueados.includes("btnRepositorios")}
                           />
@@ -1565,7 +1570,7 @@ const Editar = () => {
                 minWidth: "auto",
                 width: "fit-content",
                 whiteSpace: "nowrap",
-                borderRadius: 20,
+                borderRadius: 8,
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",

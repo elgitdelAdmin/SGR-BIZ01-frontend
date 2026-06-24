@@ -58,7 +58,30 @@ const DatatableDinamic = ({
     const [columnFilters, setColumnFilters] = useState(initialColumnFilters);
 
     // ── Para Excel export: datos visibles después de filtrar ──────────
-    const [visibleData, setVisibleData] = useState(value);
+    const [visibleData, setVisibleData] = useState(value || []);
+
+    // ── Tooltip personalizado diseñado por nosotros ─────────────────
+    const [customTooltip, setCustomTooltip] = useState({ text: "", x: 0, y: 0, visible: false });
+
+    const handleMouseEnter = (e, text) => {
+        if (!text) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const tooltipMaxWidth = 320;
+        const halfWidth = tooltipMaxWidth / 2;
+        let x = rect.left + rect.width / 2;
+        x = Math.max(halfWidth + 10, Math.min(x, window.innerWidth - halfWidth - 10));
+
+        setCustomTooltip({
+            text,
+            x,
+            y: rect.top,
+            visible: true
+        });
+    };
+
+    const handleMouseLeave = () => {
+        setCustomTooltip(prev => ({ ...prev, visible: false }));
+    };
 
     // ── Refs ──────────────────────────────────────────────────────────
     const dt = useRef(null);
@@ -74,20 +97,26 @@ const DatatableDinamic = ({
                 body: col.body || null,
                 sortable: col.sortable !== false,
                 width: col.width || null,
+                headerStyle: col.headerStyle,
+                bodyStyle: col.bodyStyle,
+                className: col.className,
+                headerClassName: col.headerClassName,
             }));
         }
         // Extraer de children
         if (children) {
             return React.Children.toArray(children)
-                .filter((c) => c?.props?.field)
+                .filter(Boolean)
                 .map((c) => ({
                     field: c.props.field,
                     header: c.props.header,
                     body: c.props.body || null,
-                    sortable: c.props.sortable !== false,
+                    sortable: c.props.field ? (c.props.sortable !== false) : false,
                     width: c.props.style?.width || c.props.style?.minWidth || null,
                     headerStyle: c.props.headerStyle,
                     bodyStyle: c.props.bodyStyle,
+                    className: c.props.className,
+                    headerClassName: c.props.headerClassName,
                 }));
         }
         return [];
@@ -109,7 +138,7 @@ const DatatableDinamic = ({
 
     // ── Sincronizar visibleData con value cuando no hay filtros ────
     useEffect(() => {
-        setVisibleData(value);
+        setVisibleData(value || []);
     }, [value]);
 
     // ── Eventos de paginación ─────────────────────────────────────────
@@ -202,6 +231,7 @@ const DatatableDinamic = ({
                     <Button
                         type="button"
                         label="Descargar"
+                        className="p-button-success"
                         icon="pi pi-file-excel"
                         severity="success"
                         onClick={handleExcel}
@@ -222,7 +252,7 @@ const DatatableDinamic = ({
     );
 
     // ── Total de registros ────────────────────────────────────────────
-    const totalRecords = serverSide ? (totalRecordsProp || 0) : visibleData.length;
+    const totalRecords = serverSide ? (totalRecordsProp || 0) : (visibleData || []).length;
 
     // ── Render ────────────────────────────────────────────────────────
     return (
@@ -317,6 +347,85 @@ const DatatableDinamic = ({
           flex: 1;
           min-height: 0;
         }
+
+        /* Custom loading overlay styled with modern aesthetics */
+        .dt-dinamic-content .p-datatable-loading-overlay {
+          background: rgba(255, 255, 255, 0.4) !important;
+          backdrop-filter: blur(5px) !important;
+          -webkit-backdrop-filter: blur(5px) !important;
+          transition: all 0.3s ease;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          z-index: 100 !important;
+        }
+
+        .dt-dinamic-content .p-datatable-loading-icon {
+          display: none !important; /* Hide the default tiny spinner */
+        }
+
+        /* Beautiful modern spinner matching brand colors */
+        .dt-dinamic-content .p-datatable-loading-overlay::after {
+          content: "";
+          width: 50px;
+          height: 50px;
+          border: 4px solid #e3f0f8;
+          border-top: 4px solid #0e71ae;
+          border-radius: 50%;
+          animation: spin-loader 0.8s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+          box-shadow: 0 0 15px rgba(14, 113, 174, 0.2);
+        }
+
+        @keyframes spin-loader {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        /* Estilos premium y amigables para el globo (tooltip) */
+        .custom-self-designed-tooltip {
+          width: max-content;
+          min-width: 60px;
+          max-width: 320px;
+          background: linear-gradient(135deg, #0e71ae 0%, #09507c 100%);
+          color: #ffffff;
+          font-family: 'Poppins', sans-serif;
+          font-size: 13px;
+          font-weight: 500;
+          line-height: 1.5;
+          padding: 10px 16px;
+          border-radius: 12px;
+          box-shadow: 0 12px 30px rgba(14, 113, 174, 0.35), 0 4px 10px rgba(0, 0, 0, 0.15);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          white-space: normal;
+          word-break: break-word;
+          text-align: left;
+          animation: customTooltipFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          position: fixed;
+          z-index: 99999;
+          pointer-events: none;
+        }
+
+        .custom-self-designed-tooltip::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: 8px;
+          border-style: solid;
+          border-color: #09507c transparent transparent transparent;
+        }
+
+        @keyframes customTooltipFadeIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -100%) translateY(0px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -100%) translateY(-8px) scale(1);
+          }
+        }
       `}</style>
 
             <div className="dt-dinamic-container">
@@ -360,41 +469,90 @@ const DatatableDinamic = ({
                                 bodyStyle={{ padding: '0.5rem', textAlign: 'center' }}
                             />
                         )}
-                        {resolvedColumns.map((col, idx) => (
-                            <Column
-                                key={col.field || idx}
-                                field={col.field}
-                                header={col.header}
-                                body={col.body}
-                                sortable={col.sortable}
-                                filter
-                                filterElement={columnFilterTemplate(col.field)}
-                                showFilterMenu={false}
-                                filterPlaceholder={`Buscar por ${col.header || col.field}`}
-                                style={{
-                                    width: col.width || undefined,
-                                    minWidth: col.width || '120px',
-                                }}
-                                headerStyle={{
-                                    padding: '0.5rem',
-                                    whiteSpace: 'nowrap',
-                                    ...(col.headerStyle || {}),
-                                }}
-                                bodyStyle={{
-                                    padding: '0.5rem',
-                                    whiteSpace: 'normal',
-                                    wordWrap: 'break-word',
-                                    verticalAlign: 'top',
-                                    ...(col.bodyStyle || {}),
-                                }}
-                            />
-                        ))}
+                        {resolvedColumns.map((col, idx) => {
+                            const defaultBody = col.body;
+                            const cellBody = (rowData, options) => {
+                                const getFieldValue = (obj, fieldPath) => {
+                                    if (!fieldPath) return undefined;
+                                    return fieldPath.split('.').reduce((acc, part) => acc && acc[part], obj);
+                                };
+                                let val = defaultBody ? defaultBody(rowData, options) : getFieldValue(rowData, col.field);
+                                if (typeof val === 'string' || typeof val === 'number') {
+                                    const text = String(val);
+                                    if (!text.trim()) return '';
+                                    return (
+                                        <div
+                                            className="title-tooltip-target"
+                                            onMouseEnter={(e) => handleMouseEnter(e, text)}
+                                            onMouseLeave={handleMouseLeave}
+                                            style={{
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'normal',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {val}
+                                        </div>
+                                    );
+                                }
+                                return val;
+                            };
+
+                            return (
+                                <Column
+                                    key={col.field || idx}
+                                    field={col.field}
+                                    header={col.header}
+                                    body={cellBody}
+                                    sortable={col.sortable}
+                                    filter={col.field ? true : false}
+                                    filterElement={col.field ? columnFilterTemplate(col.field) : null}
+                                    showFilterMenu={false}
+                                    filterPlaceholder={col.field ? `Buscar por ${col.header || col.field}` : ''}
+                                    className={col.className}
+                                    headerClassName={col.headerClassName}
+                                    style={{
+                                        width: col.width || undefined,
+                                        minWidth: col.width || (col.field ? '120px' : '80px'),
+                                    }}
+                                    headerStyle={{
+                                        padding: '0.5rem',
+                                        whiteSpace: 'nowrap',
+                                        ...(col.headerStyle || {}),
+                                    }}
+                                    bodyStyle={{
+                                        padding: '0.5rem',
+                                        whiteSpace: 'normal',
+                                        wordWrap: 'break-word',
+                                        verticalAlign: col.field ? 'top' : 'middle',
+                                        textAlign: col.field ? 'left' : 'center',
+                                        ...(col.bodyStyle || {}),
+                                    }}
+                                />
+                            );
+                        })}
                     </DataTable>
                 </div>
 
                 <div className="dt-dinamic-scroll" ref={scrollSyncRef}>
                     <div></div>
                 </div>
+
+                {customTooltip.visible && (
+                    <div
+                        className="custom-self-designed-tooltip"
+                        style={{
+                            left: `${customTooltip.x}px`,
+                            top: `${customTooltip.y}px`,
+                        }}
+                    >
+                        {customTooltip.text}
+                    </div>
+                )}
             </div>
         </>
     );

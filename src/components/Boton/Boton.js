@@ -6,11 +6,8 @@ const Boton = (props) => {
     return (
         <Button
             {...props}
-            
-            className={`btnEd ${props.color == "primary" && "btnEd-color-primary"} ${props.color == "secondary" && "btnEd-color-seconday"}`}
-            
+            className={`btnEd ${props.color === "primary" ? "btnEd-color-primary" : ""} ${props.color === "secondary" ? "btnEd-color-seconday" : ""} ${props.className || ""}`}
         >
-        
         </Button>
     );
 };

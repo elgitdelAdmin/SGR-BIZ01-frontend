@@ -289,16 +289,16 @@ const Especializaciones = ({
 
   const modalFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button
+      <Boton
         label="Cancelar"
         icon="pi pi-times"
-        className="p-button-danger"
+        style={{ backgroundColor: "#dd4b39", color: "white" }}
         onClick={handleCloseModal}
       />
-      <Button
+      <Boton
         label="Agregar"
         icon="pi pi-plus"
-        className="p-button-primary"
+        color="primary"
         onClick={handleAgregar}
       />
     </div>
@@ -324,7 +324,7 @@ const Especializaciones = ({
             minWidth: "auto",
             width: "fit-content",
             whiteSpace: "nowrap",
-            borderRadius: 20,
+            borderRadius: 8,
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
