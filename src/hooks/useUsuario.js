@@ -17,9 +17,11 @@ export default function useUsuario(){
         window.localStorage.removeItem('reset')
         window.localStorage.removeItem('refreshToken');
         window.localStorage.removeItem('expiresAt');
-        window.localStorage.removeItem('username');
+        window.localStorage.removeItem('username')
+        window.localStorage.removeItem('nombreCompleto')
         window.localStorage.removeItem('nombreSocio');
         window.localStorage.removeItem('nombreRol');
+        window.localStorage.removeItem('logoSocio');
         window.localStorage.removeItem('idsocio');
         window.localStorage.removeItem('idRol');
         window.localStorage.removeItem('idUser');
@@ -31,11 +33,14 @@ export default function useUsuario(){
     },[setJwt])
 
     const saveSessionData = useCallback((res) => {
-        const { accessToken, refreshToken, expiresAt, user, notificacionTicket, idConsultor, idRolSeleccionado, idSocioSeleccionado, codRolSeleccionado, nombreSocioSeleccionado, nombreRolSeleccionado } = res;
+        const { accessToken, refreshToken, expiresAt, user, notificacionTicket, idConsultor, idRolSeleccionado, idSocioSeleccionado, codRolSeleccionado, nombreSocioSeleccionado, nombreRolSeleccionado, logoSocioSeleccionado } = res;
         window.localStorage.setItem('jwt', accessToken);
         window.localStorage.setItem('refreshToken', refreshToken);
         window.localStorage.setItem('expiresAt', expiresAt);
         window.localStorage.setItem('username', user.username);
+        const nombreCompleto = user.persona ? `${user.persona.nombres} ${user.persona.apellidoPaterno}`.trim() : user.username;
+        window.localStorage.setItem('nombreCompleto', nombreCompleto);
+        window.localStorage.setItem('logoSocio', logoSocioSeleccionado || (user.socio ? user.socio.logo : ''));
         window.localStorage.setItem('nombreSocio', nombreSocioSeleccionado || (user.socio ? user.socio.nombreComercial : ''));
         window.localStorage.setItem('nombreRol', nombreRolSeleccionado || (user.rol ? user.rol.nombre : ''));
         window.localStorage.setItem('idsocio', idSocioSeleccionado || (user.socio ? user.socio.id : ''));

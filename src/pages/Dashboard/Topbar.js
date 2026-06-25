@@ -35,11 +35,9 @@ const TopBar = (props) => {
 
     const toggleNotifications = async () => {
         try {
-          console.log("TOGLE")
           setupdateNotifications(!updateNotifications)
-          const ids = notificacionTicket.filter(n => !n.leido).map(n => n.id); 
+          const ids = notificacionTicket.filter(n => !n.leido).map(n => n.id);
           if (ids.length > 0 && updateNotifications) {
-            console.log("TOGLE Leido")
             await MarcarNotificacionComoLeida(idUser, ids);
             setupdateNotifications(!updateNotifications)
             setlengthNotifications(false)
@@ -56,12 +54,12 @@ const TopBar = (props) => {
 
     const handleChangePassword = () => {
         setShowUserMenu(false);
-        navigate("/Configuracion/CambiarContraseña"); // Cambia esta ruta según tu aplicación
+        navigate("/Configuracion/CambiarContraseña");
     };
 
     const handleChangeEmail = () => {
         setShowUserMenu(false);
-        navigate("/Configuracion/CambiarEmail"); // Cambia esta ruta según tu aplicación
+        navigate("/Configuracion/CambiarEmail");
     };
 
     // Cerrar el menú al hacer clic fuera
@@ -85,57 +83,77 @@ const TopBar = (props) => {
         if (!isLogged) navigate("/Login")
     }, [isLogged]);
 
-    return ( 
-        <div className="layout-topbar" style={{
-            backgroundColor: "#fff",
-            display: "flex",
-            alignItems: "center",
-            padding: "10px 20px",
-            justifyContent: "space-between"
-          }}>
-      
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    // Helpers
+    const nombreCompleto = window.localStorage.getItem("nombreCompleto") || window.localStorage.getItem("username") || "U";
+    const nombreRol     = window.localStorage.getItem("nombreRol") || window.localStorage.getItem("codRol") || "";
+
+    const getInitials = (name) => {
+        const parts = name.trim().split(" ").filter(Boolean);
+        if (parts.length === 1) return parts[0][0].toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    };
+
+    const unreadCount = notificacionTicket.filter(n => !n.leido).length;
+
+    return (
+        <div className="layout-topbar">
+
+            {/* ── Left: Brand + Hamburger ── */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 {localStorage.getItem("codRol") === "SUPERADMIN" ? (
                     <>
                         <img
-                          src="/images/bizlogo.jpg"
-                          style={{ height: '40px', objectFit: 'contain' }}
-                          alt="Logo"
-                          onClick={() => navigate("/Dashboard/Dashboard")}
+                            src="/images/bizlogo.jpg"
+                            style={{ height: "40px", objectFit: "contain", cursor: "pointer" }}
+                            alt="Logo"
+                            onClick={() => navigate("/Dashboard/Dashboard")}
                         />
                         <img
-                          src="/images/bizletra.png"
-                          style={{ height: '40px', objectFit: 'contain' }}
-                          alt="Letra"
+                            src="/images/bizletra.png"
+                            style={{ height: "40px", objectFit: "contain" }}
+                            alt="Letra"
                         />
                     </>
                 ) : (
-                    <div
-                        style={{
-                            color: "#2D5B97",
-                            marginLeft: '20px',
-                            fontSize: '25px' 
-                        }}
-                    >
-                        {window.localStorage.getItem("nombreSocio")}
-                    </div>     
+                    <div style={{ display: "flex", alignItems: "center", marginLeft: "8px" }}>
+                        {window.localStorage.getItem("logoSocio") ? (
+                            <img
+                                src={window.localStorage.getItem("logoSocio")}
+                                alt={window.localStorage.getItem("nombreSocio")}
+                                style={{ height: "40px", maxWidth: "130px", objectFit: "contain" }}
+                            />
+                        ) : (
+                            <span style={{
+                                color: "#2e4878",
+                                fontSize: "22px",
+                                fontWeight: "700",
+                                fontFamily: "Poppins, sans-serif",
+                                letterSpacing: "-0.3px"
+                            }}>
+                                {window.localStorage.getItem("nombreSocio")}
+                            </span>
+                        )}
+                    </div>
                 )}
+
+                {/* Hamburger */}
                 <button
                     type="button"
                     className="p-link layout-menu-button layout-topbar-button"
                     onClick={props.onToggleMenuClick}
                     style={{
-                      color: "#0e71ae",
-                      backgroundColor: "#d0e5f0",
-                      borderRadius: "8px",
-                      width: "40px",
-                      height: "40px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      border: "none",
-                      cursor: "pointer",
-                      transition: "background-color 0.2s"
+                        color: "#0e71ae",
+                        backgroundColor: "#d0e5f0",
+                        borderRadius: "8px",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "none",
+                        cursor: "pointer",
+                        transition: "background-color 0.2s",
+                        flexShrink: 0
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#b2d6ea"}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#d0e5f0"}
@@ -143,148 +161,226 @@ const TopBar = (props) => {
                     <Iconsax.HambergerMenu size="22" color="#0e71ae" />
                 </button>
             </div>
-    
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginLeft: '20px'
-                }}
-            >
-                <div
-                    style={{
-                        color: "#2D5B97",
-                        fontWeight: 'bold',
-                        fontSize: '24px' 
-                    }}
-                >
-                    Hola, {window.localStorage.getItem("username")}
+
+            {/* ── Center: Greeting ── */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div style={{
+                    color: "#2e4878",
+                    fontWeight: "700",
+                    fontSize: "20px",
+                    fontFamily: "Poppins, sans-serif",
+                    lineHeight: 1.2
+                }}>
+                    Hola, {nombreCompleto}
                 </div>
-                <div
-                    style={{
-                        color: "#6c757d",
-                        fontSize: '13px',
-                        fontWeight: '600',
-                        marginTop: '2px'
-                    }}
-                >
-                    Rol: {window.localStorage.getItem("nombreRol") || window.localStorage.getItem("codRol")}
+                <div style={{
+                    color: "#9198a7",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    marginTop: "2px",
+                    letterSpacing: "0.3px",
+                    textTransform: "uppercase"
+                }}>
+                    {nombreRol}
                 </div>
             </div>
 
-            <div
-                className="topbar-notifications"
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    cursor: "pointer",
-                    gap: "15px",
-                }}
-            >
-                <div onClick={toggleNotifications} style={{ position: "relative" }}>
-                    <Iconsax.Notification size="24" />
+            {/* ── Right: Notifications + User Menu ── */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
 
-                    {notificacionTicket.filter(n => !n.leido).length > 0 && lengthNotifications && (
-                        <span
-                            style={{
-                                position: "absolute",
-                                top: "-5px",
-                                right: "-5px",
-                                background: "red",
-                                color: "white",
-                                borderRadius: "50%",
-                                width: "18px",
-                                height: "18px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "11px",
-                                fontWeight: "bold",
-                            }}
-                        >
-                            {notificacionTicket.filter(n => !n.leido).length}
+                {/* Notification bell */}
+                <div style={{ position: "relative" }}>
+                    <div
+                        onClick={toggleNotifications}
+                        style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "8px",
+                            backgroundColor: showNotifications ? "#b2d6ea" : "#d0e5f0",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transition: "background-color 0.2s",
+                            cursor: "pointer"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#b2d6ea"}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = showNotifications ? "#b2d6ea" : "#d0e5f0"}
+                    >
+                        <Iconsax.Notification size="20" color="#0e71ae" variant={showNotifications ? "Bold" : "Linear"} />
+                    </div>
+                    {unreadCount > 0 && lengthNotifications && (
+                        <span style={{
+                            position: "absolute",
+                            top: "-4px",
+                            right: "-4px",
+                            background: "#dd4b39",
+                            color: "white",
+                            borderRadius: "50%",
+                            width: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "10px",
+                            fontWeight: "700",
+                            border: "2px solid #fff",
+                            lineHeight: 1,
+                            pointerEvents: "none"
+                        }}>
+                            {unreadCount}
                         </span>
+                    )}
+
+                    {/* Dropdown anchored inside the relative wrapper */}
+                    {showNotifications && (
+                        <NotificationDropdown
+                            notifications={notificacionTicket}
+                            onClose={toggleNotifications}
+                        />
                     )}
                 </div>
 
-                {showNotifications && (
-                    <NotificationDropdown
-                        notifications={notificacionTicket}
-                        onClose={toggleNotifications}
-                    />
-                )}
-
-                {/* Menú de usuario */}
+                {/* ── User Avatar + Dropdown ── */}
                 <div style={{ position: "relative" }} ref={userMenuRef}>
-                    <div onClick={toggleUserMenu} style={{ display: "flex", alignItems: "center" }}>
-                        <Iconsax.User size="24" color="#2D5B97" />
-                    </div>
-
-                    {showUserMenu && (
-                        <div
+                    <button
+                        onClick={toggleUserMenu}
+                        title={nombreCompleto}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            background: showUserMenu ? "#d0e5f0" : "transparent",
+                            border: "1.5px solid #d0e5f0",
+                            borderRadius: "8px",
+                            padding: "4px 10px 4px 6px",
+                            cursor: "pointer",
+                            transition: "background 0.2s, border-color 0.2s",
+                            height: "40px"
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "#d0e5f0"; e.currentTarget.style.borderColor = "#0e71ae"; }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = showUserMenu ? "#d0e5f0" : "transparent";
+                            e.currentTarget.style.borderColor = "#d0e5f0";
+                        }}
+                    >
+                        {/* Avatar circle with initials */}
+                        <div style={{
+                            width: "28px",
+                            height: "28px",
+                            borderRadius: "50%",
+                            backgroundColor: "#2e4878",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "11px",
+                            fontWeight: "700",
+                            fontFamily: "Poppins, sans-serif",
+                            flexShrink: 0,
+                            letterSpacing: "0.5px"
+                        }}>
+                            {getInitials(nombreCompleto)}
+                        </div>
+                        <Iconsax.ArrowDown2
+                            size="14"
+                            color="#2e4878"
                             style={{
-                                position: "absolute",
-                                top: "40px",
-                                right: "0",
-                                backgroundColor: "#fff",
-                                border: "1px solid #ddd",
-                                borderRadius: "8px",
-                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                minWidth: "200px",
-                                zIndex: 1000,
+                                transition: "transform 0.2s",
+                                transform: showUserMenu ? "rotate(180deg)" : "rotate(0deg)"
                             }}
-                        >
-                            <div
-                                onClick={handleChangePassword}
-                                style={{
-                                    padding: "12px 16px",
-                                    cursor: "pointer",
+                        />
+                    </button>
+
+                    {/* Dropdown panel */}
+                    {showUserMenu && (
+                        <div style={{
+                            position: "absolute",
+                            top: "calc(100% + 8px)",
+                            right: "0",
+                            backgroundColor: "#fff",
+                            border: "1px solid #e8edf4",
+                            borderRadius: "12px",
+                            boxShadow: "0 8px 24px rgba(46,72,120,0.13)",
+                            minWidth: "220px",
+                            zIndex: 1000,
+                            overflow: "hidden",
+                            animation: "fadeSlideDown 0.15s ease"
+                        }}>
+
+                            {/* Header info */}
+                            <div style={{
+                                padding: "14px 16px 12px",
+                                borderBottom: "1px solid #f0f4f8",
+                                background: "#f8f9fa"
+                            }}>
+                                <div style={{
                                     display: "flex",
                                     alignItems: "center",
-                                    gap: "10px",
-                                    borderBottom: "1px solid #f0f0f0",
-                                    color: "#2D5B97",
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f5f5f5"}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                            >
-                                <Iconsax.Lock size="18" />
-                                <span>Cambiar contraseña</span>
+                                    gap: "10px"
+                                }}>
+                                    <div style={{
+                                        width: "36px",
+                                        height: "36px",
+                                        borderRadius: "50%",
+                                        backgroundColor: "#2e4878",
+                                        color: "#fff",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: "13px",
+                                        fontWeight: "700",
+                                        fontFamily: "Poppins, sans-serif",
+                                        flexShrink: 0
+                                    }}>
+                                        {getInitials(nombreCompleto)}
+                                    </div>
+                                    <div>
+                                        <div style={{
+                                            color: "#2e4878",
+                                            fontWeight: "700",
+                                            fontSize: "13px",
+                                            fontFamily: "Poppins, sans-serif",
+                                            lineHeight: 1.3
+                                        }}>
+                                            {nombreCompleto}
+                                        </div>
+                                        <div style={{
+                                            color: "#9198a7",
+                                            fontSize: "11px",
+                                            fontWeight: "600",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.4px",
+                                            marginTop: "2px"
+                                        }}>
+                                            {nombreRol}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                              <div
-                                onClick={handleChangeEmail}
-                                style={{
-                                    padding: "12px 16px",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    borderBottom: "1px solid #f0f0f0",
-                                    color: "#2D5B97",
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f5f5f5"}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                            >
-                                <Iconsax.Setting size="18" />
-                                <span>Validar Correo</span>
+
+                            {/* Menu items */}
+                            <div style={{ padding: "6px 0" }}>
+                                <UserMenuItem
+                                    icon={<Iconsax.Lock size="16" color="#0e71ae" />}
+                                    label="Cambiar contraseña"
+                                    onClick={handleChangePassword}
+                                />
+                                <UserMenuItem
+                                    icon={<Iconsax.Sms size="16" color="#0e71ae" />}
+                                    label="Validar correo"
+                                    onClick={handleChangeEmail}
+                                />
                             </div>
-                            <div
-                                onClick={cerrarSesion}
-                                style={{
-                                    padding: "12px 16px",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    color: "#2D5B97",
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f5f5f5"}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                            >
-                                <Iconsax.LogoutCurve size="18" />
-                                <span>Cerrar sesión</span>
+
+                            {/* Footer: Cerrar sesión */}
+                            <div style={{ borderTop: "1px solid #f0f4f8", padding: "6px 0" }}>
+                                <UserMenuItem
+                                    icon={<Iconsax.LogoutCurve size="16" color="#dd4b39" />}
+                                    label="Cerrar sesión"
+                                    labelColor="#dd4b39"
+                                    hoverBg="#fff5f5"
+                                    onClick={cerrarSesion}
+                                />
                             </div>
                         </div>
                     )}
@@ -293,200 +389,38 @@ const TopBar = (props) => {
         </div>
     );
 }
- 
+
+
+/** Reusable menu item row */
+const UserMenuItem = ({ icon, label, onClick, labelColor = "#2e4878", hoverBg = "#f0f7ff" }) => {
+    const [hover, setHover] = useState(false);
+    return (
+        <div
+            onClick={onClick}
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+            style={{
+                padding: "9px 16px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                backgroundColor: hover ? hoverBg : "transparent",
+                transition: "background-color 0.15s",
+                borderRadius: "0"
+            }}
+        >
+            {icon}
+            <span style={{
+                color: labelColor,
+                fontSize: "13px",
+                fontWeight: "600",
+                fontFamily: "Inter, sans-serif"
+            }}>
+                {label}
+            </span>
+        </div>
+    );
+};
+
 export default TopBar;
-
-// import React, { useEffect, useState } from "react";
-// import { useNavigate,useParams } from "react-router-dom";
-
-// import"./Topbar.scss"
-// import useUsuario from "../../hooks/useUsuario";
-// import * as Iconsax from "iconsax-react";
-// import NotificationDropdown from "../../components/Notification/NotificationDropdown"
-// import { MarcarNotificacionComoLeida } from "../../service/NotificationService";
-
-
-// const TopBar = (props) => {
-//     const idUser = localStorage.getItem("idUser");
-//     const navigate = useNavigate()
-//     const { logout, isLogged, perfil } = useUsuario();
-//     const [showNotifications, setShowNotifications] = useState(false);
-//     const [updateNotifications, setupdateNotifications] = useState(false);
-//     const [lengthNotifications, setlengthNotifications] = useState(true);
-
-// const [notificacionTicket, setNotificacionTicket] = useState(() => {
-//   try {
-//     const stored = localStorage.getItem("notificacionTicket");
-//     return stored ? JSON.parse(stored) : [];
-//   } catch (e) {
-//     console.error("Error al leer notificacionTicket:", e);
-//     return [];
-//   }
-// });
-
-//     // const [notificacionTicket, setNotificacionTicket] = useState(
-//     //   JSON.parse(localStorage.getItem("notificacionTicket")) || []
-//     // );
-// // const notificacionTicket = JSON.parse(localStorage.getItem("notificacionTicket")) || [];
-
-
-//     const cerrarSesion=(e)=>{
-//         e.preventDefault();
-//         logout();
-//     }
-// ;
-//       const toggleNotifications = async () => {
-//         try {
-//           console.log("TOGLE")
-//           setupdateNotifications(!updateNotifications)
-//           const ids = notificacionTicket.filter(n => !n.leido).map(n => n.id); 
-//           if (ids.length > 0 && updateNotifications) {
-//             console.log("TOGLE Leido")
-//             await MarcarNotificacionComoLeida(idUser, ids);
-//             setupdateNotifications(!updateNotifications)
-//             setlengthNotifications(false)
-//             // localStorage.setItem("notificacionTicket", JSON.stringify(res.notificacionTicket));
-//           }
-//           setShowNotifications(!showNotifications);
-
-//         } catch (error) {
-//           console.error("Error al marcar notificaciones:", error);
-//         }
-// };
-
-//     useEffect(() => {
-//         if (!isLogged) navigate("/Login")
-//     }, [isLogged]);
-
-//     return ( 
-       
-//          <div className="layout-topbar" style={{
-//             backgroundColor: "#fff",
-//             display: "flex",
-//             alignItems: "center",
-//             padding: "10px 20px",
-//             justifyContent: "space-between"
-//           }}>
-      
-//       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-//         {localStorage.getItem("codRol") === "SUPERADMIN" ? (
-//     <>
-//         <img
-//           src="/images/bizlogo.jpg"
-//           style={{ height: '40px', objectFit: 'contain' }}
-//           alt="Logo"
-//           onClick={() => navigate("/Dashboard/Dashboard")}
-//         />
-//         <img
-//           src="/images/bizletra.png"
-//           style={{ height: '40px', objectFit: 'contain' }}
-//           alt="Letra"
-//         />
-//         </>) : (
-//           <div
-//           style={{
-//               color: "#2D5B97",
-//               marginLeft: '20px',
-//               // fontWeight: 'bold',
-//               fontSize: '25px' 
-//           }}
-//           >
-//          {window.localStorage.getItem("nombreSocio")}
-//       </div>     
-//         )}
-//          <button
-//         type="button"
-//         className="p-link layout-menu-button layout-topbar-button"
-//         onClick={props.onToggleMenuClick}
-//         style={{ color: "white", backgroundColor: "#007bff" }}
-//           >
-//             <i className="pi pi-bars" />
-//           </button>
-         
-//     </div>
-    
-     
-//       <div
-//         style={{
-//             color: "#2D5B97",
-//             marginLeft: '20px',
-//             fontWeight: 'bold',
-//             fontSize: '25px' 
-//         }}
-//         >
-//         Hola,{window.localStorage.getItem("username")}
-
-//       </div>
-//       <div
-//         className="topbar-notifications"
-//         style={{
-//           display: "flex",
-//           alignItems: "center",
-//           cursor: "pointer",
-//           gap: "15px",
-//         }}
-//       >
-//         {/* <div onClick={toggleNotifications}>
-//           <Iconsax.Notification />
-//         </div>
-
-//         {showNotifications && (
-//           <NotificationDropdown
-//             notifications={notificacionTicket}
-//             onClose={toggleNotifications}
-//           />
-//         )} */}
-//   <div onClick={toggleNotifications} style={{ position: "relative" }}>
-//     <Iconsax.Notification size="24" />
-
-//     {notificacionTicket.filter(n => !n.leido).length > 0 && lengthNotifications && (
-//       <span
-//         style={{
-//           position: "absolute",
-//           top: "-5px",
-//           right: "-5px",
-//           background: "red",
-//           color: "white",
-//           borderRadius: "50%",
-//           width: "18px",
-//           height: "18px",
-//           display: "flex",
-//           alignItems: "center",
-//           justifyContent: "center",
-//           fontSize: "11px",
-//           fontWeight: "bold",
-//         }}
-//       >
-//         {notificacionTicket.filter(n => !n.leido).length}
-//       </span>
-//     )}
-//   </div>
-
-//   {showNotifications && (
-//     <NotificationDropdown
-//       notifications={notificacionTicket}
-//       onClose={toggleNotifications}
-//     />
-//   )}
-
-
-//         <div
-//           className="topbar-salir lg:flex origin-top"
-//           style={{
-//             color: "#2D5B97",
-//             display: "flex",
-//             alignItems: "center",
-//             cursor: "pointer",
-//             gap: "5px",
-//           }}
-//           onClick={cerrarSesion}
-//         >
-//           <span>Cerrar sesión</span>
-//           <Iconsax.LogoutCurve />
-//         </div>
-//       </div>
-//     </div>
-//      );
-// }
- 
-// export default TopBar;

@@ -31,6 +31,7 @@ const Gestores = () => {
     const [globalFilterValue, setGlobalFilterValue] = useState("");
     const [totalRecords, setTotalRecords] = useState(0);
     const [paginaReinicio, setpaginaReinicio] = useState(null);
+    const [hoveredLogo, setHoveredLogo] = useState(null);
     
     const {permisos} = useUsuario();
     // const listaEmpresas =
@@ -155,6 +156,55 @@ const Gestores = () => {
         )
     }
 
+    const handleMouseEnter = (e, logo) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setHoveredLogo({
+            logo: logo,
+            x: rect.right + 15,
+            y: rect.top - 70
+        });
+    };
+
+    const handleMouseLeave = () => {
+        setHoveredLogo(null);
+    };
+
+    const logoTemplate = (rowData) => {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40px', width: '40px' }}>
+                {rowData.logo ? (
+                    <img
+                        src={rowData.logo}
+                        alt="Logo"
+                        onMouseEnter={(e) => handleMouseEnter(e, rowData.logo)}
+                        onMouseLeave={handleMouseLeave}
+                        style={{
+                            maxWidth: '100%',
+                            maxHeight: '100%',
+                            objectFit: 'contain',
+                            borderRadius: '4px',
+                            border: '1px solid #d0e5f0',
+                            cursor: 'pointer'
+                        }}
+                    />
+                ) : (
+                    <div style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '4px',
+                        backgroundColor: '#f8f9fa',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px dashed #9198a7'
+                    }}>
+                        <i className="pi pi-image" style={{ fontSize: '1rem', color: '#9198a7' }}></i>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
 
 
      const Eliminar =async ({id})=>{
@@ -226,6 +276,7 @@ const Gestores = () => {
                             exportable={true}
                             loading={loading}
                         >
+                            <Column header="Logo" body={logoTemplate} style={{ width: '60px', minWidth: '60px', textAlign: 'center' }} />
                             <Column field="razonSocial" header="Razon Social" sortable style={{ width: '130px', minWidth: '130px' }} />
                             <Column field="codigo" header="Codigo" sortable style={{ width: '90px', minWidth: '90px' }} />
                             <Column field="nombre" header="Nombre" sortable style={{ width: '120px', minWidth: '120px' }} />
@@ -251,6 +302,27 @@ const Gestores = () => {
                        
                     </div>
             </div>
+            {hoveredLogo && (
+                <div style={{
+                    position: 'fixed',
+                    left: `${hoveredLogo.x}px`,
+                    top: `${hoveredLogo.y}px`,
+                    zIndex: 9999,
+                    padding: '10px',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 25px rgba(0,0,0,0.2)',
+                    border: '1px solid #d0e5f0',
+                    width: '180px',
+                    height: '180px',
+                    pointerEvents: 'none',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <img src={hoveredLogo.logo} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                </div>
+            )}
         </div>
      );
 }

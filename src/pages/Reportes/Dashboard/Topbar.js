@@ -112,12 +112,29 @@ const TopBar = (props) => {
                 ) : (
                     <div
                         style={{
-                            color: "#2D5B97",
-                            marginLeft: '20px',
-                            fontSize: '25px' 
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginLeft: '20px'
                         }}
                     >
-                        {window.localStorage.getItem("nombreSocio")}
+                        {window.localStorage.getItem("logoSocio") ? (
+                            <img
+                                src={window.localStorage.getItem("logoSocio")}
+                                alt={window.localStorage.getItem("nombreSocio")}
+                                style={{ height: '40px', maxWidth: '120px', objectFit: 'contain' }}
+                            />
+                        ) : (
+                            <span
+                                style={{
+                                    color: "#2D5B97",
+                                    fontSize: '25px',
+                                    fontWeight: 'bold',
+                                    fontFamily: 'Poppins'
+                                }}
+                            >
+                                {window.localStorage.getItem("nombreSocio")}
+                            </span>
+                        )}
                     </div>     
                 )}
                 <button
@@ -146,7 +163,7 @@ const TopBar = (props) => {
                         fontSize: '24px' 
                     }}
                 >
-                    Hola, {window.localStorage.getItem("username")}
+                    Hola, {window.localStorage.getItem("nombreCompleto") || window.localStorage.getItem("username")}
                 </div>
                 <div
                     style={{

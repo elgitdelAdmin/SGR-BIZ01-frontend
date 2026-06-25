@@ -1,90 +1,218 @@
-.notifications-dropdown {
+// Design tokens (from README)
+// Navy:       #2e4878
+// Azul vivo:  #0e71ae
+// Azul tonal: #d0e5f0
+// Gris acero: #9198a7
+// Gris fondo: #f8f9fa
+// Rojo:       #dd4b39
+
+@keyframes nd-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Panel ─────────────────────────────────────────── */
+.nd-panel {
   position: absolute;
-  top: 50px;
-  right: 20px;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-  width: 350px;
-  border-radius: 8px;
-  z-index: 10;
-  font-family: 'Arial', sans-serif;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  background: #fff;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(46, 72, 120, 0.14);
+  z-index: 1000;
+  overflow: hidden;
+  animation: nd-slide-in 0.18s ease;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-.notifications-header {
+/* ── Header ─────────────────────────────────────────── */
+.nd-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 18px;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #f0f4f8;
+  background: #f8f9fa;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2e4878;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  &__badge {
+    background: #dd4b39;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    line-height: 1.4;
+    letter-spacing: 0.2px;
+  }
 }
 
-.close-btn {
+.nd-close-btn {
   background: none;
   border: none;
   cursor: pointer;
-  color: #2D5B97;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #e8edf4;
+  }
 }
 
-.no-notifications {
+/* ── Body / Scroll container ────────────────────────── */
+.nd-body {
+  max-height: 340px;
+  overflow-y: auto;
+
+  // Scrollbar styling
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: #d0e5f0;
+    border-radius: 4px;
+    &:hover { background: #0e71ae; }
+  }
+}
+
+/* ── Empty state ────────────────────────────────────── */
+.nd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px 20px;
+  color: #9198a7;
+  font-size: 13px;
+  font-weight: 600;
   text-align: center;
-  color: #888;
-  font-size: 14px;
+
+  p { margin: 0; }
 }
 
-.notification-item {
-  padding: 10px;
-  border-bottom: 1px solid #f1f1f1;
-  color: #333;
-  font-size: 14px;
+/* ── List ───────────────────────────────────────────── */
+.nd-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+/* ── Item ───────────────────────────────────────────── */
+.nd-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 16px;
   cursor: pointer;
-}
+  position: relative;
+  transition: background 0.15s;
+  border-bottom: 1px solid #f5f7fb;
 
-.notification-item:hover {
-  background-color: #f9f9f9;
-}
+  &:last-child { border-bottom: none; }
 
-.notifications-dropdown ul {
-  list-style: none;   /* quita el puntito */
-  margin: 0;          /* elimina margen por defecto */
-  padding: 0;         /* elimina padding por defecto */
-}
+  &:hover { background: #f0f7ff; }
 
-.notification-item {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-}
+  &--unread { background: #f8fbff; }
+  &--read   { background: #fff; }
 
+  /* Icon pill */
+  &__icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f0f4f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
 
-
-
-.notification-item {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-
-  &.unread {
-    background: #f5f7ff;
-    font-weight: bold;
+    &--unread {
+      background: #d0e5f0;
+    }
   }
 
-  &.read {
-    background: #fff;
+  /* Text content */
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__msg {
+    margin: 0 0 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2e4878;
+    line-height: 1.4;
+  }
+
+  &--read &__msg {
+    font-weight: 400;
     color: #555;
   }
 
-  .notification-meta {
-    font-size: 12px;
-    color: gray;
+  &__meta {
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    gap: 6px;
   }
 
-  .badge {
-    background: #ff4d4f;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 8px;
-    font-size: 10px;
+  &__time {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: #9198a7;
+    font-weight: 500;
   }
+
+  /* Unread dot indicator */
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #0e71ae;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+}
+
+/* ── "Nuevo" badge ──────────────────────────────────── */
+.nd-badge {
+  background: #0e71ae;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+}
+
+/* ── Footer ─────────────────────────────────────────── */
+.nd-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #f0f4f8;
+  background: #f8f9fa;
+  text-align: center;
+  font-size: 12px;
+  color: #9198a7;
+  font-weight: 500;
 }

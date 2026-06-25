@@ -84,6 +84,7 @@ const EditarUsuario = () => {
         telefono1: socio ? socio.telefono1 : "",
         telefono2: socio ? socio.telefono2 : "",
         email: socio ? socio.email : "",
+        logo: socio ? socio.logo : "",
         usuarioRegistro:socio?.usuarioRegistro|| window.localStorage.getItem("username"), 
       },
       validationSchema: schema,
@@ -100,7 +101,8 @@ const EditarUsuario = () => {
             telefono1: values.telefono1,
             telefono2: values.telefono2,
             email: values.email,
-              ...(modoEdicion
+            logo: values.logo,
+            ...(modoEdicion
             ? { usuarioModificacion: window.localStorage.getItem("username") }
             : { usuarioRegistro: values.usuarioRegistro }),
                         
@@ -207,6 +209,74 @@ const EditarUsuario = () => {
       console.error("Error al buscar responsable:", error.message);
     }
   };
+
+  const checkTransparency = (file) => {
+    return new Promise((resolve) => {
+      if (!['image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+        resolve(false);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          try {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            // Check if there is any pixel with alpha < 255
+            for (let i = 3; i < imgData.length; i += 4) {
+              if (imgData[i] < 255) {
+                resolve(true);
+                return;
+              }
+            }
+            resolve(false);
+          } catch (e) {
+            resolve(false);
+          }
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleLogoChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.current.show({
+          severity: "warn",
+          summary: "Archivo muy grande",
+          detail: "El tamaño máximo permitido es 2MB.",
+          life: 4000
+        });
+        return;
+      }
+      
+      const hasTransparency = await checkTransparency(file);
+      if (!hasTransparency) {
+        toast.current.show({
+          severity: "error",
+          summary: "Fondo no transparente",
+          detail: "El logo debe ser una imagen con fondo transparente (formatos .png, .webp o .gif).",
+          life: 6000
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        formik.setFieldValue("logo", reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
       <ConfirmDialog />
@@ -358,7 +428,7 @@ const EditarUsuario = () => {
                 </small>
             </div>
            
-            <div className="field col-12 md:col-6">
+             <div className="field col-12 md:col-6">
               <label className="label-form">Email</label>
               <InputText
                 type={"text"}
@@ -371,6 +441,67 @@ const EditarUsuario = () => {
               ></InputText>
               <div className="p-error">
                 {formik.touched.email && formik.errors.email}
+              </div>
+            </div>
+
+            <div className="field col-12 md:col-6">
+              <label className="label-form">Logotipo (Imagen)</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginTop: '10px' }}>
+                <div style={{
+                  width: '100px',
+                  height: '100px',
+                  borderRadius: '8px',
+                  border: '2px dashed #9198a7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  backgroundColor: '#f8f9fa'
+                }}>
+                  {formik.values.logo ? (
+                    <img src={formik.values.logo} alt="Logo Socio" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  ) : (
+                    <i className="pi pi-image" style={{ fontSize: '2rem', color: '#9198a7' }}></i>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="logo-upload"
+                    style={{ display: 'none' }}
+                    onChange={handleLogoChange}
+                  />
+                  <label htmlFor="logo-upload">
+                    <span className="p-button p-component p-button-outlined" style={{
+                      cursor: 'pointer',
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: '12px',
+                      borderColor: '#0e71ae',
+                      color: '#0e71ae',
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      display: 'inline-block',
+                      fontFamily: 'Poppins'
+                    }}>
+                      <i className="pi pi-upload" style={{ marginRight: '8px' }}></i> Seleccionar imagen
+                    </span>
+                  </label>
+                  <small style={{ color: '#9198a7', marginTop: '2px', maxWidth: '250px', display: 'block', lineHeight: '1.2' }}>
+                    * El logo debe tener fondo transparente (formatos .png, .webp, .gif) y pesar menos de 2MB.
+                  </small>
+                  {formik.values.logo && (
+                    <Boton
+                      label="Eliminar logo"
+                      icon="pi pi-trash"
+                      style={{ fontSize: 11, borderRadius: 8, padding: '6px 12px' }}
+                      className="p-button-danger p-button-outlined"
+                      onClick={() => formik.setFieldValue("logo", "")}
+                      type="button"
+                    />
+                  )}
+                </div>
               </div>
             </div>
         </div>

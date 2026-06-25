@@ -321,35 +321,18 @@ export default function Login() {
                 setRolSociosDisponibles(available);
                 setTempToken(res.accessToken);
                 setIdUser(res.user.id);
-                
-                // Calcular socios únicos
-                const unique = [];
-                const map = new Map();
-                available.forEach(item => {
-                    if (!map.has(item.idSocio)) {
-                        const s = { id: item.idSocio, nombre: item.socioNombre };
-                        map.set(item.idSocio, s);
-                        unique.push(s);
-                    }
-                });
 
-                if (unique.length > 0) {
-                    setSelectedSocio(unique[0]);
-                    const filteredRoles = available
-                        .filter(item => item.idSocio === unique[0].id)
-                        .map(item => ({ id: item.idRol, nombre: item.rolNombre, codigo: item.rolCodigo }));
-                    
-                    const adminRol = filteredRoles.find(r => r.codigo === "ADMIN");
-                    if (adminRol) {
-                        setSelectedRol(adminRol);
-                    } else if (filteredRoles.length > 0) {
-                        setSelectedRol(filteredRoles[0]);
-                    } else {
-                        setSelectedRol(null);
-                    }
-                } else {
-                    setSelectedSocio(null);
-                    setSelectedRol(null);
+                // Opción 3: Si solo hay una combinación disponible, ingresar directo
+                if (available.length === 1) {
+                    const single = available[0];
+                    await completarLogin({
+                        idUser: res.user.id,
+                        idRol: single.idRol,
+                        idSocio: single.idSocio,
+                        tempToken: res.accessToken
+                    });
+                    navigate("/Dashboard/Dashboard");
+                    return;
                 }
 
                 setShowRolSocioDialog(true);
@@ -368,21 +351,12 @@ export default function Login() {
         }
     }
 
-    const handleCompletarLogin = async () => {
-        if (!selectedSocio || !selectedRol) {
-            toast.current?.show({
-                severity: "warn",
-                summary: "Advertencia",
-                detail: "Por favor seleccione un Socio y un Rol.",
-                life: 3000
-            });
-            return;
-        }
+    const handleSeleccionarOpcion = async (item) => {
         try {
             await completarLogin({
                 idUser,
-                idRol: selectedRol.id,
-                idSocio: selectedSocio.id,
+                idRol: item.idRol,
+                idSocio: item.idSocio,
                 tempToken
             });
             setShowRolSocioDialog(false);
@@ -602,72 +576,92 @@ export default function Login() {
         <>
             <Toast ref={toast} position="top-center" />
 
-            {/* Dialog de Selección de Rol + Socio */}
+            {/* Dialog de Selección de Rol + Socio - Tarjetas */}
             <Dialog
-                header="Seleccione Rol y Socio"
-                visible={showRolSocioDialog}
-                style={{ width: '450px' }}
-                onHide={() => setShowRolSocioDialog(false)}
-                closable={false}
-                draggable={false}
-                resizable={false}
-            >
-                <div style={{ padding: '10px 0' }}>
-                    <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>
-                        Tu usuario tiene múltiples roles/socios asignados. Selecciona con cuál deseas ingresar:
-                    </p>
-
-                    <div className="p-fluid">
-                        <div className="field" style={{ marginBottom: '15px' }}>
-                            <label htmlFor="socioSelect" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                Socio
-                            </label>
-                            <Dropdown
-                                id="socioSelect"
-                                value={selectedSocio}
-                                options={sociosOptions}
-                                onChange={handleSocioChange}
-                                optionLabel="nombre"
-                                placeholder="Selecciona un Socio"
-                                style={{ width: '100%' }}
-                            />
+                header={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#d0e5f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <i className="pi pi-user" style={{ color: '#0e71ae', fontSize: '16px' }} />
                         </div>
-
-                        {showRolField && (
-                            <div className="field" style={{ marginBottom: '20px' }}>
-                                <label htmlFor="rolSelect" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                    Rol
-                                </label>
-                                <Dropdown
-                                    id="rolSelect"
-                                    value={selectedRol}
-                                    options={rolesOptions}
-                                    onChange={(e) => setSelectedRol(e.value)}
-                                    optionLabel="nombre"
-                                    placeholder={selectedSocio ? "Selecciona un Rol" : "Primero seleccione un Socio"}
-                                    disabled={!selectedSocio}
-                                    style={{ width: '100%' }}
-                                />
+                        <div>
+                            <div style={{ fontSize: '16px', fontWeight: '700', color: '#2e4878', fontFamily: "'Poppins', sans-serif" }}>¿Cómo deseas ingresar?</div>
+                            <div style={{ fontSize: '12px', fontWeight: '400', color: '#9198a7', fontFamily: "'Inter', sans-serif", marginTop: '2px' }}>Selecciona una opción para continuar</div>
+                        </div>
+                    </div>
+                }
+                visible={showRolSocioDialog}
+                style={{ width: '460px' }}
+                onHide={() => setShowRolSocioDialog(false)}
+                closable={true}
+                draggable={true}
+                resizable={false}
+                pt={{ header: { style: { borderBottom: '1px solid #eef0f5', paddingBottom: '16px' } } }}
+            >
+                <div style={{ padding: '16px 0 4px' }}>
+                    {/* Agrupar por Socio */}
+                    {(() => {
+                        const grupos = new Map();
+                        rolSociosDisponibles.forEach(item => {
+                            if (!grupos.has(item.idSocio)) {
+                                grupos.set(item.idSocio, { socioNombre: item.socioNombre, roles: [] });
+                            }
+                            grupos.get(item.idSocio).roles.push(item);
+                        });
+                        return Array.from(grupos.entries()).map(([idSocio, grupo]) => (
+                            <div key={idSocio} style={{ marginBottom: '16px' }}>
+                                {/* Encabezado del Socio */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                                    <i className="pi pi-building" style={{ color: '#0e71ae', fontSize: '13px' }} />
+                                    <span style={{ fontSize: '12px', fontWeight: '600', color: '#0e71ae', fontFamily: "'Poppins', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        {grupo.socioNombre}
+                                    </span>
+                                    <div style={{ flex: 1, height: '1px', background: '#d0e5f0' }} />
+                                </div>
+                                {/* Roles como botones */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {grupo.roles.map((item, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleSeleccionarOpcion(item)}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                padding: '12px 14px',
+                                                border: '1.5px solid #d0e5f0',
+                                                borderRadius: '10px',
+                                                background: '#ffffff',
+                                                cursor: 'pointer',
+                                                width: '100%',
+                                                textAlign: 'left',
+                                                transition: 'border-color 0.18s, box-shadow 0.18s, background 0.18s',
+                                            }}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.borderColor = '#0e71ae';
+                                                e.currentTarget.style.boxShadow = '0 3px 10px rgba(14,113,174,0.12)';
+                                                e.currentTarget.style.background = '#f5fafd';
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.borderColor = '#d0e5f0';
+                                                e.currentTarget.style.boxShadow = 'none';
+                                                e.currentTarget.style.background = '#ffffff';
+                                            }}
+                                        >
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#d0e5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                <i className="pi pi-id-card" style={{ color: '#0e71ae', fontSize: '16px' }} />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '14px', fontWeight: '600', color: '#2e4878', fontFamily: "'Poppins', sans-serif" }}>
+                                                    {item.rolNombre}
+                                                </div>
+                                            </div>
+                                            <i className="pi pi-chevron-right" style={{ color: '#0e71ae', fontSize: '13px', flexShrink: 0 }} />
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        )}
-                    </div>
-
-                    <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                        <Button
-                            label="Cancelar"
-                            type="button"
-                            onClick={() => setShowRolSocioDialog(false)}
-                            className="p-button-text"
-                            style={{ color: '#666' }}
-                        />
-                        <Button
-                            label="Ingresar"
-                            type="button"
-                            onClick={handleCompletarLogin}
-                            style={{ background: "#404BD9", border: "none" }}
-                            loading={isloginLoading}
-                        />
-                    </div>
+                        ));
+                    })()}
                 </div>
             </Dialog>
 

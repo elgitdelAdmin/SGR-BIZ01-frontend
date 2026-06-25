@@ -14,3 +14,14 @@
     align-items: center;
     margin-left: 53px;
 }
+
+.logo-thumbnail-container {
+    position: relative;
+    cursor: pointer;
+    
+    &:hover {
+        .logo-tooltip-preview {
+            display: flex !important;
+        }
+    }
+}
