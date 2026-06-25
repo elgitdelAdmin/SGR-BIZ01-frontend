@@ -268,7 +268,7 @@ const Consultores = () => {
                     <DatatableDinamic
                         value={listaPersonas}
                         exportable={true}
-                        showSearch={false}
+                        showSearch={true}
                         loading={loading}
                     >
                         <Column field="persona.nombres" header="Nombres" sortable style={{ width: '120px', minWidth: '120px' }} />

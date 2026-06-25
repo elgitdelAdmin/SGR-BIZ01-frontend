@@ -28,6 +28,7 @@
   background-color: #2D5B97; /* azul */
   color: white;
 }
+
 .notifications-dropdown {
   max-height: 300px;
   overflow-y: auto;
@@ -41,6 +42,10 @@
 .notifications-dropdown li {
   padding: 10px;
   border-bottom: 1px solid #f1f1f1;
+}
+
+.notifications-dropdown li:hover {
+  background-color: #f9f9f9;
 }
 
 /* 🔔 Animación de Campanilla (Swing) */
@@ -79,6 +84,17 @@
   animation: badge-pulse 2s infinite;
 }
 
-.notifications-dropdown li:hover {
-  background-color: #f9f9f9;
+/* 📱 Diseño Responsivo para Celulares */
+@media (max-width: 768px) {
+  .layout-topbar {
+    padding: 0 1rem !important;
+  }
+  
+  .topbar-saludo {
+    display: none !important; /* Ocultar saludo central en móviles */
+  }
+
+  .topbar-logo-text {
+    display: none !important; /* Ocultar texto secundario de marca en móviles */
+  }
 }

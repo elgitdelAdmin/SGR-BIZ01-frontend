@@ -109,6 +109,7 @@ const TopBar = (props) => {
                             onClick={() => navigate("/Dashboard/Dashboard")}
                         />
                         <img
+                            className="topbar-logo-text"
                             src="/images/bizletra.png"
                             style={{ height: "40px", objectFit: "contain" }}
                             alt="Letra"
@@ -163,7 +164,7 @@ const TopBar = (props) => {
             </div>
 
             {/* ── Center: Greeting ── */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div className="topbar-saludo" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{
                     color: "#2e4878",
                     fontWeight: "700",

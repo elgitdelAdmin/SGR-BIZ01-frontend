@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { FilterMatchMode } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
+import { Paginator } from 'primereact/paginator';
 import { generateExcelNew } from '../../helpers/helpers';
 
 /**
@@ -47,11 +48,27 @@ const DatatableDinamic = ({
     onSortChange,
     initialGlobalFilter = '',
     initialColumnFilters = {},
+    mobileConfig,
     ...rest
 }) => {
     // ── Estado de paginación ──────────────────────────────────────────
     const [first, setFirst] = useState(0);
     const [rows, setRows] = useState(rowsProp);
+
+    // ── Estado responsivo móvil ───────────────────────────────────────
+    const [isMobile, setIsMobile] = useState(
+        typeof window !== 'undefined' ? window.innerWidth <= (mobileConfig?.breakpoint || 768) : false
+    );
+
+    useEffect(() => {
+        const bp = mobileConfig?.breakpoint || 768;
+        const onResize = () => {
+            setIsMobile(window.innerWidth <= bp);
+        };
+        window.addEventListener('resize', onResize);
+        onResize(); // Asegurar estado correcto en montaje
+        return () => window.removeEventListener('resize', onResize);
+    }, [mobileConfig?.breakpoint]);
 
     // ── Filtros ───────────────────────────────────────────────────────
     const [globalFilterValue, setGlobalFilterValue] = useState(initialGlobalFilter);
@@ -121,6 +138,257 @@ const DatatableDinamic = ({
         }
         return [];
     }, [columns, children]);
+
+    // ── Helper para badge de estado móvil ──────────────────────────────
+    const getMobileBadgeStyle = (valStr) => {
+        const val = String(valStr || '').toLowerCase().trim();
+        if (val.includes('pendiente'))  return { bg: '#fff3cd', color: '#856404', border: '#ffc107' };
+        if (val.includes('asignado'))   return { bg: '#d0e5f0', color: '#0e71ae', border: '#0e71ae' };
+        if (val.includes('proceso') || val.includes('progreso') || val.includes('curso')) return { bg: '#d1ecf1', color: '#0c5460', border: '#17a2b8' };
+        if (val.includes('cerrado') || val.includes('completado') || val.includes('finalizado') || val.includes('activo'))    return { bg: '#d4edda', color: '#155724', border: '#1d9e75' };
+        if (val.includes('anulado') || val.includes('cancelado') || val.includes('inactivo'))    return { bg: '#f8d7da', color: '#721c24', border: '#dd4b39' };
+        return { bg: '#f0f4f8', color: '#2e4878', border: '#9198a7' };
+    };
+
+    // ── Filtrado local en móvil para client-side pagination ───────────
+    const getFilteredData = useCallback(() => {
+        if (serverSide) return value || [];
+        let data = value || [];
+
+        const getFieldValue = (obj, fieldPath) => {
+            if (!fieldPath) return undefined;
+            return fieldPath.split('.').reduce((acc, part) => acc && acc[part], obj);
+        };
+
+        if (globalFilterValue && showSearch) {
+            const query = String(globalFilterValue).toLowerCase().trim();
+            if (query !== '') {
+                data = data.filter((item) => {
+                    return resolvedColumns.some((col) => {
+                        if (!col.field) return false;
+                        const raw = getFieldValue(item, col.field);
+                        if (raw == null) return false;
+                        return String(raw).toLowerCase().includes(query);
+                    });
+                });
+            }
+        }
+
+        const activeFilters = Object.entries(columnFilters).filter(([_, val]) => val && String(val).trim() !== '');
+        if (activeFilters.length > 0) {
+            data = data.filter((item) => {
+                return activeFilters.every(([field, filterVal]) => {
+                    const query = String(filterVal).toLowerCase().trim();
+                    const raw = getFieldValue(item, field);
+                    if (raw == null) return false;
+                    return String(raw).toLowerCase().includes(query);
+                });
+            });
+        }
+
+        return data;
+    }, [value, globalFilterValue, columnFilters, resolvedColumns, serverSide, showSearch]);
+
+    // ── Clasificación de columnas para tarjetas móviles ──────────────────
+    const mobileLayout = useMemo(() => {
+        if (!isMobile) return null;
+
+        const actionCols = [];
+        const dataCols = [];
+
+        if (actionBody) {
+            actionCols.push({
+                header: actionHeader || 'Acciones',
+                body: actionBody
+            });
+        }
+
+        resolvedColumns.forEach((c) => {
+            const isActionHeader = /accion|acción|action/i.test(c.header || '');
+            if (isActionHeader && c.body) {
+                actionCols.push(c);
+            } else {
+                dataCols.push(c);
+            }
+        });
+
+        let idCol = null;
+        if (mobileConfig?.idField) {
+            idCol = dataCols.find(c => c.field === mobileConfig.idField) || null;
+        }
+        if (!idCol) {
+            idCol = dataCols.find(c => c.field && /id|codigo|cód|nro|documento/i.test(c.field)) ||
+                    dataCols.find(c => c.header && /id|codigo|cód|nro|documento/i.test(c.header)) ||
+                    dataCols.find(c => c.field) || 
+                    null;
+        }
+
+        let badgeCol = null;
+        if (mobileConfig?.badgeField) {
+            badgeCol = dataCols.find(c => c.field === mobileConfig.badgeField) || null;
+        }
+        if (!badgeCol) {
+            badgeCol = dataCols.find(c => c.field && /estado/i.test(c.field)) ||
+                       dataCols.find(c => c.header && /estado/i.test(c.header)) ||
+                       null;
+        }
+
+        let titleCol = null;
+        if (mobileConfig?.titleField) {
+            titleCol = dataCols.find(c => c.field === mobileConfig.titleField) || null;
+        }
+        if (!titleCol) {
+            titleCol = dataCols.find(c => c.field && /^titulo$/i.test(c.field)) ||
+                       dataCols.find(c => c.field && /titulo/i.test(c.field)) ||
+                       dataCols.find(c => c.header && /titulo/i.test(c.header)) ||
+                       dataCols.find(c => c.field && /nombre/i.test(c.field)) ||
+                       dataCols.find(c => c.header && /nombre/i.test(c.header)) ||
+                       dataCols.find(c => c.field && /razon|descripcion/i.test(c.field)) ||
+                       null;
+        }
+
+        const hidden = new Set(mobileConfig?.hiddenFields || []);
+
+        const metaCols = dataCols.filter((c) => {
+            if (c === idCol && idCol) return false;
+            if (c === badgeCol && badgeCol) return false;
+            if (c === titleCol && titleCol) return false;
+            if (c.field && hidden.has(c.field)) return false;
+            return true;
+        });
+
+        return { idCol, badgeCol, titleCol, metaCols, actionCols };
+    }, [isMobile, resolvedColumns, mobileConfig, actionBody, actionHeader]);
+
+    const getCardCellValue = (rowData, col, idx) => {
+        if (col.body) {
+            return col.body(rowData, { rowIndex: idx, props: { value }, field: col.field, column: col });
+        }
+        const getFieldValue = (obj, fieldPath) => {
+            if (!fieldPath) return undefined;
+            return fieldPath.split('.').reduce((acc, part) => acc && acc[part], obj);
+        };
+        return getFieldValue(rowData, col.field);
+    };
+
+    const renderCardValue = (val) => {
+        if (val == null) return '-';
+        if (React.isValidElement(val)) return val;
+        if (typeof val === 'boolean') return val ? 'Sí' : 'No';
+        return String(val);
+    };
+
+    const renderMobileCard = (rowData, idx) => {
+        const { idCol, badgeCol, titleCol, metaCols, actionCols } = mobileLayout;
+
+        return (
+            <div className="dt-mobile-card" key={rowData[dataKey] || idx}>
+                {(idCol || badgeCol) && (
+                    <div className="dt-mobile-card__header">
+                        {idCol && (
+                            <span className="dt-mobile-card__id">
+                                {renderCardValue(getCardCellValue(rowData, idCol, idx))}
+                            </span>
+                        )}
+                        {badgeCol && (() => {
+                            const displayVal = renderCardValue(getCardCellValue(rowData, badgeCol, idx));
+                            const badgeStyle = getMobileBadgeStyle(displayVal);
+                            return (
+                                <span 
+                                    className="dt-mobile-card__badge" 
+                                    style={{ 
+                                        background: badgeStyle.bg, 
+                                        color: badgeStyle.color, 
+                                        border: `1px solid ${badgeStyle.border}` 
+                                    }}
+                                >
+                                    {displayVal}
+                                </span>
+                            );
+                        })()}
+                    </div>
+                )}
+
+                {titleCol && (
+                    <p className="dt-mobile-card__title">
+                        {renderCardValue(getCardCellValue(rowData, titleCol, idx))}
+                    </p>
+                )}
+
+                {metaCols.length > 0 && (
+                    <div className="dt-mobile-card__meta">
+                        {metaCols.map((col, cIdx) => {
+                            const val = getCardCellValue(rowData, col, idx);
+                            const displayVal = renderCardValue(val);
+                            
+                            if (React.isValidElement(val)) {
+                                return (
+                                    <div key={col.field || cIdx} className="dt-mobile-card__meta-item dt-mobile-card__meta-item--jsx">
+                                        <span className="dt-mobile-card__meta-label">{col.header}</span>
+                                        <span className="dt-mobile-card__meta-value">{val}</span>
+                                    </div>
+                                );
+                            }
+                            
+                            return (
+                                <div key={col.field || cIdx} className="dt-mobile-card__meta-item">
+                                    <span className="dt-mobile-card__meta-label">{col.header}</span>
+                                    <span className="dt-mobile-card__meta-value">{displayVal}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {actionCols.length > 0 && (
+                    <div className="dt-mobile-card__actions">
+                        {actionCols.map((col, aIdx) => (
+                            <div key={aIdx} className="dt-mobile-card__action-btn-wrapper">
+                                {col.body(rowData, { rowIndex: idx, props: { value }, field: col.field, column: col })}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    const renderMobileView = () => {
+        const processedData = getFilteredData();
+        const displayedValue = serverSide ? value : processedData.slice(first, first + rows);
+        
+        return (
+            <div className="dt-mobile-cards-container" style={{ position: 'relative' }}>
+                {loading && (
+                    <div className="p-datatable-loading-overlay p-component-overlay" style={{ zIndex: 100, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 16 }}>
+                    </div>
+                )}
+                
+                {displayedValue.length === 0 ? (
+                    <div className="dt-mobile-card-empty">
+                        <i className="pi pi-inbox" style={{ fontSize: '32px' }}></i>
+                        <span>{emptyMessage}</span>
+                    </div>
+                ) : (
+                    displayedValue.map((item, idx) => renderMobileCard(item, first + idx))
+                )}
+
+                {totalRecords > rows && (
+                    <div className="dt-mobile-paginator">
+                        <Paginator
+                            first={first}
+                            rows={rows}
+                            totalRecords={totalRecords}
+                            rowsPerPageOptions={[10, 25, 50, 100]}
+                            onPageChange={handlePage}
+                            template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     // ── Construir objeto de filtros de PrimeReact ─────────────────────
     const primeFilters = React.useMemo(() => {
@@ -426,121 +694,329 @@ const DatatableDinamic = ({
             transform: translate(-50%, -100%) translateY(-8px) scale(1);
           }
         }
+
+        /* Estilos móviles para DatatableDinamic */
+        .dt-mobile-cards-container {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          padding: 16px 8px;
+          min-height: 200px;
+          background: #f8fafc;
+        }
+
+        .dt-mobile-card {
+          background: #ffffff;
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(46, 72, 120, 0.06);
+          border: 1px solid rgba(145, 152, 167, 0.15);
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          animation: cardFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .dt-mobile-card:active {
+          transform: scale(0.98);
+        }
+
+        @keyframes cardFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .dt-mobile-card__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 12px;
+          border-bottom: 1px solid #f1f5f9;
+          padding-bottom: 8px;
+        }
+
+        .dt-mobile-card__id {
+          font-family: 'Poppins', sans-serif;
+          font-weight: 700;
+          font-size: 13px;
+          color: #0e71ae;
+          background: #e3f0f8;
+          padding: 4px 10px;
+          border-radius: 20px;
+          letter-spacing: 0.5px;
+        }
+
+        .dt-mobile-card__badge {
+          font-family: 'Inter', sans-serif;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 20px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .dt-mobile-card__title {
+          font-family: 'Poppins', sans-serif;
+          font-size: 15px;
+          font-weight: 600;
+          color: #2e4878;
+          line-height: 1.4;
+          margin: 0 0 12px 0;
+        }
+
+        .dt-mobile-card__meta {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px 16px;
+        }
+
+        .dt-mobile-card__meta-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .dt-mobile-card__meta-item--jsx {
+          grid-column: span 2;
+          border-top: 1px dashed #e9ecef;
+          padding-top: 8px;
+        }
+
+        .dt-mobile-card__meta-label {
+          font-family: 'Inter', sans-serif;
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: #9198a7;
+          letter-spacing: 0.5px;
+        }
+
+        .dt-mobile-card__meta-value {
+          font-family: 'Inter', sans-serif;
+          font-size: 12px;
+          color: #2e4878;
+          font-weight: 500;
+          word-break: break-word;
+        }
+
+        .dt-mobile-card__actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 16px;
+          border-top: 1px dashed #e9ecef;
+          padding-top: 12px;
+          justify-content: flex-end;
+        }
+
+        .dt-mobile-card__actions .profesor-datatable-accion {
+          display: flex !important;
+          gap: 12px !important;
+          justify-content: flex-end !important;
+          width: 100% !important;
+        }
+
+        .dt-mobile-card__actions .profesor-datatable-accion > div,
+        .dt-mobile-card__actions .profesor-datatable-accion > button,
+        .dt-mobile-card__actions .accion-editar,
+        .dt-mobile-card__actions .profesor-accion-editar,
+        .dt-mobile-card__actions .profesor-accion-eliminar {
+          padding: 8px 16px !important;
+          font-size: 13px !important;
+          border-radius: 8px !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 6px !important;
+          min-height: 38px !important;
+          cursor: pointer !important;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+          color: white !important;
+        }
+
+        .dt-mobile-card__actions .profesor-datatable-accion svg {
+          width: 16px !important;
+          height: 16px !important;
+        }
+
+        .dt-mobile-card-empty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 48px 16px;
+          text-align: center;
+          color: #9198a7;
+          gap: 12px;
+          background: white;
+          border-radius: 16px;
+          border: 1px dashed rgba(145, 152, 167, 0.3);
+        }
+
+        .dt-mobile-card-empty span {
+          font-size: 14px;
+          font-weight: 500;
+        }
+
+        /* PrimeReact Paginator overrides for mobile */
+        .dt-mobile-paginator {
+          border-radius: 12px;
+          margin-top: 16px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+          border: 1px solid rgba(145, 152, 167, 0.15);
+          overflow: hidden;
+          background: white;
+        }
+        
+        .dt-mobile-paginator .p-paginator {
+          padding: 8px !important;
+          justify-content: center !important;
+          flex-wrap: wrap !important;
+          gap: 4px !important;
+        }
+
+        .dt-mobile-paginator .p-paginator .p-paginator-pages .p-paginator-page,
+        .dt-mobile-paginator .p-paginator .p-paginator-first,
+        .dt-mobile-paginator .p-paginator .p-paginator-prev,
+        .dt-mobile-paginator .p-paginator .p-paginator-next,
+        .dt-mobile-paginator .p-paginator .p-paginator-last {
+          min-width: 32px !important;
+          height: 32px !important;
+          border-radius: 6px !important;
+          font-size: 12px !important;
+        }
       `}</style>
 
             <div className="dt-dinamic-container">
-                <div className="dt-dinamic-content" ref={tableWrapperRef}>
-                    <DataTable
-                        ref={dt}
-                        value={value}
-                        lazy={serverSide}
-                        paginator
-                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
-                        first={first}
-                        rows={rows}
-                        totalRecords={serverSide ? (totalRecordsProp || 0) : undefined}
-                        rowsPerPageOptions={[10, 25, 50, 100]}
-                        onPage={handlePage}
-                        onSort={(e) => {
-                            if (serverSide && onSortChange) onSortChange(e);
-                        }}
-                        dataKey={dataKey}
-                        filters={primeFilters}
-                        filterDisplay="row"
-                        globalFilterFields={resolvedColumns.map((c) => c.field)}
-                        onValueChange={handleValueChange}
-                        loading={loading}
-                        header={renderHeader()}
-                        emptyMessage={emptyMessage}
-                        stripedRows
-                        size="small"
-                        responsiveLayout="scroll"
-                        scrollable
-                        scrollHeight="100%"
-                        {...rest}
-                    >
-                        {actionBody && (
-                            <Column
-                                body={actionBody}
-                                header={actionHeader}
-                                style={{ width: actionWidth, minWidth: actionWidth }}
-                                headerStyle={{ padding: '0.5rem', whiteSpace: 'nowrap' }}
-                                bodyStyle={{ padding: '0.5rem', textAlign: 'center' }}
-                            />
-                        )}
-                        {resolvedColumns.map((col, idx) => {
-                            const defaultBody = col.body;
-                            const cellBody = (rowData, options) => {
-                                const getFieldValue = (obj, fieldPath) => {
-                                    if (!fieldPath) return undefined;
-                                    return fieldPath.split('.').reduce((acc, part) => acc && acc[part], obj);
-                                };
-                                let val = defaultBody ? defaultBody(rowData, options) : getFieldValue(rowData, col.field);
-                                if (typeof val === 'string' || typeof val === 'number') {
-                                    const text = String(val);
-                                    if (!text.trim()) return '';
+                {isMobile ? (
+                    <div className="dt-dinamic-content">
+                        {renderHeader()}
+                        {renderMobileView()}
+                    </div>
+                ) : (
+                    <>
+                        <div className="dt-dinamic-content" ref={tableWrapperRef}>
+                            <DataTable
+                                ref={dt}
+                                value={value}
+                                lazy={serverSide}
+                                paginator
+                                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+                                first={first}
+                                rows={rows}
+                                totalRecords={serverSide ? (totalRecordsProp || 0) : undefined}
+                                rowsPerPageOptions={[10, 25, 50, 100]}
+                                onPage={handlePage}
+                                onSort={(e) => {
+                                    if (serverSide && onSortChange) onSortChange(e);
+                                }}
+                                dataKey={dataKey}
+                                filters={primeFilters}
+                                filterDisplay="row"
+                                globalFilterFields={resolvedColumns.map((c) => c.field)}
+                                onValueChange={handleValueChange}
+                                loading={loading}
+                                header={renderHeader()}
+                                emptyMessage={emptyMessage}
+                                stripedRows
+                                size="small"
+                                responsiveLayout="scroll"
+                                scrollable
+                                scrollHeight="100%"
+                                {...rest}
+                            >
+                                {actionBody && (
+                                    <Column
+                                        body={actionBody}
+                                        header={actionHeader}
+                                        style={{ width: actionWidth, minWidth: actionWidth }}
+                                        headerStyle={{ padding: '0.5rem', whiteSpace: 'nowrap' }}
+                                        bodyStyle={{ padding: '0.5rem', textAlign: 'center' }}
+                                    />
+                                )}
+                                {resolvedColumns.map((col, idx) => {
+                                    const defaultBody = col.body;
+                                    const cellBody = (rowData, options) => {
+                                        const getFieldValue = (obj, fieldPath) => {
+                                            if (!fieldPath) return undefined;
+                                            return fieldPath.split('.').reduce((acc, part) => acc && acc[part], obj);
+                                        };
+                                        let val = defaultBody ? defaultBody(rowData, options) : getFieldValue(rowData, col.field);
+                                        if (typeof val === 'string' || typeof val === 'number') {
+                                            const text = String(val);
+                                            if (!text.trim()) return '';
+                                            return (
+                                                <div
+                                                    className="title-tooltip-target"
+                                                    onMouseEnter={(e) => handleMouseEnter(e, text)}
+                                                    onMouseLeave={handleMouseLeave}
+                                                    style={{
+                                                        display: '-webkit-box',
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'normal',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    {val}
+                                                </div>
+                                            );
+                                        }
+                                        return val;
+                                    };
+
                                     return (
-                                        <div
-                                            className="title-tooltip-target"
-                                            onMouseEnter={(e) => handleMouseEnter(e, text)}
-                                            onMouseLeave={handleMouseLeave}
+                                        <Column
+                                            key={col.field || idx}
+                                            field={col.field}
+                                            header={col.header}
+                                            body={cellBody}
+                                            sortable={col.sortable}
+                                            filter={col.field ? true : false}
+                                            filterElement={col.field ? columnFilterTemplate(col.field) : null}
+                                            showFilterMenu={false}
+                                            filterPlaceholder={col.field ? `Buscar por ${col.header || col.field}` : ''}
+                                            className={col.className}
+                                            headerClassName={col.headerClassName}
                                             style={{
-                                                display: '-webkit-box',
-                                                WebkitLineClamp: 2,
-                                                WebkitBoxOrient: 'vertical',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'normal',
-                                                cursor: 'pointer'
+                                                width: col.width || undefined,
+                                                minWidth: col.width || (col.field ? '120px' : '80px'),
                                             }}
-                                        >
-                                            {val}
-                                        </div>
+                                            headerStyle={{
+                                                padding: '0.5rem',
+                                                whiteSpace: 'nowrap',
+                                                ...(col.headerStyle || {}),
+                                            }}
+                                            bodyStyle={{
+                                                padding: '0.5rem',
+                                                whiteSpace: 'normal',
+                                                wordWrap: 'break-word',
+                                                verticalAlign: col.field ? 'top' : 'middle',
+                                                textAlign: col.field ? 'left' : 'center',
+                                                ...(col.bodyStyle || {}),
+                                            }}
+                                        />
                                     );
-                                }
-                                return val;
-                            };
+                                })}
+                            </DataTable>
+                        </div>
 
-                            return (
-                                <Column
-                                    key={col.field || idx}
-                                    field={col.field}
-                                    header={col.header}
-                                    body={cellBody}
-                                    sortable={col.sortable}
-                                    filter={col.field ? true : false}
-                                    filterElement={col.field ? columnFilterTemplate(col.field) : null}
-                                    showFilterMenu={false}
-                                    filterPlaceholder={col.field ? `Buscar por ${col.header || col.field}` : ''}
-                                    className={col.className}
-                                    headerClassName={col.headerClassName}
-                                    style={{
-                                        width: col.width || undefined,
-                                        minWidth: col.width || (col.field ? '120px' : '80px'),
-                                    }}
-                                    headerStyle={{
-                                        padding: '0.5rem',
-                                        whiteSpace: 'nowrap',
-                                        ...(col.headerStyle || {}),
-                                    }}
-                                    bodyStyle={{
-                                        padding: '0.5rem',
-                                        whiteSpace: 'normal',
-                                        wordWrap: 'break-word',
-                                        verticalAlign: col.field ? 'top' : 'middle',
-                                        textAlign: col.field ? 'left' : 'center',
-                                        ...(col.bodyStyle || {}),
-                                    }}
-                                />
-                            );
-                        })}
-                    </DataTable>
-                </div>
-
-                <div className="dt-dinamic-scroll" ref={scrollSyncRef}>
-                    <div></div>
-                </div>
+                        <div className="dt-dinamic-scroll" ref={scrollSyncRef}>
+                            <div></div>
+                        </div>
+                    </>
+                )}
 
                 {customTooltip.visible && (
                     <div

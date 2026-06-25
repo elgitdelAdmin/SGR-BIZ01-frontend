@@ -207,53 +207,45 @@ const Gestiontikets = () => {
             <Toast ref={toast} position="top-center"></Toast>
             <div className="header-titulo">Gestión de Tickets</div>
             <div className="zv-usuario-body" style={{ marginTop: 16 }}>
-                <div className="zv-usuario-body-filtro">
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ marginLeft: "auto" }}>
-                            <div className="field col-12 md:col-2">
-                                <label htmlFor="estados" className="font-bold">
-                                    Estados
-                                </label>
-                                <MultiSelect
-                                    id="estados"
-                                    value={parametros.length > 0 ? estadosSeleccionados : []}
-                                    options={parametros}
-                                    optionLabel="nombre"
-                                    optionValue="id"
-                                    onChange={(e) => {
-                                        setEstadosSeleccionados(e.value);
-                                        setPage(0); // reset a primera página
-                                    }}
-                                    placeholder="Selecciona Estados"
-                                    display="chip"
-                                    filter
-                                    maxSelectedLabels={2}
-                                    className="w-full md:w-20rem"
-                                />
-                            </div>
-                            {!permisosActual.controlesOcultos.includes("btnCrear") && (
-                                <>
-                                    <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                                        <Boton
-                                            icon="pi pi-plus"
-                                            style={{ fontSize: 15, borderRadius: 8 }}
-                                            color="primary"
-                                            onClick={() => navigate("Crear/")}
-                                        />
-                                        {!permisosActual.controlesOcultos.includes("BtnMdlMigracionSgr") && (
-                                            <Boton
-                                                id="BtnMdlMigracionSgr"
-                                                icon="pi pi-sync"
-                                                style={{ fontSize: 15, borderRadius: 8 }}
-                                                color="primary"
-                                                onClick={() => setDisplayDialogSync(true)}
-                                                tooltip="Sincronizar Ticket desde SGR"
-                                            />
-                                        )}
-                                    </div>
-                                </>)}
-                        </div>
+
+                {/* ── Toolbar de filtros (responsivo) ── */}
+                <div className="gt-toolbar">
+                    <div className="gt-toolbar__filters">
+                        <label htmlFor="estados" className="gt-toolbar__label">Estados</label>
+                        <MultiSelect
+                            id="estados"
+                            value={parametros.length > 0 ? estadosSeleccionados : []}
+                            options={parametros}
+                            optionLabel="nombre"
+                            optionValue="id"
+                            onChange={(e) => { setEstadosSeleccionados(e.value); setPage(0); }}
+                            placeholder="Selecciona Estados"
+                            display="chip"
+                            filter
+                            maxSelectedLabels={3}
+                            className="gt-toolbar__multiselect"
+                        />
                     </div>
+                    {!permisosActual.controlesOcultos.includes("btnCrear") && (
+                        <div className="gt-toolbar__actions">
+                            <Boton
+                                icon="pi pi-plus"
+                                style={{ fontSize: 15, borderRadius: 8 }}
+                                color="primary"
+                                onClick={() => navigate("Crear/")}
+                            />
+                            {!permisosActual.controlesOcultos.includes("BtnMdlMigracionSgr") && (
+                                <Boton
+                                    id="BtnMdlMigracionSgr"
+                                    icon="pi pi-sync"
+                                    style={{ fontSize: 15, borderRadius: 8 }}
+                                    color="primary"
+                                    onClick={() => setDisplayDialogSync(true)}
+                                    tooltip="Sincronizar Ticket desde SGR"
+                                />
+                            )}
+                        </div>
+                    )}
                 </div>
                 <div className="zv-usuario-body-listado" style={{ marginTop: 24 }}>
 
@@ -275,6 +267,10 @@ const Gestiontikets = () => {
                         initialColumnFilters={columnFilters}
                         sortField={sortField}
                         sortOrder={sortOrder}
+                        mobileConfig={{
+                            titleField: 'titulo',
+                            badgeField: 'estadoNombre',
+                        }}
                     >
                         <Column field="codTicket" header={<div>Cód. Conecta</div>} sortable style={{ width: '120px', minWidth: '120px' }} />
                         <Column field="codTicketInterno" header="Cód. Interno" sortable style={{ width: '100px', minWidth: '100px' }} />
@@ -289,12 +285,7 @@ const Gestiontikets = () => {
                                 return fecha.split('T')[0];
                             }}
                         />
-                        <Column
-                            field="estadoNombre"
-                            header="Estado"
-                            sortable
-                            style={{ width: '120px', minWidth: '120px' }}
-                        />
+                        <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }} />
                         <Column field="empresaRazonSocial" header="Empresa" sortable style={{ width: '120px', minWidth: '120px' }} />
                         <Column field="nombreGestor" header="Gestor" sortable style={{ width: '120px', minWidth: '120px' }} />
                         <Column field="nombreConsultores" header="Consultores" sortable style={{ width: '140px', minWidth: '140px' }} />
@@ -317,12 +308,7 @@ const Gestiontikets = () => {
                             className="centered-column-body"
                             body={(rowData) => rowData.horasPlanificadas ?? '-'}
                         />
-                        <Column
-                            field="titulo"
-                            header="Titulo"
-                            sortable
-                            style={{ minWidth: '250px' }}
-                        />
+                        <Column field="titulo" header="Titulo" sortable style={{ minWidth: '250px' }} />
                     </DatatableDinamic>
 
                 </div>

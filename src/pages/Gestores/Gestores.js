@@ -259,7 +259,7 @@ const Gestores = () => {
                           <DatatableDinamic 
                              value={listaPersonas}  
                              exportable={true}
-                             showSearch={false} 
+                             showSearch={true} 
                              loading={loading}
                          >
                                <Column field="nombres" header="Nombres"   sortable style={{ width: '120px', minWidth: '120px' }}/>

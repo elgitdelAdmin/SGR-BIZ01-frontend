@@ -292,7 +292,7 @@ const Frentes = () => {
                     <DatatableDinamic 
                         value={listaFrentes}
                         exportable={true}
-                        showSearch={false}
+                        showSearch={true}
                         loading={loading}
                     >
                         <Column field="codigo" header="Código" sortable style={{ width: '120px', minWidth: '120px' }} />
