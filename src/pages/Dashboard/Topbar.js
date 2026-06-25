@@ -206,27 +206,32 @@ const TopBar = (props) => {
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#b2d6ea"}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = showNotifications ? "#b2d6ea" : "#d0e5f0"}
                     >
-                        <Iconsax.Notification size="20" color="#0e71ae" variant={showNotifications ? "Bold" : "Linear"} />
+                        <div className={unreadCount > 0 && lengthNotifications ? "bell-active-animation" : ""} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Iconsax.Notification size="20" color="#0e71ae" variant={showNotifications || unreadCount > 0 ? "Bold" : "Linear"} />
+                        </div>
                     </div>
                     {unreadCount > 0 && lengthNotifications && (
-                        <span style={{
-                            position: "absolute",
-                            top: "-4px",
-                            right: "-4px",
-                            background: "#dd4b39",
-                            color: "white",
-                            borderRadius: "50%",
-                            width: "18px",
-                            height: "18px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "10px",
-                            fontWeight: "700",
-                            border: "2px solid #fff",
-                            lineHeight: 1,
-                            pointerEvents: "none"
-                        }}>
+                        <span 
+                            className="badge-active-pulse"
+                            style={{
+                                position: "absolute",
+                                top: "-4px",
+                                right: "-4px",
+                                background: "linear-gradient(135deg, #ff6b6b, #dd4b39)",
+                                color: "white",
+                                borderRadius: "50%",
+                                width: "18px",
+                                height: "18px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "10px",
+                                fontWeight: "700",
+                                border: "2px solid #fff",
+                                lineHeight: 1,
+                                pointerEvents: "none"
+                            }}
+                        >
                             {unreadCount}
                         </span>
                     )}

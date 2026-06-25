@@ -43,6 +43,42 @@
   border-bottom: 1px solid #f1f1f1;
 }
 
+/* 🔔 Animación de Campanilla (Swing) */
+@keyframes bell-swing {
+  0% { transform: rotate(0); }
+  10% { transform: rotate(15deg); }
+  20% { transform: rotate(-10deg); }
+  30% { transform: rotate(8deg); }
+  40% { transform: rotate(-6deg); }
+  50% { transform: rotate(4deg); }
+  60% { transform: rotate(-2deg); }
+  70% { transform: rotate(0); }
+  100% { transform: rotate(0); }
+}
+
+/* 🔴 Animación de Pulso / Radar para el Badge */
+@keyframes badge-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(221, 75, 57, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(221, 75, 57, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(221, 75, 57, 0);
+  }
+}
+
+/* Clases utilitarias de animación */
+.bell-active-animation {
+  animation: bell-swing 3s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.badge-active-pulse {
+  animation: badge-pulse 2s infinite;
+}
+
 .notifications-dropdown li:hover {
   background-color: #f9f9f9;
 }

@@ -202,6 +202,7 @@ export default function Login() {
     const [tempToken, setTempToken] = useState("");
     const [idUser, setIdUser] = useState(null);
     const [loginErrorMsg, setLoginErrorMsg] = useState("");
+    const [completingLogin, setCompletingLogin] = useState(false);
 
     // Obtener socios únicos a partir de rolSociosDisponibles
     const sociosOptions = useMemo(() => {
@@ -325,13 +326,19 @@ export default function Login() {
                 // Opción 3: Si solo hay una combinación disponible, ingresar directo
                 if (available.length === 1) {
                     const single = available[0];
-                    await completarLogin({
-                        idUser: res.user.id,
-                        idRol: single.idRol,
-                        idSocio: single.idSocio,
-                        tempToken: res.accessToken
-                    });
-                    navigate("/Dashboard/Dashboard");
+                    setCompletingLogin(true);
+                    try {
+                        await completarLogin({
+                            idUser: res.user.id,
+                            idRol: single.idRol,
+                            idSocio: single.idSocio,
+                            tempToken: res.accessToken
+                        });
+                        navigate("/Dashboard/Dashboard");
+                    } catch (e) {
+                        setCompletingLogin(false);
+                        throw e;
+                    }
                     return;
                 }
 
@@ -352,6 +359,7 @@ export default function Login() {
     }
 
     const handleSeleccionarOpcion = async (item) => {
+        setCompletingLogin(true);
         try {
             await completarLogin({
                 idUser,
@@ -359,9 +367,11 @@ export default function Login() {
                 idSocio: item.idSocio,
                 tempToken
             });
+            // Mantener un momento breve para evitar parpadeos y navegar
             setShowRolSocioDialog(false);
             navigate("/Dashboard/Dashboard");
         } catch (err) {
+            setCompletingLogin(false);
             toast.current?.show({
                 severity: "error",
                 summary: "Error",
@@ -591,13 +601,41 @@ export default function Login() {
                 }
                 visible={showRolSocioDialog}
                 style={{ width: '460px' }}
-                onHide={() => setShowRolSocioDialog(false)}
-                closable={true}
-                draggable={true}
+                onHide={() => !completingLogin && setShowRolSocioDialog(false)}
+                closable={!completingLogin}
+                draggable={!completingLogin}
                 resizable={false}
                 pt={{ header: { style: { borderBottom: '1px solid #eef0f5', paddingBottom: '16px' } } }}
             >
-                <div style={{ padding: '16px 0 4px' }}>
+                <div style={{ padding: '16px 0 4px', position: 'relative' }}>
+                    {/* Overlay de carga premium */}
+                    {completingLogin && (
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 10,
+                            borderRadius: '10px',
+                            backdropFilter: 'blur(3px)',
+                            transition: 'opacity 0.3s ease'
+                        }}>
+                            <i className="pi pi-spin pi-spinner" style={{ color: '#0e71ae', fontSize: '32px', marginBottom: '12px' }} />
+                            <span style={{ fontSize: '14px', fontWeight: '600', color: '#2e4878', fontFamily: "'Poppins', sans-serif" }}>
+                                Iniciando sesión...
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#9198a7', marginTop: '4px', fontFamily: "'Inter', sans-serif" }}>
+                                Por favor espere un momento
+                            </span>
+                        </div>
+                    )}
+
                     {/* Agrupar por Socio */}
                     {(() => {
                         const grupos = new Map();
@@ -622,6 +660,7 @@ export default function Login() {
                                     {grupo.roles.map((item, idx) => (
                                         <button
                                             key={idx}
+                                            disabled={completingLogin}
                                             onClick={() => handleSeleccionarOpcion(item)}
                                             style={{
                                                 display: 'flex',
@@ -631,17 +670,20 @@ export default function Login() {
                                                 border: '1.5px solid #d0e5f0',
                                                 borderRadius: '10px',
                                                 background: '#ffffff',
-                                                cursor: 'pointer',
+                                                cursor: completingLogin ? 'default' : 'pointer',
                                                 width: '100%',
                                                 textAlign: 'left',
+                                                opacity: completingLogin ? 0.6 : 1,
                                                 transition: 'border-color 0.18s, box-shadow 0.18s, background 0.18s',
                                             }}
                                             onMouseEnter={e => {
+                                                if (completingLogin) return;
                                                 e.currentTarget.style.borderColor = '#0e71ae';
                                                 e.currentTarget.style.boxShadow = '0 3px 10px rgba(14,113,174,0.12)';
                                                 e.currentTarget.style.background = '#f5fafd';
                                             }}
                                             onMouseLeave={e => {
+                                                if (completingLogin) return;
                                                 e.currentTarget.style.borderColor = '#d0e5f0';
                                                 e.currentTarget.style.boxShadow = 'none';
                                                 e.currentTarget.style.background = '#ffffff';
