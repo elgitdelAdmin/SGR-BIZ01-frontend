@@ -222,7 +222,7 @@ const Gestiontikets = () => {
                             placeholder="Selecciona Estados"
                             display="chip"
                             filter
-                            maxSelectedLabels={3}
+                            maxSelectedLabels={20}
                             className="gt-toolbar__multiselect"
                         />
                     </div>
