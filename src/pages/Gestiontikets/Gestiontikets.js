@@ -297,6 +297,18 @@ const Gestiontikets = () => {
                             bodyStyle={{ textAlign: 'center' }}
                             headerClassName="centered-column-header"
                             className="centered-column-body"
+                            body={(rowData) => {
+                                const hrsT = rowData?.horasTrabajadas;
+                                const isZero = hrsT === 0 || hrsT === "0" || parseFloat(hrsT) === 0;
+                                if (codRol === "CONSULTOR" && isZero) {
+                                    return (
+                                        <span className="hrs-t-cero-badge">
+                                            {hrsT}
+                                        </span>
+                                    );
+                                }
+                                return hrsT;
+                            }}
                         />
                         <Column
                             field="horasPlanificadas"
