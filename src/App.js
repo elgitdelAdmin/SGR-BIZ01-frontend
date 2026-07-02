@@ -91,21 +91,40 @@ function App() {
         const idUser = localStorage.getItem("idUser");
 
         try {
-          if (!consultores || consultores.length === 0) {
-            const resConsultores = await (codRol === "SUPERADMIN" ? ListarConsultores() : ListarConsultoresPorSocio());
+          const promises = [];
+          const shouldLoadConsultores = !consultores || consultores.length === 0;
+          const shouldLoadEmpresas = !empresas || empresas.length === 0;
+          const shouldLoadTickets = !tickets || tickets.length === 0;
+
+          if (shouldLoadConsultores) {
+            promises.push(codRol === "SUPERADMIN" ? ListarConsultores() : ListarConsultoresPorSocio());
+          } else {
+            promises.push(Promise.resolve(null));
+          }
+
+          if (shouldLoadEmpresas) {
+            promises.push(codRol === "SUPERADMIN" ? ListarEmpresas() : ListarEmpresasPorSocio());
+          } else {
+            promises.push(Promise.resolve(null));
+          }
+
+          if (shouldLoadTickets) {
+            promises.push(ListarTicket({ idUser, codRol }));
+          } else {
+            promises.push(Promise.resolve(null));
+          }
+
+          const [resConsultores, resEmpresas, resTickets] = await Promise.all(promises);
+
+          if (resConsultores) {
             const mappedConsultores = resConsultores.map(c => ({
               ...c,
               nombreCompleto: `${c.persona?.nombres || ''} ${c.persona?.apellidoPaterno || ''} ${c.persona?.apellidoMaterno || ''}`.trim() || c.persona?.username || 'Sin nombre'
             }));
             setConsultores(mappedConsultores);
           }
-        } catch (error) {
-          console.error("Error cargando consultores globales:", error);
-        }
 
-        try {
-          if (!empresas || empresas.length === 0) {
-            const resEmpresas = await (codRol === "SUPERADMIN" ? ListarEmpresas() : ListarEmpresasPorSocio());
+          if (resEmpresas) {
             const empresasUnicas = [];
             const idsMap = new Set();
             resEmpresas.forEach(e => {
@@ -116,13 +135,8 @@ function App() {
             });
             setEmpresas(empresasUnicas);
           }
-        } catch (error) {
-          console.error("Error cargando empresas globales:", error);
-        }
 
-        try {
-          if (!tickets || tickets.length === 0) {
-            const resTickets = await ListarTicket({ idUser, codRol });
+          if (resTickets) {
             const mappedTickets = resTickets.map(t => ({
               ...t,
               label: `${t.codTicket} - ${t.titulo}`
@@ -130,14 +144,15 @@ function App() {
             setTickets(mappedTickets);
           }
         } catch (error) {
-          console.error("Error cargando tickets globales:", error);
+          console.error("Error cargando datos maestros globales en paralelo:", error);
         }
       };
 
       getParametros();
       getMasterData();
     }
-  }, [isLogged, parametros, setParametros, consultores, setConsultores, empresas, setEmpresas, tickets, setTickets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLogged, setParametros, setConsultores, setEmpresas, setTickets]);
 
   let menuClick = false;
   let mobileTopbarMenuClick = false;

@@ -5,7 +5,8 @@ export const CODIGOS = {
         CargabilidadPorConsultor: "CARGA_CONSULTOR",
         RankingDeConsultoresQueNoRegistranHoras: "RANK_CONS_SIN_HORAS",
         RankingDeConsultoresRegistranMayorCantidadDeHoras: "RANK_CONS_HORAS",
-        DashboardCargabilidadPorConsultor: "DBD_CARGA_CONSULTOR"
+        DashboardCargabilidadPorConsultor: "DBD_CARGA_CONSULTOR",
+        PlanificacionConsultor: "PLAN_CONSULTOR"
     },
     Prioridad: {
         Baja: "BAJA",
@@ -154,10 +155,5 @@ export const ROLES = {
     Consultor: "CONSULTOR",
     Empresa: "EMPRESA",
     GestorCuenta: "GESTORCUENTA",
-    GestorConsultoria: "GESTORCONSULTORIA",
-    Seniority: "Seniority",
-    NivelExperiencia: "NivelExperiencia",
-    ModalidadLaboral: "ModalidadLaboral",
-    TipoActividad: "TipoActividad",
-    TipoCargaMasiva: "TipoCargaMasiva"
+    GestorConsultoria: "GESTORCONSULTORIA"
 };

@@ -42,3 +42,43 @@
         font-family: $font-family-body;
     }
 }
+
+.btn-ir {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 16px;
+    height: 32px;
+    border: none;
+    border-radius: 8px; /* $radius-icon-btn */
+    background-color: #0e71ae; /* $color-azul-vivo */
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(14, 113, 174, 0.15);
+    transition: all 0.2s ease-in-out;
+
+    i {
+        font-size: 11px;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    &:hover {
+        background-color: #0c5f94;
+        box-shadow: 0 4px 8px rgba(14, 113, 174, 0.25);
+        transform: translateY(-1px);
+
+        i {
+            transform: translateX(2px);
+        }
+    }
+
+    &:active {
+        transform: translateY(1px);
+        box-shadow: 0 1px 2px rgba(14, 113, 174, 0.1);
+    }
+}
+

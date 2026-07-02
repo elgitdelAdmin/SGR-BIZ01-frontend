@@ -129,7 +129,8 @@ const Reportes = () => {
         rangoFechas && rangoFechas[0] && rangoFechas[1], [rangoFechas]);
 
     const mostrarFiltroConsultores = useMemo(() =>
-        reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CargabilidadPorConsultor
+        reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CargabilidadPorConsultor ||
+        reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.PlanificacionConsultor
         , [reporteActual]);
 
     const mostrarFiltroEmpresas = useMemo(() =>
@@ -198,7 +199,11 @@ const Reportes = () => {
                 const llaves = Object.keys(data[0]);
                 const isCargaConsultor = reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CargabilidadPorConsultor;
 
-                const cols = llaves.map(k => {
+                // Definir las llaves que representan el ID del ticket para no mostrarlas en la tabla
+                const idKeys = ['IdTicket', 'idTicket', 'Id', 'id', 'Id Ticket', 'id_ticket'];
+                const llavesFiltradas = llaves.filter(k => !idKeys.includes(k));
+
+                const cols = llavesFiltradas.map(k => {
                     const col = {
                         field: k,
                         header: k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')
@@ -228,6 +233,36 @@ const Reportes = () => {
 
                     return col;
                 });
+
+                // Agregar columna "Ir" al principio si existe alguna llave de ID
+                const idKeyPresent = llaves.find(k => idKeys.includes(k));
+                if (idKeyPresent) {
+                    cols.unshift({
+                        field: 'ir',
+                        header: 'Acciones',
+                        style: { width: '80px', minWidth: '80px', textAlign: 'center' },
+                        body: (rowData) => {
+                            const ticketId = rowData[idKeyPresent];
+                            return (
+                                <button
+                                    type="button"
+                                    className="btn-ir"
+                                    onClick={() => {
+                                        if (ticketId) {
+                                            const idUser = localStorage.getItem("idUser");
+                                            const codRol = localStorage.getItem("codRol");
+                                            const basePath = window.location.pathname.replace(/\/reportes.*/i, '');
+                                            window.open(`${basePath}/Tickets/user/${idUser}/rol/${codRol}/Editar/${ticketId}`, '_blank');
+                                        }
+                                    }}
+                                >
+                                    Ir
+                                    <i className="pi pi-arrow-right" />
+                                </button>
+                            );
+                        }
+                    });
+                }
 
                 setColumnasDinamicas(cols);
             } else {
@@ -427,7 +462,10 @@ const Reportes = () => {
 
                     <div className="field col-12 md:col-3">
                         <label className="font-bold">
-                            Rango Fecha Solicitud <span style={{ color: 'red' }}>*</span>
+                            {reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.PlanificacionConsultor
+                                ? "Rango Fecha Planificación"
+                                : "Rango Fecha Solicitud"
+                            } <span style={{ color: 'red' }}>*</span>
                         </label>
                         <Calendar
                             value={rangoFechas}
@@ -469,7 +507,7 @@ const Reportes = () => {
                     <div className="flex justify-content-between align-items-center mb-3">
                         <h5 className="m-0">Vista Previa de Resultados</h5>
                         {dataResultados.length > 0 && (
-                            <span className="text-sm font-bold border-round bg-primary px-2 py-1">
+                            <span className="text-sm font-bold border-round px-2 py-1" style={{ backgroundColor: '#d0e5f0', color: '#0e71ae' }}>
                                 {dataResultados.length} registros encontrados
                             </span>
                         )}

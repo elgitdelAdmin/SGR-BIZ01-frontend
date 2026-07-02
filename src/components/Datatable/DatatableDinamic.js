@@ -157,6 +157,7 @@ const DatatableDinamic = ({
 
         const getFieldValue = (obj, fieldPath) => {
             if (!fieldPath) return undefined;
+            if (obj && obj[fieldPath] !== undefined) return obj[fieldPath];
             return fieldPath.split('.').reduce((acc, part) => acc && acc[part], obj);
         };
 
@@ -266,6 +267,7 @@ const DatatableDinamic = ({
         }
         const getFieldValue = (obj, fieldPath) => {
             if (!fieldPath) return undefined;
+            if (obj && obj[fieldPath] !== undefined) return obj[fieldPath];
             return fieldPath.split('.').reduce((acc, part) => acc && acc[part], obj);
         };
         return getFieldValue(rowData, col.field);
@@ -948,6 +950,7 @@ const DatatableDinamic = ({
                                     const cellBody = (rowData, options) => {
                                         const getFieldValue = (obj, fieldPath) => {
                                             if (!fieldPath) return undefined;
+                                            if (obj && obj[fieldPath] !== undefined) return obj[fieldPath];
                                             return fieldPath.split('.').reduce((acc, part) => acc && acc[part], obj);
                                         };
                                         let val = defaultBody ? defaultBody(rowData, options) : getFieldValue(rowData, col.field);
@@ -976,11 +979,24 @@ const DatatableDinamic = ({
                                         return val;
                                     };
 
+                                    const headerTemplate = (headerText) => {
+                                        if (!headerText) return null;
+                                        return (
+                                            <span
+                                                onMouseEnter={(e) => handleMouseEnter(e, headerText)}
+                                                onMouseLeave={handleMouseLeave}
+                                                style={{ cursor: 'pointer' }}
+                                            >
+                                                {headerText}
+                                            </span>
+                                        );
+                                    };
+
                                     return (
                                         <Column
                                             key={col.field || idx}
                                             field={col.field}
-                                            header={col.header}
+                                            header={headerTemplate(col.header)}
                                             body={cellBody}
                                             sortable={col.sortable}
                                             filter={col.field ? true : false}
