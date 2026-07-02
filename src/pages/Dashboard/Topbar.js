@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "./Topbar.scss"
@@ -6,6 +6,9 @@ import useUsuario from "../../hooks/useUsuario";
 import * as Iconsax from "iconsax-react";
 import NotificationDropdown from "../../components/Notification/NotificationDropdown"
 import { MarcarNotificacionComoLeida } from "../../service/NotificationService";
+import Context from "../../context/usuarioContext";
+import AlertaTicketsSinHoras from "../../components/AlertaTicketsSinHoras/AlertaTicketsSinHoras";
+import AlertsDropdown from "../../components/AlertsDropdown/AlertsDropdown";
 
 
 const TopBar = (props) => {
@@ -17,6 +20,13 @@ const TopBar = (props) => {
     const [updateNotifications, setupdateNotifications] = useState(false);
     const [lengthNotifications, setlengthNotifications] = useState(true);
     const userMenuRef = useRef(null);
+
+    // ── Estado y contexto de alerta de tickets sin horas ────────────
+    // ── Estado y contexto de alerta de tickets sin horas ────────────
+    const { alertas = [] } = useContext(Context) || {};
+    const [selectedAlert, setSelectedAlert] = useState(null);
+    const [showAlerts, setShowAlerts] = useState(false);
+    const alertsRef = useRef(null);
 
     const [notificacionTicket, setNotificacionTicket] = useState(() => {
       try {
@@ -43,13 +53,21 @@ const TopBar = (props) => {
             setlengthNotifications(false)
           }
           setShowNotifications(!showNotifications);
+          setShowAlerts(false); // Cerrar menú de alertas al abrir notificaciones
         } catch (error) {
           console.error("Error al marcar notificaciones:", error);
         }
     };
 
+    const toggleAlerts = () => {
+        setShowAlerts(!showAlerts);
+        setShowNotifications(false); // Cerrar notificaciones al abrir alertas
+        setShowUserMenu(false); // Cerrar menú de usuario
+    };
+
     const toggleUserMenu = () => {
         setShowUserMenu(!showUserMenu);
+        setShowAlerts(false); // Cerrar alertas al abrir menú de usuario
     };
 
     const handleChangePassword = () => {
@@ -62,7 +80,7 @@ const TopBar = (props) => {
         navigate("/Configuracion/CambiarEmail");
     };
 
-    // Cerrar el menú al hacer clic fuera
+    // Cerrar el menú de usuario al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -78,6 +96,23 @@ const TopBar = (props) => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [showUserMenu]);
+
+    // Cerrar el menú de alertas al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (alertsRef.current && !alertsRef.current.contains(event.target)) {
+                setShowAlerts(false);
+            }
+        };
+
+        if (showAlerts) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showAlerts]);
 
     useEffect(() => {
         if (!isLogged) navigate("/Login")
@@ -188,6 +223,70 @@ const TopBar = (props) => {
 
             {/* ── Right: Notifications + User Menu ── */}
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+
+                {/* 🔴 Warning alert button */}
+                {alertas.length > 0 && (
+                    <div style={{ position: "relative" }} ref={alertsRef}>
+                        <div
+                            onClick={toggleAlerts}
+                            title="Tienes alertas pendientes"
+                            style={{
+                                width: "40px",
+                                height: "40px",
+                                borderRadius: "8px",
+                                backgroundColor: showAlerts ? "#fcc8c8" : "#fde8e8",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyCenter: "center",
+                                justifyContent: "center",
+                                transition: "background-color 0.2s",
+                                cursor: "pointer"
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#fcc8c8"}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = showAlerts ? "#fcc8c8" : "#fde8e8"}
+                        >
+                            <div className="bell-active-animation" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <i className="pi pi-exclamation-triangle" style={{ fontSize: '18px', color: '#dd4b39' }} />
+                            </div>
+                        </div>
+
+                        {alertas.length > 0 && (
+                            <span 
+                                className="badge-active-pulse"
+                                style={{
+                                    position: "absolute",
+                                    top: "-4px",
+                                    right: "-4px",
+                                    background: "linear-gradient(135deg, #ff8c00, #dd4b39)",
+                                    color: "white",
+                                    borderRadius: "50%",
+                                    width: "18px",
+                                    height: "18px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: "10px",
+                                    fontWeight: "700",
+                                    border: "2px solid #fff",
+                                    lineHeight: 1,
+                                    pointerEvents: "none"
+                                }}
+                            >
+                                {alertas.length}
+                            </span>
+                        )}
+
+                        {showAlerts && (
+                            <AlertsDropdown
+                                alerts={alertas.map(a => ({
+                                    ...a,
+                                    onClick: () => setSelectedAlert(a)
+                                }))}
+                                onClose={() => setShowAlerts(false)}
+                            />
+                        )}
+                    </div>
+                )}
 
                 {/* Notification bell */}
                 <div style={{ position: "relative" }}>
@@ -392,6 +491,19 @@ const TopBar = (props) => {
                     )}
                 </div>
             </div>
+
+            {/* 🔴 Alerta de Tickets sin Horas Registradas */}
+            {/* 🔴 Alerta de Tickets sin Horas Registradas (Popup Genérico Reutilizable) */}
+            {selectedAlert && (
+                <AlertaTicketsSinHoras 
+                    visible={!!selectedAlert}
+                    onHide={() => setSelectedAlert(null)}
+                    title={selectedAlert.title}
+                    icon={selectedAlert.icon}
+                    message={selectedAlert.message}
+                    items={selectedAlert.items}
+                />
+            )}
         </div>
     );
 }

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useContext } from "react";
 import { Column } from "primereact/column";
 import * as Iconsax from "iconsax-react";
 import "./Gestiontikets.scss";
@@ -10,7 +10,10 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import useUsuario from "../../hooks/useUsuario";
 import { ListarTicketPaginado, EliminarTicket, ListarParametros, MigrarTicketSgr } from "../../service/TiketService";
 import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
-import { MultiSelect } from 'primereact/multiselect';
+import AlertaTicketsSinHoras from "../../components/AlertaTicketsSinHoras/AlertaTicketsSinHoras";
+import Context from "../../context/usuarioContext";
+import { ROLES } from "../../constants/codigosBD";
+import MultiSelectDefault from "../../components/MultiSelectDefault/MultiSelectDefault";
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 
@@ -37,6 +40,15 @@ const Gestiontikets = () => {
     const [displayDialogSync, setDisplayDialogSync] = useState(false);
     const [codTicketInterno, setCodTicketInterno] = useState("");
     const [loadingSync, setLoadingSync] = useState(false);
+
+    // ── Estado Alerta Tickets Sin Horas / Planificación ───────────────
+    const [ticketsSinHoras, setTicketsSinHoras] = useState([]);
+    const [displayAlertaZero, setDisplayAlertaZero] = useState(false);
+
+    const [ticketsSinPlanificar, setTicketsSinPlanificar] = useState([]);
+    const [displayAlertaPlanificado, setDisplayAlertaPlanificado] = useState(false);
+
+    const { setAlertas } = useContext(Context) || {};
 
     // ── Paginación y Filtros y Ordenamiento ───────────────────────────
     const [page, setPage] = useState(savedFilters.page ?? 0);
@@ -100,6 +112,84 @@ const Gestiontikets = () => {
             setEstadosSeleccionados(estadosPorDefecto);
         }
     }, [parametros]);
+
+    // ── Validar si hay tickets sin horas para el Consultor / Gestor ──
+    useEffect(() => {
+        if (tickets.length > 0) {
+            const showWorkedHoursAlert = codRol === ROLES.Consultor || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
+            const showPlannedHoursAlert = codRol === ROLES.GestorCuenta || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
+            const alerts = [];
+
+            // 1. Horas Trabajadas (sin registrar)
+            if (showWorkedHoursAlert) {
+                const sinHoras = tickets.filter(t => {
+                    const hrs = t.horasTrabajadas;
+                    return hrs === 0 || hrs === "0" || parseFloat(hrs) === 0;
+                });
+                if (sinHoras.length > 0) {
+                    setTicketsSinHoras(sinHoras);
+                    setDisplayAlertaZero(true);
+                    alerts.push({
+                        id: "tickets-sin-horas",
+                        title: "Tickets sin Horas Registradas",
+                        description: "Tienes tickets asignados en los que aún no has registrado horas de trabajo",
+                        icon: "pi pi-exclamation-triangle",
+                        message: "Tienes tickets asignados en los que aún no has registrado horas de trabajo:",
+                        items: sinHoras
+                    });
+                } else {
+                    setTicketsSinHoras([]);
+                    setDisplayAlertaZero(false);
+                }
+            } else {
+                setTicketsSinHoras([]);
+                setDisplayAlertaZero(false);
+            }
+
+            // 2. Horas Planificadas (sin planificar)
+            if (showPlannedHoursAlert) {
+                const sinPlanificar = tickets.filter(t => {
+                    const hrs = t.horasPlanificadas;
+                    return hrs === 0 || hrs === "0" || parseFloat(hrs) === 0 || hrs === null || hrs === undefined;
+                });
+                if (sinPlanificar.length > 0) {
+                    setTicketsSinPlanificar(sinPlanificar);
+                    setDisplayAlertaPlanificado(true);
+                    alerts.push({
+                        id: "tickets-sin-planificar",
+                        title: "Tickets sin Horas Planificadas",
+                        description: "Tienes tickets asignados en los que aún no has planificado horas de trabajo",
+                        icon: "pi pi-calendar-times",
+                        message: "Tienes tickets asignados en los que aún no has planificado horas de trabajo:",
+                        items: sinPlanificar
+                    });
+                } else {
+                    setTicketsSinPlanificar([]);
+                    setDisplayAlertaPlanificado(false);
+                }
+            } else {
+                setTicketsSinPlanificar([]);
+                setDisplayAlertaPlanificado(false);
+            }
+
+            if (setAlertas) {
+                setAlertas(alerts);
+            }
+        } else {
+            setTicketsSinHoras([]);
+            setDisplayAlertaZero(false);
+            setTicketsSinPlanificar([]);
+            setDisplayAlertaPlanificado(false);
+            if (setAlertas) setAlertas([]);
+        }
+    }, [tickets, codRol, setAlertas]);
+
+    // Limpiar alertas al desmontar la pantalla de tickets
+    useEffect(() => {
+        return () => {
+            if (setAlertas) setAlertas([]);
+        };
+    }, [setAlertas]);
 
     // ── Cargar tickets paginados ──────────────────────────────────────
     const loadTickets = useCallback(() => {
@@ -201,6 +291,8 @@ const Gestiontikets = () => {
         }
     };
 
+
+
     return (
         <div className="zv-usuario" style={{ paddingTop: 16 }}>
             <ConfirmDialog />
@@ -212,7 +304,7 @@ const Gestiontikets = () => {
                 <div className="gt-toolbar">
                     <div className="gt-toolbar__filters">
                         <label htmlFor="estados" className="gt-toolbar__label">Estados</label>
-                        <MultiSelect
+                        <MultiSelectDefault
                             id="estados"
                             value={parametros.length > 0 ? estadosSeleccionados : []}
                             options={parametros}
@@ -300,7 +392,8 @@ const Gestiontikets = () => {
                             body={(rowData) => {
                                 const hrsT = rowData?.horasTrabajadas;
                                 const isZero = hrsT === 0 || hrsT === "0" || parseFloat(hrsT) === 0;
-                                if (codRol === "CONSULTOR" && isZero) {
+                                const showWorkedHoursAlert = codRol === ROLES.Consultor || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
+                                if (showWorkedHoursAlert && isZero) {
                                     return (
                                         <span className="hrs-t-cero-badge">
                                             {hrsT}
@@ -318,7 +411,19 @@ const Gestiontikets = () => {
                             bodyStyle={{ textAlign: 'center' }}
                             headerClassName="centered-column-header"
                             className="centered-column-body"
-                            body={(rowData) => rowData.horasPlanificadas ?? '-'}
+                            body={(rowData) => {
+                                const hrsP = rowData?.horasPlanificadas;
+                                const isZero = hrsP === 0 || hrsP === "0" || parseFloat(hrsP) === 0 || hrsP === null || hrsP === undefined;
+                                const showPlannedHoursAlert = codRol === ROLES.GestorCuenta || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
+                                if (showPlannedHoursAlert && isZero) {
+                                    return (
+                                        <span className="hrs-t-cero-badge">
+                                            {hrsP ?? 0}
+                                        </span>
+                                    );
+                                }
+                                return hrsP ?? '-';
+                            }}
                         />
                         <Column field="titulo" header="Titulo" sortable style={{ minWidth: '250px' }} />
                     </DatatableDinamic>
@@ -356,6 +461,26 @@ const Gestiontikets = () => {
                     </div>
                 </div>
             </Dialog>
+
+            {/* 🔴 Alerta 1: Tickets sin Horas Registradas */}
+            <AlertaTicketsSinHoras 
+                visible={displayAlertaZero}
+                onHide={() => setDisplayAlertaZero(false)}
+                title="Tickets sin Horas Registradas"
+                icon="pi pi-exclamation-triangle"
+                message="Tienes tickets asignados en los que aún no has registrado horas de trabajo:"
+                items={ticketsSinHoras}
+            />
+
+            {/* 🔴 Alerta 2: Tickets sin Horas Planificadas */}
+            <AlertaTicketsSinHoras 
+                visible={displayAlertaPlanificado}
+                onHide={() => setDisplayAlertaPlanificado(false)}
+                title="Tickets sin Horas Planificadas"
+                icon="pi pi-calendar-times"
+                message="Tienes tickets asignados en los que aún no has planificado horas de trabajo:"
+                items={ticketsSinPlanificar}
+            />
 
 
 

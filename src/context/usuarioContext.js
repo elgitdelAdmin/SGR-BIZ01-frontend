@@ -13,6 +13,7 @@ export function UsuarioContextProvider({ children }) {
     const [consultores, setConsultores] = useState([]);
     const [empresas, setEmpresas] = useState([]);
     const [tickets, setTickets] = useState([]);
+    const [alertas, setAlertas] = useState([]);
 
     return <Context.Provider value={{
         perfil,
@@ -28,7 +29,8 @@ export function UsuarioContextProvider({ children }) {
         setParametros,
         consultores, setConsultores,
         empresas, setEmpresas,
-        tickets, setTickets
+        tickets, setTickets,
+        alertas, setAlertas
     }}>
         {children}
     </Context.Provider>

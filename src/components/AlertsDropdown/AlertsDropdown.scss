@@ -1,0 +1,169 @@
+@import "../../styles/variables";
+
+@keyframes ad-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Panel ─────────────────────────────────────────── */
+.ad-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  background: #fff;
+  border: 1px solid #fcc8c8; // Red border accent
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(221, 75, 57, 0.14);
+  z-index: 1000;
+  overflow: hidden;
+  animation: ad-slide-in 0.18s ease;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.ad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #fde8e8;
+  background: #fdf5f5; // Tonal light red background
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #dd4b39; // $color-rojo-eliminar
+    font-family: 'Poppins', sans-serif;
+  }
+
+  &__badge {
+    background: #dd4b39;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    line-height: 1.4;
+    letter-spacing: 0.2px;
+  }
+}
+
+.ad-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #fde8e8;
+  }
+}
+
+/* ── Body / Scroll container ────────────────────────── */
+.ad-body {
+  max-height: 340px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: #fde8e8;
+    border-radius: 4px;
+    &:hover { background: #dd4b39; }
+  }
+}
+
+/* ── Empty state ────────────────────────────────────── */
+.ad-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px 20px;
+  color: #9198a7;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+
+  p { margin: 0; }
+}
+
+/* ── List ───────────────────────────────────────────── */
+.ad-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+/* ── Item ───────────────────────────────────────────── */
+.ad-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+  border-bottom: 1px solid #fdf5f5;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover { background: #fff5f5; }
+
+  /* Icon pill */
+  &__icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #fde8e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+
+  /* Text content */
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0 0 3px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #dd4b39; // Red alert title
+    line-height: 1.4;
+  }
+
+  &__msg {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: #2e4878; // Navy text
+    line-height: 1.4;
+  }
+}
+
+/* ── Footer ─────────────────────────────────────────── */
+.ad-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #fde8e8;
+  background: #fdf5f5;
+  text-align: center;
+  font-size: 12px;
+  color: #dd4b39;
+  font-weight: 600;
+}

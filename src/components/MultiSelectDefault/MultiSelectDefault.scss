@@ -1,0 +1,177 @@
+@import "../../styles/variables";
+
+.ms-default-custom {
+  width: 100%;
+  
+  &.p-multiselect {
+    border: 1.5px solid $color-azul-tonal;
+    border-radius: $radius-input;
+    background: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: $font-family-body;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+
+    &:not(.p-disabled):hover {
+      border-color: $color-azul-vivo;
+    }
+
+    &:not(.p-disabled).p-focus {
+      border-color: $color-azul-vivo;
+      box-shadow: 0 0 0 3px rgba(14, 113, 174, 0.15);
+    }
+
+    .p-multiselect-label {
+      padding: 4px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* Estilo premium de los Chips (Tokens) */
+    .p-multiselect-token {
+      background: $color-azul-tonal;
+      color: $color-azul-vivo;
+      border-radius: 6px;
+      padding: 4px 10px;
+      gap: 6px;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      border: none;
+      
+      .p-multiselect-token-label {
+        font-family: $font-family-body;
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .p-multiselect-token-icon {
+        color: $color-azul-vivo;
+        font-size: 10px;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        
+        &:hover {
+          opacity: 0.7;
+        }
+      }
+    }
+
+    .p-multiselect-trigger {
+      width: 38px;
+      color: $color-azul-vivo;
+    }
+  }
+}
+
+/* Estilo del Panel Desplegable del MultiSelect (Ajustado) */
+.ms-default-panel-custom {
+  &.p-multiselect-panel {
+    border-radius: 8px !important;
+    border: 1.5px solid $color-azul-tonal !important;
+    box-shadow: 0 8px 24px rgba(46, 72, 120, 0.12) !important;
+    font-family: $font-family-body !important;
+    overflow: hidden;
+
+    .p-multiselect-header {
+      background: #fdfdfd;
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f4f8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      
+      .p-multiselect-filter-container {
+        flex: 1;
+        
+        .p-inputtext {
+          border-radius: 6px;
+          border: 1px solid $color-azul-tonal;
+          font-family: $font-family-body;
+          padding: 6px 10px 6px 30px; // Dejar espacio para icono de búsqueda de PrimeReact
+          width: 100%;
+          
+          &:focus {
+            border-color: $color-azul-vivo;
+            box-shadow: 0 0 0 2px rgba(14, 113, 174, 0.15);
+          }
+        }
+
+        .p-multiselect-filter-icon {
+          left: 10px;
+          color: $color-gris-acero;
+        }
+      }
+      
+      .p-checkbox {
+        .p-checkbox-box {
+          border-radius: 4px;
+          border: 1.5px solid $color-azul-tonal;
+          transition: background 0.15s, border-color 0.15s;
+          
+          &.p-highlight {
+            background: $color-azul-vivo;
+            border-color: $color-azul-vivo;
+          }
+        }
+      }
+      
+      .p-multiselect-close {
+        color: $color-gris-acero;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        transition: background 0.15s;
+        
+        &:hover {
+          background: #f0f4f8;
+          color: $color-rojo-eliminar;
+        }
+      }
+    }
+
+    .p-multiselect-items {
+      padding: 6px 0 !important;
+      max-height: 250px;
+      
+      .p-multiselect-item {
+        padding: 9px 14px !important;
+        font-size: 13px;
+        color: $color-navy;
+        font-weight: 500;
+        transition: background 0.15s, color 0.15s;
+        display: flex;
+        align-items: center;
+
+        &:not(.p-highlight):not(.p-disabled):hover {
+          background: #f0f7ff !important;
+          color: $color-azul-vivo !important;
+        }
+
+        &.p-highlight {
+          background: #f0f7ff !important;
+          color: $color-azul-vivo !important;
+          font-weight: 600;
+        }
+
+        .p-checkbox {
+          margin-right: 10px;
+          
+          .p-checkbox-box {
+            border-radius: 4px;
+            border: 1.5px solid $color-azul-tonal;
+            
+            &.p-highlight {
+              background: $color-azul-vivo;
+              border-color: $color-azul-vivo;
+            }
+          }
+        }
+      }
+    }
+  }
+}
