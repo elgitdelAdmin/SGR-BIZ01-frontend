@@ -110,6 +110,13 @@
     .title-tooltip-target {
       text-align: center !important;
       display: block !important;
+      margin: 0 auto !important;
+    }
+
+    /* Forzar centrado de cualquier elemento hijo */
+    & > * {
+      margin-left: auto !important;
+      margin-right: auto !important;
     }
   }
 }

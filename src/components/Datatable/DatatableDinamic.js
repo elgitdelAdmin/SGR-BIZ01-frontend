@@ -1008,6 +1008,12 @@ const DatatableDinamic = ({
                                             style={{
                                                 width: col.width || undefined,
                                                 minWidth: col.width || (col.field ? '120px' : '80px'),
+                                                padding: '0.5rem',
+                                                whiteSpace: 'normal',
+                                                wordWrap: 'break-word',
+                                                verticalAlign: col.field ? 'top' : 'middle',
+                                                textAlign: col.field ? 'left' : 'center',
+                                                ...(col.bodyStyle || {}),
                                             }}
                                             headerStyle={{
                                                 padding: '0.5rem',
