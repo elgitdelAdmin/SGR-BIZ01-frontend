@@ -3,11 +3,11 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import Boton from "../../../components/Boton/Boton";
-import { Calendar } from "primereact/calendar";
+import CalendarDefault from "../../../components/CalendarDefault/CalendarDefault";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { InputText } from "primereact/inputtext";
-import DropdownDefault from "../../../components/Dropdown/DropdownDefault";
+import InputTextDefault from "../../../components/InputTextDefault/InputTextDefault";
+import DropdownDefault from "../../../components/DropdownDefault/DropdownDefault";
 
 const getPermKey = (mode) =>
   mode === "PLAN" ? "divHorasPlanificacion" : "divHorasTareo";
@@ -476,7 +476,7 @@ const Horas = ({
             <div className="p-fluid formgrid grid">
               <div className="field col-12 md:col-6">
                 <label>Fecha Inicio</label>
-                <Calendar
+                <CalendarDefault
                   value={nuevo.FechaInicio}
                   onChange={(e) => {
                     const FechaInicio = e.value;
@@ -509,7 +509,7 @@ const Horas = ({
 
               <div className="field col-12 md:col-6">
                 <label>Fecha Fin</label>
-                <Calendar
+                <CalendarDefault
                   value={nuevo.FechaFin}
                   onChange={(e) => setNuevo((p) => ({ ...p, FechaFin: e.value }))}
                   dateFormat="yy-mm-dd"
@@ -527,7 +527,7 @@ const Horas = ({
 
               <div className="field col-12 md:col-6">
                 <label>Horas (HH.MM)</label>
-                <InputText
+                <InputTextDefault
                   value={nuevo.Horas}
                   onChange={(e) => {
                     // ✅ NO normalizamos aquí (para que puedas escribir 10, 12, 13...)
@@ -567,7 +567,7 @@ const Horas = ({
 
               <div className="field col-12 md:col-6">
                 <label>Descripción</label>
-                <InputText
+                <InputTextDefault
                   value={nuevo.Descripcion}
                   onChange={(e) =>
                     setNuevo((p) => ({ ...p, Descripcion: e.target.value }))

@@ -1,0 +1,38 @@
+@import "../../styles/variables";
+
+.input-textarea-default-custom {
+  &.p-inputtextarea {
+    width: 100%;
+    border: 1.5px solid $color-azul-tonal;
+    border-radius: $radius-input;
+    background: #ffffff;
+    padding: 10px 14px;
+    font-family: $font-family-body;
+    font-size: 14px;
+    color: $color-navy;
+    line-height: 1.5;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:hover:not(.p-disabled) {
+      border-color: $color-azul-vivo;
+    }
+
+    &:focus:not(.p-disabled) {
+      border-color: $color-azul-vivo;
+      box-shadow: 0 0 0 3px rgba(14, 113, 174, 0.15);
+      outline: none;
+    }
+
+    &::placeholder {
+      color: $color-gris-acero;
+      opacity: 1;
+    }
+
+    &.p-disabled {
+      background: #f8f9fa;
+      border-color: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+  }
+}

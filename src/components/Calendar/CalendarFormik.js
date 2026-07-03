@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar } from "primereact/calendar";
+import CalendarDefault from "../CalendarDefault/CalendarDefault";
 
 /**
  * Calendar conectado a Formik vía setFieldValue.
@@ -35,7 +35,7 @@ const CalendarFormik = ({
     )}`;
 
   return (
-    <Calendar
+    <CalendarDefault
       value={parsedValue}
       onChange={(e) => {
         if (e.value instanceof Date && !isNaN(e.value)) {

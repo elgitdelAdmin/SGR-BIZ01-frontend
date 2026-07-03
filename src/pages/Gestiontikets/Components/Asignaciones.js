@@ -1,5 +1,5 @@
 // Asignaciones.js
-import DropdownDefault from "../../../components/Dropdown/DropdownDefault";
+import DropdownDefault from "../../../components/DropdownDefault/DropdownDefault";
 import Horas from "./Horas";
 import CalendarFormik from "../../../components/Calendar/CalendarFormik";
 import * as Iconsax from "iconsax-react";
@@ -84,6 +84,7 @@ const Asignaciones = ({
   codFrentes,
   addRow,
   removeRow,
+  highlightZero,
 }) => {
   const obtenerOpcionesSubfrente = (currentIdSubFrente) => {
     // 1. Obtener la lista única (distinct) de subfrentes de las especializaciones seleccionadas
@@ -148,7 +149,8 @@ const Asignaciones = ({
           />
         )}
       </div>
-      <table className="w-full border-collapse border border-gray-300">
+      <div className={`table-warning-wrapper ${highlightZero ? "table-warning-blink" : ""}`}>
+        <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-100 text-left">
             <th className="p-2 border">Subfrente</th>
@@ -357,7 +359,30 @@ const Asignaciones = ({
 
                   {/* HORAS TRABAJADAS */}
                   <td className="p-2 border text-center">
-                    {totalesFijos?.[originalIndex]?.totalHoras || 0}
+                    {(() => {
+                      const codRol = localStorage.getItem("codRol");
+                      const tasks = formik.values.asignaciones[originalIndex]?.DetalleTareasConsultor || [];
+                      const tieneHorasEnFormik = tasks.some(t => t.Activo && parseFloat(t.Horas || 0) > 0);
+                      
+                      let totalHrs = 0;
+                      if (tieneHorasEnFormik) {
+                        totalHrs = tasks.filter(t => t.Activo).reduce((sum, t) => sum + parseFloat(t.Horas || 0), 0);
+                      } else {
+                        totalHrs = totalesFijos?.[originalIndex]?.totalHoras || 0;
+                      }
+                      
+                      const isZero = Number(totalHrs) === 0;
+                      const showWorkedHoursAlert = codRol === "CONSULTOR" || codRol === "GESTORCONSULTORIA" || codRol === "ADMIN" || codRol === "SUPERADMIN";
+                      
+                      if (showWorkedHoursAlert && isZero) {
+                        return (
+                          <span className="hrs-t-cero-badge">
+                            0
+                          </span>
+                        );
+                      }
+                      return totalHrs;
+                    })()}
                   </td>
 
                   {/* HORAS (TAREO) */}
@@ -397,6 +422,7 @@ const Asignaciones = ({
             })}
         </tbody>
       </table>
+    </div>
 
     </div>
   );

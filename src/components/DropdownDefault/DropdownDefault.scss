@@ -1,0 +1,114 @@
+@import "../../styles/variables";
+
+.dropdown-default-custom {
+  width: 100%;
+  
+  &.p-dropdown {
+    border: 1.5px solid $color-azul-tonal;
+    border-radius: $radius-input;
+    background: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: $font-family-body;
+    height: 40px;
+    display: flex;
+    align-items: center;
+
+    &:not(.p-disabled):hover {
+      border-color: $color-azul-vivo;
+    }
+
+    &:not(.p-disabled).p-focus {
+      border-color: $color-azul-vivo;
+      box-shadow: 0 0 0 3px rgba(14, 113, 174, 0.15);
+    }
+
+    .p-dropdown-label {
+      font-family: $font-family-body;
+      font-size: 14px;
+      color: $color-navy;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      
+      &.p-placeholder {
+        color: $color-gris-acero;
+      }
+    }
+
+    .p-dropdown-trigger {
+      width: 38px;
+      color: $color-azul-vivo;
+    }
+
+    &.p-disabled {
+      background: #f8f9fa;
+      border-color: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* Estilo del Panel Desplegable del Combo Dropdown */
+.dropdown-default-panel-custom {
+  &.p-dropdown-panel {
+    border-radius: 8px !important;
+    border: 1.5px solid $color-azul-tonal !important;
+    box-shadow: 0 8px 24px rgba(46, 72, 120, 0.12) !important;
+    font-family: $font-family-body !important;
+    overflow: hidden;
+
+    .p-dropdown-filter-container {
+      padding: 10px;
+      border-bottom: 1px solid #f0f4f8;
+      background: #fdfdfd;
+
+      .p-inputtext {
+        border-radius: 6px;
+        border: 1px solid $color-azul-tonal;
+        font-family: $font-family-body;
+        padding: 6px 10px 6px 30px;
+        width: 100%;
+        
+        &:focus {
+          border-color: $color-azul-vivo;
+          box-shadow: 0 0 0 2px rgba(14, 113, 174, 0.15);
+        }
+      }
+
+      .p-dropdown-filter-icon {
+        left: 20px;
+        color: $color-gris-acero;
+      }
+    }
+
+    .p-dropdown-items {
+      padding: 6px 0 !important;
+      
+      .p-dropdown-item {
+        padding: 9px 14px !important;
+        font-size: 13px;
+        color: $color-navy;
+        font-weight: 500;
+        transition: background 0.15s, color 0.15s;
+
+        &:not(.p-highlight):not(.p-disabled):hover {
+          background: #f0f7ff !important;
+          color: $color-azul-vivo !important;
+        }
+
+        &.p-highlight {
+          background: #f0f7ff !important;
+          color: $color-azul-vivo !important;
+          font-weight: 600;
+        }
+      }
+      
+      .p-dropdown-empty-message {
+        padding: 9px 14px;
+        color: $color-gris-acero;
+        font-size: 13px;
+      }
+    }
+  }
+}

@@ -1,15 +1,15 @@
 // src/pages/Gestiontikets/Components/Especializaciones.js
 
 import { useMemo, useState } from "react";
-import { Calendar } from "primereact/calendar";
-import { InputText } from "primereact/inputtext";
+import CalendarDefault from "../../../components/CalendarDefault/CalendarDefault";
+import InputTextDefault from "../../../components/InputTextDefault/InputTextDefault";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { confirmDialog } from "primereact/confirmdialog";
 import * as Iconsax from "iconsax-react";
 
-import DropdownDefault from "../../../components/Dropdown/DropdownDefault";
+import DropdownDefault from "../../../components/DropdownDefault/DropdownDefault";
 import DatatableDefault from "../../../components/Datatable/DatatableDefault";
 import Boton from "../../../components/Boton/Boton";
 import Horas from "./Horas";
@@ -65,6 +65,7 @@ const Especializaciones = ({
   consultores,
   parametros,
   codFrentes,
+  highlightWarning,
 }) => {
   const [subfrentes, setSubfrentes] = useState([]);
   const [visibleDescripcion, setVisibleDescripcion] = useState(false);
@@ -375,7 +376,7 @@ const Especializaciones = ({
           {/* Inicio */}
           <div className="field col-12 md:col-6">
             <label className="label-form">Inicio</label>
-            <Calendar
+            <CalendarDefault
               value={formik.values.nuevaEspecializacion.fechaInicio}
               onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
               placeholder="Inicio"
@@ -389,7 +390,7 @@ const Especializaciones = ({
           {/* Fin */}
           <div className="field col-12 md:col-6">
             <label className="label-form">Fin</label>
-            <Calendar
+            <CalendarDefault
               value={formik.values.nuevaEspecializacion.fechaFin}
               onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
               placeholder="Fin"
@@ -407,7 +408,7 @@ const Especializaciones = ({
           {/* Descripción */}
           <div className="field col-12">
             <label className="label-form">Descripción</label>
-            <InputText
+            <InputTextDefault
               type="text"
               name="nuevaEspecializacion.descripcion"
               placeholder="Descripción"
@@ -426,8 +427,9 @@ const Especializaciones = ({
           <p>Cargando frentes...</p>
         ) : (
           <>
-            <DatatableDefault
-              showSearch={false}
+            <div className={`table-warning-wrapper ${highlightWarning ? "table-warning-blink" : ""}`}>
+              <DatatableDefault
+                showSearch={false}
               paginator={false}
               value={(formik.values.frenteSubFrentes || []).filter((item) => item.activo)}
             >
@@ -491,7 +493,18 @@ const Especializaciones = ({
               <Column
                 header="H. Planificadas"
                 body={(rowData) => {
-                  return calcularTotalHorasPlan(rowData);
+                  const hrsPlan = calcularTotalHorasPlan(rowData);
+                  const isZero = hrsPlan === "0.00" || hrsPlan === "0" || hrsPlan === 0 || hrsPlan === null;
+                  const codRol = localStorage.getItem("codRol");
+                  
+                  if (codRol === "GESTORCUENTA" && isZero) {
+                    return (
+                      <span className="hrs-t-cero-badge">
+                        0.00
+                      </span>
+                    );
+                  }
+                  return hrsPlan;
                 }}
                 align="center"
                 alignHeader="center"
@@ -514,6 +527,7 @@ const Especializaciones = ({
 
               <Column header="Acciones" body={accion} />
             </DatatableDefault>
+          </div>
 
             <Dialog
               header="Descripción"

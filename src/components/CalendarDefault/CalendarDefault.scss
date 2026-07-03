@@ -1,0 +1,172 @@
+@import "../../styles/variables";
+
+.calendar-default-custom {
+  width: 100%;
+  
+  &.p-calendar {
+    height: 40px;
+    
+    .p-inputtext {
+      border: 1.5px solid $color-azul-tonal;
+      border-right: none;
+      border-top-left-radius: $radius-input;
+      border-bottom-left-radius: $radius-input;
+      background: #ffffff;
+      padding: 10px 14px;
+      font-family: $font-family-body;
+      font-size: 14px;
+      color: $color-navy;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      
+      &:hover:not(.p-disabled) {
+        border-color: $color-azul-vivo;
+      }
+      
+      &:focus:not(.p-disabled) {
+        border-color: $color-azul-vivo;
+        box-shadow: none;
+        outline: none;
+      }
+    }
+
+    .p-button.p-datepicker-trigger {
+      background: $color-azul-tonal;
+      border: 1.5px solid $color-azul-tonal;
+      border-top-right-radius: $radius-input;
+      border-bottom-right-radius: $radius-input;
+      color: $color-azul-vivo;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      
+      &:hover {
+        background: darken($color-azul-tonal, 5%);
+        border-color: darken($color-azul-tonal, 5%);
+        color: darken($color-azul-vivo, 5%);
+      }
+    }
+
+    &:not(.p-disabled).p-focus {
+      .p-inputtext {
+        border-color: $color-azul-vivo;
+      }
+      .p-button.p-datepicker-trigger {
+        border-color: $color-azul-vivo;
+      }
+      box-shadow: 0 0 0 3px rgba(14, 113, 174, 0.15);
+      border-radius: $radius-input;
+    }
+    
+    &.p-disabled {
+      .p-inputtext {
+        background: #f8f9fa;
+        border-color: #e2e8f0;
+        color: #94a3b8;
+        cursor: not-allowed;
+      }
+      .p-button.p-datepicker-trigger {
+        background: #e2e8f0;
+        border-color: #e2e8f0;
+        color: #94a3b8;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+/* Estilos de la ventana flotante del calendario */
+.calendar-default-panel-custom {
+  &.p-datepicker {
+    border-radius: 8px !important;
+    border: 1.5px solid $color-azul-tonal !important;
+    box-shadow: 0 8px 24px rgba(46, 72, 120, 0.12) !important;
+    font-family: $font-family-body !important;
+    background: #ffffff;
+    padding: 12px !important;
+    
+    .p-datepicker-header {
+      background: #fdfdfd;
+      padding: 0 0 10px 0;
+      border-bottom: 1px solid #f0f4f8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      
+      .p-datepicker-title {
+        font-family: $font-family-body;
+        font-size: 14px;
+        font-weight: 700;
+        color: $color-navy;
+        
+        .p-datepicker-month, .p-datepicker-year {
+          font-weight: 700;
+          color: $color-navy;
+          transition: color 0.15s;
+          
+          &:hover {
+            color: $color-azul-vivo;
+          }
+        }
+      }
+      
+      .p-link {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        color: $color-gris-acero;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, color 0.15s;
+        
+        &:hover {
+          background: #f0f4f8;
+          color: $color-azul-vivo;
+        }
+      }
+    }
+    
+    table {
+      margin: 8px 0 0 0 !important;
+      
+      th {
+        padding: 6px !important;
+        font-size: 12px;
+        font-weight: 600;
+        color: $color-gris-acero;
+        text-align: center;
+      }
+      
+      td {
+        padding: 4px !important;
+        
+        & > span {
+          width: 28px !important;
+          height: 28px !important;
+          border-radius: 6px !important;
+          font-size: 13px !important;
+          font-weight: 500 !important;
+          color: $color-navy;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.15s, color 0.15s;
+          
+          &:hover {
+            background: #f0f7ff !important;
+            color: $color-azul-vivo !important;
+          }
+          
+          &.p-highlight {
+            background: $color-azul-vivo !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+          }
+          
+          &.p-disabled {
+            color: #cbd5e1 !important;
+            background: transparent !important;
+          }
+        }
+      }
+    }
+  }
+}

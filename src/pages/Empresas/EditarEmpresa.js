@@ -6,10 +6,10 @@ import {
   useParams,
 } from "react-router-dom";
 
-import DropdownDefault from "../../components/Dropdown/DropdownDefault";
+import DropdownDefault from "../../components/DropdownDefault/DropdownDefault";
 import * as Iconsax from "iconsax-react";
 import "./Empresas.scss"
-import { InputText } from "primereact/inputtext";
+import InputTextDefault from "../../components/InputTextDefault/InputTextDefault";
 import Boton from "../../components/Boton/Boton";
 import * as Yup from "yup";
 import { Field, FieldArray, Formik, useFormik, FormikProvider } from "formik";
@@ -28,7 +28,7 @@ import { handleSoloLetras, handleSoloLetrastest } from "../../helpers/helpers";
 import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
-import { Calendar } from 'primereact/calendar';
+import CalendarDefault from "../../components/CalendarDefault/CalendarDefault";
 import DataTable from 'react-data-table-component';
 import {RegistrarEmpresa,ListarFrentes,ListarParametros,ObtenerEmpresa,ActualizarEmpresa,ObtenerPersona,ObtenerPersonaResponsable} from "../../service/EmpresaService";
 import { ListarPais,ListarGestorCuenta} from "../../service/TiketService";
@@ -419,7 +419,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
             </div> */}
             <div className="field col-12 md:col-6">
               <label className="label-form">Razon Social</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="razonSocial"
                 name="razonSocial"
@@ -427,14 +427,14 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 value={formik.values.razonSocial}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.razonSocial && formik.errors.razonSocial}
               </div>
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Nombre Comercial</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="nombreComercial"
                 name="nombreComercial"
@@ -442,14 +442,14 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 value={formik.values.nombreComercial}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.nombreComercial && formik.errors.nombreComercial}
               </div>
             </div>      
             <div className="field col-12 md:col-6">
               <label className="label-form"> N° Documento del contribuyente</label>
-              <InputText
+              <InputTextDefault
                 type={"numeric"}
                 id="numDocContribuyente"
                 name="numDocContribuyente"
@@ -459,37 +459,31 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 onBlur={formik.handleBlur}
                 // maxLength={11}
                 // keyfilter={ /^\d+$/}
-              ></InputText>
+              ></InputTextDefault>
               <small className="p-error">
                 {formik.touched.numDocContribuyente && formik.errors.numDocContribuyente}
               </small>
             </div>
             <div className="field col-12 md:col-6">
-                <label className="label-form">Teléfono</label>
-                <InputNumber
-                  id="telefono"
-                  name="telefono"
-                  placeholder="Escribe aquí"
-                  value={formik.values.telefono}
-                  //onValueChange={formik.handleChange}
-                  onValueChange={(e) => handleSoloNumeros(e, formik, "telefono")}
-                  onChange={(e) => {
-                    if (e.value == "-") {
-                      formik.setFieldValue("telefono", "");
-                    }
-                  }}
-                  onBlur={formik.handleBlur}
-                  useGrouping={false}
-                  maxLength={9}
-                  autoComplete={false}
-                ></InputNumber>
-                <small className="p-error">
-                  {formik.touched.telefono && formik.errors.telefono}
-                </small>
-            </div>
+                 <label className="label-form">Teléfono</label>
+                 <InputTextDefault
+                   id="telefono"
+                   name="telefono"
+                   placeholder="Escribe aquí"
+                   value={formik.values.telefono}
+                   onChange={(e) => {
+                     const val = e.target.value.replace(/\D/g, '').slice(0, 9);
+                     formik.setFieldValue("telefono", val);
+                   }}
+                   onBlur={formik.handleBlur}
+                 />
+                 <small className="p-error">
+                   {formik.touched.telefono && formik.errors.telefono}
+                 </small>
+             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Dirección</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="direccion"
                 name="direccion"
@@ -497,14 +491,14 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 value={formik.values.direccion}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.direccion && formik.errors.direccion}
               </div>
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Correo</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="email"
                 name="email"
@@ -512,7 +506,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 value={formik.values.email}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.email && formik.errors.email}
               </div>
@@ -591,7 +585,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
             </div>
             <div className="field col-12 md:col-4">
               <label className="label-form"> N° Documento de Identidad </label>
-              <InputText
+              <InputTextDefault
                 type={"numeric"}
                 id="numeroDocumento"
                 name="numeroDocumento"
@@ -612,7 +606,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                     : /^[0-9a-zA-Z||-]+$/gi
                 }
                 disabled={!formik.values.tipoDocumento}
-              ></InputText>
+              ></InputTextDefault>
               <small className="p-error">
                 {formik.touched.numeroDocumento && formik.errors.numeroDocumento}
               </small>
@@ -665,7 +659,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
              </div>
              <div className="field col-12 md:col-6">
               <label className="label-form">Nombres</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="nombres"
                 name="nombres"
@@ -675,14 +669,14 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 onChange={formik.handleChange}
                 disabled={true}
                 // onChange={(e)=>handleSoloLetras(e,formik,"nombres")}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.nombres && formik.errors.nombres}
               </div>
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Apellidos</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="apellidoPaterno"
                 name="apellidoPaterno"
@@ -692,7 +686,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 onChange={formik.handleChange}
                 disabled={true}
                 // onChange={(e)=>handleSoloLetras(e,formik,"apellidoPaterno")}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.apellidoPaterno && formik.errors.apellidoPaterno}
               </div>
@@ -716,7 +710,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
             </div> */}
              <div className="field col-12 md:col-6">
               <label className="label-form">Cargo del Responsable</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="cargoResponsable"
                 name="cargoResponsable"
@@ -724,62 +718,50 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 value={formik.values.cargoResponsable}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.cargoResponsable && formik.errors.cargoResponsable}
               </div>
             </div>
-            <div className="field col-12 md:col-6">
-                <label className="label-form">Teléfono</label>
-                <InputNumber
-                  id="telefonopersona"
-                  name="telefonopersona"
-                  placeholder="Escribe aquí"
-                  value={formik.values.telefonopersona}
-                  //onValueChange={formik.handleChange}
-                  onValueChange={(e) => handleSoloNumeros(e, formik, "telefonopersona")}
-                  onChange={(e) => {
-                    if (e.value == "-") {
-                      formik.setFieldValue("telefonopersona", "");
-                    }
-                  }}
-                  onBlur={formik.handleBlur}
-                  disabled={true}
-                  useGrouping={false}
-                  maxLength={9}
-                  autoComplete={false}
-                ></InputNumber>
-                <small className="p-error">
-                  {formik.touched.telefonopersona && formik.errors.telefonopersona}
-                </small>
-            </div>
-            <div className="field col-12 md:col-6">
-                <label className="label-form">Teléfono 2</label>
-                <InputNumber
-                  id="telefono2"
-                  name="telefono2"
-                  placeholder="Escribe aquí"
-                  value={formik.values.telefono2}
-                  //onValueChange={formik.handleChange}
-                  onValueChange={(e) => handleSoloNumeros(e, formik, "telefono2")}
-                  onChange={(e) => {
-                    if (e.value == "-") {
-                      formik.setFieldValue("telefono2", "");
-                    }
-                  }}
-                  onBlur={formik.handleBlur}
-                  disabled={true}
-                  useGrouping={false}
-                  maxLength={9}
-                  autoComplete={false}
-                ></InputNumber>
-                <small className="p-error">
-                  {formik.touched.telefono2 && formik.errors.telefono2}
-                </small>
-            </div>
+             <div className="field col-12 md:col-6">
+                 <label className="label-form">Teléfono</label>
+                 <InputTextDefault
+                   id="telefonopersona"
+                   name="telefonopersona"
+                   placeholder="Escribe aquí"
+                   value={formik.values.telefonopersona}
+                   onChange={(e) => {
+                     const val = e.target.value.replace(/\D/g, '').slice(0, 9);
+                     formik.setFieldValue("telefonopersona", val);
+                   }}
+                   onBlur={formik.handleBlur}
+                   disabled={true}
+                 />
+                 <small className="p-error">
+                   {formik.touched.telefonopersona && formik.errors.telefonopersona}
+                 </small>
+             </div>
+             <div className="field col-12 md:col-6">
+                 <label className="label-form">Teléfono 2</label>
+                 <InputTextDefault
+                   id="telefono2"
+                   name="telefono2"
+                   placeholder="Escribe aquí"
+                   value={formik.values.telefono2}
+                   onChange={(e) => {
+                     const val = e.target.value.replace(/\D/g, '').slice(0, 9);
+                     formik.setFieldValue("telefono2", val);
+                   }}
+                   onBlur={formik.handleBlur}
+                   disabled={true}
+                 />
+                 <small className="p-error">
+                   {formik.touched.telefono2 && formik.errors.telefono2}
+                 </small>
+             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Dirección</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="direccionpersona"
                 name="direccionpersona"
@@ -788,14 +770,14 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
                 disabled={true}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.direccionpersona && formik.errors.direccionpersona}
               </div>
             </div>
              <div className="field col-12 md:col-6">
               <label className="label-form">Correo</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="correopersona"
                 name="correopersona"
@@ -804,7 +786,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
                 disabled={true}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.correopersona && formik.errors.correopersona}
               </div>

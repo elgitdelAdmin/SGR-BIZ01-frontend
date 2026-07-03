@@ -1,13 +1,13 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useContext } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Calendar } from 'primereact/calendar';
-import DropdownDefault from "../../components/Dropdown/DropdownDefault";
+import CalendarDefault from "../../components/CalendarDefault/CalendarDefault";
+import DropdownDefault from "../../components/DropdownDefault/DropdownDefault";
 import ModalArchivos from "../../components/Modals/ModalArchivos/ModalArchivos";
 import * as Iconsax from "iconsax-react";
 import "./Gestiontikets.scss"
-import { InputText } from "primereact/inputtext";
+import InputTextDefault from "../../components/InputTextDefault/InputTextDefault";
+import InputTextareaDefault from "../../components/InputTextareaDefault/InputTextareaDefault";
 import Boton from "../../components/Boton/Boton";
-import { InputTextarea } from "primereact/inputtextarea";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { Toast } from "primereact/toast";
@@ -20,15 +20,18 @@ import { ListarParametros, ListarPais, ListarFrentes, RegistrarTiket, ObtenerTic
 import { ListarGestores, ListarGestoresPorRolSocio } from "../../service/GestorService";
 import { ListarEmpresasporRol } from "../../service/EmpresaService";
 import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import Asignaciones from "./Components/Asignaciones";
 import Especializaciones from "./Components/Especializaciones";
 import ModalRepositorios from "./Components/ModalRepositorios";
 import { CODIGOS } from "../../constants/codigosBD";
+import Context from "../../context/usuarioContext";
 
 const Editar = () => {
   const navigate = useNavigate();
   const { isLogged } = useUsuario();
+  const { setAlertas } = useContext(Context) || {};
   const [persona, setTicket] = useState(null);
   const [modoEdicion, setModoEdicion] = useState(false);
 
@@ -92,6 +95,9 @@ const Editar = () => {
     Id: 0
   });
   const [totalesFijos, setTotalesFijos] = useState([]);
+
+
+
 
 
   const [visible, setVisible] = useState(false);
@@ -724,6 +730,152 @@ const Editar = () => {
 
   });
 
+  const idConsultorLogged = window.localStorage.getItem("idConsultor");
+  const isConsultor = codRol === "CONSULTOR";
+  const isGestorCuenta = codRol === "GESTORCUENTA";
+
+  const mostrarAlertaSinHorasEdit = useMemo(() => {
+    if (!isConsultor || !idConsultorLogged || !formik.values.asignaciones) return false;
+    
+    const asignacionConsultor = (formik.values.asignaciones || []).find(
+      (a) => a.Activo !== false && !a.esPlaceholder && Number(a.IdConsultor) === Number(idConsultorLogged)
+    );
+    
+    if (!asignacionConsultor) return false;
+    
+    const tareasFormik = asignacionConsultor.DetalleTareasConsultor || [];
+    const tieneHorasEnFormik = tareasFormik.some(t => t.Activo && parseFloat(t.Horas || 0) > 0);
+    if (tieneHorasEnFormik) return false;
+    
+    const originalIndex = (formik.values.asignaciones || []).findIndex(
+      (a) => a.idUnico === asignacionConsultor.idUnico
+    );
+    if (originalIndex === -1) return true;
+    
+    const totalHoras = totalesFijos?.[originalIndex]?.totalHoras || 0;
+    return Number(totalHoras) === 0;
+  }, [isConsultor, idConsultorLogged, formik.values.asignaciones, totalesFijos]);
+
+  const mostrarAlertaSinEspecializaciones = useMemo(() => {
+    if (!isGestorCuenta || !persona) return false;
+    
+    // Si formik aún no ha cargado los valores del ticket recién traído (lag de inicialización),
+    // validamos contra los datos reales de persona.frenteSubFrentes
+    const frentesList = formik.values.frenteSubFrentes && formik.values.frenteSubFrentes.length > 0
+      ? formik.values.frenteSubFrentes
+      : (persona.frenteSubFrentes || []);
+      
+    const especializacionesActivas = frentesList.filter(
+      (e) => e.activo !== false
+    );
+    
+    return especializacionesActivas.length === 0;
+  }, [isGestorCuenta, formik.values.frenteSubFrentes, persona]);
+
+  const mostrarAlertaSinPlanificacion = useMemo(() => {
+    if (!isGestorCuenta || !persona) return false;
+
+    const frentesList = formik.values.frenteSubFrentes && formik.values.frenteSubFrentes.length > 0
+      ? formik.values.frenteSubFrentes
+      : (persona.frenteSubFrentes || []);
+
+    const especializacionesActivas = frentesList.filter(
+      (e) => e.activo !== false
+    );
+
+    if (especializacionesActivas.length === 0) return false;
+
+    return especializacionesActivas.some((esp) => {
+      const detalles = esp.DetallePlanificacionConsultor || esp.detallePlanificacionConsultor || [];
+      const totalMin = detalles
+        .filter((d) => d.Activo || d.activo)
+        .reduce((acc, it) => {
+          const hrs = it.Horas || it.horas || "0";
+          const parts = String(hrs).split(".");
+          const hh = Number(parts[0] || "0");
+          let mmStr = parts[1] || "0";
+          if (mmStr.length === 1) mmStr = `${mmStr}0`;
+          const mm = Number(mmStr.slice(0, 2));
+          return acc + (hh * 60 + mm);
+        }, 0);
+      return totalMin === 0;
+    });
+  }, [isGestorCuenta, formik.values.frenteSubFrentes, persona]);
+
+  useEffect(() => {
+    if (setAlertas) {
+      if (mostrarAlertaSinHorasEdit && persona?.codTicket) {
+        setAlertas([
+          {
+            id: `ticket-edit-sin-horas-${persona?.id}`,
+            title: "Pendiente Registrar Horas",
+            description: `Tengo pendiente registrar mis horas trabajadas para el ticket ${persona?.codTicket}`,
+            icon: "pi pi-exclamation-triangle",
+            message: `Tengo pendiente registrar mis horas trabajadas para el ticket ${persona?.codTicket}`,
+            items: []
+          }
+        ]);
+      } else if (mostrarAlertaSinEspecializaciones && persona?.codTicket) {
+        setAlertas([
+          {
+            id: `ticket-edit-sin-especializaciones-${persona?.id}`,
+            title: "Pendiente Registrar Especializaciones",
+            description: `Tengo pendiente configurar las especializaciones para el ticket ${persona?.codTicket}`,
+            icon: "pi pi-exclamation-triangle",
+            message: `Tengo pendiente configurar las especializaciones para el ticket ${persona?.codTicket}`,
+            items: []
+          }
+        ]);
+      } else if (mostrarAlertaSinPlanificacion && persona?.codTicket) {
+        setAlertas([
+          {
+            id: `ticket-edit-sin-planificacion-${persona?.id}`,
+            title: "Pendiente Registrar Planificación",
+            description: `Tengo pendiente registrar la planificación de horas para el ticket ${persona?.codTicket}`,
+            icon: "pi pi-exclamation-triangle",
+            message: `Tengo pendiente registrar la planificación de horas para el ticket ${persona?.codTicket}`,
+            items: []
+          }
+        ]);
+      } else {
+        setAlertas([]);
+      }
+    }
+    return () => {
+      if (setAlertas) setAlertas([]);
+    };
+  }, [mostrarAlertaSinHorasEdit, mostrarAlertaSinEspecializaciones, mostrarAlertaSinPlanificacion, persona?.codTicket, setAlertas, persona?.id]);
+
+  const [visibleAlertHoras, setVisibleAlertHoras] = useState(false);
+  const alertHorasShownRef = useRef(false);
+
+  const [visibleAlertEspecializaciones, setVisibleAlertEspecializaciones] = useState(false);
+  const alertEspecializacionesShownRef = useRef(false);
+
+  const [visibleAlertPlanificacion, setVisibleAlertPlanificacion] = useState(false);
+  const alertPlanificacionShownRef = useRef(false);
+
+  useEffect(() => {
+    if (mostrarAlertaSinHorasEdit && persona?.codTicket && !alertHorasShownRef.current) {
+      alertHorasShownRef.current = true;
+      setVisibleAlertHoras(true);
+    }
+  }, [mostrarAlertaSinHorasEdit, persona?.codTicket]);
+
+  useEffect(() => {
+    if (mostrarAlertaSinEspecializaciones && persona?.codTicket && !alertEspecializacionesShownRef.current) {
+      alertEspecializacionesShownRef.current = true;
+      setVisibleAlertEspecializaciones(true);
+    }
+  }, [mostrarAlertaSinEspecializaciones, persona?.codTicket]);
+
+  useEffect(() => {
+    if (mostrarAlertaSinPlanificacion && persona?.codTicket && !alertPlanificacionShownRef.current) {
+      alertPlanificacionShownRef.current = true;
+      setVisibleAlertPlanificacion(true);
+    }
+  }, [mostrarAlertaSinPlanificacion, persona?.codTicket]);
+
   useEffect(() => {
     if (Object.keys(formik.errors).length > 0) {
       console.log("Formik Validation Errors:", formik.errors);
@@ -1122,6 +1274,105 @@ const Editar = () => {
     <div className="zv-editarUsuario" style={{ paddingTop: 16 }}>
       <ConfirmDialog />
       <Toast ref={toast} position="top-center"></Toast>
+
+      {/* 🔴 Popup de alerta: Horas sin registrar */}
+      <Dialog
+        visible={visibleAlertHoras}
+        onHide={() => setVisibleAlertHoras(false)}
+        modal
+        draggable={false}
+        resizable={false}
+        style={{ width: 'min(480px, 90vw)' }}
+        header={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <i className="pi pi-exclamation-triangle" style={{ color: '#dd4b39', fontSize: 20 }} />
+            <span style={{ fontWeight: 700, fontSize: 16, color: '#dd4b39', fontFamily: 'Poppins, sans-serif' }}>
+              Pendiente Registrar Horas
+            </span>
+          </div>
+        }
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Boton
+              label="Entendido"
+              color="primary"
+              icon="pi pi-check"
+              onClick={() => setVisibleAlertHoras(false)}
+            />
+          </div>
+        }
+      >
+        <p style={{ margin: 0, fontSize: 14, color: '#4a5568', lineHeight: 1.6 }}>
+          Tengo pendiente registrar mis horas trabajadas para el ticket{' '}
+          <strong style={{ color: '#2e4878' }}>{persona?.codTicket}</strong>.
+        </p>
+      </Dialog>
+
+      {/* 🔴 Popup de alerta: Especialidades sin registrar */}
+      <Dialog
+        visible={visibleAlertEspecializaciones}
+        onHide={() => setVisibleAlertEspecializaciones(false)}
+        modal
+        draggable={false}
+        resizable={false}
+        style={{ width: 'min(480px, 90vw)' }}
+        header={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <i className="pi pi-exclamation-triangle" style={{ color: '#dd4b39', fontSize: 20 }} />
+            <span style={{ fontWeight: 700, fontSize: 16, color: '#dd4b39', fontFamily: 'Poppins, sans-serif' }}>
+              Pendiente Registrar Especialidades
+            </span>
+          </div>
+        }
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Boton
+              label="Entendido"
+              color="primary"
+              icon="pi pi-check"
+              onClick={() => setVisibleAlertEspecializaciones(false)}
+            />
+          </div>
+        }
+      >
+        <p style={{ margin: 0, fontSize: 14, color: '#4a5568', lineHeight: 1.6 }}>
+          Tengo pendiente configurar las especializaciones para el ticket{' '}
+          <strong style={{ color: '#2e4878' }}>{persona?.codTicket}</strong>.
+        </p>
+      </Dialog>
+
+      {/* 🔴 Popup de alerta: Planificación sin registrar */}
+      <Dialog
+        visible={visibleAlertPlanificacion}
+        onHide={() => setVisibleAlertPlanificacion(false)}
+        modal
+        draggable={false}
+        resizable={false}
+        style={{ width: 'min(480px, 90vw)' }}
+        header={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <i className="pi pi-exclamation-triangle" style={{ color: '#dd4b39', fontSize: 20 }} />
+            <span style={{ fontWeight: 700, fontSize: 16, color: '#dd4b39', fontFamily: 'Poppins, sans-serif' }}>
+              Pendiente Registrar Planificación
+            </span>
+          </div>
+        }
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Boton
+              label="Entendido"
+              color="primary"
+              icon="pi pi-check"
+              onClick={() => setVisibleAlertPlanificacion(false)}
+            />
+          </div>
+        }
+      >
+        <p style={{ margin: 0, fontSize: 14, color: '#4a5568', lineHeight: 1.6 }}>
+          Tengo pendiente registrar la planificación de horas para el ticket{' '}
+          <strong style={{ color: '#2e4878' }}>{persona?.codTicket}</strong>.
+        </p>
+      </Dialog>
       <div className="header">
         <span style={{ cursor: "pointer" }} onClick={() => navigate(-1)}>
           <Iconsax.ArrowCircleLeft size={30}></Iconsax.ArrowCircleLeft>
@@ -1143,7 +1394,7 @@ const Editar = () => {
                     {/* Titulo */}
                     <div className="field col-12 md:col-6">
                       <label className="label-form">Titulo</label>
-                      <InputText
+                      <InputTextDefault
                         type={"text"}
                         id="titulo"
                         name="titulo"
@@ -1159,7 +1410,7 @@ const Editar = () => {
                     {/* Fecha de solicitud */}
                     <div className="field col-12 md:col-6">
                       <label className="label-form">Fecha de solicitud </label>
-                      <Calendar
+                      <CalendarDefault
                         id="fechaSolicitud"
                         name="fechaSolicitud"
                         value={formik.values.fechaSolicitud}
@@ -1244,7 +1495,7 @@ const Editar = () => {
                     {/* Usuario Responsable del Cliente */}
                     <div className="field col-12 md:col-6">
                       <label className="label-form">Usuario Responsable del Cliente</label>
-                      <InputText
+                      <InputTextDefault
                         type={"text"}
                         id="nombrePersonaResponsable"
                         name="nombrePersonaResponsable"
@@ -1284,7 +1535,7 @@ const Editar = () => {
                     {/* Codigo Interno */}
                     <div className="field col-12 md:col-6">
                       <label className="label-form">Codigo Interno</label>
-                      <InputText
+                      <InputTextDefault
                         type={"text"}
                         id="codTicketInterno"
                         name="codTicketInterno"
@@ -1396,29 +1647,47 @@ const Editar = () => {
                     {/* Descripción */}
                     <div className="field col-12 md:col-6">
                       <label className="label-form">Descripción</label>
-                      <div
-                        ref={descripcionRef}
-                        contentEditable={!permisosActual.controlesBloqueados.includes("cboDescripcion")}
-                        suppressContentEditableWarning
-                        dangerouslySetInnerHTML={{ __html: formik.values.descripcion || '' }}
-                        onBlur={(e) => {
-                          formik.setFieldValue('descripcion', e.currentTarget.innerHTML);
-                          formik.setFieldTouched('descripcion', true);
-                        }}
-                        style={{
-                          minHeight: '150px',
-                          maxHeight: '400px',
-                          overflow: 'auto',
-                          background: '#fff',
-                          padding: '0.5rem',
-                          border: '1px solid #ced4da',
-                          borderRadius: '6px',
-                          outline: 'none',
-                          cursor: permisosActual.controlesBloqueados.includes("cboDescripcion") ? 'not-allowed' : 'text',
-                          lineHeight: '1.5',
-                          wordBreak: 'break-word',
-                        }}
-                      />
+                      {(() => {
+                        const val = formik.values.descripcion || '';
+                        const isHtml = /<[a-z][\s\S]*>/i.test(val);
+                        const isDisabled = permisosActual.controlesBloqueados.includes("cboDescripcion");
+
+                        if (isHtml) {
+                          return (
+                            <div
+                              style={{
+                                width: '100%',
+                                minHeight: '150px',
+                                maxHeight: '350px',
+                                overflowY: 'auto',
+                                overflowX: 'auto',
+                                border: '1px solid #cbd5e0',
+                                borderRadius: '8px',
+                                padding: '10px 12px',
+                                backgroundColor: isDisabled ? '#f8f9fa' : '#fff',
+                                fontSize: '13px',
+                                lineHeight: '1.6',
+                                color: '#2d3748',
+                              }}
+                              dangerouslySetInnerHTML={{ __html: val }}
+                            />
+                          );
+                        }
+
+                        return (
+                          <InputTextareaDefault
+                            id="descripcion"
+                            name="descripcion"
+                            placeholder="Escribe aquí la descripción del ticket..."
+                            value={val}
+                            onBlur={formik.handleBlur}
+                            onChange={formik.handleChange}
+                            disabled={isDisabled}
+                            rows={6}
+                            style={{ width: '100%', minHeight: '150px' }}
+                          />
+                        );
+                      })()}
                       <div className="p-error">
                         {formik.touched.descripcion && formik.errors.descripcion}
                       </div>
@@ -1524,6 +1793,7 @@ const Editar = () => {
                       consultores={consultores}
                       parametros={parametros}
                       codFrentes={codFrentes}
+                      highlightWarning={mostrarAlertaSinEspecializaciones || mostrarAlertaSinPlanificacion}
                     />
                   </>
                 )}
@@ -1548,6 +1818,7 @@ const Editar = () => {
                       codFrentes={codFrentes}
                       addRow={addRow}
                       removeRow={removeRow}
+                      highlightZero={mostrarAlertaSinHorasEdit}
                     />
                   </>
                 )}

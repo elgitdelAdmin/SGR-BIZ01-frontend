@@ -5,10 +5,10 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import DropdownDefault from "../../components/Dropdown/DropdownDefault";
+import DropdownDefault from "../../components/DropdownDefault/DropdownDefault";
 import * as Iconsax from "iconsax-react";
 import "./Usuarios.scss"
-import { InputText } from "primereact/inputtext";
+import InputTextDefault from "../../components/InputTextDefault/InputTextDefault";
 import Boton from "../../components/Boton/Boton";
 
 import * as Yup from "yup";
@@ -27,10 +27,9 @@ import { handleSoloLetras, handleSoloLetrastest } from "../../helpers/helpers";
 import { handleSoloNumeros } from "../../helpers/helpers";
 import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
-import { Calendar } from 'primereact/calendar';
-import { MultiSelect } from 'primereact/multiselect';
+import CalendarDefault from "../../components/CalendarDefault/CalendarDefault";
+import MultiSelectDefault from "../../components/MultiSelectDefault/MultiSelectDefault";
 import { Dialog } from 'primereact/dialog';
-import { Button } from 'primereact/button';
 import { ListarParametros } from "../../service/GestorService";
 import { RegistrarUsuario, ListaRoles, ListaSocio, ObtenerUsuario, ActualizarUsuario } from "../../service/UsuarioService";
 import { ObtenerPersonaResponsable } from "../../service/EmpresaService";
@@ -380,7 +379,7 @@ const EditarUsuario = () => {
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form"> N° Documento de Identidad </label>
-              <InputText
+              <InputTextDefault
                 type={"numeric"}
                 id="numeroDocumento"
                 name="numeroDocumento"
@@ -398,26 +397,32 @@ const EditarUsuario = () => {
                   }
                 }}
                 maxLength={
-                  formik.values.tipoDocumento &&
-                    formik.values.tipoDocumento == 1
+                  formik.values.tipoDocumento === 1
                     ? 8
-                    : 12
+                    : formik.values.tipoDocumento === 2
+                    ? 12
+                    : formik.values.tipoDocumento === 3
+                    ? 12
+                    : 15
                 }
                 keyfilter={
-                  formik.values.tipoDocumento &&
-                    formik.values.tipoDocumento == 1
-                    ? /^\d+$/
+                  formik.values.tipoDocumento === 1
+                    ? /[0-9]/
+                    : formik.values.tipoDocumento === 2
+                    ? /^[0-9a-zA-Z||-]+$/gi
+                    : formik.values.tipoDocumento === 3
+                    ? /^[0-9a-zA-Z||-]+$/gi
                     : /^[0-9a-zA-Z||-]+$/gi
                 }
                 disabled={!formik.values.tipoDocumento || modoEdicion}
-              ></InputText>
+              ></InputTextDefault>
               <small className="p-error">
                 {formik.touched.numeroDocumento && formik.errors.numeroDocumento}
               </small>
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Nombres</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="nombres"
                 name="nombres"
@@ -425,14 +430,14 @@ const EditarUsuario = () => {
                 value={formik.values.nombres}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.nombres && formik.errors.nombres}
               </div>
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Apellido Paterno</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="apellidoPaterno"
                 name="apellidoPaterno"
@@ -441,14 +446,14 @@ const EditarUsuario = () => {
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
               // onChange={(e)=>handleSoloLetras(e,formik,"apellidoPaterno")}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.apellidoPaterno && formik.errors.apellidoPaterno}
               </div>
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Apellido Materno</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="apellidoMaterno"
                 name="apellidoMaterno"
@@ -457,7 +462,7 @@ const EditarUsuario = () => {
                 onChange={formik.handleChange}
                 // onChange={(e) => handleSoloLetras(e, formik, "apellidoMaterno")}
                 onBlur={formik.handleBlur}
-              ></InputText>
+              ></InputTextDefault>
               <small className="p-error">
                 {formik.touched.apellidoMaterno &&
                   formik.errors.apellidoMaterno}
@@ -465,52 +470,42 @@ const EditarUsuario = () => {
             </div>
 
             <div className="field col-12 md:col-6">
-              <label className="label-form">Teléfono</label>
-              <InputNumber
-                id="telefono"
-                name="telefono"
-                placeholder="Escribe aquí"
-                value={formik.values.telefono}
-                onValueChange={(e) => handleSoloNumeros(e, formik, "telefono")}
-                onChange={(e) => {
-                  if (e.value == "-") {
-                    formik.setFieldValue("telefono", "");
-                  }
-                }}
-                onBlur={formik.handleBlur}
-                useGrouping={false}
-                maxLength={15}
-                autoComplete={false}
-              ></InputNumber>
-              <small className="p-error">
-                {formik.touched.telefono && formik.errors.telefono}
-              </small>
-            </div>
-            <div className="field col-12 md:col-6">
-              <label className="label-form">Teléfono 2</label>
-              <InputNumber
-                id="telefono2"
-                name="telefono2"
-                placeholder="Escribe aquí"
-                value={formik.values.telefono2}
-                onValueChange={(e) => handleSoloNumeros(e, formik, "telefono2")}
-                onChange={(e) => {
-                  if (e.value == "-") {
-                    formik.setFieldValue("telefono2", "");
-                  }
-                }}
-                onBlur={formik.handleBlur}
-                useGrouping={false}
-                maxLength={15}
-                autoComplete={false}
-              ></InputNumber>
-              <small className="p-error">
-                {formik.touched.telefono2 && formik.errors.telefono2}
-              </small>
-            </div>
+               <label className="label-form">Teléfono</label>
+               <InputTextDefault
+                 id="telefono"
+                 name="telefono"
+                 placeholder="Escribe aquí"
+                 value={formik.values.telefono}
+                 onChange={(e) => {
+                   const val = e.target.value.replace(/\D/g, '').slice(0, 9);
+                   formik.setFieldValue("telefono", val);
+                 }}
+                 onBlur={formik.handleBlur}
+               />
+               <small className="p-error">
+                 {formik.touched.telefono && formik.errors.telefono}
+               </small>
+             </div>
+             <div className="field col-12 md:col-6">
+               <label className="label-form">Teléfono 2</label>
+               <InputTextDefault
+                 id="telefono2"
+                 name="telefono2"
+                 placeholder="Escribe aquí"
+                 value={formik.values.telefono2}
+                 onChange={(e) => {
+                   const val = e.target.value.replace(/\D/g, '').slice(0, 9);
+                   formik.setFieldValue("telefono2", val);
+                 }}
+                 onBlur={formik.handleBlur}
+               />
+               <small className="p-error">
+                 {formik.touched.telefono2 && formik.errors.telefono2}
+               </small>
+             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Dirección</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="direccion"
                 name="direccion"
@@ -518,14 +513,14 @@ const EditarUsuario = () => {
                 value={formik.values.direccion}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.direccion && formik.errors.direccion}
               </div>
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Correo</label>
-              <InputText
+              <InputTextDefault
                 type={"text"}
                 id="correo"
                 name="correo"
@@ -533,14 +528,14 @@ const EditarUsuario = () => {
                 value={formik.values.correo}
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-              ></InputText>
+              ></InputTextDefault>
               <div className="p-error">
                 {formik.touched.correo && formik.errors.correo}
               </div>
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Fecha de nacimiento</label>
-              <Calendar
+              <CalendarDefault
                 id="fechaNacimiento"
                 name="fechaNacimiento"
                 value={formik.values.fechaNacimiento}
@@ -556,7 +551,7 @@ const EditarUsuario = () => {
             </div>
             <div className="field col-12 md:col-6">
               <label className="label-form">Usuario</label>
-              <InputText
+              <InputTextDefault
                 type="text"
                 id="username"
                 name="username"
@@ -592,13 +587,12 @@ const EditarUsuario = () => {
 
               {modoEdicion ? (
                 !mostrarInputPassword ? (
-                  <button
+                  <Boton
                     type="button"
-                    className="p-button p-component"
+                    label="Resetear contraseña"
+                    color="secondary"
                     onClick={() => setMostrarInputPassword(true)}
-                  >
-                    Resetear contraseña
-                  </button>
+                  />
                 ) : (
                   <>
                     <Password
@@ -669,7 +663,7 @@ const EditarUsuario = () => {
                     minWidth: "auto",
                     width: "fit-content",
                     whiteSpace: "nowrap",
-                    borderRadius: 20,
+                    borderRadius: 8,
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -690,16 +684,16 @@ const EditarUsuario = () => {
               resizable={false}
               footer={
                 <div className="flex justify-content-end gap-2">
-                  <Button
+                  <Boton
                     label="Cancelar"
                     icon="pi pi-times"
-                    className="p-button-danger"
+                    style={{ backgroundColor: "#dd4b39", color: "white" }}
                     onClick={() => { setVisibleModal(false); setNuevaAsignacion({ idSocio: "", idRoles: [] }); }}
                   />
-                  <Button
+                  <Boton
                     label="Agregar"
                     icon="pi pi-plus"
-                    className="p-button-primary"
+                    color="primary"
                     onClick={() => {
                       // Validar
                       if (!nuevaAsignacion.idSocio) {
@@ -764,7 +758,7 @@ const EditarUsuario = () => {
                 ) : (
                   <div className="field col-12">
                     <label className="label-form">Socio</label>
-                    <InputText
+                    <InputTextDefault
                       value={(socio || []).find(s => s.id === idSocioSesion)?.nombre || nombreSocioSesion || `Socio #${idSocioSesion}`}
                       disabled
                       style={{ background: '#f0f0f0' }}
@@ -775,7 +769,7 @@ const EditarUsuario = () => {
                 {/* Roles */}
                 <div className="field col-12">
                   <label className="label-form">Roles</label>
-                  <MultiSelect
+                  <MultiSelectDefault
                     placeholder="Seleccione Roles"
                     value={nuevaAsignacion.idRoles}
                     onChange={(e) => setNuevaAsignacion(prev => ({ ...prev, idRoles: e.value }))}
