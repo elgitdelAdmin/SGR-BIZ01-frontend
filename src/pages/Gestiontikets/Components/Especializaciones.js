@@ -71,6 +71,7 @@ const Especializaciones = ({
   const [visibleDescripcion, setVisibleDescripcion] = useState(false);
   const [rowSeleccionada, setRowSeleccionada] = useState(null);
   const [visibleModal, setVisibleModal] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(null);
 
   const frentesById = useMemo(() => {
     const map = new Map();
@@ -133,8 +134,9 @@ const Especializaciones = ({
       message: "¿Está seguro de desactivar esta especialización?",
       header: "Confirmación",
       icon: "pi pi-exclamation-triangle",
-      acceptClassName: "p-button-danger",
-      acceptLabel: "Desactivar",
+      acceptClassName: "custom-confirm-accept",
+      acceptLabel: "ELIMINAR",
+      rejectClassName: "custom-confirm-reject",
       rejectLabel: "Cancelar",
       accept: () => {
         const nuevas = (formik.values.frenteSubFrentes || []).map((esp) =>
@@ -164,9 +166,51 @@ const Especializaciones = ({
     });
   };
 
+  const handleEditar = (rowData) => {
+    const idx = (formik.values.frenteSubFrentes || []).findIndex(
+      (esp) => esp._uid === rowData._uid
+    );
+    if (idx === -1) return;
+
+    setEditingIndex(idx);
+    
+    const frenteSeleccionado = frentesById.get(Number(rowData.idFrente));
+    if (frenteSeleccionado) {
+      const subfrentesOrdenados = [...(frenteSeleccionado.subFrente || [])].sort(
+        (a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
+      );
+      setSubfrentes(subfrentesOrdenados);
+    } else {
+      setSubfrentes([]);
+    }
+
+    formik.setFieldValue("nuevaEspecializacion", {
+      id: rowData.id || "",
+      idFrente: rowData.idFrente,
+      idSubFrente: rowData.idSubFrente,
+      cantidad: rowData.cantidad,
+      fechaInicio: rowData.fechaInicio ? new Date(rowData.fechaInicio) : null,
+      fechaFin: rowData.fechaFin ? new Date(rowData.fechaFin) : null,
+      activo: rowData.activo,
+      descripcion: rowData.descripcion || "",
+    });
+
+    setVisibleModal(true);
+  };
+
   const accion = (rowData) => (
     <div className="profesor-datatable-accion">
-      <div className="accion-eliminar" onClick={() => confirmarEliminacion(rowData)}>
+      <div
+        className="accion-eliminar"
+        style={{ backgroundColor: "#0e71ae", marginRight: "8px" }}
+        onClick={() => handleEditar(rowData)}
+        title="Editar"
+      >
+        <span>
+          <Iconsax.Edit2 color="#ffffff" />
+        </span>
+      </div>
+      <div className="accion-eliminar" onClick={() => confirmarEliminacion(rowData)} title="Eliminar">
         <span>
           <Iconsax.Trash color="#ffffff" />
         </span>
@@ -188,81 +232,111 @@ const Especializaciones = ({
     }
 
     const especializacionesActuales = Array.isArray(formik.values.frenteSubFrentes)
-      ? formik.values.frenteSubFrentes
+      ? [...formik.values.frenteSubFrentes]
       : [];
 
-    // Generar un _uid único para esta nueva especialización
-    const nuevaUid = generateUUID();
-
-    formik.setFieldValue("frenteSubFrentes", [
-      ...especializacionesActuales,
-      {
-        id: Number(nueva.id || 0),
-        idFrente: Number(nueva.idFrente),
-        idSubFrente: Number(nueva.idSubFrente),
-        cantidad: 1,
+    if (editingIndex !== null) {
+      // Estamos editando
+      const espAEditar = especializacionesActuales[editingIndex];
+      especializacionesActuales[editingIndex] = {
+        ...espAEditar,
         fechaInicio: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
         fechaFin: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
-        activo: true,
         descripcion: nueva.descripcion || "",
-        _uid: nuevaUid,
-        DetallePlanificacionConsultor: [],
-      },
-    ]);
+      };
 
-    setSubfrentesSeleccionados((prev) => {
-      const yaEsta = prev.some((sf) => String(sf.idSubFrente) === String(nueva.idSubFrente));
-      if (yaEsta) return prev;
+      // Si las fechas cambiaron, actualizar fechas de la asignación vinculada
+      const asignacionesActuales = Array.isArray(formik.values.asignaciones)
+        ? [...formik.values.asignaciones]
+        : [];
+      
+      const idxAsig = asignacionesActuales.findIndex(a => a._frenteSubFrenteUid === espAEditar._uid);
+      if (idxAsig !== -1) {
+        if (!asignacionesActuales[idxAsig].FechaAsignacion && especializacionesActuales[editingIndex].fechaInicio) {
+           asignacionesActuales[idxAsig].FechaAsignacion = especializacionesActuales[editingIndex].fechaInicio;
+        }
+        if (!asignacionesActuales[idxAsig].FechaDesasignacion && especializacionesActuales[editingIndex].fechaFin) {
+           asignacionesActuales[idxAsig].FechaDesasignacion = especializacionesActuales[editingIndex].fechaFin;
+        }
+        formik.setFieldValue("asignaciones", asignacionesActuales);
+      }
 
-      const subfrenteSeleccionado = subfrentes.find(
-        (s) => String(s.id) === String(nueva.idSubFrente)
-      );
-      if (!subfrenteSeleccionado) return prev;
+      formik.setFieldValue("frenteSubFrentes", especializacionesActuales);
+    } else {
+      // Generar un _uid único para esta nueva especialización
+      const nuevaUid = generateUUID();
 
-      return [
-        ...prev,
+      formik.setFieldValue("frenteSubFrentes", [
+        ...especializacionesActuales,
         {
-          idSubFrente: subfrenteSeleccionado.id,
-          idFrente: subfrenteSeleccionado.idFrente,
-          nombre: subfrenteSeleccionado.nombre,
+          id: Number(nueva.id || 0),
+          idFrente: Number(nueva.idFrente),
+          idSubFrente: Number(nueva.idSubFrente),
+          cantidad: 1,
+          fechaInicio: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
+          fechaFin: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
+          activo: true,
+          descripcion: nueva.descripcion || "",
+          _uid: nuevaUid,
+          DetallePlanificacionConsultor: [],
         },
-      ];
-    });
+      ]);
 
-    // SIEMPRE crear asignación placeholder para esta especialización (vinculada por _uid)
-    const subFrenteId = Number(nueva.idSubFrente);
-    const asignacionesActuales = Array.isArray(formik.values.asignaciones)
-      ? formik.values.asignaciones
-      : [];
+      setSubfrentesSeleccionados((prev) => {
+        const yaEsta = prev.some((sf) => String(sf.idSubFrente) === String(nueva.idSubFrente));
+        if (yaEsta) return prev;
 
-    const placeholderAsig = {
-      idUnico: generateUUID(),
-      Id: 0,
-      IdSubFrente: subFrenteId,
-      IdFrente: Number(nueva.idFrente),
-      IdConsultor: 0,
-      IdTipoActividad: 25,
-      FechaAsignacion: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
-      FechaDesasignacion: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
-      DetalleTareasConsultor: [],
-      Activo: true,
-      esPlaceholder: true,
-      _frenteSubFrenteUid: nuevaUid,
-    };
-    formik.setFieldValue("asignaciones", [...asignacionesActuales, placeholderAsig]);
+        const subfrenteSeleccionado = subfrentes.find(
+          (s) => String(s.id) === String(nueva.idSubFrente)
+        );
+        if (!subfrenteSeleccionado) return prev;
+
+        return [
+          ...prev,
+          {
+            idSubFrente: subfrenteSeleccionado.id,
+            idFrente: subfrenteSeleccionado.idFrente,
+            nombre: subfrenteSeleccionado.nombre,
+          },
+        ];
+      });
+
+      // SIEMPRE crear asignación placeholder para esta especialización (vinculada por _uid)
+      const subFrenteId = Number(nueva.idSubFrente);
+      const asignacionesActuales = Array.isArray(formik.values.asignaciones)
+        ? formik.values.asignaciones
+        : [];
+
+      const placeholderAsig = {
+        idUnico: generateUUID(),
+        Id: 0,
+        IdSubFrente: subFrenteId,
+        IdFrente: Number(nueva.idFrente),
+        IdConsultor: 0,
+        IdTipoActividad: 25,
+        FechaAsignacion: nueva.fechaInicio ? new Date(nueva.fechaInicio).toISOString() : null,
+        FechaDesasignacion: nueva.fechaFin ? new Date(nueva.fechaFin).toISOString() : null,
+        DetalleTareasConsultor: [],
+        Activo: true,
+        esPlaceholder: true,
+        _frenteSubFrenteUid: nuevaUid,
+      };
+      formik.setFieldValue("asignaciones", [...asignacionesActuales, placeholderAsig]);
+    }
 
     formik.setFieldValue("nuevaEspecializacion", {
       id: "",
       idFrente: "",
       idSubFrente: "",
       cantidad: "",
-      fechaInicio: "",
-      fechaFin: "",
+      fechaInicio: null,
+      fechaFin: null,
       activo: true,
       descripcion: "",
     });
 
     setSubfrentes([]);
+    setEditingIndex(null);
     return true;
   };
 
@@ -273,34 +347,36 @@ const Especializaciones = ({
       idFrente: "",
       idSubFrente: "",
       cantidad: "",
-      fechaInicio: "",
-      fechaFin: "",
+      fechaInicio: null,
+      fechaFin: null,
       activo: true,
       descripcion: "",
     });
     setSubfrentes([]);
+    setEditingIndex(null);
   };
 
-  const handleAgregar = () => {
+  const handleGuardar = () => {
     const ok = agregarEspecializacion();
     if (ok) {
       setVisibleModal(false);
+      formik.handleSubmit();
     }
   };
 
   const modalFooter = (
     <div className="flex justify-content-end gap-2">
       <Boton
-        label="Cancelar"
+        label="Guardar"
+        icon="pi pi-save"
+        color="primary"
+        onClick={handleGuardar}
+      />
+      <Boton
+        label="Cerrar"
         icon="pi pi-times"
         style={{ backgroundColor: "#dd4b39", color: "white" }}
         onClick={handleCloseModal}
-      />
-      <Boton
-        label="Agregar"
-        icon="pi pi-plus"
-        color="primary"
-        onClick={handleAgregar}
       />
     </div>
   );
@@ -309,7 +385,7 @@ const Especializaciones = ({
     <>
       {/* Contenedor flexible para alinear título y botón */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", width: "100%" }}>
-        <label style={{ fontWeight: "bold", fontSize: 20, margin: 0 }}>
+        <label className="font-h3">
           Especializaciones
         </label>
 
@@ -318,7 +394,10 @@ const Especializaciones = ({
           label="Agregar Especialización"
           color="primary"
           type="button"
-          onClick={() => setVisibleModal(true)}
+          onClick={() => {
+            setEditingIndex(null);
+            setVisibleModal(true);
+          }}
           style={{
             height: 42,
             padding: "0 18px",
@@ -336,7 +415,7 @@ const Especializaciones = ({
 
       {/* ✅ Modal draggable para el formulario de especializaciones */}
       <Dialog
-        header="Agregar Especialización"
+        header={editingIndex !== null ? "Editar Especialización" : "Agregar Especialización"}
         visible={visibleModal}
         onHide={handleCloseModal}
         style={{ width: "min(600px, 90vw)" }}
@@ -356,6 +435,7 @@ const Especializaciones = ({
               optionValue="id"
               onChange={handleFrenteChange}
               placeholder="Frente"
+              disabled={editingIndex !== null}
             />
           </div>
 
@@ -369,7 +449,7 @@ const Especializaciones = ({
               optionValue="id"
               onChange={(e) => formik.setFieldValue("nuevaEspecializacion.idSubFrente", e.value)}
               placeholder="Subfrente"
-              disabled={!formik.values.nuevaEspecializacion.idFrente}
+              disabled={editingIndex !== null || !formik.values.nuevaEspecializacion.idFrente}
             />
           </div>
 
@@ -380,7 +460,7 @@ const Especializaciones = ({
               value={formik.values.nuevaEspecializacion.fechaInicio}
               onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaInicio", e.value)}
               placeholder="Inicio"
-              dateFormat="yy-mm-dd"
+              dateFormat="dd/mm/yy"
               showIcon
               style={{ width: "100%" }}
               minDate={formik.values.fechaSolicitud ? new Date(formik.values.fechaSolicitud) : undefined}
@@ -394,7 +474,7 @@ const Especializaciones = ({
               value={formik.values.nuevaEspecializacion.fechaFin}
               onChange={(e) => formik.setFieldValue("nuevaEspecializacion.fechaFin", e.value)}
               placeholder="Fin"
-              dateFormat="yy-mm-dd"
+              dateFormat="dd/mm/yy"
               showIcon
               style={{ width: "100%" }}
               minDate={
@@ -427,7 +507,7 @@ const Especializaciones = ({
           <p>Cargando frentes...</p>
         ) : (
           <>
-            <div className={`table-warning-wrapper ${highlightWarning ? "table-warning-blink" : ""}`}>
+            <div id="tabla-especializaciones" className={`table-warning-wrapper ${highlightWarning ? "table-warning-blink" : ""}`}>
               <DatatableDefault
                 showSearch={false}
               paginator={false}

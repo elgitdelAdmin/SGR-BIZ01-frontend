@@ -55,24 +55,24 @@ button{
   margin-top: 0;
 }
 .header-titulo{
-  font-size: 32px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 700;
   line-height: 32px;
   font-style: normal;
   color: #000000;
 }
 
 .header-subTitulo{
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 18px;
+  font-weight: 600;
   line-height: 24px;
   font-style: normal;
   color: #000000;
 }
 
 .label-form{
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 21px;
   font-style: normal;
   color: #000000;
@@ -306,4 +306,15 @@ button{
 
 
 
+
+
+/* Tipografia segun README.md */
+.font-h1 { font-family: $font-family-display; font-size: 28px; font-weight: 700; }
+.font-h2 { font-family: $font-family-display; font-size: 18px; font-weight: 600; }
+.font-h3 { font-family: $font-family-display; font-size: 15px; font-weight: 700; margin: 0; }
+.font-table-head { font-family: $font-family-display; font-size: 13px; font-weight: 600; }
+.font-body { font-family: $font-family-body; font-size: 14px; font-weight: 400; }
+.font-label { font-family: $font-family-display; font-size: 13px; font-weight: 600; }
+.font-input { font-family: $font-family-body; font-size: 14px; font-weight: 400; }
+.font-button { font-family: $font-family-display; font-size: 14px; font-weight: 600; }
 

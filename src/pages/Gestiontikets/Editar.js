@@ -478,7 +478,7 @@ const Editar = () => {
         )
       })
     ),
-    zipFile: Yup.mixed(),
+
     idGestorConsultoria: Yup.number().required("Gestor Consultoria es obligatorio"),
 
 
@@ -561,7 +561,7 @@ const Editar = () => {
       })) : [],
       usuarioCreacion: persona?.usuarioCreacion || window.localStorage.getItem("username"),
       nombrePersonaResponsable: "",
-      zipFile: null,
+
       idGestorConsultoria: persona ? persona.idGestorConsultoria : null,
       reposLinks: (() => {
         try {
@@ -624,28 +624,10 @@ const Editar = () => {
         }
       }*/
 
-      const formData = new FormData();
-      formData.append("CodTicketInterno", values.codTicketInterno);
-      formData.append("titulo", values.titulo);
-      formData.append("fechaSolicitud", values.fechaSolicitud ? toLocalISOString(values.fechaSolicitud) : null);
-      formData.append("idTipoTicket", values.idTipoTicket);
-      formData.append("idSubtipoTicket", values.idSubtipoTicket);
-      formData.append("idEstadoTicket", values.idEstadoTicket);
-      formData.append("idEmpresa", values.idEmpresa);
-      formData.append("idUsuarioResponsableCliente", values.idUsuarioResponsableCliente);
-      formData.append("idPrioridad", values.idPrioridad);
-      formData.append("Descripcion", values.descripcion);
-      formData.append("urlArchivos", "");
-      formData.append("codReqSgrCsti", "");
-      formData.append("idReqSgrCsti", "");
-      formData.append("idGestorConsultoria", values.idGestorConsultoria);
       const reposPayload = (values.reposLinks || []).map(r => ({
         Link: (r.Url ?? r.Link ?? "").trim(),
       })).filter(x => x.Link);
 
-      formData.append("repositorios", JSON.stringify(reposPayload));
-
-      //formData.append("consultorAsignaciones", JSON.stringify(values.asignaciones || []));
       // 1) Construye payload limpio
       const asignacionesPayload = (values.asignaciones || [])
         .filter(a => {
@@ -681,49 +663,59 @@ const Editar = () => {
           };
         });
 
-      // 2) Usa este payload en lugar del array original
-      formData.append("consultorAsignaciones", JSON.stringify(asignacionesPayload));
+      const frenteSubFrentesPayload = values.frenteSubFrentes.map(e => ({
+        Id: Number(e.id),
+        IdFrente: Number(e.idFrente),
+        IdSubFrente: Number(e.idSubFrente),
+        Cantidad: e.cantidad,
+        FechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
+        FechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
+        Activo: e.activo,
+        Descripcion: e.descripcion,
+        UsuarioActualizacion: window.localStorage.getItem("username"),
+        DetallePlanificacionConsultor: (e.DetallePlanificacionConsultor || []).map(p => ({
+          Id: p.Id,
+          IdTicketFrenteSubFrente: p.IdTicketFrenteSubFrente,
+          IdTipoActividad: p.IdTipoActividad,
+          FechaInicio: p.FechaInicio ? toLocalISOString(p.FechaInicio) : null,
+          FechaFin: p.FechaFin ? toLocalISOString(p.FechaFin) : null,
+          Horas: p.Horas,
+          Descripcion: p.Descripcion,
+          Activo: p.Activo
+        }))
+      }));
 
-      formData.append(
-        "frenteSubFrentes",
-        JSON.stringify(values.frenteSubFrentes.map(e => ({
-          Id: Number(e.id),
-          IdFrente: Number(e.idFrente),
-          IdSubFrente: Number(e.idSubFrente),
-          Cantidad: e.cantidad,
-          FechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
-          FechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
-          Activo: e.activo,
-          Descripcion: e.descripcion,
-          DetallePlanificacionConsultor: (e.DetallePlanificacionConsultor || []).map(p => ({
-            Id: p.Id,
-            IdTicketFrenteSubFrente: p.IdTicketFrenteSubFrente,
-            IdTipoActividad: p.IdTipoActividad,
-            FechaInicio: p.FechaInicio ? toLocalISOString(p.FechaInicio) : null,
-            FechaFin: p.FechaFin ? toLocalISOString(p.FechaFin) : null,
-            Horas: p.Horas,
-            Descripcion: p.Descripcion,
-            Activo: p.Activo
-          }))
-        })))
-      );
+      const ticketData = {
+        CodTicketInterno: values.codTicketInterno,
+        Titulo: values.titulo,
+        FechaSolicitud: values.fechaSolicitud ? toLocalISOString(values.fechaSolicitud) : null,
+        IdTipoTicket: values.idTipoTicket,
+        IdSubtipoTicket: values.idSubtipoTicket,
+        IdEstadoTicket: values.idEstadoTicket,
+        IdEmpresa: values.idEmpresa,
+        IdUsuarioResponsableCliente: values.idUsuarioResponsableCliente,
+        IdPrioridad: values.idPrioridad,
+        Descripcion: values.descripcion,
+        UrlArchivos: "",
+        CodReqSgrCsti: "",
+        IdReqSgrCsti: null,
+        IdGestorConsultoria: values.idGestorConsultoria,
+        Repositorios: reposPayload.length > 0 ? JSON.stringify(reposPayload) : null,
+        ConsultorAsignaciones: asignacionesPayload,
+        FrenteSubFrentes: frenteSubFrentesPayload,
+      };
 
       if (modoEdicion) {
-        formData.append("usuarioActualizacion", window.localStorage.getItem("username"));
+        ticketData.UsuarioActualizacion = window.localStorage.getItem("username");
       } else {
-        formData.append("UsuarioCreacion", values.usuarioCreacion);
-      }
-      if (values.zipFile) {
-        formData.append("zipFile", values.zipFile, values.zipFile.name);
+        ticketData.UsuarioCreacion = values.usuarioCreacion;
       }
 
-      for (let [key, value] of formData.entries()) {
-      }
       if (modoEdicion) {
         const idTicket = persona?.id;
-        Actualizar({ formData, idTicket });
+        Actualizar({ ticketData, idTicket });
       } else {
-        Registrar({ formData });
+        Registrar({ ticketData });
       }
     },
 
@@ -736,39 +728,39 @@ const Editar = () => {
 
   const mostrarAlertaSinHorasEdit = useMemo(() => {
     if (!isConsultor || !idConsultorLogged || !formik.values.asignaciones) return false;
-    
+
     const asignacionConsultor = (formik.values.asignaciones || []).find(
       (a) => a.Activo !== false && !a.esPlaceholder && Number(a.IdConsultor) === Number(idConsultorLogged)
     );
-    
+
     if (!asignacionConsultor) return false;
-    
+
     const tareasFormik = asignacionConsultor.DetalleTareasConsultor || [];
     const tieneHorasEnFormik = tareasFormik.some(t => t.Activo && parseFloat(t.Horas || 0) > 0);
     if (tieneHorasEnFormik) return false;
-    
+
     const originalIndex = (formik.values.asignaciones || []).findIndex(
       (a) => a.idUnico === asignacionConsultor.idUnico
     );
     if (originalIndex === -1) return true;
-    
+
     const totalHoras = totalesFijos?.[originalIndex]?.totalHoras || 0;
     return Number(totalHoras) === 0;
   }, [isConsultor, idConsultorLogged, formik.values.asignaciones, totalesFijos]);
 
   const mostrarAlertaSinEspecializaciones = useMemo(() => {
     if (!isGestorCuenta || !persona) return false;
-    
+
     // Si formik aún no ha cargado los valores del ticket recién traído (lag de inicialización),
     // validamos contra los datos reales de persona.frenteSubFrentes
     const frentesList = formik.values.frenteSubFrentes && formik.values.frenteSubFrentes.length > 0
       ? formik.values.frenteSubFrentes
       : (persona.frenteSubFrentes || []);
-      
+
     const especializacionesActivas = frentesList.filter(
       (e) => e.activo !== false
     );
-    
+
     return especializacionesActivas.length === 0;
   }, [isGestorCuenta, formik.values.frenteSubFrentes, persona]);
 
@@ -1111,8 +1103,8 @@ const Editar = () => {
       });
   };
 
-  const Actualizar = ({ formData, idTicket }) => {
-    ActualizarTicket({ formData, idTicket })
+  const Actualizar = ({ ticketData, idTicket }) => {
+    ActualizarTicket({ ticketData, idTicket })
       .then((data) => {
         formik.setSubmitting(false);
         toast.current.show({
@@ -1204,14 +1196,25 @@ const Editar = () => {
 
   // Eliminar fila por idUnico
   const removeRow = (idUnico) => {
-    const asignacionAEliminar = formik.values.asignaciones.find((a) => a.idUnico === idUnico);
-    if (!asignacionAEliminar) return;
+    confirmDialog({
+      message: '¿Está seguro de eliminar esta asignación?',
+      header: 'Confirmación',
+      icon: 'pi pi-exclamation-triangle',
+      acceptClassName: 'custom-confirm-accept',
+      acceptLabel: 'ELIMINAR',
+      rejectClassName: 'custom-confirm-reject',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        const asignacionAEliminar = formik.values.asignaciones.find((a) => a.idUnico === idUnico);
+        if (!asignacionAEliminar) return;
 
-    let nuevasAsignaciones = formik.values.asignaciones.map((a) =>
-      a.idUnico === idUnico ? { ...a, Activo: false } : a
-    );
+        let nuevasAsignaciones = formik.values.asignaciones.map((a) =>
+          a.idUnico === idUnico ? { ...a, Activo: false } : a
+        );
 
-    formik.setFieldValue("asignaciones", nuevasAsignaciones);
+        formik.setFieldValue("asignaciones", nuevasAsignaciones);
+      }
+    });
   };
 
   useEffect(() => {
@@ -1389,7 +1392,7 @@ const Editar = () => {
 
               {/* ===================== DATOS GENERALES (COPIAR Y PEGAR) ===================== */}
               <Accordion activeIndex={isOpen ? 0 : null}>
-                <AccordionTab header="Datos Generales" style={{ width: "100%" }}>
+                <AccordionTab header={<span className="font-h3">Datos Generales</span>} style={{ width: "100%" }}>
                   <div className="grid">
                     {/* Titulo */}
                     <div className="field col-12 md:col-6">
@@ -1696,23 +1699,7 @@ const Editar = () => {
                     {/* COLUMNA DERECHA: ZIP + GESTOR ASIGNADO (MÁS ARRIBA) */}
                     <div className="field col-12 md:col-6">
                       <div className="grid">
-                        {/* Subir archivo ZIP */}
-                        {/*<div className="field col-12">
-                      <label className="label-form">Subir archivo ZIP</label>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
-                        <label htmlFor="zipFile" className="upload-label" style={{ flex: 1, margin: 0 }}>
-                          {formik.values.zipFile? formik.values.zipFile.name: "Seleccionar archivo .zip"}
-                        </label>
-                        <input type="file" id="zipFile" name="zipFile" accept=".zip" onChange={(event) => {
-                            const file = event.currentTarget.files[0];
-                            formik.setFieldValue("zipFile", file || null);
-                          }}
-                          disabled={permisosActual.controlesBloqueados.includes("fileArchivo")}
-                          onBlur={formik.handleBlur}
-                          className="hidden-input"
-                        />
-                      </div>
-                    </div>*/}
+
                         {/* <ModalArchivos
                       visible={visibleArchivos}
                       onHide={() => setVisibleArchivos(false)}

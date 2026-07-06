@@ -25,6 +25,7 @@ const DatatableDefault = ({ export: exportProp, showSearch, paginator, ...restPr
     };
 
     const renderHeader = () => {
+        if (!exportProp && showSearch === false) return null;
         return (
         <div className='flex justify-content-between flex-wrap'>
             {
@@ -49,9 +50,6 @@ const DatatableDefault = ({ export: exportProp, showSearch, paginator, ...restPr
             )}
              
         </div>
-           
-        
-            
         );
     };
     const header = renderHeader();

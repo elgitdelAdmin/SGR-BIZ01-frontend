@@ -43,13 +43,14 @@ export const ListarFrentes = async () => {
     });
 };
 
-export const RegistrarTiket = ({ formData }) => {
+export const RegistrarTiket = ({ ticketData }) => {
   return fetch(`${ENDPOINT}/api/Ticket`, {
     method: "POST",
     headers: {
       "Accept": "application/json",
+      "Content-Type": "application/json",
     },
-    body: formData,
+    body: JSON.stringify(ticketData),
   })
     .then((res) => {
       if (!res.ok) {
@@ -68,13 +69,14 @@ export const RegistrarTiket = ({ formData }) => {
 
     });
 };
-export const ActualizarTicket = ({ formData, idTicket }) => {
+export const ActualizarTicket = ({ ticketData, idTicket }) => {
   return fetch(`${ENDPOINT}/api/Ticket/${idTicket}`, {
     method: "PUT",
     headers: {
       "Accept": "application/json",
+      "Content-Type": "application/json",
     },
-    body: formData,
+    body: JSON.stringify(ticketData),
   })
     .then((res) => {
       console.log("res1", res)
