@@ -5,6 +5,7 @@ import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import * as Yup from "yup";
+import Boton from "../../../components/Boton/Boton";
 
 const urlSchema = Yup.string()
   .trim()
@@ -97,19 +98,20 @@ const handleAdd = async () => {
 
   const actionsBody = (row) => (
     <Button
+      type="button"
       icon="pi pi-trash"
-      severity="danger"
-      className="p-button-text"
+      className="accion-eliminar"
       onClick={() => handleRemove(row)}
       tooltip="Quitar"
       tooltipOptions={{ position: "top" }}
+      style={{ width: "32px", height: "32px", padding: 0 }}
     />
   );
 
   const footer = useMemo(
     () => (
       <div className="flex justify-content-end gap-2">
-        <Button label="Cerrar" icon="pi pi-times" outlined onClick={onHide} />
+        <Boton label="Cerrar" icon="pi pi-times" color="secondary" onClick={onHide} />
       </div>
     ),
     [onHide]
@@ -142,11 +144,12 @@ const handleAdd = async () => {
                 }
               }}
             />
-            <Button
+            <Boton
               label="Agregar"
               icon="pi pi-plus"
               onClick={handleAdd}
-              severity="secondary"
+              color="primary"
+              style={{ height: "40px" }}
             />
           </div>
           {error ? <small className="p-error">{error}</small> : null}

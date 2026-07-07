@@ -68,6 +68,32 @@ const Especializaciones = ({
   highlightWarning,
 }) => {
   const [subfrentes, setSubfrentes] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [frentesList, setFrentesList] = useState([]);
+  const [consultoresList, setConsultoresList] = useState([]);
+
+  // Tooltip state
+  const [customTooltip, setCustomTooltip] = useState({ text: "", x: 0, y: 0, visible: false });
+
+  const handleMouseEnter = (e, text) => {
+    if (!text) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const tooltipMaxWidth = 320;
+    const halfWidth = tooltipMaxWidth / 2;
+    let x = rect.left + rect.width / 2;
+    x = Math.max(halfWidth + 10, Math.min(x, window.innerWidth - halfWidth - 10));
+
+    setCustomTooltip({
+      text,
+      x,
+      y: rect.top,
+      visible: true
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setCustomTooltip(prev => ({ ...prev, visible: false }));
+  };
   const [visibleDescripcion, setVisibleDescripcion] = useState(false);
   const [rowSeleccionada, setRowSeleccionada] = useState(null);
   const [visibleModal, setVisibleModal] = useState(false);
@@ -162,6 +188,10 @@ const Especializaciones = ({
             prev.filter((sf) => Number(sf.idSubFrente) !== subFrenteId)
           );
         }
+
+        setTimeout(() => {
+          formik.handleSubmit();
+        }, 100);
       },
     });
   };
@@ -173,7 +203,7 @@ const Especializaciones = ({
     if (idx === -1) return;
 
     setEditingIndex(idx);
-    
+
     const frenteSeleccionado = frentesById.get(Number(rowData.idFrente));
     if (frenteSeleccionado) {
       const subfrentesOrdenados = [...(frenteSeleccionado.subFrente || [])].sort(
@@ -199,22 +229,23 @@ const Especializaciones = ({
   };
 
   const accion = (rowData) => (
-    <div className="profesor-datatable-accion">
-      <div
-        className="accion-eliminar"
-        style={{ backgroundColor: "#0e71ae", marginRight: "8px" }}
+    <div className="datatable-accion" style={{ justifyContent: "center" }}>
+      <Button
+        type="button"
+        icon="pi pi-pencil"
+        className="accion-editar"
         onClick={() => handleEditar(rowData)}
-        title="Editar"
-      >
-        <span>
-          <Iconsax.Edit2 color="#ffffff" />
-        </span>
-      </div>
-      <div className="accion-eliminar" onClick={() => confirmarEliminacion(rowData)} title="Eliminar">
-        <span>
-          <Iconsax.Trash color="#ffffff" />
-        </span>
-      </div>
+        tooltip="Editar"
+        style={{ width: "32px", height: "32px", padding: 0 }}
+      />
+      <Button
+        type="button"
+        icon="pi pi-trash"
+        className="accion-eliminar"
+        onClick={() => confirmarEliminacion(rowData)}
+        tooltip="Eliminar"
+        style={{ width: "32px", height: "32px", padding: 0 }}
+      />
     </div>
   );
 
@@ -249,14 +280,14 @@ const Especializaciones = ({
       const asignacionesActuales = Array.isArray(formik.values.asignaciones)
         ? [...formik.values.asignaciones]
         : [];
-      
+
       const idxAsig = asignacionesActuales.findIndex(a => a._frenteSubFrenteUid === espAEditar._uid);
       if (idxAsig !== -1) {
         if (!asignacionesActuales[idxAsig].FechaAsignacion && especializacionesActuales[editingIndex].fechaInicio) {
-           asignacionesActuales[idxAsig].FechaAsignacion = especializacionesActuales[editingIndex].fechaInicio;
+          asignacionesActuales[idxAsig].FechaAsignacion = especializacionesActuales[editingIndex].fechaInicio;
         }
         if (!asignacionesActuales[idxAsig].FechaDesasignacion && especializacionesActuales[editingIndex].fechaFin) {
-           asignacionesActuales[idxAsig].FechaDesasignacion = especializacionesActuales[editingIndex].fechaFin;
+          asignacionesActuales[idxAsig].FechaDesasignacion = especializacionesActuales[editingIndex].fechaFin;
         }
         formik.setFieldValue("asignaciones", asignacionesActuales);
       }
@@ -510,104 +541,138 @@ const Especializaciones = ({
             <div id="tabla-especializaciones" className={`table-warning-wrapper ${highlightWarning ? "table-warning-blink" : ""}`}>
               <DatatableDefault
                 showSearch={false}
-              paginator={false}
-              value={(formik.values.frenteSubFrentes || []).filter((item) => item.activo)}
-            >
-              <Column
-                field="idFrente"
-                header="Frente"
-                body={(rowData) => frentesById.get(rowData.idFrente)?.nombre || "—"}
-              />
-
-              <Column
-                field="idSubFrente"
-                header="Subfrente"
-                body={(rowData) => {
-                  const frente = frentesById.get(rowData.idFrente);
-                  const sub = (frente?.subFrente || []).find((sf) => sf.id === rowData.idSubFrente);
-                  return sub?.nombre || "—";
-                }}
-              />
-
-              <Column
-                header="Fecha Inicio"
-                body={(row) => (row.fechaInicio ? new Date(row.fechaInicio).toLocaleDateString() : "")}
-              />
-
-              <Column
-                header="Fecha Fin"
-                body={(row) => (row.fechaFin ? new Date(row.fechaFin).toLocaleDateString() : "")}
-              />
-
-              <Column
-                header="Consultor"
-                body={getConsultorName}
-              />
-
-              <Column
-                header="Planificación"
-                body={(rowData) => {
-                  const idx = (formik.values.frenteSubFrentes || []).findIndex(
-                    (f) => f._uid === rowData._uid
-                  );
-                  if (idx === -1) return null;
-                  return (
-                    <Horas
-                      mode="PLAN"
-                      index={idx}
-                      frenteSubFrente={rowData}
-                      formik={formik}
-                      permisosActual={permisosActual}
-                      parametros={parametros}
-                      codFrentes={codFrentes}
-                      toastRef={toastRef}
-                    />
-                  );
-                }}
-                align="center"
-                alignHeader="center"
-                style={{ width: "95px", textAlign: "center" }}
-                headerStyle={{ textAlign: "center", justifyContent: "center" }}
-              />
-
-              <Column
-                header="H. Planificadas"
-                body={(rowData) => {
-                  const hrsPlan = calcularTotalHorasPlan(rowData);
-                  const isZero = hrsPlan === "0.00" || hrsPlan === "0" || hrsPlan === 0 || hrsPlan === null;
-                  const codRol = localStorage.getItem("codRol");
-                  
-                  if (codRol === "GESTORCUENTA" && isZero) {
+                paginator={false}
+                value={(formik.values.frenteSubFrentes || []).filter((item) => item.activo)}
+              >
+                <Column
+                  header="Frente / Subfrente"
+                  body={(rowData) => {
+                    const frente = frentesById.get(rowData.idFrente)?.nombre || "—";
+                    const frenteData = frentesById.get(rowData.idFrente);
+                    const sub = (frenteData?.subFrente || []).find((sf) => sf.id === rowData.idSubFrente);
+                    const subfrente = sub?.nombre || "—";
                     return (
-                      <span className="hrs-t-cero-badge">
-                        0.00
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <span style={{ fontWeight: 600, color: "#2e4878" }}>{frente}</span>
+                        <span style={{ fontSize: "12px", color: "#9198a7", marginTop: "2px" }}>{subfrente}</span>
+                      </div>
+                    );
+                  }}
+                  style={{ width: "20%" }}
+                />
+
+                <Column
+                  header="Consultor"
+                  body={(rowData) => {
+                    const name = getConsultorName(rowData);
+                    const initials = name !== "—" ? name.split(" ").filter(Boolean).slice(0, 2).map(n => n[0]).join("").toUpperCase() : "";
+                    return (
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        {initials && <span className="consultor-avatar">{initials}</span>}
+                        <span style={{ color: "#646e8c", fontSize: "13px" }}>{name}</span>
+                      </div>
+                    );
+                  }}
+                />
+
+                <Column
+                  header="Vigencia"
+                  body={(row) => {
+                    const start = row.fechaInicio ? new Date(row.fechaInicio).toLocaleDateString("es-ES") : "";
+                    const end = row.fechaFin ? new Date(row.fechaFin).toLocaleDateString("es-ES") : "";
+                    if (!start && !end) return "—";
+                    return (
+                      <span style={{ color: "#646e8c", fontSize: "13px", whiteSpace: "nowrap" }}>
+                        {start} &rarr; {end}
                       </span>
                     );
-                  }
-                  return hrsPlan;
-                }}
-                align="center"
-                alignHeader="center"
-                style={{ width: "95px", textAlign: "center" }}
-                headerStyle={{ textAlign: "center", justifyContent: "center" }}
-              />
+                  }}
+                />
 
-              <Column
-                header="Descripción"
-                body={(rowData) => (
-                  <Button
-                    type="button"
-                    icon="pi pi-eye"
-                    className="p-button-text p-button-sm"
-                    onClick={() => verDescripcion(rowData)}
-                    tooltip="Ver descripción"
-                  />
-                )}
-              />
+                <Column
+                  header="Descripción"
+                  body={(rowData) => {
+                    const text = rowData.descripcion || "—";
+                    const isLong = text.length > 15;
+                    const display = isLong ? text.substring(0, 15) + "..." : text;
+                    return (
+                      <span
+                        style={{ cursor: isLong ? "pointer" : "default", color: "#646e8c", fontSize: "13px" }}
+                        onMouseEnter={(e) => isLong ? handleMouseEnter(e, text) : null}
+                        onMouseLeave={handleMouseLeave}
+                      >
+                        {display}
+                      </span>
+                    );
+                  }}
+                  align="center"
+                  alignHeader="center"
+                  style={{ width: "120px", textAlign: "center" }}
+                  headerStyle={{ textAlign: "center", justifyContent: "center" }}
+                />
 
-              <Column header="Acciones" body={accion} />
-            </DatatableDefault>
-          </div>
+                <Column
+                  header="H. Planificadas"
+                  body={(rowData) => {
+                    const hrsPlan = calcularTotalHorasPlan(rowData);
+                    const isZero = hrsPlan === "0.00" || hrsPlan === "0" || hrsPlan === 0 || hrsPlan === null;
+                    const codRol = localStorage.getItem("codRol");
+                    const showWorkedHoursAlert = codRol === "GESTORCUENTA" || codRol === "GESTORCONSULTORIA" || codRol === "ADMIN" || codRol === "SUPERADMIN";
+
+                    if (showWorkedHoursAlert && isZero) {
+                      return <span className="horas-badge hrs-t-cero-badge">0.00 h</span>;
+                    }
+                    if (isZero) {
+                      return <span className="horas-badge horas-warning">0.00 h</span>;
+                    }
+                    return <span style={{ color: "#646e8c", fontSize: "13px" }}>{hrsPlan} h</span>;
+                  }}
+                  align="center"
+                  alignHeader="center"
+                  style={{ width: "120px", textAlign: "center" }}
+                  headerStyle={{ textAlign: "center", justifyContent: "center" }}
+                />
+
+                <Column
+                  header="Planificación"
+                  body={(rowData) => {
+                    const idx = (formik.values.frenteSubFrentes || []).findIndex(
+                      (f) => f._uid === rowData._uid
+                    );
+                    if (idx === -1) return null;
+                    return (
+                      <Horas
+                        mode="PLAN"
+                        index={idx}
+                        frenteSubFrente={rowData}
+                        formik={formik}
+                        permisosActual={permisosActual}
+                        parametros={parametros}
+                        codFrentes={codFrentes}
+                        toastRef={toastRef}
+                      />
+                    );
+                  }}
+                  align="center"
+                  alignHeader="center"
+                  style={{ width: "95px", textAlign: "center" }}
+                  headerStyle={{ textAlign: "center", justifyContent: "center" }}
+                />
+
+                <Column
+                  header="Acciones"
+                  body={(rowData) => (
+                    <div style={{ display: "flex", gap: "8px", justifyContent: "center", alignItems: "center" }}>
+                      {accion(rowData)}
+                    </div>
+                  )}
+                  align="center"
+                  alignHeader="center"
+                  style={{ width: "100px", textAlign: "center" }}
+                  headerStyle={{ textAlign: "center", justifyContent: "center" }}
+                />
+              </DatatableDefault>
+            </div>
 
             <Dialog
               header="Descripción"
@@ -618,11 +683,66 @@ const Especializaciones = ({
             >
               <p>{rowSeleccionada?.descripcion || "Sin descripción"}</p>
             </Dialog>
+
+            {customTooltip.visible && (
+              <div
+                className="custom-self-designed-tooltip"
+                style={{
+                  left: `${customTooltip.x}px`,
+                  top: `${customTooltip.y}px`,
+                }}
+              >
+                {customTooltip.text}
+              </div>
+            )}
           </>
         )}
       </div>
+
+      <style>{`
+        .custom-self-designed-tooltip {
+          background-color: #09507c;
+          color: #ffffff;
+          padding: 8px 12px;
+          border-radius: 8px;
+          font-family: 'Poppins', sans-serif;
+          font-size: 12px;
+          line-height: 1.4;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          max-width: 320px;
+          white-space: normal;
+          word-break: break-word;
+          text-align: left;
+          animation: customTooltipFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          position: fixed;
+          z-index: 99999;
+          pointer-events: none;
+        }
+
+        .custom-self-designed-tooltip::after {
+          content: "";
+          position: absolute;
+          bottom: -5px;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: 5px 5px 0;
+          border-style: solid;
+          border-color: #09507c transparent transparent transparent;
+        }
+
+        @keyframes customTooltipFadeIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -100%) translateY(0px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -100%) translateY(-12px) scale(1);
+          }
+        }
+      `}</style>
     </>
   );
 };
 
-export default Especializaciones;
+export default Especializaciones;

@@ -8,6 +8,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import InputTextDefault from "../../../components/InputTextDefault/InputTextDefault";
 import DropdownDefault from "../../../components/DropdownDefault/DropdownDefault";
+import InputHorasDefault from "../../../components/InputHorasDefault/InputHorasDefault";
 
 const getPermKey = (mode) =>
   mode === "PLAN" ? "divHorasPlanificacion" : "divHorasTareo";
@@ -246,6 +247,20 @@ const Horas = ({
       return;
     }
 
+    if (isPlan && nuevo.FechaInicio && nuevo.FechaFin) {
+      const fi = new Date(nuevo.FechaInicio);
+      const ff = new Date(nuevo.FechaFin);
+      fi.setHours(0, 0, 0, 0);
+      ff.setHours(0, 0, 0, 0);
+      const diffTime = Math.abs(ff - fi);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      const maxPermittedMins = diffDays * 24 * 60;
+      if (mins > maxPermittedMins) {
+        setErrorHoras(`Las horas planificadas no pueden superar las 24.00 h por día (${(diffDays * 24).toFixed(2)} h en total).`);
+        return;
+      }
+    }
+
     setErrorHoras("");
 
     // ✅ normaliza el texto SOLO en blur
@@ -336,6 +351,15 @@ const Horas = ({
           detail: "Fecha fin no puede ser menor que Fecha inicio.",
           life: 5000,
         });
+        return;
+      }
+
+      // Validar máximo 24 horas por día
+      const diffTime = Math.abs(ff - fi);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      const maxPermittedMins = diffDays * 24 * 60;
+      if (minsNuevo > maxPermittedMins) {
+        setErrorHoras(`Las horas planificadas no pueden superar las 24.00 h por día (${(diffDays * 24).toFixed(2)} h en total).`);
         return;
       }
     }
@@ -474,7 +498,7 @@ const Horas = ({
         {puedeEditar && (
           <>
             <div className="p-fluid formgrid grid">
-              <div className="field col-12 md:col-6">
+              <div className="field col-12 md:col-4">
                 <label>Fecha Inicio</label>
                 <CalendarDefault
                   value={nuevo.FechaInicio}
@@ -507,7 +531,7 @@ const Horas = ({
                 />
               </div>
 
-              <div className="field col-12 md:col-6">
+              <div className="field col-12 md:col-4">
                 <label>Fecha Fin</label>
                 <CalendarDefault
                   value={nuevo.FechaFin}
@@ -525,9 +549,9 @@ const Horas = ({
                 />
               </div>
 
-              <div className="field col-12 md:col-6">
+              <div className="field col-12 md:col-4">
                 <label>Horas (HH.MM)</label>
-                <InputTextDefault
+                <InputHorasDefault
                   value={nuevo.Horas}
                   onChange={(e) => {
                     // ✅ NO normalizamos aquí (para que puedas escribir 10, 12, 13...)
@@ -550,7 +574,7 @@ const Horas = ({
                 )}
               </div>
 
-              <div className="field col-12 md:col-6">
+              <div className="field col-12 md:col-4">
                 <label>Tipo de Actividad</label>
                 <DropdownDefault
                   value={nuevo.IdTipoActividad}
@@ -565,7 +589,7 @@ const Horas = ({
                 />
               </div>
 
-              <div className="field col-12 md:col-6">
+              <div className="field col-12 md:col-8">
                 <label>Descripción</label>
                 <InputTextDefault
                   value={nuevo.Descripcion}
@@ -604,7 +628,14 @@ const Horas = ({
               row.FechaFin ? new Date(row.FechaFin).toLocaleDateString() : ""
             }
           />
-          <Column field="Horas" header="Horas" body={(row) => row.Horas || "0.00"} />
+          <Column
+            field="Horas"
+            header="Horas"
+            body={(row) => {
+              const h = Number(row.Horas);
+              return isNaN(h) ? "0.00" : h.toFixed(2);
+            }}
+          />
           <Column
             field="IdTipoActividad"
             header="Tipo de Actividad"
@@ -625,11 +656,11 @@ const Horas = ({
               header="Acciones"
               body={(rowData) => (
                 <Button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  className="p-button-text"
-                  onClick={() => eliminar(rowData)}
                   type="button"
+                  icon="pi pi-trash"
+                  className="accion-eliminar"
+                  onClick={() => eliminar(rowData)}
+                  style={{ width: "32px", height: "32px", padding: 0 }}
                 />
               )}
             />

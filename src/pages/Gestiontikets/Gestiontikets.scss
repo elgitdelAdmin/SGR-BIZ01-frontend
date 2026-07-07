@@ -1,4 +1,4 @@
-@import "../../styles/variables";
+﻿@import "../../styles/variables";
 
 
 
@@ -37,7 +37,7 @@
   justify-content: space-between
 }
 
-/* Estilos premium y amigables para el globo (tooltip) del título diseñado por nosotros */
+/* Estilos premium y amigables para el globo (tooltip) del tÃ­tulo diseÃ±ado por nosotros */
 .custom-self-designed-tooltip {
   width: max-content;
   min-width: 60px;
@@ -57,7 +57,7 @@
   text-align: left;
   animation: customTooltipFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 
-  /* Pequeña flecha en la parte inferior central */
+  /* PequeÃ±a flecha en la parte inferior central */
   &::after {
     content: '';
     position: absolute;
@@ -96,14 +96,14 @@
     }
   }
 
-  /* Centrar cabecera de columnas específicas */
+  /* Centrar cabecera de columnas especÃ­ficas */
   .p-datatable-thead>tr>th.centered-column-header {
     .p-column-header-content {
       justify-content: center !important;
     }
   }
 
-  /* Centrar cuerpo de columnas específicas */
+  /* Centrar cuerpo de columnas especÃ­ficas */
   .centered-column-body {
     text-align: center !important;
 
@@ -121,9 +121,9 @@
   }
 }
 
-/* ════════════════════════════════════════════════
-   📱 Toolbar Responsivo
-════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   ðŸ“± Toolbar Responsivo
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .gt-toolbar {
   display: flex;
   align-items: flex-end;
@@ -156,14 +156,14 @@
   }
 }
 
-/* 🔴 Celda Hrs. T en 0 para Consultor */
+/* ðŸ”´ Celda Hrs. T en 0 para Consultor */
 .hrs-t-cero-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  padding: 4px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
   background-color: #fde8e8;
   /* Fondo rojo suave */
   color: #dd4b39;
@@ -188,7 +188,7 @@
   }
 }
 
-/* 🔴 Wrapper de tabla parpadeando en rojo (Especializaciones y Asignaciones) */
+/* ðŸ”´ Wrapper de tabla parpadeando en rojo (Especializaciones y Asignaciones) */
 .table-warning-wrapper {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
@@ -202,23 +202,33 @@
             background-color: #f8f9fa !important;
             font-family: $font-family-display !important;
             font-size: 13px !important;
-            font-weight: 600 !important;
-            color: #000000 !important;
-            padding: 0.5rem !important;
-            border: 1px solid #e2e8f0 !important;
+            font-weight: 500 !important;
+            color: #4a5568 !important;
+            padding: 1rem 0.5rem !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            text-transform: none !important;
         }
         .p-datatable-tbody > tr > td {
             font-family: $font-family-body !important;
             font-size: 14px !important;
             font-weight: 400 !important;
             color: #000000 !important;
-            padding: 0.5rem !important;
-            border: 1px solid #e2e8f0 !important;
+            padding: 1rem 0.5rem !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            border-bottom: 1px solid #edf2f7 !important;
+        }
+        .p-datatable-tbody > tr:hover {
+            background-color: #fcfcfc !important;
         }
     }
 }
 
-/* 🔴 Borde de tabla parpadeando en rojo */
+/* ðŸ”´ Borde de tabla parpadeando en rojo */
 .table-warning-blink {
   border: 2px solid #dd4b39 !important;
   animation: table-border-pulse 2s infinite;
@@ -240,3 +250,42 @@
     border-color: #dd4b39;
   }
 }
+/* Nuevos estilos visuales (Rediseño de tablas) */
+.consultor-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  white-space: nowrap;
+  background-color: $color-azul-tonal;
+  color: $color-navy;
+  font-family: $font-family-display;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.horas-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-family: $font-family-body;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  
+  &.horas-blue {
+    background-color: $color-azul-tonal;
+    color: $color-navy;
+  }
+  
+  &.horas-warning {
+    background-color: #fef08a;
+    color: #854d0e;
+  }
+}
+

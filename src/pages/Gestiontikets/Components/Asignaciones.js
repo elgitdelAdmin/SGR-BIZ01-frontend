@@ -1,6 +1,7 @@
 // Asignaciones.js
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Dialog } from "primereact/dialog";
+import InputTextDefault from "../../../components/InputTextDefault/InputTextDefault";
 import DropdownDefault from "../../../components/DropdownDefault/DropdownDefault";
 import Horas from "./Horas";
 import CalendarFormik from "../../../components/Calendar/CalendarFormik";
@@ -8,6 +9,7 @@ import * as Iconsax from "iconsax-react";
 import Boton from "../../../components/Boton/Boton";
 import DatatableDefault from "../../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
+import { Button } from "primereact/button";
 
 const normalizeHHMM = (raw) => {
   const s = String(raw ?? "").trim();
@@ -89,9 +91,38 @@ const Asignaciones = ({
   addRow,
   removeRow,
   highlightZero,
+  frentes,
 }) => {
+  const frentesById = useMemo(() => {
+    const map = new Map();
+    (frentes || []).forEach((f) => map.set(f.id, f));
+    return map;
+  }, [frentes]);
   const [visibleModal, setVisibleModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
+
+  // Tooltip state
+  const [customTooltip, setCustomTooltip] = useState({ text: "", x: 0, y: 0, visible: false });
+
+  const handleMouseEnter = (e, text) => {
+    if (!text) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const tooltipMaxWidth = 320;
+    const halfWidth = tooltipMaxWidth / 2;
+    let x = rect.left + rect.width / 2;
+    x = Math.max(halfWidth + 10, Math.min(x, window.innerWidth - halfWidth - 10));
+
+    setCustomTooltip({
+      text,
+      x,
+      y: rect.top,
+      visible: true
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setCustomTooltip(prev => ({ ...prev, visible: false }));
+  };
 
   const handleEditar = (idx) => {
     setEditingIndex(idx);
@@ -148,6 +179,24 @@ const Asignaciones = ({
             color="primary"
             type="button"
             onClick={() => {
+              const limiteTotal = (formik.values.frenteSubFrentes || [])
+                .filter((e) => e.activo !== false)
+                .reduce((sum, e) => sum + (e.cantidad ?? 0), 0);
+
+              const asignacionesActivas = (formik.values.asignaciones || [])
+                .filter((a) => a.Activo !== false && !a.esPlaceholder)
+                .length;
+
+              if (asignacionesActivas >= limiteTotal) {
+                toastRef.current.show({
+                  severity: "warn",
+                  summary: "Cupos Completados",
+                  detail: `Has completado todos los cupos de tus especializaciones (${limiteTotal}). Incrementa la cantidad de consultores en tu especialización superior para agregar más asignaciones.`,
+                  life: 5000,
+                });
+                return;
+              }
+
               if (!sePuedeAgregar) {
                 toastRef.current.show({
                   severity: "warn",
@@ -195,13 +244,44 @@ const Asignaciones = ({
           value={(formik.values.asignaciones || []).filter((a) => a.Activo !== false && !a.esPlaceholder)}
         >
           <Column
-            header="Subfrente"
+            header="Frente / subfrente"
+            style={{ width: "20%" }}
             body={(asignacion) => {
               const originalIndex = formik.values.asignaciones.findIndex((a) => a.idUnico === asignacion.idUnico);
               if (originalIndex === -1) return "—";
-              return obtenerOpcionesSubfrente(formik.values.asignaciones[originalIndex].IdSubFrente).find(
-                (s) => Number(s.idSubFrente) === Number(formik.values.asignaciones[originalIndex].IdSubFrente)
-              )?.nombre || "—";
+              
+              const asig = formik.values.asignaciones[originalIndex];
+              
+              const esp = (formik.values.frenteSubFrentes || []).find((e) => {
+                if (e.activo === false) return false;
+                if (asig._frenteSubFrenteUid && e._uid) {
+                  return asig._frenteSubFrenteUid === e._uid;
+                }
+                if (asig.IdTicketFrenteSubFrente && e.id) {
+                  return Number(asig.IdTicketFrenteSubFrente) === Number(e.id);
+                }
+                if (asig.IdSubFrente && e.idSubFrente) {
+                  return Number(asig.IdSubFrente) === Number(e.idSubFrente);
+                }
+                return false;
+              });
+
+              let frente = "—";
+              let subfrente = "—";
+
+              if (esp) {
+                const frenteData = frentesById.get(Number(esp.idFrente));
+                frente = frenteData?.nombre || "—";
+                const sub = (frenteData?.subFrente || []).find((sf) => Number(sf.id) === Number(esp.idSubFrente));
+                subfrente = sub?.nombre || "—";
+              }
+
+              return (
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ fontWeight: 600, color: "#2e4878" }}>{frente}</span>
+                  <span style={{ fontSize: "12px", color: "#9198a7", marginTop: "2px" }}>{subfrente}</span>
+                </div>
+              );
             }}
           />
 
@@ -210,59 +290,91 @@ const Asignaciones = ({
             body={(asignacion) => {
               const originalIndex = formik.values.asignaciones.findIndex((a) => a.idUnico === asignacion.idUnico);
               if (originalIndex === -1) return "—";
-              return (
+              const name = (
                 !formik.values.asignaciones?.[originalIndex]?.IdSubFrente
                   ? consultores
                   : consultoresPorFila[originalIndex] || []
               ).find((c) => Number(c.id) === Number(asignacion.IdConsultor))?.nombre || "—";
+              const initials = name !== "—" ? name.split(" ").filter(Boolean).slice(0, 2).map(n => n[0]).join("").toUpperCase() : "";
+              return (
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  {initials && <span className="consultor-avatar">{initials}</span>}
+                  <span style={{ color: "#646e8c", fontSize: "13px" }}>{name}</span>
+                </div>
+              );
             }}
           />
 
           <Column
-            header="Fecha Inicio"
-            body={(asignacion) => asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion).toLocaleDateString("es-ES") : "—"}
-          />
-
-          <Column
-            header="Fecha Fin"
-            body={(asignacion) => asignacion.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion).toLocaleDateString("es-ES") : "—"}
-          />
-
-          <Column
-            header="H. Planificadas"
-            body={(asignacion) => calcularTotalHorasPlan(asignacion, formik.values.frenteSubFrentes)}
-            align="center"
-          />
-
-          <Column
-            header="H. Trabajadas"
-            align="center"
+            header="Vigencia"
             body={(asignacion) => {
+              const start = asignacion.FechaAsignacion ? new Date(asignacion.FechaAsignacion).toLocaleDateString("es-ES") : "";
+              const end = asignacion.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion).toLocaleDateString("es-ES") : "";
+              if (!start && !end) return "—";
+              return (
+                <span style={{ color: "#646e8c", fontSize: "13px", whiteSpace: "nowrap" }}>
+                  {start} &rarr; {end}
+                </span>
+              );
+            }}
+          />
+
+          <Column
+            header=""
+            body={() => ""}
+          />
+
+          <Column
+            header="Planificadas / Trabajadas"
+            align="center"
+            alignHeader="center"
+            style={{ width: "120px", textAlign: "center" }}
+            headerStyle={{ textAlign: "center", justifyContent: "center" }}
+            body={(asignacion) => {
+              const hrsPlan = calcularTotalHorasPlan(asignacion, formik.values.frenteSubFrentes);
+
               const originalIndex = formik.values.asignaciones.findIndex((a) => a.idUnico === asignacion.idUnico);
-              if (originalIndex === -1) return 0;
-              const codRol = localStorage.getItem("codRol");
+              if (originalIndex === -1) return "—";
+
               const tasks = formik.values.asignaciones[originalIndex]?.DetalleTareasConsultor || [];
               const tieneHorasEnFormik = tasks.some(t => t.Activo && parseFloat(t.Horas || 0) > 0);
-
               let totalHrs = 0;
               if (tieneHorasEnFormik) {
                 totalHrs = tasks.filter(t => t.Activo).reduce((sum, t) => sum + parseFloat(t.Horas || 0), 0);
               } else {
                 totalHrs = totalesFijos?.[originalIndex]?.totalHoras || 0;
               }
-
               const isZero = Number(totalHrs) === 0;
+              const codRol = localStorage.getItem("codRol");
               const showWorkedHoursAlert = codRol === "CONSULTOR" || codRol === "GESTORCONSULTORIA" || codRol === "ADMIN" || codRol === "SUPERADMIN";
 
-              if (showWorkedHoursAlert && isZero) {
-                return <span className="hrs-t-cero-badge">0</span>;
+              let badgeClass = "horas-blue";
+              if (isZero) {
+                if (showWorkedHoursAlert) {
+                  badgeClass = "hrs-t-cero-badge";
+                } else {
+                  badgeClass = "horas-warning";
+                }
               }
-              return totalHrs;
+
+              return (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                  <span style={{ color: "#646e8c", fontSize: "13px" }}>{hrsPlan} h</span>
+                  <span>/</span>
+                  <span className={`horas-badge ${badgeClass}`}>
+                    {isZero ? "0 h" : `${totalHrs} h`}
+                  </span>
+                </div>
+              );
             }}
           />
 
           <Column
             header="Tareo"
+            align="center"
+            alignHeader="center"
+            style={{ width: "95px", textAlign: "center" }}
+            headerStyle={{ textAlign: "center", justifyContent: "center" }}
             body={(asignacion) => {
               const originalIndex = formik.values.asignaciones.findIndex((a) => a.idUnico === asignacion.idUnico);
               if (originalIndex === -1) return null;
@@ -284,28 +396,31 @@ const Asignaciones = ({
           {!permisosActual.controlesOcultos.includes("btnEliminar") && (
             <Column
               header="Acciones"
+              align="center"
+              alignHeader="center"
+              style={{ width: "100px", textAlign: "center" }}
+              headerStyle={{ textAlign: "center", justifyContent: "center" }}
               body={(asignacion) => {
                 const originalIndex = formik.values.asignaciones.findIndex((a) => a.idUnico === asignacion.idUnico);
                 if (originalIndex === -1) return null;
                 return (
-                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <div className="profesor-datatable-accion">
-                      <div
-                        className="accion-eliminar"
-                        style={{ backgroundColor: "#0e71ae", marginRight: "8px" }}
-                        onClick={() => handleEditar(originalIndex)}
-                        title="Editar"
-                      >
-                        <span><Iconsax.Edit2 color="#ffffff" /></span>
-                      </div>
-                      <div
-                        className="accion-eliminar"
-                        onClick={() => removeRow(asignacion.idUnico)}
-                        title="Eliminar"
-                      >
-                        <span><Iconsax.Trash color="#ffffff" /></span>
-                      </div>
-                    </div>
+                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
+                    <Button
+                      type="button"
+                      icon="pi pi-pencil"
+                      className="accion-editar"
+                      onClick={() => handleEditar(originalIndex)}
+                      tooltip="Editar"
+                      style={{ width: "32px", height: "32px", padding: 0 }}
+                    />
+                    <Button
+                      type="button"
+                      icon="pi pi-trash"
+                      className="accion-eliminar"
+                      onClick={() => removeRow(asignacion.idUnico)}
+                      tooltip="Eliminar"
+                      style={{ width: "32px", height: "32px", padding: 0 }}
+                    />
                   </div>
                 );
               }}
@@ -319,6 +434,13 @@ const Asignaciones = ({
         header={editingIndex !== null && formik.values.asignaciones[editingIndex]?.IdSubFrente ? "Editar Asignación" : "Agregar Asignación"}
         visible={visibleModal}
         onHide={() => {
+          if (editingIndex !== null) {
+            const currentItem = formik.values.asignaciones[editingIndex];
+            if (currentItem && Number(currentItem.Id) === 0 && (Number(currentItem.IdSubFrente) === 0 || Number(currentItem.IdConsultor) === 0)) {
+              const nuevas = (formik.values.asignaciones || []).filter((_, idx) => idx !== editingIndex);
+              formik.setFieldValue("asignaciones", nuevas);
+            }
+          }
           setVisibleModal(false);
           setEditingIndex(null);
         }}
@@ -330,6 +452,18 @@ const Asignaciones = ({
               icon="pi pi-save"
               color="primary"
               onClick={() => {
+                if (editingIndex !== null) {
+                  const currentItem = formik.values.asignaciones[editingIndex];
+                  if (!currentItem || !currentItem.IdSubFrente || !currentItem.IdConsultor) {
+                    toastRef.current.show({
+                      severity: "warn",
+                      summary: "Campos Requeridos",
+                      detail: "Por favor seleccione un Subfrente y un Consultor para guardar la asignación.",
+                      life: 5000
+                    });
+                    return;
+                  }
+                }
                 setVisibleModal(false);
                 setEditingIndex(null);
                 formik.handleSubmit();
@@ -340,6 +474,13 @@ const Asignaciones = ({
               icon="pi pi-times"
               style={{ backgroundColor: "#dd4b39", color: "white" }}
               onClick={() => {
+                if (editingIndex !== null) {
+                  const currentItem = formik.values.asignaciones[editingIndex];
+                  if (currentItem && Number(currentItem.Id) === 0 && (Number(currentItem.IdSubFrente) === 0 || Number(currentItem.IdConsultor) === 0)) {
+                    const nuevas = (formik.values.asignaciones || []).filter((_, idx) => idx !== editingIndex);
+                    formik.setFieldValue("asignaciones", nuevas);
+                  }
+                }
                 setVisibleModal(false);
                 setEditingIndex(null);
               }}
@@ -498,9 +639,66 @@ const Asignaciones = ({
                 dateFormat="dd/mm/yy"
               />
             </div>
+
+
           </div>
         )}
       </Dialog>
+
+      {customTooltip.visible && (
+        <div
+          className="custom-self-designed-tooltip"
+          style={{
+            left: `${customTooltip.x}px`,
+            top: `${customTooltip.y}px`,
+          }}
+        >
+          {customTooltip.text}
+        </div>
+      )}
+
+      <style>{`
+        .custom-self-designed-tooltip {
+          background-color: #09507c;
+          color: #ffffff;
+          padding: 8px 12px;
+          border-radius: 8px;
+          font-family: 'Poppins', sans-serif;
+          font-size: 12px;
+          line-height: 1.4;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          max-width: 320px;
+          white-space: normal;
+          word-break: break-word;
+          text-align: left;
+          animation: customTooltipFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          position: fixed;
+          z-index: 99999;
+          pointer-events: none;
+        }
+
+        .custom-self-designed-tooltip::after {
+          content: "";
+          position: absolute;
+          bottom: -5px;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: 5px 5px 0;
+          border-style: solid;
+          border-color: #09507c transparent transparent transparent;
+        }
+
+        @keyframes customTooltipFadeIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -100%) translateY(0px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -100%) translateY(-12px) scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 };

@@ -1134,8 +1134,9 @@ const Editar = () => {
       message: '¿Está seguro de desactivar esta especialización?',
       header: 'Confirmación',
       icon: 'pi pi-exclamation-triangle',
-      acceptClassName: 'p-button-danger',
-      acceptLabel: 'Desactivar',
+      acceptClassName: 'custom-confirm-accept',
+      acceptLabel: 'ELIMINAR',
+      rejectClassName: 'custom-confirm-reject',
       rejectLabel: 'Cancelar',
       accept: () => {
         const nuevasEspecializaciones = formik.values.frenteSubFrentes.map((esp) =>
@@ -1213,6 +1214,9 @@ const Editar = () => {
         );
 
         formik.setFieldValue("asignaciones", nuevasAsignaciones);
+        setTimeout(() => {
+          formik.handleSubmit();
+        }, 100);
       }
     });
   };
@@ -1806,6 +1810,7 @@ const Editar = () => {
                       addRow={addRow}
                       removeRow={removeRow}
                       highlightZero={mostrarAlertaSinHorasEdit}
+                      frentes={frentes}
                     />
                   </>
                 )}

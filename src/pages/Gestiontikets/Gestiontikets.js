@@ -262,11 +262,13 @@ const Gestiontikets = () => {
 
     const confirm2 = (id) => {
         confirmDialog({
-            message: 'Seguro de eliminar ticket?',
-            header: 'Eliminar',
-            icon: 'pi pi-info-circle',
-            acceptClassName: 'p-button-danger',
-            acceptLabel: "Aceptar",
+            message: '¿Está seguro de eliminar este ticket?',
+            header: 'Confirmación',
+            icon: 'pi pi-exclamation-triangle',
+            acceptClassName: 'custom-confirm-accept',
+            acceptLabel: 'ELIMINAR',
+            rejectClassName: 'custom-confirm-reject',
+            rejectLabel: 'Cancelar',
             accept: () => Eliminar({ id })
         });
     };
