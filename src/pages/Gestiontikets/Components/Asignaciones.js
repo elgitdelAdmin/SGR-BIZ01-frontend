@@ -66,9 +66,18 @@ const calcularTotalHorasPlan = (asignacion, frenteSubFrentes) => {
   });
 
   const detalles = especializacion?.DetallePlanificacionConsultor || [];
-  const totalMin = detalles
-    .filter((d) => d.Activo)
-    .reduce((acc, it) => acc + hhmmToMinutes(it.Horas), 0);
+  const detallesFiltrados = detalles.filter((d) => {
+    if (!d.Activo) return false;
+
+    // Si la planificación está asociada a un consultor/asignación específico
+    if (d.IdTicketConsultorAsignacion > 0 && asignacion.Id > 0) {
+      return Number(d.IdTicketConsultorAsignacion) === Number(asignacion.Id);
+    }
+
+    return true;
+  });
+
+  const totalMin = detallesFiltrados.reduce((acc, it) => acc + hhmmToMinutes(it.Horas), 0);
   const hh = Math.floor(totalMin / 60);
   const mm = totalMin % 60;
   return `${hh}.${String(mm).padStart(2, "0")}`;

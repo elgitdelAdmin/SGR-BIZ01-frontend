@@ -150,7 +150,7 @@ const Horas = ({
 
   const dialogTitle = useMemo(() => {
     if (!puedeEditar) return isPlan ? "Ver Planificación" : "Ver Horas";
-    return isPlan ? "Planificar Horas" : "Asignar Horas";
+    return isPlan ? "Planificar Horas" : "Registrar Horas";
   }, [puedeEditar, isPlan]);
 
   // reset al abrir
@@ -160,18 +160,22 @@ const Horas = ({
     setDelDisabledGate(true);
     setErrorHoras("");
 
+    const linkedAsig = isPlan ? (formik.values.asignaciones || []).find(
+      (a) => a.Activo !== false && (a._frenteSubFrenteUid === frenteSubFrente?._uid || (frenteSubFrente?.id > 0 && Number(a.IdTicketFrenteSubFrente) === Number(frenteSubFrente.id)))
+    ) : null;
+
     setNuevo({
       FechaInicio: null,
       FechaFin: null,
       Horas: "",
       Descripcion: "",
       Activo: true,
-      IdTicketConsultorAsignacion: isTareo ? (asignacion?.Id ?? 0) : 0,
+      IdTicketConsultorAsignacion: isTareo ? (asignacion?.Id ?? 0) : (linkedAsig?.Id ?? 0),
       IdTicketFrenteSubFrente: isPlan ? (frenteSubFrente?.id ?? frenteSubFrente?.Id ?? 0) : 0,
       Id: 0,
       IdTipoActividad: 0,
     });
-  }, [visible, asignacion?.Id, frenteSubFrente?.id, frenteSubFrente?.Id, isPlan, isTareo]);
+  }, [visible, asignacion?.Id, frenteSubFrente?.id, frenteSubFrente?.Id, frenteSubFrente?._uid, isPlan, isTareo]);
 
   const current = useMemo(() => {
     const arr = isPlan

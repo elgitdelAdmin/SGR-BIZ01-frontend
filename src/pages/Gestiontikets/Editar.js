@@ -518,6 +518,7 @@ const Editar = () => {
           Descripcion: d.descripcion,
           Activo: d.activo,
           IdTicketFrenteSubFrente: d.idTicketFrenteSubFrente,
+          IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion || 0,
           Id: d.id,
           IdTipoActividad: d.idTipoActividad
         }))
@@ -653,62 +654,79 @@ const Editar = () => {
             }
           }
 
-          const { _frenteSubFrenteUid, esPlaceholder, idUnico, DetallePlanificacionConsultor, ...rest } = a;
+          // Mapear todas las tareas a camelCase
+          const detalleTareas = (a.DetalleTareasConsultor || []).map(t => ({
+            id: t.Id,
+            idTicketConsultorAsignacion: t.IdTicketConsultorAsignacion,
+            idTipoActividad: t.IdTipoActividad,
+            fechaInicio: t.FechaInicio ? toLocalISOString(t.FechaInicio) : null,
+            fechaFin: t.FechaFin ? toLocalISOString(t.FechaFin) : null,
+            horas: t.Horas,
+            descripcion: t.Descripcion,
+            activo: t.Activo
+          }));
+
           return {
-            ...rest,
-            IdTicketFrenteSubFrente: resolvedFrenteSubFrenteId,
-            // Normaliza fechas a string ISO local (por si vienen como Date)
-            FechaAsignacion: a.FechaAsignacion ? toLocalISOString(a.FechaAsignacion) : null,
-            FechaDesasignacion: a.FechaDesasignacion ? toLocalISOString(a.FechaDesasignacion) : null,
+            id: a.Id,
+            idConsultor: a.IdConsultor,
+            idTipoActividad: a.IdTipoActividad,
+            idFrente: a.IdFrente,
+            idSubFrente: a.IdSubFrente,
+            idTicketFrenteSubFrente: resolvedFrenteSubFrenteId,
+            fechaAsignacion: a.FechaAsignacion ? toLocalISOString(a.FechaAsignacion) : null,
+            fechaDesasignacion: a.FechaDesasignacion ? toLocalISOString(a.FechaDesasignacion) : null,
+            activo: a.Activo !== false,
+            detalleTareasConsultor: detalleTareas
           };
         });
 
       const frenteSubFrentesPayload = values.frenteSubFrentes.map(e => ({
-        Id: Number(e.id),
-        IdFrente: Number(e.idFrente),
-        IdSubFrente: Number(e.idSubFrente),
-        Cantidad: e.cantidad,
-        FechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
-        FechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
-        Activo: e.activo,
-        Descripcion: e.descripcion,
-        UsuarioActualizacion: window.localStorage.getItem("username"),
-        DetallePlanificacionConsultor: (e.DetallePlanificacionConsultor || []).map(p => ({
-          Id: p.Id,
-          IdTicketFrenteSubFrente: p.IdTicketFrenteSubFrente,
-          IdTipoActividad: p.IdTipoActividad,
-          FechaInicio: p.FechaInicio ? toLocalISOString(p.FechaInicio) : null,
-          FechaFin: p.FechaFin ? toLocalISOString(p.FechaFin) : null,
-          Horas: p.Horas,
-          Descripcion: p.Descripcion,
-          Activo: p.Activo
+        id: Number(e.id),
+        idFrente: Number(e.idFrente),
+        idSubFrente: Number(e.idSubFrente),
+        cantidad: e.cantidad,
+        fechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
+        fechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
+        activo: e.activo,
+        descripcion: e.descripcion,
+        usuarioActualizacion: window.localStorage.getItem("username"),
+        detallePlanificacionConsultor: (e.DetallePlanificacionConsultor || []).map(p => ({
+          id: p.Id,
+          idTicketConsultorAsignacion: p.IdTicketConsultorAsignacion || null,
+          idTicketFrenteSubFrente: p.IdTicketFrenteSubFrente,
+          idTipoActividad: p.IdTipoActividad,
+          fechaInicio: p.FechaInicio ? toLocalISOString(p.FechaInicio) : null,
+          fechaFin: p.FechaFin ? toLocalISOString(p.FechaFin) : null,
+          horas: p.Horas,
+          descripcion: p.Descripcion,
+          activo: p.Activo
         }))
       }));
 
       const ticketData = {
-        CodTicketInterno: values.codTicketInterno,
-        Titulo: values.titulo,
-        FechaSolicitud: values.fechaSolicitud ? toLocalISOString(values.fechaSolicitud) : null,
-        IdTipoTicket: values.idTipoTicket,
-        IdSubtipoTicket: values.idSubtipoTicket,
-        IdEstadoTicket: values.idEstadoTicket,
-        IdEmpresa: values.idEmpresa,
-        IdUsuarioResponsableCliente: values.idUsuarioResponsableCliente,
-        IdPrioridad: values.idPrioridad,
-        Descripcion: values.descripcion,
-        UrlArchivos: "",
-        CodReqSgrCsti: "",
-        IdReqSgrCsti: null,
-        IdGestorConsultoria: values.idGestorConsultoria,
-        Repositorios: reposPayload.length > 0 ? JSON.stringify(reposPayload) : null,
-        ConsultorAsignaciones: asignacionesPayload,
-        FrenteSubFrentes: frenteSubFrentesPayload,
+        codTicketInterno: values.codTicketInterno,
+        titulo: values.titulo,
+        fechaSolicitud: values.fechaSolicitud ? toLocalISOString(values.fechaSolicitud) : null,
+        idTipoTicket: values.idTipoTicket,
+        idSubTipoTicket: values.idSubtipoTicket,
+        idEstadoTicket: values.idEstadoTicket,
+        idEmpresa: values.idEmpresa,
+        idUsuarioResponsableCliente: values.idUsuarioResponsableCliente,
+        idPrioridad: values.idPrioridad,
+        descripcion: values.descripcion,
+        urlArchivos: "",
+        codReqSgrCsti: "",
+        idReqSgrCsti: null,
+        idGestorConsultoria: values.idGestorConsultoria,
+        repositorios: reposPayload.length > 0 ? JSON.stringify(reposPayload) : null,
+        consultorAsignaciones: asignacionesPayload,
+        frenteSubFrentes: frenteSubFrentesPayload,
       };
 
       if (modoEdicion) {
-        ticketData.UsuarioActualizacion = window.localStorage.getItem("username");
+        ticketData.usuarioActualizacion = window.localStorage.getItem("username");
       } else {
-        ticketData.UsuarioCreacion = values.usuarioCreacion;
+        ticketData.usuarioCreacion = values.usuarioCreacion;
       }
 
       if (modoEdicion) {
