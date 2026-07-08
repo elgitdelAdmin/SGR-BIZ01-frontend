@@ -6,7 +6,12 @@ export const CODIGOS = {
         RankingDeConsultoresQueNoRegistranHoras: "RANK_CONS_SIN_HORAS",
         RankingDeConsultoresRegistranMayorCantidadDeHoras: "RANK_CONS_HORAS",
         DashboardCargabilidadPorConsultor: "DBD_CARGA_CONSULTOR",
-        PlanificacionConsultor: "PLAN_CONSULTOR"
+        PlanificacionConsultor: "PLAN_CONSULTOR",
+        CapacidadConsultores: "CAPACIDAD_CONS",
+        AsignacionConsultores: "ASIGNACIONES_CONS",
+        DisponibilidadConsultores: "DISPONIBILIDAD_CONS",
+        SobrecargaConsultores: "SOBRECARGA_CONS",
+        BajaUtilizacionConsultores: "BAJA_UTIL_CONS"
     },
     Prioridad: {
         Baja: "BAJA",

@@ -153,6 +153,25 @@ const Horas = ({
     return isPlan ? "Planificar Horas" : "Registrar Horas";
   }, [puedeEditar, isPlan]);
 
+  const minFechaPlan = useMemo(() => {
+    return isPlan
+      ? (frenteSubFrente?.fechaInicio ? new Date(frenteSubFrente.fechaInicio) : null)
+      : (asignacion?.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : null);
+  }, [isPlan, frenteSubFrente?.fechaInicio, asignacion?.FechaAsignacion]);
+
+  const maxFechaPlan = useMemo(() => {
+    return isPlan
+      ? (frenteSubFrente?.fechaFin ? new Date(frenteSubFrente.fechaFin) : null)
+      : (asignacion?.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null);
+  }, [isPlan, frenteSubFrente?.fechaFin, asignacion?.FechaDesasignacion]);
+
+  const [tipoIngreso, setTipoIngreso] = useState(1);
+  const opcionesTipoIngreso = [
+    { label: "Día específico", value: 1 },
+    { label: "Rango de fechas", value: 2 },
+    { label: "Rango de fechas (Lun-Vie)", value: 3 },
+  ];
+
   // reset al abrir
   useEffect(() => {
     if (!visible) return;
@@ -165,8 +184,8 @@ const Horas = ({
     ) : null;
 
     setNuevo({
-      FechaInicio: null,
-      FechaFin: null,
+      FechaInicio: isPlan ? minFechaPlan : null,
+      FechaFin: isPlan ? minFechaPlan : null,
       Horas: "",
       Descripcion: "",
       Activo: true,
@@ -175,7 +194,8 @@ const Horas = ({
       Id: 0,
       IdTipoActividad: 0,
     });
-  }, [visible, asignacion?.Id, frenteSubFrente?.id, frenteSubFrente?.Id, frenteSubFrente?._uid, isPlan, isTareo]);
+    setTipoIngreso(1);
+  }, [visible, asignacion?.Id, frenteSubFrente?.id, frenteSubFrente?.Id, frenteSubFrente?._uid, isPlan, isTareo, minFechaPlan]);
 
   const current = useMemo(() => {
     const arr = isPlan
@@ -204,12 +224,6 @@ const Horas = ({
     );
   }, [parametros, codFrentes]);
 
-  const minFechaPlan = isPlan
-    ? (frenteSubFrente?.fechaInicio ? new Date(frenteSubFrente.fechaInicio) : null)
-    : (asignacion?.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : null);
-  const maxFechaPlan = isPlan
-    ? (frenteSubFrente?.fechaFin ? new Date(frenteSubFrente.fechaFin) : null)
-    : (asignacion?.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null);
 
   // ✅ En TAREO: si ya tienes Horas válida y cambias FechaInicio => recalcula FechaFin
   const recalcularFechaFinTareoSiAplica = (FechaInicio, horasRaw) => {
@@ -268,15 +282,15 @@ const Horas = ({
     setErrorHoras("");
 
     // ✅ normaliza el texto SOLO en blur
-    // ✅ y en TAREO calcula FechaFin automático SOLO en blur
-    const fechaFinAuto = isTareo
+    // ✅ y en TAREO calcula FechaFin automático SOLO en blur si tipoIngreso === 1
+    const fechaFinAuto = isTareo && tipoIngreso === 1
       ? buildFechaFinTareo(nuevo.FechaInicio, horasNorm)
       : null;
 
     setNuevo((p) => ({
       ...p,
       Horas: horasNorm,
-      FechaFin: isTareo ? fechaFinAuto : p.FechaFin,
+      FechaFin: (isTareo && tipoIngreso === 1) ? fechaFinAuto : p.FechaFin,
     }));
   };
 
@@ -309,61 +323,86 @@ const Horas = ({
       return;
     }
 
-    // ✅ TAREO: máximo 16 y FechaFin automática
-    let finalFechaFin = FechaFin;
+    // ✅ OBTENER DÍAS VÁLIDOS (Aplica a Plan y Tareo)
+    let diasValidos = [];
 
-    if (isTareo) {
-      if (minsNuevo > 16 * 60) {
-        setErrorHoras("En tareo, el máximo permitido es 16.00 horas.");
-        return;
-      }
-
-      finalFechaFin = buildFechaFinTareo(FechaInicio, horasNorm);
-      if (!finalFechaFin) {
-        toastRef?.current?.show?.({
-          severity: "warn",
-          summary: "Campos incompletos",
-          detail:
-            "No se pudo calcular Fecha fin automáticamente. Revisa Fecha inicio y Horas.",
-          life: 5000,
-        });
-        return;
-      }
+    if (tipoIngreso > 1 && !FechaFin) {
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Campos incompletos",
+        detail: "Debes seleccionar Fecha fin.",
+        life: 5000,
+      });
+      return;
     }
 
-    // ✅ PLAN: FechaFin obligatoria y válida
-    if (isPlan) {
-      if (!FechaFin) {
-        toastRef?.current?.show?.({
-          severity: "warn",
-          summary: "Campos incompletos",
-          detail: "Debes seleccionar Fecha fin en planificación.",
-          life: 5000,
-        });
-        return;
+    const fi = new Date(FechaInicio);
+    const ff = tipoIngreso > 1 ? new Date(FechaFin) : new Date(FechaInicio);
+    fi.setHours(0, 0, 0, 0);
+    ff.setHours(0, 0, 0, 0);
+
+    if (ff.getTime() < fi.getTime()) {
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Fecha inválida",
+        detail: "Fecha fin no puede ser menor que Fecha inicio.",
+        life: 5000,
+      });
+      return;
+    }
+
+    const diffTime = Math.abs(ff - fi);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    for (let i = 0; i < diffDays; i++) {
+      const checkDate = new Date(fi);
+      checkDate.setDate(fi.getDate() + i);
+      if (tipoIngreso === 3) {
+        const dayOfWeek = checkDate.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) continue;
       }
+      diasValidos.push(checkDate);
+    }
 
-      const fi = new Date(FechaInicio);
-      const ff = new Date(FechaFin);
-      fi.setHours(0, 0, 0, 0);
-      ff.setHours(0, 0, 0, 0);
+    if (diasValidos.length === 0) {
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Días no laborales",
+        detail: "El rango seleccionado no contiene días laborables (Lunes a Viernes).",
+        life: 5000,
+      });
+      return;
+    }
 
-      if (ff.getTime() < fi.getTime()) {
+    const limitMins = isTareo ? 16 * 60 : 24 * 60;
+
+    for (const checkDate of diasValidos) {
+      let minutosEnEseDia = 0;
+      current.filter(d => d.Activo).forEach(det => {
+        const detFi = new Date(det.FechaInicio);
+        detFi.setHours(0, 0, 0, 0);
+        // Note: For Tareo we sum matching days, for Plan we calculate overlap.
+        // Unifying: we calculate overlap for both based on detFi and detFf.
+        const detFf = new Date(det.FechaFin);
+        detFf.setHours(0, 0, 0, 0);
+        const diffDetDays = Math.ceil(Math.abs(detFf - detFi) / (1000 * 60 * 60 * 24)) + 1;
+
+        if (checkDate >= detFi && checkDate <= detFf) {
+          const minsDet = hhmmToMinutes(det.Horas) || 0;
+          minutosEnEseDia += (minsDet / diffDetDays);
+        }
+      });
+
+      if (minutosEnEseDia + minsNuevo > limitMins) {
+        const disp = Math.max(0, limitMins - minutosEnEseDia);
+        const hhDisp = Math.floor(disp / 60);
+        const mmDisp = Math.floor(disp % 60);
         toastRef?.current?.show?.({
-          severity: "warn",
-          summary: "Fecha inválida",
-          detail: "Fecha fin no puede ser menor que Fecha inicio.",
-          life: 5000,
+          severity: isTareo ? "error" : "warn",
+          summary: "Límite superado",
+          detail: `Las horas para el ${checkDate.toLocaleDateString()} superan el límite de ${limitMins / 60}h. Disponible: ${hhDisp}.${String(mmDisp).padStart(2, "0")}h`,
+          life: 7000,
         });
-        return;
-      }
-
-      // Validar máximo 24 horas por día
-      const diffTime = Math.abs(ff - fi);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      const maxPermittedMins = diffDays * 24 * 60;
-      if (minsNuevo > maxPermittedMins) {
-        setErrorHoras(`Las horas planificadas no pueden superar las 24.00 h por día (${(diffDays * 24).toFixed(2)} h en total).`);
         return;
       }
     }
@@ -371,50 +410,36 @@ const Horas = ({
     setErrorHoras("");
     setAddDisabledGate(false);
 
-    // ✅ TAREO: máximo 16h por día (sumatoria del día)
-    if (isTareo) {
-    const fechaInicioDia = new Date(FechaInicio);
-    fechaInicioDia.setHours(0, 0, 0, 0);
-
-    const minutosEnDia = current
-        .filter((d) => d.Activo) // por si acaso
-        .reduce((total, det) => {
-        const detDia = new Date(det.FechaInicio);
-        detDia.setHours(0, 0, 0, 0);
-
-        if (detDia.getTime() === fechaInicioDia.getTime()) {
-            return total + (hhmmToMinutes(det.Horas) || 0);
-        }
-        return total;
-        }, 0);
-
-    const limiteDia = 16 * 60;
-
-    if (minutosEnDia + minsNuevo > limiteDia) {
-        const restante = Math.max(0, limiteDia - minutosEnDia);
-        const hh = Math.floor(restante / 60);
-        const mm = restante % 60;
-
-        toastRef?.current?.show?.({
-        severity: "error",
-        summary: "Límite diario",
-        detail: `En tareo solo se permite 16.00 horas por día. Disponible hoy: ${hh}.${String(mm).padStart(2, "0")}`,
-        life: 7000,
-        });
-        return;
+    let nuevosRegistros = [];
+    if (isPlan) {
+      nuevosRegistros = diasValidos.map((d) => ({
+        ...nuevo,
+        FechaInicio: new Date(d),
+        FechaFin: new Date(d),
+        Horas: horasNorm,
+        Activo: true,
+        IdTicketConsultorAsignacion: 0,
+        IdTicketFrenteSubFrente: formik.values.frenteSubFrentes[index]?.id ?? formik.values.frenteSubFrentes[index]?.Id ?? 0,
+      }));
+    } else {
+      nuevosRegistros = diasValidos.map((d) => {
+        const dObj = new Date(d);
+        const calcFin = buildFechaFinTareo(dObj, horasNorm);
+        return {
+          ...nuevo,
+          FechaInicio: dObj,
+          FechaFin: calcFin || dObj,
+          Horas: horasNorm,
+          Activo: true,
+          IdTicketConsultorAsignacion: formik.values.asignaciones[index]?.Id ?? 0,
+          IdTicketFrenteSubFrente: 0,
+        };
+      });
     }
-    }
-  
+
     const updated = [
       ...current,
-      {
-        ...nuevo,
-        Horas: horasNorm,
-        FechaFin: finalFechaFin,
-        Activo: true,
-        IdTicketConsultorAsignacion: isTareo ? (formik.values.asignaciones[index]?.Id ?? 0) : 0,
-        IdTicketFrenteSubFrente: isPlan ? (formik.values.frenteSubFrentes[index]?.id ?? formik.values.frenteSubFrentes[index]?.Id ?? 0) : 0,
-      },
+      ...nuevosRegistros
     ];
 
     if (isPlan) {
@@ -424,8 +449,8 @@ const Horas = ({
     }
 
     setNuevo({
-      FechaInicio: null,
-      FechaFin: null,
+      FechaInicio: isPlan ? minFechaPlan : null,
+      FechaFin: isPlan ? minFechaPlan : null,
       Horas: "",
       Descripcion: "",
       Activo: true,
@@ -460,6 +485,99 @@ const Horas = ({
     }
   };
 
+  const limpiarTodo = () => {
+    if (!puedeEditar) return;
+    setDelDisabledGate(false);
+    
+    const updated = current.map(d => ({ ...d, Activo: false }));
+    
+    if (isPlan) {
+      formik.setFieldValue(`frenteSubFrentes[${index}].DetallePlanificacionConsultor`, updated);
+    } else {
+      formik.setFieldValue(`asignaciones[${index}].${fieldKey}`, updated);
+    }
+  };
+
+  const duplicar = (rowData) => {
+    if (!puedeEditar) return;
+
+    let nextFechaInicio = null;
+    let nextFechaFin = null;
+
+    if (rowData.FechaInicio) {
+      const d = new Date(rowData.FechaInicio);
+      d.setDate(d.getDate() + 1);
+      nextFechaInicio = d;
+    }
+
+    if (rowData.FechaFin) {
+      const d = new Date(rowData.FechaFin);
+      d.setDate(d.getDate() + 1);
+      nextFechaFin = d;
+    }
+
+    if (isPlan) {
+      const minsToAdd = hhmmToMinutes(rowData.Horas) || 0;
+      const fi = new Date(nextFechaInicio);
+      fi.setHours(0, 0, 0, 0);
+      const ff = new Date(nextFechaFin);
+      ff.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.ceil(Math.abs(ff - fi) / (1000 * 60 * 60 * 24)) + 1;
+
+      for (let i = 0; i < diffDays; i++) {
+        const checkDate = new Date(fi);
+        checkDate.setDate(fi.getDate() + i);
+
+        let minutosEnEseDia = 0;
+        current.filter(d => d.Activo).forEach(det => {
+          const detFi = new Date(det.FechaInicio);
+          detFi.setHours(0, 0, 0, 0);
+          const detFf = new Date(det.FechaFin);
+          detFf.setHours(0, 0, 0, 0);
+          const diffDetDays = Math.ceil(Math.abs(detFf - detFi) / (1000 * 60 * 60 * 24)) + 1;
+
+          if (checkDate >= detFi && checkDate <= detFf) {
+            const minsDet = hhmmToMinutes(det.Horas) || 0;
+            minutosEnEseDia += (minsDet / diffDetDays);
+          }
+        });
+
+        const minsNuevoPorDia = minsToAdd / diffDays;
+        if (minutosEnEseDia + minsNuevoPorDia > 24 * 60) {
+          const disp = Math.max(0, 24 * 60 - minutosEnEseDia);
+          const hhDisp = Math.floor(disp / 60);
+          const mmDisp = Math.floor(disp % 60);
+          toastRef?.current?.show?.({
+            severity: "warn",
+            summary: "Límite superado",
+            detail: `Las horas para el ${checkDate.toLocaleDateString()} superan las 24h. Disponible: ${hhDisp}.${String(mmDisp).padStart(2, "0")}h`,
+            life: 7000,
+          });
+          return;
+        }
+      }
+    }
+
+    setAddDisabledGate(false);
+
+    const duplicatedRow = {
+      ...rowData,
+      Id: 0, // Es un nuevo registro
+      FechaInicio: nextFechaInicio,
+      FechaFin: nextFechaFin,
+      Activo: true,
+    };
+
+    const updated = [...current, duplicatedRow];
+
+    if (isPlan) {
+      formik.setFieldValue(`frenteSubFrentes[${index}].DetallePlanificacionConsultor`, updated);
+    } else {
+      formik.setFieldValue(`asignaciones[${index}].${fieldKey}`, updated);
+    }
+  };
+
   const footer = (
     <div className="w-full flex justify-between items-center border-t pt-3 px-3">
       <div className="text-left font-semibold text-blue-700">
@@ -481,6 +599,17 @@ const Horas = ({
 
   return (
     <>
+      <style>{`
+        @keyframes pulseBlue {
+          0% { box-shadow: 0 0 0 0 rgba(14, 113, 174, 0.7); }
+          50% { box-shadow: 0 0 0 8px rgba(14, 113, 174, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(14, 113, 174, 0); }
+        }
+        .pulse-combo {
+          animation: pulseBlue 1.5s infinite;
+          border-radius: 6px;
+        }
+      `}</style>
       <Boton
         label=""
         icon={iconBtn}
@@ -509,9 +638,10 @@ const Horas = ({
                   onChange={(e) => {
                     const FechaInicio = e.value;
 
-                    // PLAN: si FechaFin existe y es menor, la limpio
                     let FechaFin = nuevo.FechaFin;
-                    if (isPlan && FechaFin && FechaInicio) {
+                    if (tipoIngreso === 1) {
+                      FechaFin = FechaInicio;
+                    } else if (FechaFin && FechaInicio) {
                       const fi = new Date(FechaInicio);
                       const ff = new Date(FechaFin);
                       fi.setHours(0, 0, 0, 0);
@@ -520,7 +650,7 @@ const Horas = ({
                     }
 
                     // TAREO: recalculo si ya hay horas válida
-                    if (isTareo) {
+                    if (isTareo && tipoIngreso === 1) {
                       const autoFin = recalcularFechaFinTareoSiAplica(FechaInicio, nuevo.Horas);
                       FechaFin = autoFin ?? FechaFin;
                     }
@@ -535,7 +665,7 @@ const Horas = ({
                 />
               </div>
 
-              <div className="field col-12 md:col-4">
+              <div className="field col-12 md:col-4" style={{ display: tipoIngreso === 1 ? 'none' : 'block' }}>
                 <label>Fecha Fin</label>
                 <CalendarDefault
                   value={nuevo.FechaFin}
@@ -543,13 +673,11 @@ const Horas = ({
                   dateFormat="yy-mm-dd"
                   showIcon
                   className="w-full"
-                  disabled={isTareo} // ✅ TAREO deshabilitada (auto)
+                  disabled={isTareo && tipoIngreso === 1}
                   minDate={
-                    isPlan
-                      ? (nuevo.FechaInicio ? new Date(nuevo.FechaInicio) : minFechaPlan)
-                      : null
+                    nuevo.FechaInicio ? new Date(nuevo.FechaInicio) : (isPlan ? minFechaPlan : null)
                   }
-                  maxDate={isPlan ? maxFechaPlan : null}
+                  maxDate={isPlan ? maxFechaPlan : new Date()}
                 />
               </div>
 
@@ -605,14 +733,45 @@ const Horas = ({
               </div>
             </div>
 
-            <div className="mb-4">
-              <Boton
-                label="Añadir"
-                icon="pi pi-plus"
-                color="primary"
-                onClick={agregar}
-                type="button"
-              />
+            <div className="mb-4 flex align-items-center justify-content-between">
+              <div className="flex align-items-center">
+                <Boton
+                  label="Añadir"
+                  icon="pi pi-plus"
+                  color="primary"
+                  onClick={agregar}
+                  type="button"
+                />
+                <div style={{ marginLeft: '1.5rem' }}>
+                  <Boton
+                    label="Limpiar Todo"
+                    icon="pi pi-trash"
+                    className="p-button-danger"
+                    onClick={limpiarTodo}
+                    type="button"
+                  />
+                </div>
+              </div>
+                <div className="flex align-items-center">
+                  <span style={{ color: '#4b5563', fontWeight: '500', fontSize: '14px', marginRight: '1rem' }}>
+                    Modo de ingreso:
+                  </span>
+                  <div style={{ width: '300px' }} className="pulse-combo">
+                    <DropdownDefault
+                    value={tipoIngreso}
+                    options={opcionesTipoIngreso}
+                    optionLabel="label"
+                    optionValue="value"
+                    onChange={(e) => {
+                      setTipoIngreso(e.value);
+                      if (e.value === 1) {
+                        setNuevo(p => ({ ...p, FechaFin: p.FechaInicio }));
+                      }
+                    }}
+                    className="w-full"
+                  />
+                  </div>
+                </div>
             </div>
           </>
         )}
@@ -658,15 +817,76 @@ const Horas = ({
           {puedeEditar && (
             <Column
               header="Acciones"
-              body={(rowData) => (
-                <Button
-                  type="button"
-                  icon="pi pi-trash"
-                  className="accion-eliminar"
-                  onClick={() => eliminar(rowData)}
-                  style={{ width: "32px", height: "32px", padding: 0 }}
-                />
-              )}
+              body={(rowData) => {
+                let showDuplicate = false;
+                if (isPlan) {
+                  let nextFi = null;
+                  let nextFf = null;
+                  if (rowData.FechaInicio) {
+                    nextFi = new Date(rowData.FechaInicio);
+                    nextFi.setDate(nextFi.getDate() + 1);
+                    nextFi.setHours(0, 0, 0, 0);
+                  }
+                  if (rowData.FechaFin) {
+                    nextFf = new Date(rowData.FechaFin);
+                    nextFf.setDate(nextFf.getDate() + 1);
+                    nextFf.setHours(0, 0, 0, 0);
+                  }
+
+                  if (nextFi && nextFf) {
+                    const diffDays = Math.ceil(Math.abs(nextFf - nextFi) / (1000 * 60 * 60 * 24)) + 1;
+                    const minsToAdd = hhmmToMinutes(rowData.Horas) || 0;
+
+                    let canDup = true;
+                    for (let i = 0; i < diffDays; i++) {
+                      const checkDate = new Date(nextFi);
+                      checkDate.setDate(nextFi.getDate() + i);
+
+                      let minutosEnEseDia = 0;
+                      current.filter(d => d.Activo).forEach(det => {
+                        const detFi = new Date(det.FechaInicio);
+                        detFi.setHours(0, 0, 0, 0);
+                        const detFf = new Date(det.FechaFin);
+                        detFf.setHours(0, 0, 0, 0);
+                        const diffDetDays = Math.ceil(Math.abs(detFf - detFi) / (1000 * 60 * 60 * 24)) + 1;
+
+                        if (checkDate >= detFi && checkDate <= detFf) {
+                          const minsDet = hhmmToMinutes(det.Horas) || 0;
+                          minutosEnEseDia += (minsDet / diffDetDays);
+                        }
+                      });
+
+                      if (minutosEnEseDia + (minsToAdd / diffDays) > 24 * 60) {
+                        canDup = false;
+                        break;
+                      }
+                    }
+                    showDuplicate = canDup;
+                  }
+                }
+
+                return (
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <Button
+                      type="button"
+                      icon="pi pi-trash"
+                      className="accion-eliminar"
+                      onClick={() => eliminar(rowData)}
+                      style={{ width: "32px", height: "32px", padding: 0 }}
+                    />
+                    {isPlan && showDuplicate && (
+                      <Button
+                        type="button"
+                        icon="pi pi-calendar-plus"
+                        className="p-button-outlined p-button-secondary"
+                        title="Duplicar hacia el día siguiente"
+                        onClick={() => duplicar(rowData)}
+                        style={{ width: "32px", height: "32px", padding: 0 }}
+                      />
+                    )}
+                  </div>
+                );
+              }}
             />
           )}
         </DataTable>

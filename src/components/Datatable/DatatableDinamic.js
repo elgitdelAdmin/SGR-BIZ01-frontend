@@ -456,11 +456,16 @@ const DatatableDinamic = ({
     }, [value]);
 
     // ── Handlers de filtros ───────────────────────────────────────────
+    const filterTimeoutRef = useRef(null);
+
     const onGlobalChange = (e) => {
         const val = e.target.value;
         setGlobalFilterValue(val);
         if (serverSide && onFilterChange) {
-            onFilterChange({ global: val, columns: columnFilters });
+            if (filterTimeoutRef.current) clearTimeout(filterTimeoutRef.current);
+            filterTimeoutRef.current = setTimeout(() => {
+                onFilterChange({ global: val, columns: columnFilters });
+            }, 600);
         }
     };
 
@@ -468,7 +473,10 @@ const DatatableDinamic = ({
         const newFilters = { ...columnFilters, [field]: val };
         setColumnFilters(newFilters);
         if (serverSide && onFilterChange) {
-            onFilterChange({ global: globalFilterValue, columns: newFilters });
+            if (filterTimeoutRef.current) clearTimeout(filterTimeoutRef.current);
+            filterTimeoutRef.current = setTimeout(() => {
+                onFilterChange({ global: globalFilterValue, columns: newFilters });
+            }, 600);
         }
     };
 

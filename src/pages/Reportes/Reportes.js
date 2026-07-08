@@ -464,7 +464,15 @@ const Reportes = () => {
                         <label className="font-bold">
                             {reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.PlanificacionConsultor
                                 ? "Rango Fecha Planificación"
-                                : "Rango Fecha Solicitud"
+                                : [
+                                    CODIGOS.TipoReporte.CapacidadConsultores,
+                                    CODIGOS.TipoReporte.AsignacionConsultores,
+                                    CODIGOS.TipoReporte.DisponibilidadConsultores,
+                                    CODIGOS.TipoReporte.SobrecargaConsultores,
+                                    CODIGOS.TipoReporte.BajaUtilizacionConsultores
+                                  ].includes(reporteActual?.codigo?.trim())
+                                    ? "Rango Fecha Detalle Planificación"
+                                    : "Rango Fecha Solicitud"
                             } <span style={{ color: 'red' }}>*</span>
                         </label>
                         <Calendar

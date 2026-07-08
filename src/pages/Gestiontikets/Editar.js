@@ -707,26 +707,26 @@ const Editar = () => {
         codTicketInterno: values.codTicketInterno,
         titulo: values.titulo,
         fechaSolicitud: values.fechaSolicitud ? toLocalISOString(values.fechaSolicitud) : null,
-        idTipoTicket: values.idTipoTicket,
-        idSubTipoTicket: values.idSubtipoTicket,
-        idEstadoTicket: values.idEstadoTicket,
-        idEmpresa: values.idEmpresa,
-        idUsuarioResponsableCliente: values.idUsuarioResponsableCliente,
-        idPrioridad: values.idPrioridad,
+        idTipoTicket: Number(values.idTipoTicket),
+        idSubTipoTicket: values.idSubtipoTicket ? Number(values.idSubtipoTicket) : null,
+        idEstadoTicket: Number(values.idEstadoTicket),
+        idEmpresa: Number(values.idEmpresa),
+        idUsuarioResponsableCliente: values.idUsuarioResponsableCliente ? Number(values.idUsuarioResponsableCliente) : null,
+        idPrioridad: Number(values.idPrioridad),
         descripcion: values.descripcion,
         urlArchivos: "",
         codReqSgrCsti: "",
         idReqSgrCsti: null,
-        idGestorConsultoria: values.idGestorConsultoria,
+        idGestorConsultoria: values.idGestorConsultoria ? Number(values.idGestorConsultoria) : null,
         repositorios: reposPayload.length > 0 ? JSON.stringify(reposPayload) : null,
         consultorAsignaciones: asignacionesPayload,
         frenteSubFrentes: frenteSubFrentesPayload,
       };
 
       if (modoEdicion) {
-        ticketData.usuarioActualizacion = window.localStorage.getItem("username");
+        ticketData.usuarioActualizacion = window.localStorage.getItem("username") || "admin";
       } else {
-        ticketData.usuarioCreacion = values.usuarioCreacion;
+        ticketData.usuarioCreacion = values.usuarioCreacion || window.localStorage.getItem("username") || "admin";
       }
 
       if (modoEdicion) {
@@ -1091,8 +1091,8 @@ const Editar = () => {
     consultoresPorFila
   ]);
 
-  const Registrar = ({ formData }) => {
-    RegistrarTiket({ formData })
+  const Registrar = ({ ticketData }) => {
+    RegistrarTiket({ ticketData })
       .then((res) => {
         formik.setSubmitting(false);
         toast.current.show({
