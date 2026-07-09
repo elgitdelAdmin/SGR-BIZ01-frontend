@@ -44,6 +44,8 @@ const DatatableDinamic = ({
     actionBody,
     actionHeader = 'Acciones',
     actionWidth = '80px',
+    onEdit,
+    onDelete,
     onFilterChange,
     onSortChange,
     initialGlobalFilter = '',
@@ -59,6 +61,36 @@ const DatatableDinamic = ({
     const [isMobile, setIsMobile] = useState(
         typeof window !== 'undefined' ? window.innerWidth <= (mobileConfig?.breakpoint || 768) : false
     );
+
+    // ── Acción por Defecto ────────────────────────────────────────────
+    const defaultActionBody = useCallback((rowData) => {
+        return (
+            <div className="datatable-accion" style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                {onEdit && (
+                    <Button
+                        type="button"
+                        icon="pi pi-pencil"
+                        className="accion-editar"
+                        onClick={() => onEdit(rowData)}
+                        tooltip="Editar"
+                        style={{ width: "32px", height: "32px", padding: 0 }}
+                    />
+                )}
+                {onDelete && (
+                    <Button
+                        type="button"
+                        icon="pi pi-trash"
+                        className="accion-eliminar"
+                        onClick={() => onDelete(rowData)}
+                        tooltip="Eliminar"
+                        style={{ width: "32px", height: "32px", padding: 0 }}
+                    />
+                )}
+            </div>
+        );
+    }, [onEdit, onDelete]);
+
+    const finalActionBody = actionBody || (onEdit || onDelete ? defaultActionBody : null);
 
     useEffect(() => {
         const bp = mobileConfig?.breakpoint || 768;
@@ -197,10 +229,10 @@ const DatatableDinamic = ({
         const actionCols = [];
         const dataCols = [];
 
-        if (actionBody) {
+        if (finalActionBody) {
             actionCols.push({
                 header: actionHeader || 'Acciones',
-                body: actionBody
+                body: finalActionBody
             });
         }
 
@@ -944,9 +976,9 @@ const DatatableDinamic = ({
                                 scrollHeight="100%"
                                 {...rest}
                             >
-                                {actionBody && (
+                                {finalActionBody && (
                                     <Column
-                                        body={actionBody}
+                                        body={finalActionBody}
                                         header={actionHeader}
                                         style={{ width: actionWidth, minWidth: actionWidth }}
                                         headerStyle={{ padding: '0.5rem', whiteSpace: 'nowrap' }}

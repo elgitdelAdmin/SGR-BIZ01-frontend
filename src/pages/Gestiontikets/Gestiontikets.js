@@ -16,6 +16,9 @@ import { ROLES } from "../../constants/codigosBD";
 import MultiSelectDefault from "../../components/MultiSelectDefault/MultiSelectDefault";
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
+import { Button } from 'primereact/button';
+import { playNotificationSound } from '../../helpers/audioHelpers';
+
 
 const Gestiontikets = () => {
     const navigate = useNavigate();
@@ -42,11 +45,8 @@ const Gestiontikets = () => {
     const [loadingSync, setLoadingSync] = useState(false);
 
     // ── Estado Alerta Tickets Sin Horas / Planificación ───────────────
-    const [ticketsSinHoras, setTicketsSinHoras] = useState([]);
-    const [displayAlertaZero, setDisplayAlertaZero] = useState(false);
-
-    const [ticketsSinPlanificar, setTicketsSinPlanificar] = useState([]);
-    const [displayAlertaPlanificado, setDisplayAlertaPlanificado] = useState(false);
+    const [activeAlerts, setActiveAlerts] = useState([]);
+    const prevAlertCount = useRef(0);
 
     const { setAlertas } = useContext(Context) || {};
 
@@ -127,8 +127,6 @@ const Gestiontikets = () => {
                     return hrs === 0 || hrs === "0" || parseFloat(hrs) === 0;
                 });
                 if (sinHoras.length > 0) {
-                    setTicketsSinHoras(sinHoras);
-                    setDisplayAlertaZero(true);
                     alerts.push({
                         id: "tickets-sin-horas",
                         title: "Tickets sin Horas Registradas",
@@ -137,13 +135,7 @@ const Gestiontikets = () => {
                         message: "Tienes tickets asignados en los que aún no has registrado horas de trabajo:",
                         items: sinHoras
                     });
-                } else {
-                    setTicketsSinHoras([]);
-                    setDisplayAlertaZero(false);
                 }
-            } else {
-                setTicketsSinHoras([]);
-                setDisplayAlertaZero(false);
             }
 
             // 2. Horas Planificadas (sin planificar)
@@ -153,8 +145,6 @@ const Gestiontikets = () => {
                     return hrs === 0 || hrs === "0" || parseFloat(hrs) === 0 || hrs === null || hrs === undefined;
                 });
                 if (sinPlanificar.length > 0) {
-                    setTicketsSinPlanificar(sinPlanificar);
-                    setDisplayAlertaPlanificado(true);
                     alerts.push({
                         id: "tickets-sin-planificar",
                         title: "Tickets sin Horas Planificadas",
@@ -163,23 +153,16 @@ const Gestiontikets = () => {
                         message: "Tienes tickets asignados en los que aún no has planificado horas de trabajo:",
                         items: sinPlanificar
                     });
-                } else {
-                    setTicketsSinPlanificar([]);
-                    setDisplayAlertaPlanificado(false);
                 }
-            } else {
-                setTicketsSinPlanificar([]);
-                setDisplayAlertaPlanificado(false);
             }
 
+            setActiveAlerts(alerts);
             if (setAlertas) {
                 setAlertas(alerts);
             }
+            
         } else {
-            setTicketsSinHoras([]);
-            setDisplayAlertaZero(false);
-            setTicketsSinPlanificar([]);
-            setDisplayAlertaPlanificado(false);
+            setActiveAlerts([]);
             if (setAlertas) setAlertas([]);
         }
     }, [tickets, codRol, setAlertas]);
@@ -190,6 +173,14 @@ const Gestiontikets = () => {
             if (setAlertas) setAlertas([]);
         };
     }, [setAlertas]);
+
+    // Reproducir sonido cuando aparece cualquiera de las alertas por primera vez
+    useEffect(() => {
+        if (activeAlerts.length > 0 && activeAlerts.length > prevAlertCount.current) {
+            playNotificationSound();
+        }
+        prevAlertCount.current = activeAlerts.length;
+    }, [activeAlerts]);
 
     // ── Cargar tickets paginados ──────────────────────────────────────
     const loadTickets = useCallback(() => {
@@ -240,16 +231,6 @@ const Gestiontikets = () => {
     };
 
     // ── Acciones ──────────────────────────────────────────────────────
-    const accion = (rowData) => {
-        return <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={() => {
-                navigate("Editar/" + rowData.id);
-            }}>
-                <span><Iconsax.Edit color="#ffffff" /></span>
-            </div>
-        </div>
-    }
-
     const Eliminar = async ({ id }) => {
         await EliminarTicket({ id }).then(data => {
             toast.current.show({ severity: 'success', summary: 'Éxito', detail: "Registro eliminado.", life: 7000 })
@@ -342,94 +323,94 @@ const Gestiontikets = () => {
                     )}
                 </div>
                 <div className="zv-usuario-body-listado" style={{ marginTop: 24 }}>
-
-                    <DatatableDinamic
-                        value={tickets}
-                        exportable
-                        rows={pageSize}
-                        loading={loading}
-                        dataKey="id"
-                        actionBody={accion}
-                        actionHeader="Acciones"
-                        actionWidth="75px"
-                        serverSide={true}
-                        totalRecords={totalRecords}
-                        onPageChange={handlePageChange}
-                        onFilterChange={handleFilterChange}
-                        onSortChange={handleSortChange}
-                        initialGlobalFilter={globalFilter}
-                        initialColumnFilters={columnFilters}
-                        sortField={sortField}
-                        sortOrder={sortOrder}
-                        mobileConfig={{
-                            titleField: 'titulo',
-                            badgeField: 'estadoNombre',
-                        }}
-                    >
-                        <Column field="codTicket" header={<div>Cód. Conecta</div>} sortable style={{ width: '120px', minWidth: '120px' }} />
-                        <Column field="codTicketInterno" header="Cód. Interno" sortable style={{ width: '100px', minWidth: '100px' }} />
-                        <Column
-                            field="fechaSolicitud"
-                            header="F. Solicitud"
-                            sortable
-                            style={{ width: '90px', minWidth: '90px' }}
-                            body={(rowData) => {
-                                const fecha = rowData?.fechaSolicitud;
-                                if (!fecha) return '';
-                                return fecha.split('T')[0];
+                    <div className={`table-warning-wrapper ${activeAlerts.length > 0 ? "table-warning-blink" : ""}`}>
+                        <DatatableDinamic
+                            value={tickets}
+                            exportable
+                            rows={pageSize}
+                            loading={loading}
+                            dataKey="id"
+                            onEdit={(rowData) => navigate("Editar/" + rowData.id)}
+                            actionHeader="Acciones"
+                            actionWidth="75px"
+                            serverSide={true}
+                            totalRecords={totalRecords}
+                            onPageChange={handlePageChange}
+                            onFilterChange={handleFilterChange}
+                            onSortChange={handleSortChange}
+                            initialGlobalFilter={globalFilter}
+                            initialColumnFilters={columnFilters}
+                            sortField={sortField}
+                            sortOrder={sortOrder}
+                            mobileConfig={{
+                                titleField: 'titulo',
+                                badgeField: 'estadoNombre',
                             }}
-                        />
-                        <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }} />
-                        <Column field="empresaRazonSocial" header="Empresa" sortable style={{ width: '120px', minWidth: '120px' }} />
-                        <Column field="nombreGestor" header="Gestor" sortable style={{ width: '120px', minWidth: '120px' }} />
-                        <Column field="nombreConsultores" header="Consultores" sortable style={{ width: '140px', minWidth: '140px' }} />
-                        <Column
-                            field="horasTrabajadas"
-                            header="Hrs. T"
-                            sortable
-                            style={{ width: '55px', minWidth: '55px' }}
-                            bodyStyle={{ textAlign: 'center' }}
-                            headerClassName="centered-column-header"
-                            className="centered-column-body"
-                            body={(rowData) => {
-                                const hrsT = rowData?.horasTrabajadas;
-                                const isZero = hrsT === 0 || hrsT === "0" || parseFloat(hrsT) === 0;
-                                const showWorkedHoursAlert = codRol === ROLES.Consultor || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
-                                if (showWorkedHoursAlert && isZero) {
-                                    return (
-                                        <span className="hrs-t-cero-badge">
-                                            {hrsT}
-                                        </span>
-                                    );
-                                }
-                                return hrsT;
-                            }}
-                        />
-                        <Column
-                            field="horasPlanificadas"
-                            header="Hrs. P"
-                            sortable
-                            style={{ width: '55px', minWidth: '55px' }}
-                            bodyStyle={{ textAlign: 'center' }}
-                            headerClassName="centered-column-header"
-                            className="centered-column-body"
-                            body={(rowData) => {
-                                const hrsP = rowData?.horasPlanificadas;
-                                const isZero = hrsP === 0 || hrsP === "0" || parseFloat(hrsP) === 0 || hrsP === null || hrsP === undefined;
-                                const showPlannedHoursAlert = codRol === ROLES.GestorCuenta || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
-                                if (showPlannedHoursAlert && isZero) {
-                                    return (
-                                        <span className="hrs-t-cero-badge">
-                                            {hrsP ?? 0}
-                                        </span>
-                                    );
-                                }
-                                return hrsP ?? '-';
-                            }}
-                        />
-                        <Column field="titulo" header="Titulo" sortable style={{ minWidth: '250px' }} />
-                    </DatatableDinamic>
-
+                        >
+                            <Column field="codTicket" header={<div>Cód. Conecta</div>} sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="codTicketInterno" header="Cód. Interno" sortable style={{ width: '100px', minWidth: '100px' }} />
+                            <Column
+                                field="fechaSolicitud"
+                                header="F. Solicitud"
+                                sortable
+                                style={{ width: '90px', minWidth: '90px' }}
+                                body={(rowData) => {
+                                    const fecha = rowData?.fechaSolicitud;
+                                    if (!fecha) return '';
+                                    return fecha.split('T')[0];
+                                }}
+                            />
+                            <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="empresaRazonSocial" header="Empresa" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="nombreGestor" header="Gestor" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="nombreConsultores" header="Consultores" sortable style={{ width: '140px', minWidth: '140px' }} />
+                            <Column
+                                field="horasTrabajadas"
+                                header="Hrs. T"
+                                sortable
+                                style={{ width: '55px', minWidth: '55px' }}
+                                bodyStyle={{ textAlign: 'center' }}
+                                headerClassName="centered-column-header"
+                                className="centered-column-body"
+                                body={(rowData) => {
+                                    const hrsT = rowData?.horasTrabajadas;
+                                    const isZero = hrsT === 0 || hrsT === "0" || parseFloat(hrsT) === 0;
+                                    const showWorkedHoursAlert = codRol === ROLES.Consultor || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
+                                    if (showWorkedHoursAlert && isZero) {
+                                        return (
+                                            <span className="hrs-t-cero-badge">
+                                                {hrsT}
+                                            </span>
+                                        );
+                                    }
+                                    return hrsT;
+                                }}
+                            />
+                            <Column
+                                field="horasPlanificadas"
+                                header="Hrs. P"
+                                sortable
+                                style={{ width: '55px', minWidth: '55px' }}
+                                bodyStyle={{ textAlign: 'center' }}
+                                headerClassName="centered-column-header"
+                                className="centered-column-body"
+                                body={(rowData) => {
+                                    const hrsP = rowData?.horasPlanificadas;
+                                    const isZero = hrsP === 0 || hrsP === "0" || parseFloat(hrsP) === 0 || hrsP === null || hrsP === undefined;
+                                    const showPlannedHoursAlert = codRol === ROLES.GestorCuenta || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
+                                    if (showPlannedHoursAlert && isZero) {
+                                        return (
+                                            <span className="hrs-t-cero-badge">
+                                                {hrsP ?? 0}
+                                            </span>
+                                        );
+                                    }
+                                    return hrsP ?? '-';
+                                }}
+                            />
+                            <Column field="titulo" header="Titulo" sortable style={{ minWidth: '250px' }} />
+                        </DatatableDinamic>
+                    </div>
                 </div>
             </div>
 
@@ -464,25 +445,32 @@ const Gestiontikets = () => {
                 </div>
             </Dialog>
 
-            {/* 🔴 Alerta 1: Tickets sin Horas Registradas */}
-            <AlertaTicketsSinHoras 
-                visible={displayAlertaZero}
-                onHide={() => setDisplayAlertaZero(false)}
-                title="Tickets sin Horas Registradas"
-                icon="pi pi-exclamation-triangle"
-                message="Tienes tickets asignados en los que aún no has registrado horas de trabajo:"
-                items={ticketsSinHoras}
-            />
-
-            {/* 🔴 Alerta 2: Tickets sin Horas Planificadas */}
-            <AlertaTicketsSinHoras 
-                visible={displayAlertaPlanificado}
-                onHide={() => setDisplayAlertaPlanificado(false)}
-                title="Tickets sin Horas Planificadas"
-                icon="pi pi-calendar-times"
-                message="Tienes tickets asignados en los que aún no has planificado horas de trabajo:"
-                items={ticketsSinPlanificar}
-            />
+            {/* 🔴 Alertas Dinámicas en Cascada */}
+            {activeAlerts.map((alert, index) => {
+                // Posicionar en cascada desde el centro para que no se traslapen totalmente
+                const offset = index * 30; // 30px de desfase por alerta
+                
+                return (
+                    <AlertaTicketsSinHoras 
+                        key={alert.id}
+                        visible={true}
+                        onHide={() => setActiveAlerts(prev => prev.filter(a => a.id !== alert.id))}
+                        title={alert.title}
+                        icon={alert.icon}
+                        message={alert.message}
+                        items={alert.items}
+                        modal={false}
+                        draggable={true}
+                        position="center"
+                        style={{ 
+                            width: '32vw', 
+                            minWidth: '420px', 
+                            marginTop: `${offset}px`, 
+                            marginLeft: `${offset}px` 
+                        }}
+                    />
+                );
+            })}
 
 
 

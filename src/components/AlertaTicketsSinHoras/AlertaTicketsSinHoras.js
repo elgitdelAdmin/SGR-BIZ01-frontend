@@ -11,7 +11,11 @@ const AlertaTicketsSinHoras = ({
     message, 
     items = [], 
     renderItem,
-    children 
+    children,
+    draggable = true,
+    modal = false,
+    position = "center",
+    style = { width: '35vw', minWidth: '480px' }
 }) => {
     
     const defaultRenderItem = (item) => {
@@ -39,11 +43,13 @@ const AlertaTicketsSinHoras = ({
             }
             visible={visible}
             onHide={onHide}
-            style={{ width: '35vw', minWidth: '480px' }}
+            style={style}
             className="alerta-tickets-dialog"
-            draggable={false}
+            draggable={draggable}
             resizable={false}
             closable={true}
+            modal={modal}
+            position={position}
         >
             <div className="alerta-tickets-dialog__body">
                 {message && <p className="alerta-tickets-dialog__message">{message}</p>}

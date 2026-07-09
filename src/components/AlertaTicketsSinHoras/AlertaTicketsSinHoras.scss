@@ -1,6 +1,11 @@
 @import "../../styles/variables";
 
 .alerta-tickets-dialog {
+  border: 2px solid #dd4b39; // $color-rojo-eliminar
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+
   .p-dialog-header {
     border-bottom: 1px solid #f0f4f8;
     padding: 1.25rem 1.5rem;

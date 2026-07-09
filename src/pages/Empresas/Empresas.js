@@ -128,21 +128,7 @@ const Empresas = () => {
     }, [listaPersonasTotal]);
    
 
-    const accion =(rowData)=>{
-        return  <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("EditarEmpresa/"+rowData.id)}>
-                <span><Iconsax.Edit color="#ffffff"/></span>
-            </div>
-             <div className="accion-eliminar" onClick={()=>{
-                setUsuarioSeleccionado(rowData.id)
-                confirm2(rowData.id)
-                
-             }}>
-                <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> 
-        </div>
-        
-    }
+    // Acciones ahora gestionadas por DatatableDinamic
             
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;
@@ -248,6 +234,11 @@ const Empresas = () => {
                              exportable={true}
                              showSearch={true} 
                              loading={loading}
+                             onEdit={(rowData) => navigate("EditarEmpresa/" + rowData.id)}
+                             onDelete={(rowData) => {
+                                 setUsuarioSeleccionado(rowData.id);
+                                 confirm2(rowData.id);
+                             }}
                          >
                                  <Column field="nombreComercial" header="Nombre Comercial"  sortable style={{ width: '120px', minWidth: '120px' }} />
                               <Column field="razonSocial" header="Razon social" sortable style={{ width: '120px', minWidth: '120px' }}  />
@@ -256,8 +247,6 @@ const Empresas = () => {
                              <Column field="direccion" header="Direccion"  sortable style={{ width: '120px', minWidth: '120px' }} />
                              <Column field="email" header="Correo"  sortable style={{ width: '120px', minWidth: '120px' }} />
                              <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
-                            
-                             <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
                             </DatatableDinamic>
                          <Dialog
                                 header="Especializaciones"

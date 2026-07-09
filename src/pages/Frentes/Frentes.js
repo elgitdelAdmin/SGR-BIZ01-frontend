@@ -103,23 +103,7 @@ const Frentes = () => {
         setListaFrentes(listaFrentesTotal);
     }, [listaFrentesTotal]);
 
-    const accionFrente = (rowData) => {
-        return <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={() => {
-                setEditingFrenteId(rowData.id);
-                setShowFormFrente(true);
-            }}>
-                <span><Iconsax.Edit color="#ffffff" /></span>
-            </div>
-            {rowData.activo && (
-                <div className="accion-eliminar" onClick={() => {
-                    preValidarEliminarFrente(rowData.id);
-                }}>
-                    <span><Iconsax.Trash color="#ffffff" /></span>
-                </div>
-            )}
-        </div>;
-    };
+    // Acciones de Frente ahora gestionadas por DatatableDinamic
 
     const accionSubFrente = (rowData) => {
         return <div className="profesor-datatable-accion">
@@ -294,6 +278,11 @@ const Frentes = () => {
                         exportable={true}
                         showSearch={true}
                         loading={loading}
+                        onEdit={(rowData) => {
+                            setEditingFrenteId(rowData.id);
+                            setShowFormFrente(true);
+                        }}
+                        onDelete={ (rowData) => rowData.activo ? preValidarEliminarFrente(rowData.id) : null }
                     >
                         <Column field="codigo" header="Código" sortable style={{ width: '120px', minWidth: '120px' }} />
                         <Column field="nombre" header="Nombre" sortable style={{ width: '140px', minWidth: '140px' }} />
@@ -309,11 +298,6 @@ const Frentes = () => {
                             sortable
                             style={{ width: '90px', minWidth: '90px' }}
                             body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
-                        />
-                        <Column
-                            header="Acciones"
-                            body={accionFrente}
-                            style={{ width: '80px', minWidth: '80px' }}
                         />
                     </DatatableDinamic>
                 </div>

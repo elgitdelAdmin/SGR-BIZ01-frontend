@@ -112,6 +112,9 @@ const Horas = ({
 
   const [addDisabledGate, setAddDisabledGate] = useState(true);
   const [delDisabledGate, setDelDisabledGate] = useState(true);
+  const [editingRow, setEditingRow] = useState(null);
+  const [displayConfirmDialog, setDisplayConfirmDialog] = useState(false);
+  const [initialDetailsSnapshot, setInitialDetailsSnapshot] = useState([]);
 
   const [nuevo, setNuevo] = useState({
     FechaInicio: null,
@@ -178,6 +181,8 @@ const Horas = ({
     setAddDisabledGate(true);
     setDelDisabledGate(true);
     setErrorHoras("");
+    setEditingRow(null);
+    setInitialDetailsSnapshot(current.map(d => ({ ...d })));
 
     const linkedAsig = isPlan ? (formik.values.asignaciones || []).find(
       (a) => a.Activo !== false && (a._frenteSubFrenteUid === frenteSubFrente?._uid || (frenteSubFrente?.id > 0 && Number(a.IdTicketFrenteSubFrente) === Number(frenteSubFrente.id)))
@@ -204,7 +209,15 @@ const Horas = ({
     return Array.isArray(arr) ? arr : [];
   }, [formik.values.frenteSubFrentes, formik.values.asignaciones, index, isPlan, fieldKey]);
 
-  const currentActivos = useMemo(() => current.filter((d) => d.Activo), [current]);
+  const currentActivos = useMemo(() => {
+    return current
+      .filter((d) => d.Activo)
+      .sort((a, b) => {
+        const dateA = a.FechaInicio ? new Date(a.FechaInicio) : new Date(0);
+        const dateB = b.FechaInicio ? new Date(b.FechaInicio) : new Date(0);
+        return dateA - dateB;
+      });
+  }, [current]);
 
   const totalHorasHHMM = useMemo(() => {
     const totalMin = currentActivos.reduce((acc, it) => {
@@ -498,6 +511,128 @@ const Horas = ({
     }
   };
 
+  const findRowIndex = (row) => {
+    return current.findIndex(
+      (d) =>
+        d.Activo &&
+        d.FechaInicio === row.FechaInicio &&
+        d.FechaFin === row.FechaFin &&
+        String(d.Horas) === String(row.Horas) &&
+        d.Descripcion === row.Descripcion
+    );
+  };
+
+  const cancelarEdicion = () => {
+    setEditingRow(null);
+  };
+
+  const iniciarEdicion = (rowData) => {
+    if (!puedeEditar) return;
+
+    const idxEnCurrent = findRowIndex(rowData);
+    if (idxEnCurrent === -1) return;
+
+    setEditingRow({
+      originalIndex: idxEnCurrent,
+      Horas: normalizeHHMM(rowData.Horas),
+      IdTipoActividad: rowData.IdTipoActividad,
+      Descripcion: rowData.Descripcion,
+    });
+  };
+
+  const confirmarEdicion = () => {
+    if (editingRow === null) return;
+
+    const horasNorm = normalizeHHMM(editingRow.Horas);
+
+    if (!isValidHHMM(editingRow.Horas)) {
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Formato inválido",
+        detail: "Usa HH.MM con minutos 00–59 (ej: 2.50).",
+        life: 5000,
+      });
+      return;
+    }
+
+    const minsNuevo = hhmmToMinutes(horasNorm);
+    if (!minsNuevo || minsNuevo <= 0) {
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Horas inválidas",
+        detail: "Horas debe ser mayor a 0 (ej: 0.30).",
+        life: 5000,
+      });
+      return;
+    }
+
+    if (!editingRow.IdTipoActividad) {
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Campo requerido",
+        detail: "Seleccione un Tipo de Actividad.",
+        life: 5000,
+      });
+      return;
+    }
+
+    if (!editingRow.Descripcion?.trim()) {
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Campo requerido",
+        detail: "Ingrese una Descripción.",
+        life: 5000,
+      });
+      return;
+    }
+
+    setAddDisabledGate(false);
+
+    const updated = [...current];
+    updated[editingRow.originalIndex] = {
+      ...updated[editingRow.originalIndex],
+      Horas: horasNorm,
+      IdTipoActividad: editingRow.IdTipoActividad,
+      Descripcion: editingRow.Descripcion,
+    };
+
+    if (isPlan) {
+      formik.setFieldValue(`frenteSubFrentes[${index}].DetallePlanificacionConsultor`, updated);
+    } else {
+      formik.setFieldValue(`asignaciones[${index}].${fieldKey}`, updated);
+    }
+
+    setEditingRow(null);
+  };
+
+  const handleHideDialog = () => {
+    const hasUnsavedChanges = !addDisabledGate || !delDisabledGate;
+    if (hasUnsavedChanges) {
+      setDisplayConfirmDialog(true);
+    } else {
+      setVisible(false);
+    }
+  };
+
+  const descartarCambios = () => {
+    if (isPlan) {
+      formik.setFieldValue(`frenteSubFrentes[${index}].DetallePlanificacionConsultor`, initialDetailsSnapshot);
+    } else {
+      formik.setFieldValue(`asignaciones[${index}].${fieldKey}`, initialDetailsSnapshot);
+    }
+    setAddDisabledGate(true);
+    setDelDisabledGate(true);
+    setEditingRow(null);
+    setVisible(false);
+    setDisplayConfirmDialog(false);
+  };
+
+  const guardarCambiosConfirm = () => {
+    formik.handleSubmit();
+    setVisible(false);
+    setDisplayConfirmDialog(false);
+  };
+
   const duplicar = (rowData) => {
     if (!puedeEditar) return;
 
@@ -516,46 +651,79 @@ const Horas = ({
       nextFechaFin = d;
     }
 
-    if (isPlan) {
-      const minsToAdd = hhmmToMinutes(rowData.Horas) || 0;
-      const fi = new Date(nextFechaInicio);
-      fi.setHours(0, 0, 0, 0);
-      const ff = new Date(nextFechaFin);
-      ff.setHours(0, 0, 0, 0);
+    if (nextFechaInicio && nextFechaFin) {
+      let limitMax = isPlan
+        ? (maxFechaPlan ? new Date(maxFechaPlan) : null)
+        : (maxFechaPlan && new Date(maxFechaPlan) < new Date() ? new Date(maxFechaPlan) : new Date());
+      let limitMin = minFechaPlan ? new Date(minFechaPlan) : null;
 
-      const diffDays = Math.ceil(Math.abs(ff - fi) / (1000 * 60 * 60 * 24)) + 1;
+      const checkFi = new Date(nextFechaInicio);
+      checkFi.setHours(0, 0, 0, 0);
+      const checkFf = new Date(nextFechaFin);
+      checkFf.setHours(0, 0, 0, 0);
 
-      for (let i = 0; i < diffDays; i++) {
-        const checkDate = new Date(fi);
-        checkDate.setDate(fi.getDate() + i);
+      if (limitMax) limitMax.setHours(0, 0, 0, 0);
+      if (limitMin) limitMin.setHours(0, 0, 0, 0);
 
-        let minutosEnEseDia = 0;
-        current.filter(d => d.Activo).forEach(det => {
-          const detFi = new Date(det.FechaInicio);
-          detFi.setHours(0, 0, 0, 0);
-          const detFf = new Date(det.FechaFin);
-          detFf.setHours(0, 0, 0, 0);
-          const diffDetDays = Math.ceil(Math.abs(detFf - detFi) / (1000 * 60 * 60 * 24)) + 1;
-
-          if (checkDate >= detFi && checkDate <= detFf) {
-            const minsDet = hhmmToMinutes(det.Horas) || 0;
-            minutosEnEseDia += (minsDet / diffDetDays);
-          }
+      if (limitMax && checkFf.getTime() > limitMax.getTime()) {
+        toastRef?.current?.show?.({
+          severity: "warn",
+          summary: "Vigencia excedida",
+          detail: "La fecha duplicada excede la vigencia permitida.",
+          life: 5000,
         });
+        return;
+      }
+      if (limitMin && checkFi.getTime() < limitMin.getTime()) {
+        toastRef?.current?.show?.({
+          severity: "warn",
+          summary: "Vigencia excedida",
+          detail: "La fecha duplicada es menor a la vigencia permitida.",
+          life: 5000,
+        });
+        return;
+      }
+    }
 
-        const minsNuevoPorDia = minsToAdd / diffDays;
-        if (minutosEnEseDia + minsNuevoPorDia > 24 * 60) {
-          const disp = Math.max(0, 24 * 60 - minutosEnEseDia);
-          const hhDisp = Math.floor(disp / 60);
-          const mmDisp = Math.floor(disp % 60);
-          toastRef?.current?.show?.({
-            severity: "warn",
-            summary: "Límite superado",
-            detail: `Las horas para el ${checkDate.toLocaleDateString()} superan las 24h. Disponible: ${hhDisp}.${String(mmDisp).padStart(2, "0")}h`,
-            life: 7000,
-          });
-          return;
+    const minsToAdd = hhmmToMinutes(rowData.Horas) || 0;
+    const fi = new Date(nextFechaInicio);
+    fi.setHours(0, 0, 0, 0);
+    const ff = new Date(nextFechaFin);
+    ff.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.ceil(Math.abs(ff - fi) / (1000 * 60 * 60 * 24)) + 1;
+    const limitMins = isTareo ? 16 * 60 : 24 * 60;
+
+    for (let i = 0; i < diffDays; i++) {
+      const checkDate = new Date(fi);
+      checkDate.setDate(fi.getDate() + i);
+
+      let minutosEnEseDia = 0;
+      current.filter(d => d.Activo).forEach(det => {
+        const detFi = new Date(det.FechaInicio);
+        detFi.setHours(0, 0, 0, 0);
+        const detFf = new Date(det.FechaFin);
+        detFf.setHours(0, 0, 0, 0);
+        const diffDetDays = Math.ceil(Math.abs(detFf - detFi) / (1000 * 60 * 60 * 24)) + 1;
+
+        if (checkDate >= detFi && checkDate <= detFf) {
+          const minsDet = hhmmToMinutes(det.Horas) || 0;
+          minutosEnEseDia += (minsDet / diffDetDays);
         }
+      });
+
+      const minsNuevoPorDia = minsToAdd / diffDays;
+      if (minutosEnEseDia + minsNuevoPorDia > limitMins) {
+        const disp = Math.max(0, limitMins - minutosEnEseDia);
+        const hhDisp = Math.floor(disp / 60);
+        const mmDisp = Math.floor(disp % 60);
+        toastRef?.current?.show?.({
+          severity: isTareo ? "error" : "warn",
+          summary: "Límite superado",
+          detail: `Las horas para el ${checkDate.toLocaleDateString()} superan las ${limitMins / 60}h. Disponible: ${hhDisp}.${String(mmDisp).padStart(2, "0")}h`,
+          life: 7000,
+        });
+        return;
       }
     }
 
@@ -625,7 +793,7 @@ const Horas = ({
         visible={visible}
         style={{ width: "60vw" }}
         modal
-        onHide={() => setVisible(false)}
+        onHide={handleHideDialog}
         footer={footer}
       >
         {puedeEditar && (
@@ -733,8 +901,8 @@ const Horas = ({
               </div>
             </div>
 
-            <div className="mb-4 flex align-items-center justify-content-between">
-              <div className="flex align-items-center">
+            <div className="mb-4 flex flex-column md:flex-row align-items-start md:align-items-center justify-content-between" style={{ gap: '1rem' }}>
+              <div className="flex flex-wrap align-items-center" style={{ gap: '1rem' }}>
                 <Boton
                   label="Añadir"
                   icon="pi pi-plus"
@@ -742,22 +910,20 @@ const Horas = ({
                   onClick={agregar}
                   type="button"
                 />
-                <div style={{ marginLeft: '1.5rem' }}>
-                  <Boton
-                    label="Limpiar Todo"
-                    icon="pi pi-trash"
-                    className="p-button-danger"
-                    onClick={limpiarTodo}
-                    type="button"
-                  />
-                </div>
+                <Boton
+                  label="Limpiar Todo"
+                  icon="pi pi-trash"
+                  className="p-button-danger"
+                  onClick={limpiarTodo}
+                  type="button"
+                />
               </div>
-                <div className="flex align-items-center">
-                  <span style={{ color: '#4b5563', fontWeight: '500', fontSize: '14px', marginRight: '1rem' }}>
-                    Modo de ingreso:
-                  </span>
-                  <div style={{ width: '300px' }} className="pulse-combo">
-                    <DropdownDefault
+              <div className="flex flex-wrap align-items-center" style={{ gap: '1rem', width: '100%', maxWidth: 'max-content' }}>
+                <span style={{ color: '#4b5563', fontWeight: '500', fontSize: '14px' }}>
+                  Modo de ingreso:
+                </span>
+                <div style={{ width: '100%', maxWidth: '300px', flex: '1' }} className="pulse-combo">
+                  <DropdownDefault
                     value={tipoIngreso}
                     options={opcionesTipoIngreso}
                     optionLabel="label"
@@ -770,8 +936,8 @@ const Horas = ({
                     }}
                     className="w-full"
                   />
-                  </div>
                 </div>
+              </div>
             </div>
           </>
         )}
@@ -795,6 +961,25 @@ const Horas = ({
             field="Horas"
             header="Horas"
             body={(row) => {
+              const idxRow = findRowIndex(row);
+              const isEditing = editingRow !== null && editingRow.originalIndex === idxRow;
+
+              if (isEditing) {
+                return (
+                  <InputHorasDefault
+                    value={editingRow.Horas}
+                    onChange={(e) => setEditingRow(prev => ({ ...prev, Horas: e.target.value }))}
+                    onBlur={() => {
+                      if (isValidHHMM(editingRow.Horas)) {
+                        setEditingRow(prev => ({ ...prev, Horas: normalizeHHMM(prev.Horas) }));
+                      }
+                    }}
+                    placeholder="HH.MM"
+                    style={{ width: '80px' }}
+                  />
+                );
+              }
+
               const h = Number(row.Horas);
               return isNaN(h) ? "0.00" : h.toFixed(2);
             }}
@@ -803,6 +988,23 @@ const Horas = ({
             field="IdTipoActividad"
             header="Tipo de Actividad"
             body={(rowData) => {
+              const idxRow = findRowIndex(rowData);
+              const isEditing = editingRow !== null && editingRow.originalIndex === idxRow;
+
+              if (isEditing) {
+                return (
+                  <DropdownDefault
+                    value={editingRow.IdTipoActividad}
+                    options={optionsTipoActividad}
+                    onChange={(e) => setEditingRow(prev => ({ ...prev, IdTipoActividad: e.value }))}
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione"
+                    style={{ width: '100%', minWidth: '140px' }}
+                  />
+                );
+              }
+
               const tipo = (parametros || []).find(
                 (item) =>
                   item.tipoParametro === "TipoActividad" &&
@@ -812,32 +1014,93 @@ const Horas = ({
               return tipo?.nombre || "—";
             }}
           />
-          <Column field="Descripcion" header="Descripción" />
+          <Column 
+            field="Descripcion" 
+            header="Descripción" 
+            body={(rowData) => {
+              const idxRow = findRowIndex(rowData);
+              const isEditing = editingRow !== null && editingRow.originalIndex === idxRow;
+
+              if (isEditing) {
+                return (
+                  <InputTextDefault
+                    value={editingRow.Descripcion}
+                    onChange={(e) => setEditingRow(prev => ({ ...prev, Descripcion: e.target.value }))}
+                    style={{ width: '100%' }}
+                  />
+                );
+              }
+
+              return rowData.Descripcion || "";
+            }}
+          />
 
           {puedeEditar && (
             <Column
               header="Acciones"
               body={(rowData) => {
+                const idxRow = findRowIndex(rowData);
+                const isEditing = editingRow !== null && editingRow.originalIndex === idxRow;
+
+                if (isEditing) {
+                  return (
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <Button
+                        type="button"
+                        icon="pi pi-check"
+                        className="p-button-success"
+                        title="Confirmar edición"
+                        onClick={confirmarEdicion}
+                        style={{ width: "32px", height: "32px", padding: 0 }}
+                      />
+                      <Button
+                        type="button"
+                        icon="pi pi-times"
+                        className="p-button-secondary"
+                        onClick={cancelarEdicion}
+                        title="Cancelar edición"
+                        style={{ width: "32px", height: "32px", padding: 0 }}
+                      />
+                    </div>
+                  );
+                }
+
                 let showDuplicate = false;
-                if (isPlan) {
-                  let nextFi = null;
-                  let nextFf = null;
-                  if (rowData.FechaInicio) {
-                    nextFi = new Date(rowData.FechaInicio);
-                    nextFi.setDate(nextFi.getDate() + 1);
-                    nextFi.setHours(0, 0, 0, 0);
+                let nextFi = null;
+                let nextFf = null;
+                if (rowData.FechaInicio) {
+                  nextFi = new Date(rowData.FechaInicio);
+                  nextFi.setDate(nextFi.getDate() + 1);
+                  nextFi.setHours(0, 0, 0, 0);
+                }
+                if (rowData.FechaFin) {
+                  nextFf = new Date(rowData.FechaFin);
+                  nextFf.setDate(nextFf.getDate() + 1);
+                  nextFf.setHours(0, 0, 0, 0);
+                }
+
+                if (nextFi && nextFf) {
+                  let limitMax = isPlan
+                    ? (maxFechaPlan ? new Date(maxFechaPlan) : null)
+                    : (maxFechaPlan && new Date(maxFechaPlan) < new Date() ? new Date(maxFechaPlan) : new Date());
+                  let limitMin = minFechaPlan ? new Date(minFechaPlan) : null;
+
+                  if (limitMax) limitMax.setHours(0, 0, 0, 0);
+                  if (limitMin) limitMin.setHours(0, 0, 0, 0);
+
+                  let canDup = true;
+                  if (limitMax && nextFf.getTime() > limitMax.getTime()) {
+                    canDup = false;
                   }
-                  if (rowData.FechaFin) {
-                    nextFf = new Date(rowData.FechaFin);
-                    nextFf.setDate(nextFf.getDate() + 1);
-                    nextFf.setHours(0, 0, 0, 0);
+                  if (limitMin && nextFi.getTime() < limitMin.getTime()) {
+                    canDup = false;
                   }
 
-                  if (nextFi && nextFf) {
+                  if (canDup) {
                     const diffDays = Math.ceil(Math.abs(nextFf - nextFi) / (1000 * 60 * 60 * 24)) + 1;
                     const minsToAdd = hhmmToMinutes(rowData.Horas) || 0;
+                    const limitMins = isTareo ? 16 * 60 : 24 * 60;
 
-                    let canDup = true;
                     for (let i = 0; i < diffDays; i++) {
                       const checkDate = new Date(nextFi);
                       checkDate.setDate(nextFi.getDate() + i);
@@ -856,17 +1119,25 @@ const Horas = ({
                         }
                       });
 
-                      if (minutosEnEseDia + (minsToAdd / diffDays) > 24 * 60) {
+                      if (minutosEnEseDia + (minsToAdd / diffDays) > limitMins) {
                         canDup = false;
                         break;
                       }
                     }
-                    showDuplicate = canDup;
                   }
+                  showDuplicate = canDup;
                 }
 
                 return (
                   <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <Button
+                      type="button"
+                      icon="pi pi-pencil"
+                      className="accion-editar"
+                      tooltip="Editar"
+                      onClick={() => iniciarEdicion(rowData)}
+                      style={{ width: "32px", height: "32px", padding: 0 }}
+                    />
                     <Button
                       type="button"
                       icon="pi pi-trash"
@@ -874,7 +1145,7 @@ const Horas = ({
                       onClick={() => eliminar(rowData)}
                       style={{ width: "32px", height: "32px", padding: 0 }}
                     />
-                    {isPlan && showDuplicate && (
+                    {showDuplicate && (
                       <Button
                         type="button"
                         icon="pi pi-calendar-plus"
@@ -890,6 +1161,35 @@ const Horas = ({
             />
           )}
         </DataTable>
+      </Dialog>
+
+      <Dialog
+        header="Confirmación"
+        visible={displayConfirmDialog}
+        style={{ width: "380px" }}
+        modal
+        onHide={() => setDisplayConfirmDialog(false)}
+        footer={
+          <div className="flex justify-content-end gap-2" style={{ gap: '0.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+            <Boton
+              label="Cerrar"
+              color="secondary"
+              onClick={descartarCambios}
+              type="button"
+            />
+            <Boton
+              label="Registrar"
+              color="primary"
+              onClick={guardarCambiosConfirm}
+              type="button"
+            />
+          </div>
+        }
+      >
+        <div className="flex align-items-center gap-3" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <i className="pi pi-exclamation-triangle" style={{ fontSize: '2.5rem', color: '#eab308' }} />
+          <span>Tienes cambios pendientes de registrar. ¿Qué deseas hacer?</span>
+        </div>
       </Dialog>
     </>
   );

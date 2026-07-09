@@ -171,21 +171,7 @@ const Consultores = () => {
     }, []);
 
 
-    const accion = (rowData) => {
-        return <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={() => navigate("Editar/" + rowData.id)}>
-                <span><Iconsax.Edit color="#ffffff" /></span>
-            </div>
-            <div className="accion-eliminar" onClick={() => {
-                setUsuarioSeleccionado(rowData.id)
-                confirm2(rowData.id)
-
-            }}>
-                <span><Iconsax.Trash color="#ffffff" /></span>
-            </div>
-        </div>
-
-    }
+    // Acciones ahora gestionadas por DatatableDinamic
 
 
 
@@ -270,26 +256,20 @@ const Consultores = () => {
                         exportable={true}
                         showSearch={true}
                         loading={loading}
+                        onEdit={(rowData) => navigate("Editar/" + rowData.id)}
+                        onDelete={(rowData) => {
+                            setUsuarioSeleccionado(rowData.id);
+                            confirm2(rowData.id);
+                        }}
                     >
-                        <Column field="persona.nombres" header="Nombres" sortable style={{ width: '120px', minWidth: '120px' }} />
-                        <Column field="persona.apellidoPaterno" header="Apellido Paterno" sortable style={{ width: '130px', minWidth: '140px' }} />
-                        <Column field="persona.apellidoMaterno" header="Apellido Materno" sortable style={{ width: '130px', minWidth: '140px' }} />
-                        <Column field="persona.correo" header="Correo" sortable style={{ width: '130px', minWidth: '180px' }} />
+                        <Column field="nombres" header="Nombres" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="apellidoPaterno" header="Apellido Paterno" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="apellidoMaterno" header="Apellido Materno" sortable style={{ width: '120px', minWidth: '120px' }} />
 
-
-                        <Column
-                            header="Especializaciones"
-                            body={verespecializaciones} sortable style={{ width: '50px', minWidth: '58px' }}
-                        />
-                        <Column field="persona.telefono" header="Teléfono" sortable style={{ width: '130px', minWidth: '180px' }} />
-                        {/* <Column
-                                field="activo"
-                                header="Estado"
-                                body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}  sortable style={{ width: '130px', minWidth: '180px' }} 
-                            /> */}
+                        <Column field="correo" header="Correo" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column header="Especializaciones" body={verespecializaciones} style={{ width: '80px', minWidth: '80px', textAlign: 'center' }} />
+                        <Column field="telefono" header="Teléfono" sortable style={{ width: '120px', minWidth: '120px' }} />
                         <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }} />
-
-                        <Column body={accion} header="Acciones" style={{ width: '80px', minWidth: '80px' }} />
                     </DatatableDinamic>
                     <Dialog
                         header="Especializaciones"

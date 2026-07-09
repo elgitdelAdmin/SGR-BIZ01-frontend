@@ -131,21 +131,7 @@ const Gestores = () => {
    
 
 
-    const accion =(rowData)=>{
-        return  <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={()=>navigate("EditarSocio/"+rowData.id)}>
-                <span><Iconsax.Edit color="#ffffff"/></span>
-            </div>
-             <div className="accion-eliminar" onClick={()=>{
-                setSocioSeleccionado(rowData.id)
-                confirm2(rowData.id)
-                
-             }}>
-                <span><Iconsax.Trash color="#ffffff"/></span>
-            </div> 
-        </div>
-        
-    }
+    // Acciones ahora gestionadas por DatatableDinamic
             
     const paginatorLeft = <button type="button" icon="pi pi-refresh" className="p-button-text" />;
     const paginatorRight = <button type="button" icon="pi pi-cloud" className="p-button-text" />;
@@ -271,12 +257,17 @@ const Gestores = () => {
                              </div>                        
                      </div>
                     <div className="zv-usuario-body-listado" style={{marginTop:24}}>
-                        <DatatableDinamic
-                            value={listaPersonas}
-                            exportable={true}
-                            loading={loading}
-                        >
-                            <Column header="Logo" body={logoTemplate} style={{ width: '60px', minWidth: '60px', textAlign: 'center' }} />
+                         <DatatableDinamic 
+                             value={listaPersonas}  
+                             exportable={true}
+                             showSearch={true}
+                             loading={loading}
+                             onEdit={(rowData) => navigate("EditarSocio/" + rowData.id)}
+                             onDelete={(rowData) => {
+                                 setSocioSeleccionado(rowData.id);
+                                 confirm2(rowData.id);
+                             }}
+                         >   <Column header="Logo" body={logoTemplate} style={{ width: '60px', minWidth: '60px', textAlign: 'center' }} />
                             <Column field="razonSocial" header="Razon Social" sortable style={{ width: '130px', minWidth: '130px' }} />
                             <Column field="codigo" header="Codigo" sortable style={{ width: '90px', minWidth: '90px' }} />
                             <Column field="nombre" header="Nombre" sortable style={{ width: '120px', minWidth: '120px' }} />
@@ -292,11 +283,6 @@ const Gestores = () => {
                                 sortable
                                 style={{ width: '90px', minWidth: '90px' }}
                                 body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
-                            />
-                            <Column
-                                header="Acciones"
-                                body={accion}
-                                style={{ width: '80px', minWidth: '80px' }}
                             />
                         </DatatableDinamic>
                        
