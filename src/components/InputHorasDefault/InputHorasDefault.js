@@ -6,16 +6,20 @@ const InputHorasDefault = ({
     id,
     value,
     onChange,
-    placeholder = 'Ej: 2.50 (2h 50m)',
+    placeholder = 'Ej: 2:30 (2h 30m)',
     className = '',
     style,
     ...props
 }) => {
     const handleChange = (e) => {
-        const val = e.target.value;
-        // Permite vacío, hasta 3 dígitos enteros, opcionalmente un punto decimal y hasta 2 decimales con minutos entre 00 y 59 (max 999.59)
-        const regex = /^(?:\d{0,3}|\d{1,3}\.|\d{1,3}\.[0-5]|\d{1,3}\.[0-5]\d)$/;
+        let val = e.target.value;
+        // Reemplazar punto por dos puntos para facilidad del usuario
+        val = val.replace('.', ':');
+        
+        // Expresión regular que valida formato HH:MM con minutos entre 00 y 59
+        const regex = /^(?:\d{0,3}|\d{1,3}:|\d{1,3}:[0-5]|\d{1,3}:[0-5]\d)$/;
         if (regex.test(val)) {
+            e.target.value = val;
             if (onChange) {
                 onChange(e);
             }

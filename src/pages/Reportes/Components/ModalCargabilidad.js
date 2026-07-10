@@ -8,23 +8,27 @@ import { ProgressSpinner } from "primereact/progressspinner";
  * Normaliza "HH.MM" con 2 decimales (misma lógica de Horas.js)
  */
 const normalizeHHMM = (raw) => {
-    const s = String(raw ?? "").trim();
+    let s = String(raw ?? "").trim();
     if (!s) return "";
-    const cleaned = s.replace(/[^0-9.]/g, "");
+
+    s = s.replace(".", ":");
+
+    const cleaned = s.replace(/[^0-9:]/g, "");
     if (!cleaned) return "";
-    const parts = cleaned.split(".");
+
+    const parts = cleaned.split(":");
     const hh = String(Number(parts[0] ?? "0"));
     let mm = parts[1] ?? "";
     if (mm === "") mm = "00";
     if (mm.length === 1) mm = `${mm}0`;
     if (mm.length > 2) mm = mm.slice(0, 2);
-    return `${hh}.${mm}`;
+    return `${hh}:${mm}`;
 };
 
 const hhmmToMinutes = (hhmm) => {
     if (!hhmm) return 0;
     const norm = normalizeHHMM(hhmm);
-    const [hhStr, mmStr = "00"] = norm.split(".");
+    const [hhStr, mmStr = "00"] = norm.split(":");
     const hh = Number(hhStr);
     const mm = Number(mmStr);
     if (!Number.isFinite(hh) || !Number.isFinite(mm)) return 0;
@@ -79,7 +83,7 @@ const ModalCargabilidad = ({
         }, 0);
         const hh = Math.floor(totalMin / 60);
         const mm = totalMin % 60;
-        return `${hh}.${String(mm).padStart(2, "0")}`;
+        return `${hh}:${String(mm).padStart(2, "0")}`;
     }, [detalleTareas]);
 
     // Resolver nombre de tipo de actividad
@@ -141,7 +145,8 @@ const ModalCargabilidad = ({
                         header="Horas"
                         body={(row) => {
                             const val = row.horas ?? row.Horas;
-                            return val || "0.00";
+                            const hStr = val ? String(val).replace(".", ":") : "";
+                            return hStr || "0:00";
                         }}
                     />
                     <Column

@@ -1,0 +1,21 @@
+@import "../../styles/variables";
+
+.checkbox-default-custom {
+    /* Estilos personalizados para el Checkbox del sistema */
+    .p-checkbox {
+        .p-checkbox-box {
+            border-radius: 4px !important; // Un poco redondeado
+            border: 1px solid #9198a7 !important; // Gris acero
+            transition: all 0.2s ease-in-out;
+            
+            &.p-highlight {
+                background: #0e71ae !important; // Azul vivo
+                border-color: #0e71ae !important;
+            }
+            
+            &:hover {
+                border-color: #0e71ae !important;
+            }
+        }
+    }
+}

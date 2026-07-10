@@ -629,6 +629,18 @@ const Editar = () => {
         Link: (r.Url ?? r.Link ?? "").trim(),
       })).filter(x => x.Link);
 
+      // Helper para convertir HH:MM a Decimal antes de guardar en BD
+      const parseHorasToDecimal = (val) => {
+        if (typeof val === 'number') return val;
+        if (!val) return 0;
+        const str = String(val);
+        if (str.includes(':')) {
+          const [h, m] = str.split(':');
+          return Number(h) + (Number(m) / 60);
+        }
+        return Number(str.replace(',', '.')) || 0;
+      };
+
       // 1) Construye payload limpio
       const asignacionesPayload = (values.asignaciones || [])
         .filter(a => {
@@ -661,7 +673,7 @@ const Editar = () => {
             idTipoActividad: t.IdTipoActividad,
             fechaInicio: t.FechaInicio ? toLocalISOString(t.FechaInicio) : null,
             fechaFin: t.FechaFin ? toLocalISOString(t.FechaFin) : null,
-            horas: t.Horas,
+            horas: parseHorasToDecimal(t.Horas),
             descripcion: t.Descripcion,
             activo: t.Activo
           }));
@@ -697,7 +709,7 @@ const Editar = () => {
           idTipoActividad: p.IdTipoActividad,
           fechaInicio: p.FechaInicio ? toLocalISOString(p.FechaInicio) : null,
           fechaFin: p.FechaFin ? toLocalISOString(p.FechaFin) : null,
-          horas: p.Horas,
+          horas: parseHorasToDecimal(p.Horas),
           descripcion: p.Descripcion,
           activo: p.Activo
         }))

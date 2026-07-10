@@ -12,13 +12,15 @@ import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 
 const normalizeHHMM = (raw) => {
-  const s = String(raw ?? "").trim();
+  let s = String(raw ?? "").trim();
   if (!s) return "";
 
-  const cleaned = s.replace(/[^0-9.]/g, "");
+  s = s.replace(".", ":");
+
+  const cleaned = s.replace(/[^0-9:]/g, "");
   if (!cleaned) return "";
 
-  const parts = cleaned.split(".");
+  const parts = cleaned.split(":");
   const hhStr = parts[0] ?? "0";
   const mmStrRaw = parts[1] ?? "";
 
@@ -29,13 +31,13 @@ const normalizeHHMM = (raw) => {
   if (mm.length === 1) mm = `${mm}0`;
   if (mm.length > 2) mm = mm.slice(0, 2);
 
-  return `${hh}.${mm}`;
+  return `${hh}:${mm}`;
 };
 
 const hhmmToMinutes = (hhmm) => {
   if (!hhmm) return 0;
   const norm = normalizeHHMM(hhmm);
-  const [hhStr, mmStr = "00"] = norm.split(".");
+  const [hhStr, mmStr = "00"] = norm.split(":");
   const hh = Number(hhStr);
   const mm = Number(mmStr);
   if (!Number.isFinite(hh) || !Number.isFinite(mm)) return 0;
@@ -80,7 +82,7 @@ const calcularTotalHorasPlan = (asignacion, frenteSubFrentes) => {
   const totalMin = detallesFiltrados.reduce((acc, it) => acc + hhmmToMinutes(it.Horas), 0);
   const hh = Math.floor(totalMin / 60);
   const mm = totalMin % 60;
-  return `${hh}.${String(mm).padStart(2, "0")}`;
+  return `${hh}:${String(mm).padStart(2, "0")}`;
 };
 
 const Asignaciones = ({
@@ -332,14 +334,18 @@ const Asignaciones = ({
               if (originalIndex === -1) return "—";
 
               const tasks = formik.values.asignaciones[originalIndex]?.DetalleTareasConsultor || [];
-              const tieneHorasEnFormik = tasks.some(t => t.Activo && parseFloat(t.Horas || 0) > 0);
-              let totalHrs = 0;
+              const tieneHorasEnFormik = tasks.some(t => t.Activo && hhmmToMinutes(t.Horas) > 0);
+              let totalHrsStr = "0:00";
               if (tieneHorasEnFormik) {
-                totalHrs = tasks.filter(t => t.Activo).reduce((sum, t) => sum + parseFloat(t.Horas || 0), 0);
+                const totalMin = tasks.filter(t => t.Activo).reduce((sum, t) => sum + (hhmmToMinutes(t.Horas) || 0), 0);
+                const hh = Math.floor(totalMin / 60);
+                const mm = totalMin % 60;
+                totalHrsStr = `${hh}:${String(mm).padStart(2, "0")}`;
               } else {
-                totalHrs = totalesFijos?.[originalIndex]?.totalHoras || 0;
+                const th = totalesFijos?.[originalIndex]?.totalHoras;
+                totalHrsStr = th ? String(th).replace(".", ":") : "0:00";
               }
-              const isZero = Number(totalHrs) === 0;
+              const isZero = totalHrsStr === "0:00" || totalHrsStr === "0.00" || totalHrsStr === "0";
               const codRol = localStorage.getItem("codRol");
               const showWorkedHoursAlert = codRol === "CONSULTOR" || codRol === "GESTORCONSULTORIA" || codRol === "ADMIN" || codRol === "SUPERADMIN";
 
@@ -357,7 +363,7 @@ const Asignaciones = ({
                   <span style={{ color: "#646e8c", fontSize: "13px" }}>{hrsPlan} h</span>
                   <span>/</span>
                   <span className={`horas-badge ${badgeClass}`}>
-                    {isZero ? "0 h" : `${totalHrs} h`}
+                    {totalHrsStr} h
                   </span>
                 </div>
               );

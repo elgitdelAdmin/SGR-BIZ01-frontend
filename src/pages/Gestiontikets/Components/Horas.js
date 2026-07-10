@@ -9,6 +9,8 @@ import { Column } from "primereact/column";
 import InputTextDefault from "../../../components/InputTextDefault/InputTextDefault";
 import DropdownDefault from "../../../components/DropdownDefault/DropdownDefault";
 import InputHorasDefault from "../../../components/InputHorasDefault/InputHorasDefault";
+import CheckboxDefault from "../../../components/CheckboxDefault/CheckboxDefault";
+import CalendarRangeDefault from "../../../components/CalendarRangeDefault/CalendarRangeDefault";
 
 const getPermKey = (mode) =>
   mode === "PLAN" ? "divHorasPlanificacion" : "divHorasTareo";
@@ -21,14 +23,17 @@ const getPermKey = (mode) =>
  * - "02.7" => "2.70"
  */
 const normalizeHHMM = (raw) => {
-  const s = String(raw ?? "").trim();
+  let s = String(raw ?? "").trim();
   if (!s) return "";
 
-  // permitir solo números y punto
-  const cleaned = s.replace(/[^0-9.]/g, "");
+  // Convertir punto a dos puntos
+  s = s.replace(".", ":");
+
+  // permitir solo números y dos puntos
+  const cleaned = s.replace(/[^0-9:]/g, "");
   if (!cleaned) return "";
 
-  const parts = cleaned.split(".");
+  const parts = cleaned.split(":");
   const hhStr = parts[0] ?? "0";
   const mmStrRaw = parts[1] ?? "";
 
@@ -40,17 +45,21 @@ const normalizeHHMM = (raw) => {
   if (mm.length === 1) mm = `${mm}0`;
   if (mm.length > 2) mm = mm.slice(0, 2);
 
-  return `${hh}.${mm}`;
+  return `${hh}:${mm}`;
 };
 
 const isValidHHMM = (hhmm) => {
-  const s = String(hhmm ?? "").trim();
+  let s = String(hhmm ?? "").trim();
   if (!s) return false;
-  // "10" o "10.5" o "10.50"
-  if (!/^\d+(\.\d{1,2})?$/.test(s)) return false;
+  
+  // Convertir punto a dos puntos
+  s = s.replace(".", ":");
+  
+  // "10" o "10:5" o "10:50" o "10:"
+  if (!/^\d+(:[0-5]?\d?)?$/.test(s)) return false;
 
   const norm = normalizeHHMM(s);
-  const [hhStr, mmStr = "00"] = norm.split(".");
+  const [hhStr, mmStr = "00"] = norm.split(":");
   const hh = Number(hhStr);
   const mm = Number(mmStr);
 
@@ -64,7 +73,7 @@ const isValidHHMM = (hhmm) => {
 const hhmmToMinutes = (hhmm) => {
   if (!hhmm) return null;
   const norm = normalizeHHMM(hhmm);
-  const [hhStr, mmStr = "00"] = norm.split(".");
+  const [hhStr, mmStr = "00"] = norm.split(":");
   const hh = Number(hhStr);
   const mm = Number(mmStr);
   if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
@@ -85,6 +94,13 @@ const buildFechaFinTareo = (fechaInicio, horasHHMM) => {
   const mins = hhmmToMinutes(horasHHMM);
   if (!mins || mins <= 0) return null;
   return addMinutes(new Date(fechaInicio), mins);
+};
+
+const minutesToHHMM = (mins) => {
+  if (mins === null || mins === undefined || isNaN(mins) || mins < 0) return "0:00";
+  const hh = Math.floor(mins / 60);
+  const mm = Math.round(mins % 60);
+  return `${hh}:${String(mm).padStart(2, "0")}`;
 };
 
 const Horas = ({
@@ -170,6 +186,7 @@ const Horas = ({
   }, [isPlan, frenteSubFrente?.fechaFin, asignacion?.FechaDesasignacion]);
 
   const [tipoIngreso, setTipoIngreso] = useState(1);
+  const [dividirHoras, setDividirHoras] = useState(false);
   const opcionesTipoIngreso = [
     { label: "Día específico", value: 1 },
     { label: "Rango de fechas", value: 2 },
@@ -201,6 +218,7 @@ const Horas = ({
       IdTipoActividad: 0,
     });
     setTipoIngreso(1);
+    setDividirHoras(false);
   }, [visible, asignacion?.Id, frenteSubFrente?.id, frenteSubFrente?.Id, frenteSubFrente?._uid, isPlan, isTareo, minFechaPlan]);
 
   const current = useMemo(() => {
@@ -227,7 +245,7 @@ const Horas = ({
     }, 0);
     const hh = Math.floor(totalMin / 60);
     const mm = totalMin % 60;
-    return `${hh}.${String(mm).padStart(2, "0")}`;
+    return `${hh}:${String(mm).padStart(2, "0")}`;
   }, [currentActivos]);
 
   const optionsTipoActividad = useMemo(() => {
@@ -262,7 +280,14 @@ const Horas = ({
     }
 
     if (!isValidHHMM(nuevo.Horas)) {
-      setErrorHoras("Formato inválido. Usa HH.MM con minutos 00–59 (ej: 2.50).");
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Formato inválido",
+        detail: "Formato inválido. Usa HH:MM con minutos 00–59 (ej: 2:50).",
+        life: 5000,
+      });
+      setNuevo((p) => ({ ...p, Horas: "" }));
+      setErrorHoras("");
       return;
     }
 
@@ -270,25 +295,67 @@ const Horas = ({
     const mins = hhmmToMinutes(horasNorm);
 
     if (!mins || mins <= 0) {
-      setErrorHoras("Horas debe ser mayor a 0 (ej: 0.30).");
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Horas inválidas",
+        detail: "Horas debe ser mayor a 0 (ej: 0:30).",
+        life: 5000,
+      });
+      setNuevo((p) => ({ ...p, Horas: "" }));
+      setErrorHoras("");
       return;
     }
 
-    if (isTareo && mins > 16 * 60) {
-      setErrorHoras("En tareo, el máximo permitido es 16.00 horas.");
-      return;
-    }
+    const maxPerDay = isTareo ? 16 * 60 : 24 * 60;
 
-    if (isPlan && nuevo.FechaInicio && nuevo.FechaFin) {
+    if (tipoIngreso > 1 && nuevo.FechaInicio && nuevo.FechaFin) {
       const fi = new Date(nuevo.FechaInicio);
       const ff = new Date(nuevo.FechaFin);
       fi.setHours(0, 0, 0, 0);
       ff.setHours(0, 0, 0, 0);
+
       const diffTime = Math.abs(ff - fi);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      const maxPermittedMins = diffDays * 24 * 60;
-      if (mins > maxPermittedMins) {
-        setErrorHoras(`Las horas planificadas no pueden superar las 24.00 h por día (${(diffDays * 24).toFixed(2)} h en total).`);
+
+      let numDays = 0;
+      for (let i = 0; i < diffDays; i++) {
+        const checkDate = new Date(fi);
+        checkDate.setDate(fi.getDate() + i);
+        if (tipoIngreso === 3) {
+          const dayOfWeek = checkDate.getDay();
+          if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+        }
+        numDays++;
+      }
+
+      if (numDays > 0) {
+        if (dividirHoras) {
+          // No validamos límite superior en blur si se van a dividir las horas.
+          // El límite real diario se validará al presionar "Añadir".
+        } else {
+          if (mins > maxPerDay) {
+            toastRef?.current?.show?.({
+              severity: "warn",
+              summary: "Límite superado",
+              detail: `Las horas planificadas no pueden superar las ${maxPerDay / 60}.00 h por día.`,
+              life: 5000,
+            });
+            setNuevo((p) => ({ ...p, Horas: "" }));
+            setErrorHoras("");
+            return;
+          }
+        }
+      }
+    } else {
+      if (mins > maxPerDay) {
+        toastRef?.current?.show?.({
+          severity: "warn",
+          summary: "Límite superado",
+          detail: `Las horas no pueden superar las ${maxPerDay / 60}.00 h por día.`,
+          life: 5000,
+        });
+        setNuevo((p) => ({ ...p, Horas: "" }));
+        setErrorHoras("");
         return;
       }
     }
@@ -325,7 +392,14 @@ const Horas = ({
     }
 
     if (!isValidHHMM(Horas)) {
-      setErrorHoras("Formato inválido. Usa HH.MM con minutos 00–59 (ej: 2.50).");
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Formato inválido",
+        detail: "Formato inválido. Usa HH:MM con minutos 00–59 (ej: 2:50).",
+        life: 5000,
+      });
+      setNuevo((p) => ({ ...p, Horas: "" }));
+      setErrorHoras("");
       return;
     }
 
@@ -333,7 +407,14 @@ const Horas = ({
     const minsNuevo = hhmmToMinutes(horasNorm);
 
     if (!minsNuevo || minsNuevo <= 0) {
-      setErrorHoras("Horas debe ser mayor a 0 (ej: 0.30).");
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Horas inválidas",
+        detail: "Horas debe ser mayor a 0 (ej: 0:30).",
+        life: 5000,
+      });
+      setNuevo((p) => ({ ...p, Horas: "" }));
+      setErrorHoras("");
       return;
     }
 
@@ -388,6 +469,23 @@ const Horas = ({
       return;
     }
 
+    let minsPerDay = minsNuevo;
+    if (tipoIngreso > 1 && dividirHoras) {
+      minsPerDay = Math.round(minsNuevo / diasValidos.length);
+    }
+
+    if (minsPerDay <= 0) {
+      toastRef?.current?.show?.({
+        severity: "warn",
+        summary: "Horas inválidas",
+        detail: "Las horas distribuidas por día deben ser mayores a 0.",
+        life: 5000,
+      });
+      setNuevo((p) => ({ ...p, Horas: "" }));
+      setErrorHoras("");
+      return;
+    }
+
     const limitMins = isTareo ? 16 * 60 : 24 * 60;
 
     for (const checkDate of diasValidos) {
@@ -407,16 +505,18 @@ const Horas = ({
         }
       });
 
-      if (minutosEnEseDia + minsNuevo > limitMins) {
+      if (minutosEnEseDia + minsPerDay > limitMins) {
         const disp = Math.max(0, limitMins - minutosEnEseDia);
         const hhDisp = Math.floor(disp / 60);
         const mmDisp = Math.floor(disp % 60);
         toastRef?.current?.show?.({
-          severity: isTareo ? "error" : "warn",
+          severity: "warn",
           summary: "Límite superado",
-          detail: `Las horas para el ${checkDate.toLocaleDateString()} superan el límite de ${limitMins / 60}h. Disponible: ${hhDisp}.${String(mmDisp).padStart(2, "0")}h`,
+          detail: `Las horas para el ${checkDate.toLocaleDateString()} superan el límite de ${limitMins / 60}h. Disponible: ${hhDisp}:${String(mmDisp).padStart(2, "0")}h`,
           life: 7000,
         });
+        setNuevo((p) => ({ ...p, Horas: "" }));
+        setErrorHoras("");
         return;
       }
     }
@@ -425,12 +525,13 @@ const Horas = ({
     setAddDisabledGate(false);
 
     let nuevosRegistros = [];
+    const horasParaDia = minutesToHHMM(minsPerDay);
     if (isPlan) {
       nuevosRegistros = diasValidos.map((d) => ({
         ...nuevo,
         FechaInicio: new Date(d),
         FechaFin: new Date(d),
-        Horas: horasNorm,
+        Horas: horasParaDia,
         Activo: true,
         IdTicketConsultorAsignacion: 0,
         IdTicketFrenteSubFrente: formik.values.frenteSubFrentes[index]?.id ?? formik.values.frenteSubFrentes[index]?.Id ?? 0,
@@ -438,12 +539,12 @@ const Horas = ({
     } else {
       nuevosRegistros = diasValidos.map((d) => {
         const dObj = new Date(d);
-        const calcFin = buildFechaFinTareo(dObj, horasNorm);
+        const calcFin = buildFechaFinTareo(dObj, horasParaDia);
         return {
           ...nuevo,
           FechaInicio: dObj,
           FechaFin: calcFin || dObj,
-          Horas: horasNorm,
+          Horas: horasParaDia,
           Activo: true,
           IdTicketConsultorAsignacion: formik.values.asignaciones[index]?.Id ?? 0,
           IdTicketFrenteSubFrente: 0,
@@ -502,9 +603,9 @@ const Horas = ({
   const limpiarTodo = () => {
     if (!puedeEditar) return;
     setDelDisabledGate(false);
-    
+
     const updated = current.map(d => ({ ...d, Activo: false }));
-    
+
     if (isPlan) {
       formik.setFieldValue(`frenteSubFrentes[${index}].DetallePlanificacionConsultor`, updated);
     } else {
@@ -550,7 +651,7 @@ const Horas = ({
       toastRef?.current?.show?.({
         severity: "warn",
         summary: "Formato inválido",
-        detail: "Usa HH.MM con minutos 00–59 (ej: 2.50).",
+        detail: "Usa HH:MM con minutos 00–59 (ej: 2:50).",
         life: 5000,
       });
       return;
@@ -561,7 +662,7 @@ const Horas = ({
       toastRef?.current?.show?.({
         severity: "warn",
         summary: "Horas inválidas",
-        detail: "Horas debe ser mayor a 0 (ej: 0.30).",
+        detail: "Horas debe ser mayor a 0 (ej: 0:30).",
         life: 5000,
       });
       return;
@@ -796,79 +897,72 @@ const Horas = ({
           <>
             <div className="p-fluid formgrid grid">
               <div className="field col-12 md:col-4">
-                <label>Fecha Inicio</label>
-                <CalendarDefault
-                  value={nuevo.FechaInicio}
-                  onChange={(e) => {
-                    const FechaInicio = e.value;
-
-                    let FechaFin = nuevo.FechaFin;
-                    if (tipoIngreso === 1) {
-                      FechaFin = FechaInicio;
-                    } else if (FechaFin && FechaInicio) {
-                      const fi = new Date(FechaInicio);
-                      const ff = new Date(FechaFin);
-                      fi.setHours(0, 0, 0, 0);
-                      ff.setHours(0, 0, 0, 0);
-                      if (ff.getTime() < fi.getTime()) FechaFin = null;
-                    }
-
-                    // TAREO: recalculo si ya hay horas válida
-                    if (isTareo && tipoIngreso === 1) {
-                      const autoFin = recalcularFechaFinTareoSiAplica(FechaInicio, nuevo.Horas);
-                      FechaFin = autoFin ?? FechaFin;
-                    }
-
-                    setNuevo((prev) => ({ ...prev, FechaInicio, FechaFin }));
-                  }}
-                  dateFormat="yy-mm-dd"
-                  showIcon
-                  className="w-full"
-                  minDate={minFechaPlan}
-                  maxDate={isPlan ? maxFechaPlan : new Date()}
-                />
+                <label>Modo de ingreso</label>
+                <div className="pulse-combo">
+                  <DropdownDefault
+                    value={tipoIngreso}
+                    options={opcionesTipoIngreso}
+                    optionLabel="label"
+                    optionValue="value"
+                    onChange={(e) => {
+                      setTipoIngreso(e.value);
+                      if (e.value === 1) {
+                        setNuevo(p => ({ ...p, FechaFin: p.FechaInicio }));
+                      }
+                      setDividirHoras(false);
+                    }}
+                    className="w-full"
+                  />
+                </div>
               </div>
 
-              <div className="field col-12 md:col-4" style={{ display: tipoIngreso === 1 ? 'none' : 'block' }}>
-                <label>Fecha Fin</label>
-                <CalendarDefault
-                  value={nuevo.FechaFin}
-                  onChange={(e) => setNuevo((p) => ({ ...p, FechaFin: e.value }))}
-                  dateFormat="yy-mm-dd"
-                  showIcon
-                  className="w-full"
-                  disabled={isTareo && tipoIngreso === 1}
-                  minDate={
-                    nuevo.FechaInicio ? new Date(nuevo.FechaInicio) : (isPlan ? minFechaPlan : null)
-                  }
-                  maxDate={isPlan ? maxFechaPlan : new Date()}
-                />
-              </div>
+              {tipoIngreso === 1 ? (
+                <div className="field col-12 md:col-4">
+                  <label>Fecha Inicio</label>
+                  <CalendarDefault
+                    value={nuevo.FechaInicio}
+                    onChange={(e) => {
+                      const FechaInicio = e.value;
+                      let FechaFin = FechaInicio;
 
-              <div className="field col-12 md:col-4">
-                <label>Horas (HH.MM)</label>
-                <InputHorasDefault
-                  value={nuevo.Horas}
-                  onChange={(e) => {
-                    // ✅ NO normalizamos aquí (para que puedas escribir 10, 12, 13...)
-                    setNuevo((p) => ({ ...p, Horas: e.target.value }));
-                    setErrorHoras("");
-                  }}
-                  onBlur={validarYNormalizarHorasEnBlur}
-                  placeholder="Ej: 2.50 (2h 50m)"
-                  className="w-full"
-                />
+                      // TAREO: recalculo si ya hay horas válidas
+                      if (isTareo) {
+                        const autoFin = recalcularFechaFinTareoSiAplica(FechaInicio, nuevo.Horas);
+                        FechaFin = autoFin ?? FechaFin;
+                      }
 
-                {errorHoras && (
-                  <small className="block mt-1 text-red-500">{errorHoras}</small>
-                )}
-
-                {isTareo && (
-                  <small className="block mt-1 text-gray-500">
-                    Máximo 16 horas laborables por día
-                  </small>
-                )}
-              </div>
+                      setNuevo((prev) => ({ ...prev, FechaInicio, FechaFin }));
+                    }}
+                    dateFormat="yy-mm-dd"
+                    showIcon
+                    className="w-full"
+                    minDate={minFechaPlan}
+                    maxDate={isPlan ? maxFechaPlan : new Date()}
+                  />
+                </div>
+              ) : (
+                <div className="field col-12 md:col-4">
+                  <label>Rango de Fechas</label>
+                  <CalendarRangeDefault
+                    value={[
+                      nuevo.FechaInicio ? new Date(nuevo.FechaInicio) : null,
+                      nuevo.FechaFin ? new Date(nuevo.FechaFin) : null
+                    ]}
+                    onChange={(e) => {
+                      const range = e.value || [];
+                      setNuevo((prev) => ({
+                        ...prev,
+                        FechaInicio: range[0] || null,
+                        FechaFin: range[1] || null
+                      }));
+                    }}
+                    dateFormat="yy-mm-dd"
+                    className="w-full"
+                    minDate={minFechaPlan}
+                    maxDate={isPlan ? maxFechaPlan : new Date()}
+                  />
+                </div>
+              )}
 
               <div className="field col-12 md:col-4">
                 <label>Tipo de Actividad</label>
@@ -885,7 +979,41 @@ const Horas = ({
                 />
               </div>
 
-              <div className="field col-12 md:col-8">
+              {/* Fila 2: Horas y Checkbox (si aplica) */}
+              <div className="field col-12 md:col-3">
+                <label>Horas (HH:MM)</label>
+                <InputHorasDefault
+                  value={nuevo.Horas}
+                  onChange={(e) => {
+                    // ✅ NO normalizamos aquí (para que puedas escribir 10, 12, 13...)
+                    setNuevo((p) => ({ ...p, Horas: e.target.value }));
+                    setErrorHoras("");
+                  }}
+                  onBlur={validarYNormalizarHorasEnBlur}
+                  placeholder="Ej: 2:30 (2h 30m)"
+                  className="w-full"
+                />
+
+                {isTareo && (
+                  <small className="block mt-1 text-gray-500">
+                    Máximo 16 horas laborables por día
+                  </small>
+                )}
+              </div>
+
+              <div className="field col-12 md:col-9 flex align-items-center" style={{ marginTop: tipoIngreso > 1 ? "24px" : "0px" }}>
+                {tipoIngreso > 1 && (
+                  <CheckboxDefault
+                    id="dividirHoras"
+                    checked={dividirHoras}
+                    onChange={(e) => setDividirHoras(e.checked)}
+                    label="Dividir el total de horas ingresado entre los días del rango (desmarcado: registra el valor completo en cada día)"
+                  />
+                )}
+              </div>
+
+              {/* Fila 3: Descripción */}
+              <div className="field col-12 md:col-12">
                 <label>Descripción</label>
                 <InputTextDefault
                   value={nuevo.Descripcion}
@@ -897,7 +1025,7 @@ const Horas = ({
               </div>
             </div>
 
-            <div className="mb-4 flex flex-column md:flex-row align-items-start md:align-items-center justify-content-between" style={{ gap: '1rem' }}>
+            <div className="mb-4 flex flex-row align-items-center" style={{ gap: '1rem' }}>
               <div className="flex flex-wrap align-items-center" style={{ gap: '1rem' }}>
                 <Boton
                   label="Añadir"
@@ -913,26 +1041,6 @@ const Horas = ({
                   onClick={limpiarTodo}
                   type="button"
                 />
-              </div>
-              <div className="flex flex-wrap align-items-center" style={{ gap: '1rem', width: '100%', maxWidth: 'max-content' }}>
-                <span style={{ color: '#4b5563', fontWeight: '500', fontSize: '14px' }}>
-                  Modo de ingreso:
-                </span>
-                <div style={{ width: '100%', maxWidth: '300px', flex: '1' }} className="pulse-combo">
-                  <DropdownDefault
-                    value={tipoIngreso}
-                    options={opcionesTipoIngreso}
-                    optionLabel="label"
-                    optionValue="value"
-                    onChange={(e) => {
-                      setTipoIngreso(e.value);
-                      if (e.value === 1) {
-                        setNuevo(p => ({ ...p, FechaFin: p.FechaInicio }));
-                      }
-                    }}
-                    className="w-full"
-                  />
-                </div>
               </div>
             </div>
           </>
@@ -970,14 +1078,14 @@ const Horas = ({
                         setEditingRow(prev => ({ ...prev, Horas: normalizeHHMM(prev.Horas) }));
                       }
                     }}
-                    placeholder="HH.MM"
+                    placeholder="HH:MM"
                     style={{ width: '80px' }}
                   />
                 );
               }
 
-              const h = Number(row.Horas);
-              return isNaN(h) ? "0.00" : h.toFixed(2);
+              const hStr = String(row.Horas ?? "").trim().replace(".", ":");
+              return hStr || "0:00";
             }}
           />
           <Column
@@ -1010,9 +1118,9 @@ const Horas = ({
               return tipo?.nombre || "—";
             }}
           />
-          <Column 
-            field="Descripcion" 
-            header="Descripción" 
+          <Column
+            field="Descripcion"
+            header="Descripción"
             body={(rowData) => {
               const idxRow = findRowIndex(rowData);
               const isEditing = editingRow !== null && editingRow.originalIndex === idxRow;

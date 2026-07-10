@@ -215,19 +215,21 @@ const Consultores = () => {
     };
 
     const verespecializaciones = (rowData) => {
-        return <div className="detalle-datatable-accion">
-            <div className="accion-editar" onClick={() => handleVerEspecializaciones(rowData)}>
-                <span><Iconsax.Eye color="#ffffff" /></span>
-            </div>
-        </div>
+        return (
+            <Boton
+                actionType="ver-icono"
+                onClick={() => handleVerEspecializaciones(rowData)}
+            />
+        );
+    };
 
-    }
     const handleVerEspecializaciones = (persona) => {
         setEspecializaciones(persona.especializaciones || []);
         setVisible(true);
     };
+
     const modalFooter = (
-        <Boton label="Cerrar" icon="pi pi-times" onClick={() => setVisible(false)} />
+        <Boton actionType="cerrar" onClick={() => setVisible(false)} />
     );
 
 
@@ -262,21 +264,24 @@ const Consultores = () => {
                             confirm2(rowData.id);
                         }}
                     >
-                        <Column field="nombres" header="Nombres" sortable style={{ width: '120px', minWidth: '120px' }} />
-                        <Column field="apellidoPaterno" header="Apellido Paterno" sortable style={{ width: '120px', minWidth: '120px' }} />
-                        <Column field="apellidoMaterno" header="Apellido Materno" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="persona.nombres" header="Nombres" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="persona.apellidoPaterno" header="Apellido Paterno" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="persona.apellidoMaterno" header="Apellido Materno" sortable style={{ width: '120px', minWidth: '120px' }} />
 
-                        <Column field="correo" header="Correo" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="persona.correo" header="Correo" sortable style={{ width: '120px', minWidth: '120px' }} />
                         <Column header="Especializaciones" body={verespecializaciones} style={{ width: '80px', minWidth: '80px', textAlign: 'center' }} />
-                        <Column field="telefono" header="Teléfono" sortable style={{ width: '120px', minWidth: '120px' }} />
+                        <Column field="persona.telefono" header="Teléfono" sortable style={{ width: '120px', minWidth: '120px' }} />
                         <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }} />
                     </DatatableDinamic>
                     <Dialog
                         header="Especializaciones"
                         visible={visible}
-                        style={{ width: '40vw' }}
+                        style={{ width: "min(600px, 90vw)" }}
                         footer={modalFooter}
                         onHide={() => setVisible(false)}
+                        modal
+                        draggable={true}
+                        resizable={false}
                     >
                         <DataTable value={especializaciones} responsiveLayout="scroll">
                             <Column field="frente.nombre" header="Frente" />
