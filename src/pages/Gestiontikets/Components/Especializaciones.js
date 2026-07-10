@@ -398,15 +398,11 @@ const Especializaciones = ({
   const modalFooter = (
     <div className="flex justify-content-end gap-2">
       <Boton
-        label="Guardar"
-        icon="pi pi-save"
-        color="primary"
+        actionType="guardar"
         onClick={handleGuardar}
       />
       <Boton
-        label="Cerrar"
-        icon="pi pi-times"
-        style={{ backgroundColor: "#dd4b39", color: "white" }}
+        actionType="cerrar"
         onClick={handleCloseModal}
       />
     </div>
@@ -421,25 +417,11 @@ const Especializaciones = ({
         </label>
 
         <Boton
-          icon="pi pi-plus"
+          actionType="agregar"
           label="Agregar Especialización"
-          color="primary"
-          type="button"
           onClick={() => {
             setEditingIndex(null);
             setVisibleModal(true);
-          }}
-          style={{
-            height: 42,
-            padding: "0 18px",
-            minWidth: "auto",
-            width: "fit-content",
-            whiteSpace: "nowrap",
-            borderRadius: 8,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
           }}
         />
       </div>

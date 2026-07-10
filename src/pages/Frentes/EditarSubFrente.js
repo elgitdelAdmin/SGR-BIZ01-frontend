@@ -12,6 +12,7 @@ import { InputSwitch } from "primereact/inputswitch";
 import { Dialog } from "primereact/dialog";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
+import InputSwitchDefault from "../../components/InputSwitchDefault/InputSwitchDefault";
 import { ObtenerSubFrente, RegistrarSubFrente, ActualizarSubFrente, ListarFrentes, ObtenerConsultoresAsociadosSubFrente } from "../../service/FrenteService";
 
 const EditarSubFrente = ({ visible, onHide, onSave, id, frenteId }) => {
@@ -280,18 +281,13 @@ const EditarSubFrente = ({ visible, onHide, onSave, id, frenteId }) => {
               </div>
               <div className="field col-12 md:col-6">
                 <label className="label-form">Estado</label>
-                <div style={{ display: "flex", alignItems: "center", height: "42px" }}>
-                  <InputSwitch
-                    id="activo"
-                    name="activo"
-                    checked={formik.values.activo}
-                    onChange={(e) => handleSwitchChange(e.value)}
-                    disabled={!modoEdicion}
-                  />
-                  <span style={{ marginLeft: "10px", fontWeight: 500 }}>
-                    {formik.values.activo ? "Habilitado" : "Deshabilitado"}
-                  </span>
-                </div>
+                <InputSwitchDefault
+                  id="activo"
+                  name="activo"
+                  checked={formik.values.activo}
+                  onChange={(e) => handleSwitchChange(e.value)}
+                  disabled={!modoEdicion}
+                />
               </div>
               <div className="field col-12 md:col-12">
                 <label className="label-form">Descripción</label>

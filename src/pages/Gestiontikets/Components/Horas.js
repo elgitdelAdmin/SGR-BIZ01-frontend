@@ -150,6 +150,7 @@ const Horas = ({
   }, [readOnly, estaBloqueado, isTareo, isOwner]);
 
   const iconBtn = puedeEditar ? "pi pi-plus" : "pi pi-eye";
+  const actionTypeBtn = puedeEditar ? "agregarsintexto" : "versintexto";
 
   const dialogTitle = useMemo(() => {
     if (!puedeEditar) return isPlan ? "Ver Planificación" : "Ver Horas";
@@ -779,13 +780,8 @@ const Horas = ({
         }
       `}</style>
       <Boton
-        label=""
-        icon={iconBtn}
+        actionType={actionTypeBtn}
         onClick={() => setVisible(true)}
-        disabled={false}
-        color="primary"
-        style={{ width: '42px', height: '35px', justifyContent: 'center', minWidth: 'auto', borderRadius: '8px' }}
-        type="button"
       />
 
       <Dialog

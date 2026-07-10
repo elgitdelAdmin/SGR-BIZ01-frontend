@@ -47,6 +47,7 @@ const Gestiontikets = () => {
     // ── Estado Alerta Tickets Sin Horas / Planificación ───────────────
     const [activeAlerts, setActiveAlerts] = useState([]);
     const prevAlertCount = useRef(0);
+    const alertShownRef = useRef(false);
 
     const { setAlertas } = useContext(Context) || {};
 
@@ -113,9 +114,8 @@ const Gestiontikets = () => {
         }
     }, [parametros]);
 
-    // ── Validar si hay tickets sin horas para el Consultor / Gestor ──
     useEffect(() => {
-        if (tickets.length > 0) {
+        if (tickets.length > 0 && !alertShownRef.current) {
             const showWorkedHoursAlert = codRol === ROLES.Consultor || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
             const showPlannedHoursAlert = codRol === ROLES.GestorCuenta || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
             const alerts = [];
@@ -156,14 +156,13 @@ const Gestiontikets = () => {
                 }
             }
 
-            setActiveAlerts(alerts);
-            if (setAlertas) {
-                setAlertas(alerts);
+            if (alerts.length > 0) {
+                alertShownRef.current = true;
+                setActiveAlerts(alerts);
+                if (setAlertas) {
+                    setAlertas(alerts);
+                }
             }
-            
-        } else {
-            setActiveAlerts([]);
-            if (setAlertas) setAlertas([]);
         }
     }, [tickets, codRol, setAlertas]);
 

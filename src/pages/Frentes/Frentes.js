@@ -11,6 +11,7 @@ import { InputText } from "primereact/inputtext";
 import { ListarFrentes, EliminarFrente, EliminarSubFrente, ObtenerConsultoresAsociadosFrente, ObtenerConsultoresAsociadosSubFrente } from "../../service/FrenteService";
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
+import { Button } from 'primereact/button';
 import EditarFrente from "./EditarFrente";
 import EditarSubFrente from "./EditarSubFrente";
 
@@ -105,24 +106,7 @@ const Frentes = () => {
 
     // Acciones de Frente ahora gestionadas por DatatableDinamic
 
-    const accionSubFrente = (rowData) => {
-        return <div className="profesor-datatable-accion">
-            <div className="accion-editar" onClick={() => {
-                setEditingSubFrenteId(rowData.id);
-                setParentFrenteId(rowData.idFrente);
-                setShowFormSubFrente(true);
-            }}>
-                <span><Iconsax.Edit color="#ffffff" /></span>
-            </div>
-            {rowData.activo && (
-                <div className="accion-eliminar" onClick={() => {
-                    preValidarEliminarSubFrente(rowData.id);
-                }}>
-                    <span><Iconsax.Trash color="#ffffff" /></span>
-                </div>
-            )}
-        </div>;
-    };
+    // Acciones de SubFrente gestionadas por DatatableDinamic
 
     const EliminarFrenteAction = async ({ id }) => {
         await EliminarFrente({ id }).then(data => {
@@ -206,13 +190,18 @@ const Frentes = () => {
 
     const botonSubFrentesTemplate = (rowData) => {
         return (
-            <div className="profesor-datatable-accion" style={{ justifyContent: 'center' }}>
-                <div className="accion-editar" style={{ backgroundColor: "#d0e5f0", borderRadius: "8px" }} onClick={() => {
-                    setSelectedFrenteModal(rowData);
-                    setShowModal(true);
-                }}>
-                    <span><Iconsax.TaskSquare color="#0e71ae" variant="Bold" /></span>
-                </div>
+            <div className="datatable-accion" style={{ display: 'flex', justifyContent: 'center' }}>
+                <Button
+                    type="button"
+                    icon="pi pi-sitemap"
+                    className="accion-editar"
+                    style={{ backgroundColor: "#d0e5f0", borderColor: "#d0e5f0", color: "#0e71ae", width: "32px", height: "32px", padding: 0 }}
+                    onClick={() => {
+                        setSelectedFrenteModal(rowData);
+                        setShowModal(true);
+                    }}
+                    tooltip="Ver Sub-Frentes"
+                />
             </div>
         );
     };
@@ -262,7 +251,8 @@ const Frentes = () => {
                         <div style={{ marginLeft: "auto" }}>
                             <Boton
                                 label="Crear Frente"
-                                style={{ fontSize: 12, borderRadius: 8 }}
+                                icon="pi pi-plus"
+                                style={{ borderRadius: 8 }}
                                 color="primary"
                                 onClick={() => {
                                     setEditingFrenteId(null);
@@ -305,25 +295,38 @@ const Frentes = () => {
 
             <Dialog 
                 visible={showModal} 
-                style={{ width: '70vw' }} 
+                style={{ width: '50vw' }} 
                 header={selectedFrenteModal ? `Sub-Frentes de: ${selectedFrenteModal.nombre}` : 'Sub-Frentes'} 
                 modal 
-                className="p-fluid" 
                 onHide={hideModal}
             >
                 <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 15, marginTop: 10 }}>
-                    <Boton
-                        label="Crear Sub-Frente"
-                        style={{ fontSize: 12, borderRadius: 8 }}
-                        color="primary"
-                        onClick={() => {
-                            setParentFrenteId(selectedFrenteModal.id);
-                            setEditingSubFrenteId(null);
-                            setShowFormSubFrente(true);
-                        }}
-                    ></Boton>
+                    <div style={{ width: 'auto' }}>
+                        <Boton
+                            label="Crear Sub-Frente"
+                            icon="pi pi-plus"
+                            style={{ borderRadius: 8, width: 'auto', padding: '0 16px' }}
+                            color="primary"
+                            onClick={() => {
+                                setParentFrenteId(selectedFrenteModal.id);
+                                setEditingSubFrenteId(null);
+                                setShowFormSubFrente(true);
+                            }}
+                        ></Boton>
+                    </div>
                 </div>
-                <DataTable value={selectedFrenteModal?.subFrente} emptyMessage="No hay sub-frentes registrados para este Frente.">
+                <DatatableDinamic 
+                    value={selectedFrenteModal?.subFrente} 
+                    emptyMessage="No hay sub-frentes registrados para este Frente."
+                    exportable={false}
+                    showSearch={false}
+                    onEdit={(rowData) => {
+                        setEditingSubFrenteId(rowData.id);
+                        setParentFrenteId(rowData.idFrente);
+                        setShowFormSubFrente(true);
+                    }}
+                    onDelete={(rowData) => rowData.activo ? preValidarEliminarSubFrente(rowData.id) : null}
+                >
                     <Column field="codigo" header="Código" />
                     <Column field="nombre" header="Nombre" />
                     <Column field="descripcion" header="Descripción" />
@@ -333,11 +336,7 @@ const Frentes = () => {
                         header="Estado"
                         body={(rowData) => (rowData.activo ? "Activo" : "Inactivo")}
                     />
-                    <Column
-                        header="Acciones"
-                        body={accionSubFrente}
-                    />
-                </DataTable>
+                </DatatableDinamic>
             </Dialog>
 
             <EditarFrente 

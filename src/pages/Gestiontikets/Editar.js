@@ -1774,6 +1774,7 @@ const Editar = () => {
                               `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`
                             }
                             optionValue="id"
+                            disabled={true}
                           />
                         </div>
                       </div>
@@ -1840,23 +1841,8 @@ const Editar = () => {
           <div className="zv-editarUsuario-footer">
 
             <Boton
-              icon="pi pi-save"
-              label="Guardar cambios"
-              color="primary"
-              type="submit"
+              actionType="guardar"
               loading={formik.isSubmitting}
-              style={{
-                height: 42,
-                padding: "0 18px",
-                minWidth: "auto",
-                width: "fit-content",
-                whiteSpace: "nowrap",
-                borderRadius: 8,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
             />
 
           </div>

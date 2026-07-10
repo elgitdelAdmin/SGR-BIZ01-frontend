@@ -183,10 +183,8 @@ const Asignaciones = ({
 
         {!permisosActual.controlesOcultos.includes("btnAgregarAsignacion") && (
           <Boton
-            icon="pi pi-plus"
+            actionType="agregar"
             label="Agregar Asignación"
-            color="primary"
-            type="button"
             onClick={() => {
               const limiteTotal = (formik.values.frenteSubFrentes || [])
                 .filter((e) => e.activo !== false)
@@ -230,18 +228,6 @@ const Asignaciones = ({
                 setEditingIndex(len);
                 setVisibleModal(true);
               }, 100);
-            }}
-            style={{
-              height: 42,
-              padding: "0 18px",
-              minWidth: "auto",
-              width: "fit-content",
-              whiteSpace: "nowrap",
-              borderRadius: 8,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
             }}
           />
         )}
@@ -457,9 +443,7 @@ const Asignaciones = ({
         footer={
           <div className="flex justify-content-end gap-2">
             <Boton
-              label="Guardar"
-              icon="pi pi-save"
-              color="primary"
+              actionType="guardar"
               onClick={() => {
                 if (editingIndex !== null) {
                   const currentItem = formik.values.asignaciones[editingIndex];
@@ -472,16 +456,14 @@ const Asignaciones = ({
                     });
                     return;
                   }
+                  formik.handleSubmit();
                 }
                 setVisibleModal(false);
                 setEditingIndex(null);
-                formik.handleSubmit();
               }}
             />
             <Boton
-              label="Cerrar"
-              icon="pi pi-times"
-              style={{ backgroundColor: "#dd4b39", color: "white" }}
+              actionType="cerrar"
               onClick={() => {
                 if (editingIndex !== null) {
                   const currentItem = formik.values.asignaciones[editingIndex];

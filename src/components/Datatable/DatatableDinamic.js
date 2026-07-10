@@ -46,6 +46,7 @@ const DatatableDinamic = ({
     actionWidth = '80px',
     onEdit,
     onDelete,
+    customActions,
     onFilterChange,
     onSortChange,
     initialGlobalFilter = '',
@@ -66,6 +67,17 @@ const DatatableDinamic = ({
     const defaultActionBody = useCallback((rowData) => {
         return (
             <div className="datatable-accion" style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                {customActions && customActions.map((action, idx) => (
+                    <Button
+                        key={idx}
+                        type="button"
+                        icon={action.icon}
+                        className={action.className || "accion-editar"}
+                        style={action.style || { width: "32px", height: "32px", padding: 0, backgroundColor: action.color, borderColor: action.color }}
+                        onClick={() => action.onClick(rowData)}
+                        tooltip={action.tooltip}
+                    />
+                ))}
                 {onEdit && (
                     <Button
                         type="button"
@@ -88,9 +100,9 @@ const DatatableDinamic = ({
                 )}
             </div>
         );
-    }, [onEdit, onDelete]);
+    }, [onEdit, onDelete, customActions]);
 
-    const finalActionBody = actionBody || (onEdit || onDelete ? defaultActionBody : null);
+    const finalActionBody = actionBody || (onEdit || onDelete || (customActions && customActions.length > 0) ? defaultActionBody : null);
 
     useEffect(() => {
         const bp = mobileConfig?.breakpoint || 768;

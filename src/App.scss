@@ -97,8 +97,16 @@ button{
       align-items: center;
     }
     border-radius: $radius-icon-btn;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
     &:hover {
-        background: $color-rojo-eliminar !important;
+        background: darken($color-rojo-eliminar, 8%) !important;
+        box-shadow: 0 4px 10px rgba(231, 76, 60, 0.25) !important;
+        transform: translateY(-2px);
+    }
+    &:active {
+        transform: translateY(1px);
+        box-shadow: 0 1px 2px rgba(231, 76, 60, 0.15) !important;
     }
 }
 
@@ -116,8 +124,16 @@ button{
       align-items: center;
     }
     border-radius: $radius-icon-btn;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
     &:hover {
-        background: $color-azul-vivo !important;
+        background: darken($color-azul-vivo, 8%) !important;
+        box-shadow: 0 4px 10px rgba(14, 113, 174, 0.25) !important;
+        transform: translateY(-2px);
+    }
+    &:active {
+        transform: translateY(1px);
+        box-shadow: 0 1px 2px rgba(14, 113, 174, 0.15) !important;
     }
 }
 
@@ -354,9 +370,32 @@ button{
   box-shadow: none !important;
   outline: none !important;
   
-  &:hover {
+    &:hover {
     background-color: darken($color-azul-tonal, 5%) !important;
     border-color: darken($color-azul-tonal, 5%) !important;
   }
+}
+
+/* Overrides para Inputs de PrimeReact globales (Formularios) */
+.p-inputtext, .p-dropdown {
+    border-radius: $radius-input !important;
+    height: 40px !important;
+    font-size: 14px !important;
+    font-family: $font-family-body !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.p-inputtext:enabled:hover, .p-dropdown:not(.p-disabled):hover {
+    border-color: $color-azul-vivo !important;
+}
+
+.p-inputtext:enabled:focus, .p-dropdown:not(.p-disabled).p-focus {
+    border-color: $color-azul-vivo !important;
+    box-shadow: 0 0 0 0.2rem rgba(14, 113, 174, 0.2) !important;
+}
+
+/* El input dentro de la tabla (buscador por columna) debe ser más pequeño según README */
+.p-datatable .p-inputtext {
+    height: 32px !important;
 }
 
