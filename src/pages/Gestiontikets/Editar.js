@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useMemo, useContext } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import CalendarDefault from "../../components/CalendarDefault/CalendarDefault";
 import DropdownDefault from "../../components/DropdownDefault/DropdownDefault";
+import MultiSelectDefault from "../../components/MultiSelectDefault/MultiSelectDefault";
 import ModalArchivos from "../../components/Modals/ModalArchivos/ModalArchivos";
 import * as Iconsax from "iconsax-react";
 import "./Gestiontikets.scss"
@@ -427,7 +428,7 @@ const Editar = () => {
     descripcion: Yup.string().required("Descripción es obligatoria"),
     urlArchivos: Yup.string().nullable(),
     // urlArchivos: Yup.string(),
-    idGestor: Yup.number().nullable(),
+    idGestor: Yup.array().nullable(),
     nuevaEspecializacion: Yup.object().shape({
       idFrente: Yup.number().nullable().transform((v, o) => o === "" ? null : v),
       idSubFrente: Yup.number().nullable().transform((v, o) => o === "" ? null : v),
@@ -497,7 +498,7 @@ const Editar = () => {
       idPrioridad: persona ? persona.idPrioridad : null,
       descripcion: persona ? persona.descripcion : "",
       urlArchivos: persona ? persona.urlArchivos : "",
-      idGestor: persona ? persona.empresa?.idGestor : null,
+      idGestor: persona ? [persona.empresa?.idGestor, ...(persona.idGestoresSecundarios || [])].filter(Boolean) : [],
       nuevaEspecializacion: {
         id: "",
         idFrente: "",
@@ -729,6 +730,7 @@ const Editar = () => {
         urlArchivos: "",
         codReqSgrCsti: "",
         idReqSgrCsti: null,
+        idGestoresSecundarios: values.idGestor ? values.idGestor.filter(id => id !== persona?.empresa?.idGestor) : [],
         idGestorConsultoria: values.idGestorConsultoria ? Number(values.idGestorConsultoria) : null,
         repositorios: reposPayload.length > 0 ? JSON.stringify(reposPayload) : null,
         consultorAsignaciones: asignacionesPayload,
@@ -1182,14 +1184,12 @@ const Editar = () => {
     formik.setFieldValue("idEmpresa", selectedEmpresaId);
     const empresaSeleccionada = empresa.find(emp => emp.id === selectedEmpresaId);
     if (empresaSeleccionada) {
-      formik.setFieldValue("idGestor", empresaSeleccionada.idGestor);
-      formik.setFieldValue("nombrePersonaResponsable", empresaSeleccionada?.nombrePersonaResponsable);
+      formik.setFieldValue("idUsuarioResponsableCliente", empresaSeleccionada.idPersonaResponsable);
+      formik.setFieldValue("idGestor", empresaSeleccionada.idGestor ? [empresaSeleccionada.idGestor] : []);
       formik.setFieldValue("idUsuarioResponsableCliente", empresaSeleccionada?.idPersonaResponsable);
-
-
     } else {
-      formik.setFieldValue("idGestor", "");
-      formik.setFieldValue("nombrePersonaResponsable", "");
+      formik.setFieldValue("idGestor", []);
+      formik.setFieldValue("idUsuarioResponsableCliente", "");
       formik.setFieldValue("idUsuarioResponsableCliente", "");
     }
   };
@@ -1774,19 +1774,30 @@ const Editar = () => {
                         {/* Gestor Asignado (queda arriba, justo debajo del ZIP) */}
                         <div className="field col-12" style={{ marginTop: -6 }}>
                           <label className="label-form">Gestor Asignado</label>
-                          <DropdownDefault
+                          <MultiSelectDefault
                             id="idGestor"
                             name="idGestor"
                             placeholder="Seleccione"
-                            value={formik.values.idGestor}
-                            onChange={(e) => formik.setFieldValue("idGestor", e.value)}
+                            value={formik.values.idGestor || []}
+                            onChange={(e) => {
+                              const primaryGestorId = persona?.empresa?.idGestor;
+                              let selectedIds = e.value || [];
+                              // Asegurar que el gestor principal siempre esté seleccionado
+                              if (primaryGestorId && !selectedIds.includes(primaryGestorId)) {
+                                selectedIds = [primaryGestorId, ...selectedIds];
+                              }
+                              formik.setFieldValue("idGestor", selectedIds);
+                            }}
                             onBlur={formik.handleBlur}
-                            options={gestorCuenta}
+                            options={gestorCuenta?.map(g => ({
+                              ...g,
+                              disabled: g.id === persona?.empresa?.idGestor
+                            })) || []}
                             optionLabel={(option) =>
                               `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`
                             }
                             optionValue="id"
-                            disabled={true}
+                            disabled={!isGestorCuenta || (isGestorCuenta && persona?.empresa?.idGestor && (gestorCuenta?.find(g => g.id === persona.empresa.idGestor)?.idUser !== Number(window.localStorage.getItem("idUser"))))}
                           />
                         </div>
                       </div>
