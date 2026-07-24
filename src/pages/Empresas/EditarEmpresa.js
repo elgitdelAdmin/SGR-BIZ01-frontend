@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 
 import DropdownDefault from "../../components/DropdownDefault/DropdownDefault";
+import MultiSelectDefault from "../../components/MultiSelectDefault/MultiSelectDefault";
 import * as Iconsax from "iconsax-react";
 import "./Empresas.scss"
 import InputTextDefault from "../../components/InputTextDefault/InputTextDefault";
@@ -71,12 +72,15 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
       setEmpresa(empresaData);
       setTituloPagina("Datos de la Empresa");
       setModoEdicion(true);
-       const idTipoDocumento = empresaData.personaResponsable.tipoDocumento;
-      const numeroDocumento = empresaData.personaResponsable.numeroDocumento;
-       await ObtenerPersonaResponsable({idTipoDocumento,numeroDocumento}).then(data=>{
-              setUser(data.data.users)
-
-       })
+       if (empresaData?.personaResponsable) {
+         const idTipoDocumento = empresaData.personaResponsable.tipoDocumento;
+         const numeroDocumento = empresaData.personaResponsable.numeroDocumento;
+         await ObtenerPersonaResponsable({idTipoDocumento,numeroDocumento}).then(data=>{
+           if (data?.data?.users) {
+             setUser(data.data.users);
+           }
+         });
+       }
 
 
     } catch (error) {
@@ -194,9 +198,12 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
     idPais: Yup.number()
       .required("El país es obligatorio")
       .min(1, "Debe seleccionar un país válido"),
-    idGestor: Yup.number()
-      .required("El gestor es obligatorio")
-      .min(1, "Debe seleccionar un gestor válido"),
+    idsGestores: Yup.array()
+      .of(Yup.number())
+      .min(1, "Debe seleccionar al menos un gestor"),
+    idGestorPrincipal: Yup.number()
+      .required("Debe seleccionar un gestor principal")
+      .min(1, "Debe seleccionar un gestor principal válido"),
     cargoResponsable: Yup.string().required("Cargo es un campo obligatorio"),
     nombres: Yup.string().required("Nombres es un campo obligatorio"),
       apellidoPaterno: Yup.string().required("Apellido Paterno es un campo obligatorio"),
@@ -255,23 +262,27 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
       usuarioRegistro:empresa?.usuarioRegistro|| window.localStorage.getItem("username"), 
       usuarioModificacion:empresa?.usuarioModificacion|| window.localStorage.getItem("username"), 
       idPais: empresa?.idPais || 0,
-      idGestor: empresa?.idGestor || 0,
+      idsGestores: empresa?.gestores && empresa.gestores.length > 0 
+        ? empresa.gestores.filter(g => g.activo && g.idGestor).map(g => g.idGestor) 
+        : (empresa?.idGestor ? [empresa.idGestor] : []),
+      idGestorPrincipal: empresa?.idGestorPrincipal || (empresa?.gestores?.find(g => g.activo && g.esPrincipal)?.idGestor || empresa?.idGestor || 0),
+      idGestor: empresa?.idGestorPrincipal || empresa?.idGestor || 0,
       idSocio: empresa?.idSocio || Number(window.localStorage.getItem("idsocio")),
       activo:empresa?.activo|| true,
       cargoResponsable:empresa?.cargoResponsable|| "",
-      nombres: empresa?.personaResponsable.nombres || "",
-      apellidoPaterno: empresa?.personaResponsable.apellidoPaterno || "",
-      apellidoMaterno:empresa?.personaResponsable.apellidoMaterno || "",
-      numeroDocumento: empresa?.personaResponsable.numeroDocumento || "",
-      tipoDocumento: empresa?.personaResponsable.tipoDocumento || "",
-      telefonopersona: empresa?.personaResponsable.telefono || "",
-      telefono2: empresa?.personaResponsable.telefono2 || "",
-      direccionpersona: empresa?.personaResponsable.direccion || "",
-      correopersona: empresa?.personaResponsable.correo || "",
-      fechaNacimiento: empresa?.personaResponsable.fechaNacimiento || "",
-      usuarioCreacionpersona:empresa?.personaResponsable.usuarioCreacion|| window.localStorage.getItem("username"), 
-      idUser: empresa?.idUser||0,
-      usuarioActualizacion:empresa?.personaResponsable.usuarioActualizacion||window.localStorage.getItem("username"), 
+      nombres: empresa?.personaResponsable?.nombres || "",
+      apellidoPaterno: empresa?.personaResponsable?.apellidoPaterno || "",
+      apellidoMaterno: empresa?.personaResponsable?.apellidoMaterno || "",
+      numeroDocumento: empresa?.personaResponsable?.numeroDocumento || "",
+      tipoDocumento: empresa?.personaResponsable?.tipoDocumento || "",
+      telefonopersona: empresa?.personaResponsable?.telefono || "",
+      telefono2: empresa?.personaResponsable?.telefono2 || "",
+      direccionpersona: empresa?.personaResponsable?.direccion || "",
+      correopersona: empresa?.personaResponsable?.correo || "",
+      fechaNacimiento: empresa?.personaResponsable?.fechaNacimiento || "",
+      usuarioCreacionpersona: empresa?.personaResponsable?.usuarioCreacion || window.localStorage.getItem("username"), 
+      idUser: empresa?.idUser || 0,
+      usuarioActualizacion: empresa?.personaResponsable?.usuarioActualizacion || window.localStorage.getItem("username"), 
 
     },
     validationSchema:schema,
@@ -289,7 +300,9 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
       ? { usuarioModificacion: values.usuarioModificacion }
       : { usuarioRegistro: values.usuarioRegistro }),
       idPais: values.idPais,
-      idGestor: values.idGestor,
+      idGestor: values.idGestorPrincipal,
+      idGestorPrincipal: values.idGestorPrincipal,
+      idsGestores: values.idsGestores,
       idSocio:values.idSocio,
       idUser:values.idUser,
       persona: {
@@ -533,24 +546,51 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
               </small>
             </div>
              <div className="field col-12 md:col-6">
-              <label className="label-form">Gestor Cuenta</label>
-              <DropdownDefault
-                type={"text"}
-                id="idGestor"
-                name="idGestor"
+              <label className="label-form">Gestores Asignados</label>
+              <MultiSelectDefault
+                id="idsGestores"
+                name="idsGestores"
                 placeholder="Seleccione"
-                value={formik.values.idGestor}
+                value={gestor ? (formik.values.idsGestores || []).filter(id => gestor.some(g => g.id === id)) : []}
                 onChange={(e) => {
-                  formik.setFieldValue("idGestor", "");
-                  formik.handleChange(e);
+                  const selected = e.value || [];
+                  formik.setFieldValue("idsGestores", selected);
+                  if (!selected.includes(formik.values.idGestorPrincipal)) {
+                    formik.setFieldValue("idGestorPrincipal", selected.length > 0 ? selected[0] : 0);
+                    formik.setFieldValue("idGestor", selected.length > 0 ? selected[0] : 0);
+                  }
                 }}
                 onBlur={formik.handleBlur}
-                options={gestor}
+                options={gestor || []}
+                optionLabel={(option) =>
+                  `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`
+                }
+                optionValue="id"
+              />
+              <small className="p-error">
+                {formik.touched.idsGestores && formik.errors.idsGestores}
+              </small>
+            </div>
+
+            <div className="field col-12 md:col-6">
+              <label className="label-form">Gestor Principal</label>
+              <DropdownDefault
+                type={"text"}
+                id="idGestorPrincipal"
+                name="idGestorPrincipal"
+                placeholder="Seleccione el gestor principal"
+                value={formik.values.idGestorPrincipal}
+                onChange={(e) => {
+                  formik.setFieldValue("idGestorPrincipal", e.value);
+                  formik.setFieldValue("idGestor", e.value);
+                }}
+                onBlur={formik.handleBlur}
+                options={(gestor || []).filter(g => (formik.values.idsGestores || []).includes(g.id))}
                 optionLabel={(option) => `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`}
                 optionValue="id"
-              ></DropdownDefault>
+              />
               <small className="p-error">
-                {formik.touched.idGestor && formik.errors.idGestor}
+                {formik.touched.idGestorPrincipal && formik.errors.idGestorPrincipal}
               </small>
             </div>
 
