@@ -373,16 +373,27 @@ const Gestiontikets = () => {
                                 className="centered-column-body"
                                 body={(rowData) => {
                                     const hrsT = rowData?.horasTrabajadas;
-                                    const isZero = hrsT === 0 || hrsT === "0" || parseFloat(hrsT) === 0;
+                                    
+                                    const formatDecimalToHHMM = (val) => {
+                                        if (val === null || val === undefined || val === "") return "0:00";
+                                        const num = Number(val);
+                                        if (isNaN(num)) return "0:00";
+                                        const totalMins = Math.round(num * 60);
+                                        const hh = Math.floor(totalMins / 60);
+                                        const mm = totalMins % 60;
+                                        return `${hh}:${String(mm).padStart(2, "0")}`;
+                                    };
+
+                                    const isZero = hrsT === 0 || hrsT === "0" || parseFloat(hrsT) === 0 || hrsT === null || hrsT === undefined;
                                     const showWorkedHoursAlert = codRol === ROLES.Consultor || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
                                     if (showWorkedHoursAlert && isZero) {
                                         return (
                                             <span className="hrs-t-cero-badge">
-                                                {hrsT}
+                                                0:00
                                             </span>
                                         );
                                     }
-                                    return hrsT;
+                                    return formatDecimalToHHMM(hrsT);
                                 }}
                             />
                             <Column
@@ -395,16 +406,27 @@ const Gestiontikets = () => {
                                 className="centered-column-body"
                                 body={(rowData) => {
                                     const hrsP = rowData?.horasPlanificadas;
+                                    
+                                    const formatDecimalToHHMM = (val) => {
+                                        if (val === null || val === undefined || val === "") return "0:00";
+                                        const num = Number(val);
+                                        if (isNaN(num)) return "0:00";
+                                        const totalMins = Math.round(num * 60);
+                                        const hh = Math.floor(totalMins / 60);
+                                        const mm = totalMins % 60;
+                                        return `${hh}:${String(mm).padStart(2, "0")}`;
+                                    };
+
                                     const isZero = hrsP === 0 || hrsP === "0" || parseFloat(hrsP) === 0 || hrsP === null || hrsP === undefined;
                                     const showPlannedHoursAlert = codRol === ROLES.GestorCuenta || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
                                     if (showPlannedHoursAlert && isZero) {
                                         return (
                                             <span className="hrs-t-cero-badge">
-                                                {hrsP ?? 0}
+                                                0:00
                                             </span>
                                         );
                                     }
-                                    return hrsP ?? '-';
+                                    return formatDecimalToHHMM(hrsP);
                                 }}
                             />
                             <Column field="titulo" header="Titulo" sortable style={{ minWidth: '250px' }} />

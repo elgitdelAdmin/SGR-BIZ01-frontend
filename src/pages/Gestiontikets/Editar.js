@@ -509,56 +509,85 @@ const Editar = () => {
         activo: true,
         descripcion: ""
       },
-      frenteSubFrentes: persona ? persona.frenteSubFrentes.map((fsf) => ({
-        ...fsf,
-        _uid: fsf.id > 0 ? `db_${fsf.id}` : generateUUID(),
-        DetallePlanificacionConsultor: (fsf.detallePlanificacionConsultor || []).map((d) => ({
-          FechaInicio: d.fechaInicio ? new Date(d.fechaInicio) : null,
-          FechaFin: d.fechaFin ? new Date(d.fechaFin) : null,
-          Horas: d.horas,
-          Descripcion: d.descripcion,
-          Activo: d.activo,
-          IdTicketFrenteSubFrente: d.idTicketFrenteSubFrente,
-          IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion || 0,
-          Id: d.id,
-          IdTipoActividad: d.idTipoActividad
-        }))
-      })) : [],
-      asignaciones: persona ? (persona.consultorAsignaciones.map((a) => {
+      frenteSubFrentes: persona ? (persona.frenteSubFrentes || persona.FrenteSubFrentes || []).map((fsf) => {
+        const detallesPlan = fsf.detallePlanificacionConsultor || fsf.DetallePlanificacionConsultor || [];
+        return {
+          ...fsf,
+          _uid: fsf.id > 0 ? `db_${fsf.id}` : generateUUID(),
+          DetallePlanificacionConsultor: detallesPlan.map((d) => {
+            const hVal = d.horas ?? d.Horas;
+            let hStr = "0:00";
+            if (typeof hVal === "string" && hVal.includes(":")) {
+              hStr = hVal;
+            } else if (hVal !== null && hVal !== undefined && !isNaN(Number(hVal))) {
+              const totalMins = Math.round(Number(hVal) * 60);
+              const hh = Math.floor(totalMins / 60);
+              const mm = totalMins % 60;
+              hStr = `${hh}:${String(mm).padStart(2, "0")}`;
+            }
+            return {
+              FechaInicio: (d.fechaInicio || d.FechaInicio) ? new Date(d.fechaInicio || d.FechaInicio) : null,
+              FechaFin: (d.fechaFin || d.FechaFin) ? new Date(d.fechaFin || d.FechaFin) : null,
+              Horas: hStr,
+              Descripcion: d.descripcion ?? d.Descripcion ?? "",
+              Activo: (d.activo !== undefined ? d.activo : d.Activo) !== false,
+              IdTicketFrenteSubFrente: d.idTicketFrenteSubFrente ?? d.IdTicketFrenteSubFrente ?? fsf.id ?? 0,
+              IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion ?? d.IdTicketConsultorAsignacion ?? 0,
+              Id: d.id ?? d.Id ?? 0,
+              IdTipoActividad: d.idTipoActividad ?? d.IdTipoActividad ?? 0
+            };
+          })
+        };
+      }) : [],
+      asignaciones: persona ? ((persona.consultorAsignaciones || persona.ConsultorAsignaciones || []).map((a) => {
         // Vincular la asignación a su especialización por IdTicketFrenteSubFrente
-        const fsfId = a.idTicketFrenteSubFrente || 0;
+        const fsfId = a.idTicketFrenteSubFrente || a.IdTicketFrenteSubFrente || 0;
         let linkedFsf = fsfId > 0
-          ? (persona.frenteSubFrentes || []).find((f) => f.id === fsfId)
+          ? (persona.frenteSubFrentes || persona.FrenteSubFrentes || []).find((f) => (f.id || f.Id) === fsfId)
           : null;
-        if (!linkedFsf && a.idSubFrente) {
-          linkedFsf = (persona.frenteSubFrentes || []).find(
-            (f) => f.activo !== false && Number(f.idSubFrente) === Number(a.idSubFrente)
+        if (!linkedFsf && (a.idSubFrente || a.IdSubFrente)) {
+          linkedFsf = (persona.frenteSubFrentes || persona.FrenteSubFrentes || []).find(
+            (f) => (f.activo !== false && f.Activo !== false) && Number(f.idSubFrente || f.IdSubFrente) === Number(a.idSubFrente || a.IdSubFrente)
           );
         }
-        const frenteSubFrenteUid = linkedFsf ? (linkedFsf.id > 0 ? `db_${linkedFsf.id}` : linkedFsf._uid) : (a._frenteSubFrenteUid || null);
+        const frenteSubFrenteUid = linkedFsf ? ((linkedFsf.id || linkedFsf.Id) > 0 ? `db_${linkedFsf.id || linkedFsf.Id}` : linkedFsf._uid) : (a._frenteSubFrenteUid || null);
+
+        const detallesTareas = a.detalleTareasConsultor || a.DetalleTareasConsultor || [];
 
         return {
-          idUnico: a.id > 0 ? a.id.toString() : (a.idUnico || generateUUID()),
-          Id: a.id,
-          IdSubFrente: a.idSubFrente,
-          IdConsultor: a.idConsultor,
-          IdTipoActividad: a.idTipoActividad,
-          IdTicketFrenteSubFrente: fsfId > 0 ? fsfId : (linkedFsf ? linkedFsf.id : 0),
+          idUnico: (a.id || a.Id) > 0 ? (a.id || a.Id).toString() : (a.idUnico || generateUUID()),
+          Id: a.id || a.Id || 0,
+          IdSubFrente: a.idSubFrente || a.IdSubFrente,
+          IdConsultor: a.idConsultor || a.IdConsultor,
+          IdTipoActividad: a.idTipoActividad || a.IdTipoActividad,
+          IdTicketFrenteSubFrente: fsfId > 0 ? fsfId : (linkedFsf ? (linkedFsf.id || linkedFsf.Id) : 0),
           _frenteSubFrenteUid: frenteSubFrenteUid,
-          FechaAsignacion: a.fechaAsignacion,
-          FechaDesasignacion: a.fechaDesasignacion,
-          Activo: a.activo,
-          DetalleTareasConsultor: (a.detalleTareasConsultor || []).map((d) => ({
-            FechaInicio: d.fechaInicio,
-            FechaFin: d.fechaFin,
-            Horas: d.horas,
-            Descripcion: d.descripcion,
-            Activo: d.activo,
-            IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion ?? 0,
-            Id: d.id,
-            IdTipoActividad: d.idTipoActividad
-          })),
-          esPlaceholder: a.esPlaceholder !== undefined ? a.esPlaceholder : (Number(a.idConsultor) === 0)
+          FechaAsignacion: a.fechaAsignacion || a.FechaAsignacion,
+          FechaDesasignacion: a.fechaDesasignacion || a.FechaDesasignacion,
+          Activo: (a.activo !== undefined ? a.activo : a.Activo) !== false,
+          DetalleTareasConsultor: detallesTareas.map((d) => {
+            const hVal = d.horas ?? d.Horas;
+            let hStr = "0:00";
+            if (typeof hVal === "string" && hVal.includes(":")) {
+              hStr = hVal;
+            } else if (hVal !== null && hVal !== undefined && !isNaN(Number(hVal))) {
+              const totalMins = Math.round(Number(hVal) * 60);
+              const hh = Math.floor(totalMins / 60);
+              const mm = totalMins % 60;
+              hStr = `${hh}:${String(mm).padStart(2, "0")}`;
+            }
+            return {
+              FechaInicio: d.fechaInicio || d.FechaInicio,
+              FechaFin: d.fechaFin || d.FechaFin,
+              Horas: hStr,
+              Descripcion: d.descripcion ?? d.Descripcion ?? "",
+              Activo: (d.activo !== undefined ? d.activo : d.Activo) !== false,
+              IdTicketConsultorAsignacion: d.idTicketConsultorAsignacion ?? d.IdTicketConsultorAsignacion ?? 0,
+              Id: d.id ?? d.Id ?? 0,
+              IdTipoActividad: d.idTipoActividad ?? d.IdTipoActividad ?? 0
+            };
+          }),
+          esPlaceholder: a.esPlaceholder !== undefined ? a.esPlaceholder : (Number(a.idConsultor || a.IdConsultor) === 0)
         };
       })) : [],
       usuarioCreacion: persona?.usuarioCreacion || window.localStorage.getItem("username"),

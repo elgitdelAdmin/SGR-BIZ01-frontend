@@ -488,7 +488,13 @@ const Horas = ({
 
     const limitMins = isTareo ? 16 * 60 : 24 * 60;
 
-    for (const checkDate of diasValidos) {
+    for (let i = 0; i < diasValidos.length; i++) {
+      const checkDate = diasValidos[i];
+      let minsToAssign = minsPerDay;
+      if (tipoIngreso > 1 && dividirHoras && i === diasValidos.length - 1) {
+        minsToAssign = minsNuevo - (minsPerDay * (diasValidos.length - 1));
+      }
+
       let minutosEnEseDia = 0;
       current.filter(d => d.Activo).forEach(det => {
         const detFi = new Date(det.FechaInicio);
@@ -505,7 +511,7 @@ const Horas = ({
         }
       });
 
-      if (minutosEnEseDia + minsPerDay > limitMins) {
+      if (minutosEnEseDia + minsToAssign > limitMins) {
         const disp = Math.max(0, limitMins - minutosEnEseDia);
         const hhDisp = Math.floor(disp / 60);
         const mmDisp = Math.floor(disp % 60);
@@ -525,19 +531,32 @@ const Horas = ({
     setAddDisabledGate(false);
 
     let nuevosRegistros = [];
-    const horasParaDia = minutesToHHMM(minsPerDay);
     if (isPlan) {
-      nuevosRegistros = diasValidos.map((d) => ({
-        ...nuevo,
-        FechaInicio: new Date(d),
-        FechaFin: new Date(d),
-        Horas: horasParaDia,
-        Activo: true,
-        IdTicketConsultorAsignacion: 0,
-        IdTicketFrenteSubFrente: formik.values.frenteSubFrentes[index]?.id ?? formik.values.frenteSubFrentes[index]?.Id ?? 0,
-      }));
+      nuevosRegistros = diasValidos.map((d, indexValidDay) => {
+        let minsToAssign = minsPerDay;
+        if (tipoIngreso > 1 && dividirHoras && indexValidDay === diasValidos.length - 1) {
+          minsToAssign = minsNuevo - (minsPerDay * (diasValidos.length - 1));
+        }
+        const horasParaDia = minutesToHHMM(minsToAssign);
+
+        return {
+          ...nuevo,
+          FechaInicio: new Date(d),
+          FechaFin: new Date(d),
+          Horas: horasParaDia,
+          Activo: true,
+          IdTicketConsultorAsignacion: 0,
+          IdTicketFrenteSubFrente: formik.values.frenteSubFrentes[index]?.id ?? formik.values.frenteSubFrentes[index]?.Id ?? 0,
+        };
+      });
     } else {
-      nuevosRegistros = diasValidos.map((d) => {
+      nuevosRegistros = diasValidos.map((d, indexValidDay) => {
+        let minsToAssign = minsPerDay;
+        if (tipoIngreso > 1 && dividirHoras && indexValidDay === diasValidos.length - 1) {
+          minsToAssign = minsNuevo - (minsPerDay * (diasValidos.length - 1));
+        }
+        const horasParaDia = minutesToHHMM(minsToAssign);
+
         const dObj = new Date(d);
         const calcFin = buildFechaFinTareo(dObj, horasParaDia);
         return {
