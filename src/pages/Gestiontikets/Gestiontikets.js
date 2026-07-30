@@ -346,20 +346,36 @@ const Gestiontikets = () => {
                                 badgeField: 'estadoNombre',
                             }}
                         >
-                            <Column field="codTicket" header={<div>Cód. Conecta</div>} sortable style={{ width: '120px', minWidth: '120px' }} />
-                            <Column field="codTicketInterno" header="Cód. Interno" sortable style={{ width: '100px', minWidth: '100px' }} />
+                            <Column
+                                field="codTicket"
+                                header="Cód. Conecta / Cód. Interno"
+                                sortable
+                                style={{ width: '170px', minWidth: '160px' }}
+                                body={(rowData) => {
+                                    const conecta = rowData?.codTicket || '';
+                                    const interno = rowData?.codTicketInterno || '';
+                                    if (conecta && interno) return `${conecta} / ${interno}`;
+                                    return conecta || interno || '';
+                                }}
+                            />
                             <Column
                                 field="fechaSolicitud"
                                 header="F. Solicitud"
                                 sortable
-                                style={{ width: '90px', minWidth: '90px' }}
+                                style={{ width: '70px', minWidth: '70px' }}
                                 body={(rowData) => {
                                     const fecha = rowData?.fechaSolicitud;
                                     if (!fecha) return '';
-                                    return fecha.split('T')[0];
+                                    const str = fecha.split('T')[0];
+                                    const parts = str.split('-');
+                                    if (parts.length === 3) {
+                                        return `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}`;
+                                    }
+                                    return str;
                                 }}
                             />
                             <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }} />
+                            <Column field="tipoSubtipoNombre" header="Tipo / Subtipo" sortable style={{ width: '140px', minWidth: '140px' }} />
                             <Column field="empresaRazonSocial" header="Empresa" sortable style={{ width: '120px', minWidth: '120px' }} />
                             <Column field="nombreGestor" header="Gestor" sortable style={{ width: '120px', minWidth: '120px' }} />
                             <Column field="nombreConsultores" header="Consultores" sortable style={{ width: '140px', minWidth: '140px' }} />
