@@ -1,3 +1,13 @@
+/**
+ * PATRÓN IMPLEMENTADO: Service Pattern / Facade (Fachada)
+ * 
+ * Esta capa de abstracción expone métodos limpios para interactuar con la API.
+ * Gracias al manejo global de errores centralizado en apiClient.js, los métodos 
+ * de este servicio ya no necesitan procesar las excepciones ni parsear manualmente 
+ * los errores HTTP (try/catch o validación de res.ok). Toda esa lógica transversal 
+ * fue delegada al cliente base, dejando los métodos limpios y de una sola responsabilidad.
+ */
+
 import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
 import { apiFetch } from "./apiClient.js";
@@ -39,7 +49,6 @@ export const ListarEmpresasPorSocio = async () => {
     },
   })
   .then(res => {
-    if (!res.ok) throw new Error("Error al obtener las Empresas");
     return res.json();
   });
 };
@@ -54,14 +63,7 @@ export const RegistrarEmpresa = ({ jsonData }) => {
       body: jsonData,
     })
       .then((res) => {
-        if (!res.ok) {
-          throw new Error("No se recibió respuesta del servidor");
-        }
         return res.json();
-      })
-      .then((res) => {
-        if (res.errors) throw new Error(res.errors[0]);
-        return res;
       });
 };
 
@@ -74,14 +76,7 @@ export const ActualizarEmpresa = ({jsonData, idEmpresa}) => {
         },
         body: jsonData
     }).then(res => {
-        if (!res.ok) {
-            throw new Error("No se recibió respuesta del servidor");
-        }
         return res.json();
-    }).then(res => {
-        if (res.errors) throw new Error(res.errors[0]);
-        const { data } = res;
-        return data;
     });
 };
 
