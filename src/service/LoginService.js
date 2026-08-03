@@ -1,27 +1,7 @@
-// import * as constantes from "../constants/constantes.js";
-// const ENDPOINT = constantes.URLAPI;
-// const ENDPOINTTEST = constantes.URL_TESTLOGIN;
-
-// export default async function login ({userName,password}) {
-//     return await fetch(`${ENDPOINT}/ZADUsuario/Login`,{
-//         method: "POST",
-//         headers:{
-//             'Content-Type': 'application/json'
-//         },
-        
-//         body:JSON.stringify({userName, password})
-//     }).then(res=>{
-//         if(!res.ok) throw new Error("Response is Not Ok")
-//         return res.json()
-//     }).then(res=>{
-//         if(res.errors) throw new Error(res.errors[0])
-//         return res
-//     })
-    
-// }
 import * as constantes from "../constants/constantes.js";
-const ENDPOINT = constantes.URLAPICONECTA;
+import { removeCookie } from "../helpers/cookieHelper.js";
 
+const ENDPOINT = constantes.URLAPICONECTA;
 
 export default async function login ({userName,password}) {
     return await fetch(`${ENDPOINT}/api/Auth/Login`,{
@@ -29,7 +9,6 @@ export default async function login ({userName,password}) {
         headers:{
             'Content-Type': 'application/json'
         },
-        
         body:JSON.stringify({userName, password})
     }).then(res=>{
         if(!res.ok) throw new Error("Response is Not Ok")
@@ -38,7 +17,6 @@ export default async function login ({userName,password}) {
         if(res.errors) throw new Error(res.errors[0])
         return res
     })
-    
 }
 
 export async function loginStep2 ({ idUser, idRol, idSocio, tempToken }) {
@@ -58,7 +36,6 @@ export async function loginStep2 ({ idUser, idRol, idSocio, tempToken }) {
 }
 
 export const EnviarCorreo = ({ jsonData }) => {
-    console.log(jsonData)
     return fetch(`${ENDPOINT}/api/Auth/forgot-password`, {
       method: "POST",
       headers: {
@@ -69,12 +46,7 @@ export const EnviarCorreo = ({ jsonData }) => {
     })
       .then((res) => {
         if (!res.ok) {
-          if (res.status === 401) {
-            window.localStorage.removeItem("jwt");
-            window.location.reload();
-          } else {
-            throw new Error("No se recibió respuesta del servidor");
-          }
+          throw new Error("No se recibió respuesta del servidor");
         }
         return res.json();
       })
@@ -83,10 +55,9 @@ export const EnviarCorreo = ({ jsonData }) => {
         const { data } = res;
         return data;
       });
-  };
-export const RecuperarContraseña = ({ jsonData }) => {
-    console.log(jsonData)
+};
 
+export const RecuperarContraseña = ({ jsonData }) => {
     return fetch(`${ENDPOINT}/api/Auth/reset-password` , {
       method: "POST",
       headers: {
@@ -97,12 +68,7 @@ export const RecuperarContraseña = ({ jsonData }) => {
     })
       .then((res) => {
         if (!res.ok) {
-          if (res.status === 401) {
-            window.localStorage.removeItem("jwt");
-            window.location.reload();
-          } else {
-            throw new Error("No se recibió respuesta del servidor");
-          }
+          throw new Error("No se recibió respuesta del servidor");
         }
         return res.json();
       })
@@ -111,4 +77,4 @@ export const RecuperarContraseña = ({ jsonData }) => {
         const { data } = res;
         return data;
       });
-  };
+};

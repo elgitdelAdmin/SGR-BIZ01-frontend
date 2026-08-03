@@ -1,10 +1,11 @@
 import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
+import { apiFetch } from "./apiClient.js";
+
 const ENDPOINT = constantes.URLAPICONECTA;
-const idSocio = window.localStorage.getItem("idsocio")
 
 export const ListarUsuarios = async () => {
-  return await fetch(`${ENDPOINT}/api/Auth/usuario`, {
+  return await apiFetch(`${ENDPOINT}/api/Auth/usuario`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -17,7 +18,7 @@ export const ListarUsuarios = async () => {
 };
 
 export const ListarUsuariosPorSocio = async () => {
-  return await fetch(`${ENDPOINT}/api/Auth/usuarioByIdSocio/${window.localStorage.getItem("idsocio")}`, {
+  return await apiFetch(`${ENDPOINT}/api/Auth/usuarioByIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -29,9 +30,8 @@ export const ListarUsuariosPorSocio = async () => {
   });
 };
 
-
 export const RegistrarUsuario = ({ jsonData }) => {
-    return fetch(`${ENDPOINT}/api/Auth/register`, {
+    return apiFetch(`${ENDPOINT}/api/Auth/register`, {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -41,12 +41,7 @@ export const RegistrarUsuario = ({ jsonData }) => {
     })
       .then((res) => {
         if (!res.ok) {
-          if (res.status === 401) {
-            window.localStorage.removeItem("jwt");
-            window.location.reload();
-          } else {
-            throw new Error("No se recibió respuesta del servidor");
-          }
+          throw new Error("No se recibió respuesta del servidor");
         }
         return res.json();
       })
@@ -58,7 +53,7 @@ export const RegistrarUsuario = ({ jsonData }) => {
   };
 
 export const ListaRoles = async () => {
-  return await fetch(`${ENDPOINT}/api/Auth/roles`, {
+  return await apiFetch(`${ENDPOINT}/api/Auth/roles`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -71,7 +66,7 @@ export const ListaRoles = async () => {
 };
 
 export const ListaSocio = async () => {
-  return await fetch(`${ENDPOINT}/api/Socios`, {
+  return await apiFetch(`${ENDPOINT}/api/Socios`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -82,72 +77,54 @@ export const ListaSocio = async () => {
     return res.json();
   });
 };
+
 export const ObtenerUsuario = async ({idUsuario}) =>{
-    return await fetch(`${ENDPOINT}/api/Auth/usuario/${idUsuario}`,{
+    return await apiFetch(`${ENDPOINT}/api/Auth/usuario/${idUsuario}`,{
         method: "GET",
         headers:{
             "accept": "text/plain"
         },
-        
     })
     .then(res => {
     if (!res.ok) throw new Error("Error al obtener los usarios");
     return res.json();
   });
-    
 }
 
-  export const ActualizarUsuario= ({jsonData,idUsuario}) =>{
-      return fetch(`${ENDPOINT}/api/Auth/UpdateUser/${idUsuario}`,{
-          method: "PUT",
-          headers:{
-              'Content-Type': 'application/json',
-              "accept": "application/json"
-          },
-          
-          body: jsonData
-      }).then(res=>{
-          if(!res.ok) 
-          {
-              if(res.status == 401)
-              {
-                  window.localStorage.removeItem('jwt')
-                  window.location.reload();
-              }
-              else
-              {
-                  throw new Error("No se recibió respuesta del servidor")
-              }
-          }
-          return res.json()
-      }).then(res=>{
-          if(res.errors) throw new Error(res.errors[0])
-          const {data} = res
-          return data
-      })
-  }
-
+export const ActualizarUsuario= ({jsonData,idUsuario}) =>{
+    return apiFetch(`${ENDPOINT}/api/Auth/UpdateUser/${idUsuario}`,{
+        method: "PUT",
+        headers:{
+            'Content-Type': 'application/json',
+            "accept": "application/json"
+        },
+        body: jsonData
+    }).then(res=>{
+        if(!res.ok) {
+            throw new Error("No se recibió respuesta del servidor");
+        }
+        return res.json();
+    }).then(res=>{
+        if(res.errors) throw new Error(res.errors[0]);
+        const {data} = res;
+        return data;
+    });
+}
 
 export const EliminarUsuario = async ({ idUsuario}) => {
-    return await fetch(`${ENDPOINT}/api/Auth/DeleteUser/${idUsuario}`, {
+    return await apiFetch(`${ENDPOINT}/api/Auth/DeleteUser/${idUsuario}`, {
         method: "DELETE",
         headers: {
             "accept": "text/plain"
         },
     }).then(async res => {
         if (!res.ok) {
-            if (res.status === 401) {
-                window.localStorage.removeItem('jwt');
-                window.location.reload();
-            } else {
-                throw new Error("No se recibió respuesta del servidor");
-            }
+            throw new Error("No se recibió respuesta del servidor");
         }
 
         if (res.status === 204) {
             return true; 
         }
-        
 
         const result = await res.json();
 
@@ -156,12 +133,8 @@ export const EliminarUsuario = async ({ idUsuario}) => {
     });
 }
 
-
-
-
-
 export const ListarFrentes = async () => {
-  return await fetch(`${ENDPOINT}/api/Frente`, {
+  return await apiFetch(`${ENDPOINT}/api/Frente`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -172,8 +145,9 @@ export const ListarFrentes = async () => {
     return res.json();
   });
 };
+
 export const ListarParametros = async () => {
-  return await fetch(`${ENDPOINT}/api/Parametros`, {
+  return await apiFetch(`${ENDPOINT}/api/Parametros`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -185,9 +159,8 @@ export const ListarParametros = async () => {
   });
 };
 
-
 export const ActualizarContraseña = ({ jsonData }) => {
-    return fetch(`${ENDPOINT}/api/Auth/change-password`, {
+    return apiFetch(`${ENDPOINT}/api/Auth/change-password`, {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -197,12 +170,7 @@ export const ActualizarContraseña = ({ jsonData }) => {
     })
       .then((res) => {
         if (!res.ok) {
-          if (res.status === 401) {
-            window.localStorage.removeItem("jwt");
-            window.location.reload();
-          } else {
-            throw new Error("No se recibió respuesta del servidor");
-          }
+          throw new Error("No se recibió respuesta del servidor");
         }
         return res.json();
       })
@@ -213,9 +181,8 @@ export const ActualizarContraseña = ({ jsonData }) => {
       });
   };
 
-
 export const EnviarCodigoVerificacion = ({ jsonData }) => {
-  return fetch(`${ENDPOINT}/api/Auth/send-verification-code`, {
+  return apiFetch(`${ENDPOINT}/api/Auth/send-verification-code`, {
     method: "POST",
     headers: {
       "Accept": "application/json",
@@ -225,12 +192,7 @@ export const EnviarCodigoVerificacion = ({ jsonData }) => {
   })
     .then((res) => {
       if (!res.ok) {
-        if (res.status === 401) {
-          window.localStorage.removeItem("jwt");
-          window.location.reload();
-        } else {
-          throw new Error("No se pudo enviar el código de verificación");
-        }
+        throw new Error("No se pudo enviar el código de verificación");
       }
       return res.json();
     })
@@ -242,7 +204,7 @@ export const EnviarCodigoVerificacion = ({ jsonData }) => {
 };
 
 export const ConfirmarEmail = ({ jsonData }) => {
-  return fetch(`${ENDPOINT}/api/Auth/confirm-email`, {
+  return apiFetch(`${ENDPOINT}/api/Auth/confirm-email`, {
     method: "POST",
     headers: {
       "Accept": "application/json",
@@ -252,10 +214,7 @@ export const ConfirmarEmail = ({ jsonData }) => {
   })
     .then((res) => {
       if (!res.ok) {
-        if (res.status === 401) {
-          window.localStorage.removeItem("jwt");
-          window.location.reload();
-        } else if (res.status === 400) {
+        if (res.status === 400) {
           throw new Error("Código inválido o expirado");
         } else {
           throw new Error("No se pudo confirmar el código");

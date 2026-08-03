@@ -1,10 +1,11 @@
 import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
+import { apiFetch } from "./apiClient.js";
+
 const ENDPOINT = constantes.URLAPICONECTA;
-const idSocio= window.localStorage.getItem("idsocio")
 
 export const ListarGestores = async () => {
-  return await fetch(`${ENDPOINT}/api/Gestor`, {
+  return await apiFetch(`${ENDPOINT}/api/Gestor`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -15,9 +16,9 @@ export const ListarGestores = async () => {
     return res.json();
   });
 };
+
 export const ListarGestoresPorSocio = async () => {
-  
-  return await fetch(`${ENDPOINT}/api/Gestor/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
+  return await apiFetch(`${ENDPOINT}/api/Gestor/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -30,7 +31,7 @@ export const ListarGestoresPorSocio = async () => {
 };
 
 export const ListarGestoresPorRolSocio = async () => {
-  return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/${window.localStorage.getItem("idRol")}/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
+  return await apiFetch(`${ENDPOINT}/api/Gestor/byIdRol/${window.localStorage.getItem("idRol")}/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -42,9 +43,8 @@ export const ListarGestoresPorRolSocio = async () => {
   });
 };
 
-
 export const RegistrarGestor = ({ jsonData }) => {
-    return fetch(`${ENDPOINT}/api/Gestor`, {
+    return apiFetch(`${ENDPOINT}/api/Gestor`, {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -54,12 +54,7 @@ export const RegistrarGestor = ({ jsonData }) => {
     })
       .then((res) => {
         if (!res.ok) {
-          if (res.status === 401) {
-            window.localStorage.removeItem("jwt");
-            window.location.reload();
-          } else {
-            throw new Error("No se recibió respuesta del servidor");
-          }
+          throw new Error("No se recibió respuesta del servidor");
         }
         return res.json();
       })
@@ -68,39 +63,30 @@ export const RegistrarGestor = ({ jsonData }) => {
         const { data } = res;
         return data;
       });
-  };
-  export const ActualizarGestor= ({jsonData,idGestor}) =>{
-      return fetch(`${ENDPOINT}/api/Gestor/${idGestor}`,{
-          method: "PUT",
-          headers:{
-              'Content-Type': 'application/json',
-              "accept": "application/json"
-          },
-          
-          body: jsonData
-      }).then(res=>{
-          if(!res.ok) 
-          {
-              if(res.status == 401)
-              {
-                  window.localStorage.removeItem('jwt')
-                  window.location.reload();
-              }
-              else
-              {
-                  throw new Error("No se recibió respuesta del servidor")
-              }
-          }
-          return res.json()
-      }).then(res=>{
-          if(res.errors) throw new Error(res.errors[0])
-          const {data} = res
-          return data
-      })
-  }
+};
+
+export const ActualizarGestor = ({jsonData, idGestor}) => {
+    return apiFetch(`${ENDPOINT}/api/Gestor/${idGestor}`, {
+        method: "PUT",
+        headers: {
+            'Content-Type': 'application/json',
+            "accept": "application/json"
+        },
+        body: jsonData
+    }).then(res => {
+        if (!res.ok) {
+            throw new Error("No se recibió respuesta del servidor");
+        }
+        return res.json();
+    }).then(res => {
+        if (res.errors) throw new Error(res.errors[0]);
+        const { data } = res;
+        return data;
+    });
+};
 
 export const ListarFrentes = async () => {
-  return await fetch(`${ENDPOINT}/api/Frente`, {
+  return await apiFetch(`${ENDPOINT}/api/Frente`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -111,8 +97,9 @@ export const ListarFrentes = async () => {
     return res.json();
   });
 };
+
 export const ListarParametros = async () => {
-  return await fetch(`${ENDPOINT}/api/Parametros`, {
+  return await apiFetch(`${ENDPOINT}/api/Parametros`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -125,20 +112,14 @@ export const ListarParametros = async () => {
 };
 
 export const EliminarGestor = async ({ idGestor }) => {
-    return await fetch(`${ENDPOINT}/api/Gestor/${idGestor}`, {
+    return await apiFetch(`${ENDPOINT}/api/Gestor/${idGestor}`, {
         method: "DELETE",
         headers: {
             "accept": "text/plain"
         },
     }).then(async res => {
-
         if (!res.ok) {
-            if (res.status === 401) {
-                window.localStorage.removeItem('jwt');
-                window.location.reload();
-            } else {
-                throw new Error("No se recibió respuesta del servidor");
-            }
+            throw new Error("No se recibió respuesta del servidor");
         }
 
         if (res.status === 204) {
@@ -146,28 +127,20 @@ export const EliminarGestor = async ({ idGestor }) => {
         }
 
         const result = await res.json();
-
         if (result.errors) throw new Error(result.errors[0]);
         return result.data;
     });
-}
+};
 
-export const ObtenerGestor = async ({idGestor}) =>{
-    return await fetch(`${ENDPOINT}/api/Gestor/${idGestor}`,{
+export const ObtenerGestor = async ({idGestor}) => {
+    return await apiFetch(`${ENDPOINT}/api/Gestor/${idGestor}`, {
         method: "GET",
-        headers:{
-            // "Authorization":"Bearer "+jwt,
+        headers: {
             "accept": "text/plain"
         },
-        
     })
     .then(res => {
-    if (!res.ok) throw new Error("Error al obtener los consultores");
-    return res.json();
-  });
-    
-}
-
-
-
-
+        if (!res.ok) throw new Error("Error al obtener los consultores");
+        return res.json();
+    });
+};

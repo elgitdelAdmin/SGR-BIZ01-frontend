@@ -1,10 +1,12 @@
 import * as constantes from "../constants/constantes.js";
+import { apiFetch } from "./apiClient.js";
+
 const ENDPOINT = constantes.URLAPICONECTA;
 
 // ==================== FRENTE ====================
 
 export const ListarFrentes = async () => {
-  return await fetch(`${ENDPOINT}/api/Frente`, {
+  return await apiFetch(`${ENDPOINT}/api/Frente`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -17,7 +19,7 @@ export const ListarFrentes = async () => {
 };
 
 export const ObtenerFrente = async ({id}) => {
-  return await fetch(`${ENDPOINT}/api/Frente/${id}`, {
+  return await apiFetch(`${ENDPOINT}/api/Frente/${id}`, {
     method: "GET",
     headers: {
       "accept": "application/json"
@@ -30,7 +32,7 @@ export const ObtenerFrente = async ({id}) => {
 };
 
 export const RegistrarFrente = ({ jsonData }) => {
-  return fetch(`${ENDPOINT}/api/Frente`, {
+  return apiFetch(`${ENDPOINT}/api/Frente`, {
     method: "POST",
     headers: {
       "Accept": "application/json",
@@ -40,21 +42,16 @@ export const RegistrarFrente = ({ jsonData }) => {
   })
   .then((res) => {
     if (!res.ok) {
-      if (res.status === 401) {
-        window.localStorage.removeItem("jwt");
-        window.location.reload();
-      } else {
-        return res.json().then(data => {
-          throw new Error(data.message || "No se recibió respuesta del servidor");
-        });
-      }
+      return res.json().then(data => {
+        throw new Error(data.message || "No se recibió respuesta del servidor");
+      });
     }
     return res.json();
   });
 };
 
 export const ActualizarFrente = ({ jsonData, id }) => {
-  return fetch(`${ENDPOINT}/api/Frente/${id}`, {
+  return apiFetch(`${ENDPOINT}/api/Frente/${id}`, {
     method: "PUT",
     headers: {
       'Content-Type': 'application/json',
@@ -63,10 +60,7 @@ export const ActualizarFrente = ({ jsonData, id }) => {
     body: jsonData
   }).then(async res => {
     if (!res.ok) {
-      if (res.status === 401) {
-        window.localStorage.removeItem('jwt');
-        window.location.reload();
-      } else if (res.status === 409) {
+      if (res.status === 409) {
         const data = await res.json();
         const error = new Error(data.message || "No se puede desactivar");
         error.consultores = data.consultores;
@@ -82,17 +76,14 @@ export const ActualizarFrente = ({ jsonData, id }) => {
 };
 
 export const EliminarFrente = async ({ id }) => {
-  return await fetch(`${ENDPOINT}/api/Frente/${id}`, {
+  return await apiFetch(`${ENDPOINT}/api/Frente/${id}`, {
     method: "DELETE",
     headers: {
       "accept": "application/json"
     },
   }).then(async res => {
     if (!res.ok) {
-      if (res.status === 401) {
-        window.localStorage.removeItem('jwt');
-        window.location.reload();
-      } else if (res.status === 409) {
+      if (res.status === 409) {
         const data = await res.json();
         const error = new Error(data.message || "No se puede desactivar");
         error.consultores = data.consultores;
@@ -108,7 +99,7 @@ export const EliminarFrente = async ({ id }) => {
 // ==================== SUBFRENTE ====================
 
 export const ListarSubFrentesPorFrente = async ({ frenteId }) => {
-  return await fetch(`${ENDPOINT}/api/SubFrente/by-frente/${frenteId}`, {
+  return await apiFetch(`${ENDPOINT}/api/SubFrente/by-frente/${frenteId}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -121,7 +112,7 @@ export const ListarSubFrentesPorFrente = async ({ frenteId }) => {
 };
 
 export const ObtenerSubFrente = async ({id}) => {
-  return await fetch(`${ENDPOINT}/api/SubFrente/${id}`, {
+  return await apiFetch(`${ENDPOINT}/api/SubFrente/${id}`, {
     method: "GET",
     headers: {
       "accept": "application/json"
@@ -134,7 +125,7 @@ export const ObtenerSubFrente = async ({id}) => {
 };
 
 export const RegistrarSubFrente = ({ jsonData }) => {
-  return fetch(`${ENDPOINT}/api/SubFrente`, {
+  return apiFetch(`${ENDPOINT}/api/SubFrente`, {
     method: "POST",
     headers: {
       "Accept": "application/json",
@@ -144,21 +135,16 @@ export const RegistrarSubFrente = ({ jsonData }) => {
   })
   .then((res) => {
     if (!res.ok) {
-      if (res.status === 401) {
-        window.localStorage.removeItem("jwt");
-        window.location.reload();
-      } else {
-        return res.json().then(data => {
-          throw new Error(data.message || "No se recibió respuesta del servidor");
-        });
-      }
+      return res.json().then(data => {
+        throw new Error(data.message || "No se recibió respuesta del servidor");
+      });
     }
     return res.json();
   });
 };
 
 export const ActualizarSubFrente = ({ jsonData, id }) => {
-  return fetch(`${ENDPOINT}/api/SubFrente/${id}`, {
+  return apiFetch(`${ENDPOINT}/api/SubFrente/${id}`, {
     method: "PUT",
     headers: {
       'Content-Type': 'application/json',
@@ -167,10 +153,7 @@ export const ActualizarSubFrente = ({ jsonData, id }) => {
     body: jsonData
   }).then(async res => {
     if (!res.ok) {
-      if (res.status === 401) {
-        window.localStorage.removeItem('jwt');
-        window.location.reload();
-      } else if (res.status === 409) {
+      if (res.status === 409) {
         const data = await res.json();
         const error = new Error(data.message || "No se puede desactivar");
         error.consultores = data.consultores;
@@ -186,17 +169,14 @@ export const ActualizarSubFrente = ({ jsonData, id }) => {
 };
 
 export const EliminarSubFrente = async ({ id }) => {
-  return await fetch(`${ENDPOINT}/api/SubFrente/${id}`, {
+  return await apiFetch(`${ENDPOINT}/api/SubFrente/${id}`, {
     method: "DELETE",
     headers: {
       "accept": "application/json"
     },
   }).then(async res => {
     if (!res.ok) {
-      if (res.status === 401) {
-        window.localStorage.removeItem('jwt');
-        window.location.reload();
-      } else if (res.status === 409) {
+      if (res.status === 409) {
         const data = await res.json();
         const error = new Error(data.message || "No se puede desactivar");
         error.consultores = data.consultores;
@@ -212,7 +192,7 @@ export const EliminarSubFrente = async ({ id }) => {
 // ==================== CONSULTORES ASOCIADOS ====================
 
 export const ObtenerConsultoresAsociadosFrente = async ({ id }) => {
-  return await fetch(`${ENDPOINT}/api/Frente/${id}/consultores-asociados`, {
+  return await apiFetch(`${ENDPOINT}/api/Frente/${id}/consultores-asociados`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -225,7 +205,7 @@ export const ObtenerConsultoresAsociadosFrente = async ({ id }) => {
 };
 
 export const ObtenerConsultoresAsociadosSubFrente = async ({ id }) => {
-  return await fetch(`${ENDPOINT}/api/SubFrente/${id}/consultores-asociados`, {
+  return await apiFetch(`${ENDPOINT}/api/SubFrente/${id}/consultores-asociados`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -236,4 +216,3 @@ export const ObtenerConsultoresAsociadosSubFrente = async ({ id }) => {
     return res.json();
   });
 };
-

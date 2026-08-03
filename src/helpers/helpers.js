@@ -19,20 +19,7 @@ export function getBase64 (file){
     });
   };
 
-  // export function isAuthenticated() {
-  //   const token = localStorage.getItem('token');
-  //   const refreshToken = localStorage.getItem('refreshToken');
-  //   try {
-  //     decode(token);
-  //     const { exp } = decode(refreshToken);
-  //     if (Date.now() >= exp * 1000) {
-  //       return false;
-  //     }
-  //   } catch (err) {
-  //     return false;
-  //   }
-  //   return true;
-  // }
+
 
   export function excelFileToJSONSheet(file,numSheet,setField){
     return new Promise(resolve => {

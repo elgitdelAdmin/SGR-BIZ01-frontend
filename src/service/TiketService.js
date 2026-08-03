@@ -1,11 +1,11 @@
 import { Navigate } from "react-router-dom";
 import * as constantes from "../constants/constantes.js";
+import { apiFetch } from "./apiClient.js";
+
 const ENDPOINT = constantes.URLAPICONECTA;
 
-
-
 export const ListarParametros = async () => {
-  return await fetch(`${ENDPOINT}/api/Parametros`, {
+  return await apiFetch(`${ENDPOINT}/api/Parametros`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -16,8 +16,9 @@ export const ListarParametros = async () => {
       return res.json();
     });
 };
+
 export const ListarPais = async () => {
-  return await fetch(`${ENDPOINT}/api/Paises`, {
+  return await apiFetch(`${ENDPOINT}/api/Paises`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -29,9 +30,8 @@ export const ListarPais = async () => {
     });
 };
 
-
 export const ListarFrentes = async () => {
-  return await fetch(`${ENDPOINT}/api/Frente`, {
+  return await apiFetch(`${ENDPOINT}/api/Frente`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -44,7 +44,7 @@ export const ListarFrentes = async () => {
 };
 
 export const RegistrarTiket = ({ ticketData }) => {
-  return fetch(`${ENDPOINT}/api/Ticket`, {
+  return apiFetch(`${ENDPOINT}/api/Ticket`, {
     method: "POST",
     headers: {
       "Accept": "application/json",
@@ -54,23 +54,18 @@ export const RegistrarTiket = ({ ticketData }) => {
   })
     .then((res) => {
       if (!res.ok) {
-        if (res.status === 401) {
-          window.localStorage.removeItem("jwt");
-          window.location.reload();
-        } else {
-          throw new Error("No se recibió respuesta del servidor");
-        }
+        throw new Error("No se recibió respuesta del servidor");
       }
-      return res.json()
+      return res.json();
     })
     .then((ticket) => {
       if (ticket.errors) throw new Error(ticket.errors[0]);
       return ticket;
-
     });
 };
+
 export const ActualizarTicket = ({ ticketData, idTicket }) => {
-  return fetch(`${ENDPOINT}/api/Ticket/${idTicket}`, {
+  return apiFetch(`${ENDPOINT}/api/Ticket/${idTicket}`, {
     method: "PUT",
     headers: {
       "Accept": "application/json",
@@ -79,21 +74,12 @@ export const ActualizarTicket = ({ ticketData, idTicket }) => {
     body: JSON.stringify(ticketData),
   })
     .then((res) => {
-      console.log("res1", res)
-
       if (!res.ok) {
-        if (res.status === 401) {
-          window.localStorage.removeItem("jwt");
-          window.location.reload();
-        } else {
-          throw new Error("No se recibió respuesta del servidor");
-        }
+        throw new Error("No se recibió respuesta del servidor");
       }
       return res.json();
     })
     .then((res) => {
-      console.log("res1", res)
-
       if (res.errors) throw new Error(res.errors[0]);
       const { data } = res;
       return data;
@@ -102,7 +88,7 @@ export const ActualizarTicket = ({ ticketData, idTicket }) => {
 
 export const ListarTicket = async ({ idUser, codRol }) => {
   const idSocio = window.localStorage.getItem("idsocio");
-  return await fetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}?idSocio=${idSocio || ''}`, {
+  return await apiFetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}?idSocio=${idSocio || ''}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -144,7 +130,7 @@ export const ListarTicketPaginado = async ({ idUser, codRol, page = 0, pageSize 
     }
   }
 
-  return await fetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}/paged?${params.toString()}`, {
+  return await apiFetch(`${ENDPOINT}/api/Ticket/user/${idUser}/rol/${codRol}/paged?${params.toString()}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -156,23 +142,15 @@ export const ListarTicketPaginado = async ({ idUser, codRol, page = 0, pageSize 
     });
 };
 
-
 export const EliminarTicket = async ({ id }) => {
-  return await fetch(`${ENDPOINT}/api/Ticket/${id}`, {
+  return await apiFetch(`${ENDPOINT}/api/Ticket/${id}`, {
     method: "DELETE",
     headers: {
       "accept": "text/plain"
     },
   }).then(async res => {
-    console.log("res", res);
-
     if (!res.ok) {
-      if (res.status === 401) {
-        window.localStorage.removeItem('jwt');
-        window.location.reload();
-      } else {
-        throw new Error("No se recibió respuesta del servidor");
-      }
+      throw new Error("No se recibió respuesta del servidor");
     }
 
     if (res.status === 204) {
@@ -180,31 +158,26 @@ export const EliminarTicket = async ({ id }) => {
     }
 
     const result = await res.json();
-
     if (result.errors) throw new Error(result.errors[0]);
     return result.data;
   });
-}
+};
 
 export const ObtenerTicket = async ({ id }) => {
-  return await fetch(`${ENDPOINT}/api/Ticket/${id}`, {
+  return await apiFetch(`${ENDPOINT}/api/Ticket/${id}`, {
     method: "GET",
     headers: {
       "accept": "text/plain"
     },
-
   })
     .then(res => {
       if (!res.ok) throw new Error("Error al obtener los ticket");
       return res.json();
     });
-
-
-
-}
+};
 
 export const ListarGestorConsultoria = async () => {
-  return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/6/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
+  return await apiFetch(`${ENDPOINT}/api/Gestor/byIdRol/6/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -217,7 +190,7 @@ export const ListarGestorConsultoria = async () => {
 };
 
 export const ListarGestorCuenta = async () => {
-  return await fetch(`${ENDPOINT}/api/Gestor/byIdRol/3/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
+  return await apiFetch(`${ENDPOINT}/api/Gestor/byIdRol/3/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
       "Accept": "application/json"
@@ -228,8 +201,9 @@ export const ListarGestorCuenta = async () => {
       return res.json();
     });
 };
+
 export const DescargarArchivoTicket = async ({ idTicket, orden }) => {
-  return fetch(`${ENDPOINT}/api/Ticket/${idTicket}/desgarcarArchivo/${orden}`, {
+  return apiFetch(`${ENDPOINT}/api/Ticket/${idTicket}/desgarcarArchivo/${orden}`, {
     method: "GET",
     headers: {
       "Accept": "*/*",
@@ -237,15 +211,8 @@ export const DescargarArchivoTicket = async ({ idTicket, orden }) => {
   })
     .then(async (res) => {
       if (!res.ok) {
-        if (res.status === 401) {
-          window.localStorage.removeItem("jwt");
-          window.location.reload();
-        } else {
-          throw new Error("Error al descargar el archivo");
-        }
+        throw new Error("Error al descargar el archivo");
       }
-
-      // El endpoint devuelve un archivo, no JSON
       return res.blob();
     })
     .then((blob) => {
@@ -254,7 +221,7 @@ export const DescargarArchivoTicket = async ({ idTicket, orden }) => {
 };
 
 export const MigrarTicketSgr = async ({ codTicketInterno }) => {
-  return await fetch(`${ENDPOINT}/api/Ticket/migrarsgr/${codTicketInterno}`, {
+  return await apiFetch(`${ENDPOINT}/api/Ticket/migrarsgr/${codTicketInterno}`, {
     method: "POST",
     headers: {
       "Accept": "application/json"
@@ -262,13 +229,8 @@ export const MigrarTicketSgr = async ({ codTicketInterno }) => {
   })
     .then(async res => {
       if (!res.ok) {
-        if (res.status === 401) {
-          window.localStorage.removeItem('jwt');
-          window.location.reload();
-        } else {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.mensaje || "Error al sincronizar ticket desde SGR");
-        }
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.mensaje || "Error al sincronizar ticket desde SGR");
       }
       return res.json();
     });

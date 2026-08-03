@@ -1,6 +1,7 @@
 import { useCallback, useContext, useState } from 'react';
 import Context from "../context/usuarioContext"
 import loginService, { loginStep2 } from "../service/LoginService";
+import { setCookie, removeCookie } from "../helpers/cookieHelper";
 
 export default function useUsuario(){
     const {jwt,setJwt,permisos} = useContext(Context)
@@ -13,10 +14,9 @@ export default function useUsuario(){
     const [usersGerencias,setUsersGerencias] = useState([]);
   
     const logout = useCallback(()=>{
-        window.localStorage.removeItem('jwt')
-        window.localStorage.removeItem('reset')
-        window.localStorage.removeItem('refreshToken');
-        window.localStorage.removeItem('expiresAt');
+        removeCookie('jwt');
+        removeCookie('refreshToken');
+
         window.localStorage.removeItem('username')
         window.localStorage.removeItem('nombreCompleto')
         window.localStorage.removeItem('nombreSocio');
@@ -34,6 +34,13 @@ export default function useUsuario(){
 
     const saveSessionData = useCallback((res) => {
         const { accessToken, refreshToken, expiresAt, user, notificacionTicket, idConsultor, idRolSeleccionado, idSocioSeleccionado, codRolSeleccionado, nombreSocioSeleccionado, nombreRolSeleccionado, logoSocioSeleccionado } = res;
+        
+        // Save token & refreshToken in secure cookies
+        setCookie('jwt', accessToken, { expires: 1 });
+        if (refreshToken) {
+            setCookie('refreshToken', refreshToken, { expires: 7 });
+        }
+
         window.localStorage.setItem('jwt', accessToken);
         window.localStorage.setItem('refreshToken', refreshToken);
         window.localStorage.setItem('expiresAt', expiresAt);

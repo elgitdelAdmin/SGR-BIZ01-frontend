@@ -1,10 +1,10 @@
 import * as constantes from "../constants/constantes.js";
+import { apiFetch } from "./apiClient.js";
+
 const ENDPOINT = constantes.URLAPICONECTA;
 
-
-
 export const MarcarNotificacionComoLeida = async (idUser, notificationIds) => {
-  return await fetch(
+  return await apiFetch(
     `${ENDPOINT}/api/Auth/MarcarNotificacionComoLeida?idUser=${idUser}`,
     {
       method: "POST",

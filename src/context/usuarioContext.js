@@ -1,9 +1,11 @@
 import React, { useDebugValue, useState, useEffect } from 'react';
+import { getCookie } from '../helpers/cookieHelper';
+
 const Context = React.createContext({});
 
 export function UsuarioContextProvider({ children }) {
     const [perfil, setPerfil] = useState(null);
-    const [jwt, setJwt] = useState(() => window.localStorage.getItem('jwt'))
+    const [jwt, setJwt] = useState(() => getCookie('jwt') || window.localStorage.getItem('jwt'))
     const [permisos, setPermisos] = useState([]);
     const [configuraciones, setConfiguraciones] = useState([]);
     const [parametros, setParametros] = useState([]);

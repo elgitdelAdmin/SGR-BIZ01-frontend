@@ -1,18 +1,15 @@
 import * as constantes from "../constants/constantes.js";
+import { apiFetch } from "./apiClient.js";
+
 const ENDPOINT = constantes.URLAPICONECTA;
 
-/**
- * Servicio para generar reportes enviando los filtros seleccionados.
- * @param {Object} filtros - Objeto con los filtros (tipoReporte, empresas, tickets, etc.)
- * @returns {Promise<Blob>} - Retorna un Blob con el archivo Excel generado.
- */
 /**
  * Servicio para consultar los datos del reporte (JSON para la tabla).
  * @param {Object} filtros - Objeto con los filtros.
  * @returns {Promise<Array>} - Retorna un array con los datos del reporte.
  */
 export const ConsultarDetalleReporte = async (filtros) => {
-    return await fetch(`${ENDPOINT}/api/Reportes/ConsultarDetalle`, {
+    return await apiFetch(`${ENDPOINT}/api/Reportes/ConsultarDetalle`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -21,10 +18,6 @@ export const ConsultarDetalleReporte = async (filtros) => {
     })
         .then(async (res) => {
             if (!res.ok) {
-                if (res.status === 401) {
-                    window.localStorage.removeItem("jwt");
-                    window.location.reload();
-                }
                 throw new Error("Error al consultar los datos del reporte");
             }
             return res.json();
@@ -32,7 +25,7 @@ export const ConsultarDetalleReporte = async (filtros) => {
 };
 
 export const GenerarReporteExcel = async (filtros) => {
-    return await fetch(`${ENDPOINT}/api/Reportes/GenerarExcel`, {
+    return await apiFetch(`${ENDPOINT}/api/Reportes/GenerarExcel`, {
         method: "POST",
         headers: {
             "Accept": "application/octet-stream",
@@ -42,10 +35,6 @@ export const GenerarReporteExcel = async (filtros) => {
     })
         .then(async (res) => {
             if (!res.ok) {
-                if (res.status === 401) {
-                    window.localStorage.removeItem("jwt");
-                    window.location.reload();
-                }
                 throw new Error("Error al generar el reporte");
             }
             return res.blob();
@@ -73,7 +62,7 @@ export const DashboardTicketsConsultor = async (filtros) => {
         }
     }
     const url = `${ENDPOINT}/api/Reportes/DashboardTicketsConsultor?${params.toString()}`;
-    return await fetch(url, {
+    return await apiFetch(url, {
         method: "GET",
         headers: {
             "Accept": "application/json"
@@ -81,10 +70,6 @@ export const DashboardTicketsConsultor = async (filtros) => {
     })
         .then(async (res) => {
             if (!res.ok) {
-                if (res.status === 401) {
-                    window.localStorage.removeItem("jwt");
-                    window.location.reload();
-                }
                 throw new Error("Error al consultar el dashboard de tickets");
             }
             return res.json();
