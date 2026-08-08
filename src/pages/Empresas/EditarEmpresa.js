@@ -36,6 +36,8 @@ import { ListarPais,ListarGestorCuenta} from "../../service/TiketService";
 import {ListarGestoresPorSocio,ListarGestores} from "../../service/GestorService";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
+import { RadioButton } from "primereact/radiobutton";
+import ModalConfiguracionGestores from "./Components/ModalConfiguracionGestores";
 const EditarConsultor = () => {
   const navigate = useNavigate();
   const { isLogged } = useUsuario();
@@ -59,6 +61,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
 
   const [checked, setChecked] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showConfigDialog, setShowConfigDialog] = useState(false);
 
 
   useEffect(() => {
@@ -265,6 +268,12 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
       idsGestores: empresa?.gestores && empresa.gestores.length > 0 
         ? empresa.gestores.filter(g => g.activo && g.idGestor).map(g => g.idGestor) 
         : (empresa?.idGestor ? [empresa.idGestor] : []),
+      gestoresConfig: empresa?.gestores && empresa.gestores.length > 0 
+        ? empresa.gestores.filter(g => g.activo && g.idGestor).map(g => ({
+            idGestor: g.idGestor,
+            idsTiposTicket: g.idsTiposTicketPermitidos || []
+          }))
+        : [],
       idGestorPrincipal: empresa?.idGestorPrincipal || (empresa?.gestores?.find(g => g.activo && g.esPrincipal)?.idGestor || empresa?.idGestor || 0),
       idGestor: empresa?.idGestorPrincipal || empresa?.idGestor || 0,
       idSocio: empresa?.idSocio || Number(window.localStorage.getItem("idsocio")),
@@ -303,6 +312,13 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
       idGestor: values.idGestorPrincipal,
       idGestorPrincipal: values.idGestorPrincipal,
       idsGestores: values.idsGestores,
+      gestoresAsignados: values.idsGestores.map(idG => {
+        const existing = values.gestoresConfig?.find(g => g.idGestor === idG);
+        return {
+            idGestor: idG,
+            idsTiposTicket: existing ? existing.idsTiposTicket : []
+        };
+      }),
       idSocio:values.idSocio,
       idUser:values.idUser,
       persona: {
@@ -430,7 +446,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                               {formik.touched.codigo && formik.errors.codigo}
                             </div>
             </div> */}
-            <div className="field col-12 md:col-6">
+            <div className="field col-12 md:col-4">
               <label className="label-form">Razon Social</label>
               <InputTextDefault
                 type={"text"}
@@ -445,7 +461,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 {formik.touched.razonSocial && formik.errors.razonSocial}
               </div>
             </div>
-            <div className="field col-12 md:col-6">
+            <div className="field col-12 md:col-4">
               <label className="label-form">Nombre Comercial</label>
               <InputTextDefault
                 type={"text"}
@@ -460,7 +476,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 {formik.touched.nombreComercial && formik.errors.nombreComercial}
               </div>
             </div>      
-            <div className="field col-12 md:col-6">
+            <div className="field col-12 md:col-4">
               <label className="label-form"> N° Documento del contribuyente</label>
               <InputTextDefault
                 type={"numeric"}
@@ -477,7 +493,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 {formik.touched.numDocContribuyente && formik.errors.numDocContribuyente}
               </small>
             </div>
-            <div className="field col-12 md:col-6">
+            <div className="field col-12 md:col-3">
                  <label className="label-form">Teléfono</label>
                  <InputTextDefault
                    id="telefono"
@@ -494,22 +510,7 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                    {formik.touched.telefono && formik.errors.telefono}
                  </small>
              </div>
-            <div className="field col-12 md:col-6">
-              <label className="label-form">Dirección</label>
-              <InputTextDefault
-                type={"text"}
-                id="direccion"
-                name="direccion"
-                placeholder="Escribe aquí"
-                value={formik.values.direccion}
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-              ></InputTextDefault>
-              <div className="p-error">
-                {formik.touched.direccion && formik.errors.direccion}
-              </div>
-            </div>
-            <div className="field col-12 md:col-6">
+            <div className="field col-12 md:col-4">
               <label className="label-form">Correo</label>
               <InputTextDefault
                 type={"text"}
@@ -524,7 +525,22 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 {formik.touched.email && formik.errors.email}
               </div>
             </div>
-            <div className="field col-12 md:col-6">
+            <div className="field col-12 md:col-5">
+              <label className="label-form">Dirección</label>
+              <InputTextDefault
+                type={"text"}
+                id="direccion"
+                name="direccion"
+                placeholder="Escribe aquí"
+                value={formik.values.direccion}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+              ></InputTextDefault>
+              <div className="p-error">
+                {formik.touched.direccion && formik.errors.direccion}
+              </div>
+            </div>
+            <div className="field col-12 md:col-3">
               <label className="label-form">Pais</label>
               <DropdownDefault
                 type={"text"}
@@ -545,54 +561,53 @@ const [soloUnUsuario, setSoloUnUsuario] = useState(false);
                 {formik.touched.idPais && formik.errors.idPais}
               </small>
             </div>
-             <div className="field col-12 md:col-6">
+             <div className="field col-12 md:col-9">
               <label className="label-form">Gestores Asignados</label>
-              <MultiSelectDefault
-                id="idsGestores"
-                name="idsGestores"
-                placeholder="Seleccione"
-                value={gestor ? (formik.values.idsGestores || []).filter(id => gestor.some(g => g.id === id)) : []}
-                onChange={(e) => {
-                  const selected = e.value || [];
-                  formik.setFieldValue("idsGestores", selected);
-                  if (!selected.includes(formik.values.idGestorPrincipal)) {
-                    formik.setFieldValue("idGestorPrincipal", selected.length > 0 ? selected[0] : 0);
-                    formik.setFieldValue("idGestor", selected.length > 0 ? selected[0] : 0);
-                  }
-                }}
-                onBlur={formik.handleBlur}
-                options={gestor || []}
-                optionLabel={(option) =>
-                  `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`
-                }
-                optionValue="id"
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ flex: 1 }}>
+                  <MultiSelectDefault
+                    id="idsGestores"
+                    name="idsGestores"
+                    placeholder="Seleccione"
+                    value={gestor ? (formik.values.idsGestores || []).filter(id => gestor.some(g => g.id === id)) : []}
+                    onChange={(e) => {
+                      const selected = e.value || [];
+                      formik.setFieldValue("idsGestores", selected);
+                      if (!selected.includes(formik.values.idGestorPrincipal)) {
+                        formik.setFieldValue("idGestorPrincipal", selected.length > 0 ? selected[0] : 0);
+                        formik.setFieldValue("idGestor", selected.length > 0 ? selected[0] : 0);
+                      }
+                    }}
+                    onBlur={formik.handleBlur}
+                    options={gestor || []}
+                    optionLabel={(option) =>
+                      `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`
+                    }
+                    optionValue="id"
+                  />
+                </div>
+                <Button 
+                  icon="pi pi-cog" 
+                  type="button" 
+                  className="p-button-rounded p-button-text p-button-secondary" 
+                  onClick={() => setShowConfigDialog(true)} 
+                  tooltip="Configurar tipos de ticket y Gestor Principal" 
+                  tooltipOptions={{ position: 'left' }}
+                  disabled={!(formik.values.idsGestores && formik.values.idsGestores.length > 0)}
+                />
+              </div>
               <small className="p-error">
                 {formik.touched.idsGestores && formik.errors.idsGestores}
               </small>
             </div>
 
-            <div className="field col-12 md:col-6">
-              <label className="label-form">Gestor Principal</label>
-              <DropdownDefault
-                type={"text"}
-                id="idGestorPrincipal"
-                name="idGestorPrincipal"
-                placeholder="Seleccione el gestor principal"
-                value={formik.values.idGestorPrincipal}
-                onChange={(e) => {
-                  formik.setFieldValue("idGestorPrincipal", e.value);
-                  formik.setFieldValue("idGestor", e.value);
-                }}
-                onBlur={formik.handleBlur}
-                options={(gestor || []).filter(g => (formik.values.idsGestores || []).includes(g.id))}
-                optionLabel={(option) => `${option.nombres} ${option.apellidoPaterno} ${option.apellidoMaterno}`}
-                optionValue="id"
-              />
-              <small className="p-error">
-                {formik.touched.idGestorPrincipal && formik.errors.idGestorPrincipal}
-              </small>
-            </div>
+            <ModalConfiguracionGestores
+              visible={showConfigDialog}
+              onHide={() => setShowConfigDialog(false)}
+              formik={formik}
+              gestor={gestor}
+              parametros={parametros}
+            />
 
             <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
             <div className="field col-12">

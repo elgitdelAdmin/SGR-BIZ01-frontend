@@ -17,7 +17,7 @@ export const ListarConsultores = async () => {
   });
 };
 
-export const ListarConsultoresPorSocio = async () => {
+/* export const ListarConsultoresPorSocio = async () => {
   return await apiFetch(`${ENDPOINT}/api/Consultor/byIdSocio/${window.localStorage.getItem("idsocio")}`, {
     method: "GET",
     headers: {
@@ -28,7 +28,7 @@ export const ListarConsultoresPorSocio = async () => {
     if (!res.ok) throw new Error("Error al obtener los consultores");
     return res.json();
   });
-};
+}; */
 
 export const RegistrarConsultor = ({ jsonData }) => {
     return apiFetch(`${ENDPOINT}/api/Consultor`, {

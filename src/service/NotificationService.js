@@ -5,14 +5,14 @@ const ENDPOINT = constantes.URLAPICONECTA;
 
 export const MarcarNotificacionComoLeida = async (idUser, notificationIds) => {
   return await apiFetch(
-    `${ENDPOINT}/api/Auth/MarcarNotificacionComoLeida?idUser=${idUser}`,
+    `${ENDPOINT}/api/Auth/MarcarNotificacionComoLeida`,
     {
       method: "POST",
       headers: {
         "Accept": "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(notificationIds),
+      body: JSON.stringify({ idUser, idsNotificaciones: notificationIds }),
     }
   )
     .then((res) => {

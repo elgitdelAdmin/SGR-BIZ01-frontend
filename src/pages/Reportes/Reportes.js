@@ -8,7 +8,7 @@ import Boton from "../../components/Boton/Boton";
 import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import "./Reportes.scss";
 import { TIPO_PARAMETRO, CODIGOS } from "../../constants/codigosBD";
-import { ListarConsultores, ListarConsultoresPorSocio } from "../../service/ConsultorService";
+import { ListarConsultores } from "../../service/ConsultorService";
 import { ListarEmpresas, ListarEmpresasPorSocio } from "../../service/EmpresaService";
 import { ListarTicket, ObtenerTicket } from "../../service/TiketService";
 import { GenerarReporteExcel, ConsultarDetalleReporte } from "../../service/ReporteService";
@@ -58,7 +58,7 @@ const Reportes = () => {
         const loadAllData = async () => {
             try {
                 const [resConsultores, resEmpresas, resTickets] = await Promise.all([
-                    (codRol === "SUPERADMIN" ? ListarConsultores() : ListarConsultoresPorSocio()),
+                    (ListarConsultores()),
                     (codRol === "SUPERADMIN" ? ListarEmpresas() : ListarEmpresasPorSocio()),
                     ListarTicket({ idUser, codRol })
                 ]);

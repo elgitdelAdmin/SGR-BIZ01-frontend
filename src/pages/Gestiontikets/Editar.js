@@ -13,7 +13,7 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { Toast } from "primereact/toast";
 import useUsuario from "../../hooks/useUsuario";
-import { ListarConsultores, ListarConsultoresPorSocio, ObtenerConsultor } from "../../service/ConsultorService";
+import { ListarConsultores, ObtenerConsultor } from "../../service/ConsultorService";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog"; // For confirmDialog method
 import { formatDate } from "../../helpers/helpers";
 import { Divider } from "primereact/divider";
@@ -393,7 +393,8 @@ const Editar = () => {
 
   useEffect(() => {
     const getConsultores = async () => {
-      const fetchFunction = codRol === "SUPERADMIN" ? ListarConsultores : ListarConsultoresPorSocio;
+      // const fetchFunction = codRol === "SUPERADMIN" ? ListarConsultores : ListarConsultoresPorSocio;
+      const fetchFunction = ListarConsultores; // Modificado para siempre listar todos tras anular IdSocio
       await fetchFunction().then((data) => {
         const consultoresFormateados = data.map((item) => ({
           id: item.id,

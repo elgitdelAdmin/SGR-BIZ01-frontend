@@ -9,7 +9,7 @@ import ExpandableCard from "../../../components/ExpandableCard/ExpandableCard";
 import { DashboardTicketsConsultor } from "../../../service/ReporteService";
 import Context from "../../../context/usuarioContext";
 import { TIPO_PARAMETRO, CODIGOS } from "../../../constants/codigosBD";
-import { ListarConsultores, ListarConsultoresPorSocio } from "../../../service/ConsultorService";
+import { ListarConsultores } from "../../../service/ConsultorService";
 import { ListarEmpresas, ListarEmpresasPorSocio } from "../../../service/EmpresaService";
 import { ListarTicket } from "../../../service/TiketService";
 import "./DashboardCargabilidadConsultor.scss";

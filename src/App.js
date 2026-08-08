@@ -39,7 +39,7 @@ import CambiarEmail from "./pages/Configuracion/CambiarEmail";
 import Reportes from "./pages/Reportes/Reportes";
 import DashboardCargabilidadConsultor from "./pages/Reportes/Dashboard/DashboardCargabilidadConsultor";
 import { ListarParametros, ListarTicket } from "./service/TiketService";
-import { ListarConsultores, ListarConsultoresPorSocio } from "./service/ConsultorService";
+import { ListarConsultores } from "./service/ConsultorService";
 import { ListarEmpresas, ListarEmpresasPorSocio } from "./service/EmpresaService";
 import Context from "./context/usuarioContext";
 import { useContext } from "react";
@@ -97,7 +97,7 @@ function App() {
           const shouldLoadTickets = !tickets || tickets.length === 0;
 
           if (shouldLoadConsultores) {
-            promises.push(codRol === "SUPERADMIN" ? ListarConsultores() : ListarConsultoresPorSocio());
+            promises.push(ListarConsultores());
           } else {
             promises.push(Promise.resolve(null));
           }

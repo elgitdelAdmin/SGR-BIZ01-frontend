@@ -246,7 +246,7 @@ const Empresas = () => {
                              <Column field="telefono" header="Telefono"  sortable style={{ width: '120px', minWidth: '120px' }} />
                              <Column field="direccion" header="Direccion"  sortable style={{ width: '120px', minWidth: '120px' }} />
                              <Column field="email" header="Correo"  sortable style={{ width: '120px', minWidth: '120px' }} />
-                             <Column field="estadoNombre" header="Estado" sortable style={{ width: '120px', minWidth: '120px' }}  />
+                             <Column field="nombreSocio" header="Socio" sortable style={{ width: '120px', minWidth: '120px' }}  />
                             </DatatableDinamic>
                          <Dialog
                                 header="Especializaciones"

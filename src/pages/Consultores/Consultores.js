@@ -10,7 +10,7 @@ import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog'; // For confirmDialog method
 import useUsuario from "../../hooks/useUsuario";
 import { InputText } from "primereact/inputtext";
-import { ListarConsultores, ListarConsultoresPorSocio, ListarParametros } from "../../service/ConsultorService";
+import { ListarConsultores, ListarParametros } from "../../service/ConsultorService";
 import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
 import { EliminarConsultor } from "../../service/ConsultorService";
@@ -60,9 +60,9 @@ const Consultores = () => {
 
         networkTimeout = setTimeout(() => {
             setLoading(true);
-            const fetchFunction = codRol === "SUPERADMIN" ? ListarConsultores : ListarConsultoresPorSocio;
+            const fetchFunction = ListarConsultores;
             fetchFunction()
-                // ListarConsultoresPorSocio()
+                // ListarConsultores()
                 .then((data) => {
                     const dataConEstado = data.map(consultor => ({
                         ...consultor,
