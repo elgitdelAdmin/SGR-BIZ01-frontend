@@ -35,7 +35,20 @@ export const apiFetch = async (url, options = {}) => {
         if (response.status === 401) {
             removeCookie('jwt');
             removeCookie('refreshToken');
-            window.location.reload();
+            window.localStorage.removeItem('jwt');
+            window.localStorage.removeItem('refreshToken');
+            window.localStorage.removeItem('username');
+            window.localStorage.removeItem('nombreCompleto');
+            window.localStorage.removeItem('nombreSocio');
+            window.localStorage.removeItem('nombreRol');
+            window.localStorage.removeItem('logoSocio');
+            window.localStorage.removeItem('idsocio');
+            window.localStorage.removeItem('idRol');
+            window.localStorage.removeItem('idUser');
+            window.localStorage.removeItem('codRol');
+            window.localStorage.removeItem('idConsultor');
+            window.localStorage.removeItem('notificacionTicket');
+            window.location.href = '/Login';
             throw new Error('Sesión expirada o no autorizada');
         }
 

@@ -156,10 +156,17 @@ const Horas = ({
   const localIdConsultor = window.localStorage.getItem("idConsultor");
   const isOwner = asignacion?.IdConsultor == localIdConsultor;
 
-  // - TAREO: solo owner puede editar
+  // - TAREO: owner, ADMIN, o SUPERADMIN pueden editar
   // - PLAN: no exige owner
   const puedeEditar = useMemo(() => {
     if (readOnly) return false;
+    
+    const codRol = window.localStorage.getItem("codRol");
+    const isAdminOrSuperAdmin = codRol === "ADMIN" || codRol === "SUPERADMIN";
+    
+    // Si es ADMIN o SUPERADMIN siempre puede editar (ignora bloqueos y dueños)
+    if (isAdminOrSuperAdmin) return true;
+
     if (estaBloqueado) return false;
     if (isTareo) return isOwner;
     return true;
@@ -184,6 +191,9 @@ const Horas = ({
       ? (frenteSubFrente?.fechaFin ? new Date(frenteSubFrente.fechaFin) : null)
       : (asignacion?.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null);
   }, [isPlan, frenteSubFrente?.fechaFin, asignacion?.FechaDesasignacion]);
+
+  // Memoizar new Date() para que PrimeReact Calendar no pierda el rango por renderizados
+  const todayMaxDate = useMemo(() => new Date(), []);
 
   const [tipoIngreso, setTipoIngreso] = useState(1);
   const [dividirHoras, setDividirHoras] = useState(false);
@@ -946,7 +956,7 @@ const Horas = ({
 
                       // TAREO: recalculo si ya hay horas válidas
                       if (isTareo) {
-                        const autoFin = recalcularFechaFinTareoSiAplica(FechaInicio, nuevo.Horas);
+                        const autoFin = buildFechaFinTareo(FechaInicio, nuevo.Horas);
                         FechaFin = autoFin ?? FechaFin;
                       }
 
@@ -956,17 +966,21 @@ const Horas = ({
                     showIcon
                     className="w-full"
                     minDate={minFechaPlan}
-                    maxDate={isPlan ? maxFechaPlan : new Date()}
+                    maxDate={isPlan ? maxFechaPlan : todayMaxDate}
                   />
                 </div>
               ) : (
                 <div className="field col-12 md:col-4">
                   <label>Rango de Fechas</label>
                   <CalendarRangeDefault
-                    value={[
-                      nuevo.FechaInicio ? new Date(nuevo.FechaInicio) : null,
-                      nuevo.FechaFin ? new Date(nuevo.FechaFin) : null
-                    ]}
+                    value={
+                      nuevo.FechaInicio || nuevo.FechaFin 
+                        ? [
+                            nuevo.FechaInicio ? new Date(nuevo.FechaInicio) : null,
+                            nuevo.FechaFin ? new Date(nuevo.FechaFin) : null
+                          ] 
+                        : null
+                    }
                     onChange={(e) => {
                       const range = e.value || [];
                       setNuevo((prev) => ({
@@ -978,7 +992,7 @@ const Horas = ({
                     dateFormat="yy-mm-dd"
                     className="w-full"
                     minDate={minFechaPlan}
-                    maxDate={isPlan ? maxFechaPlan : new Date()}
+                    maxDate={isPlan ? maxFechaPlan : todayMaxDate}
                   />
                 </div>
               )}
