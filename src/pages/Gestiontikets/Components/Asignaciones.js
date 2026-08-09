@@ -289,7 +289,7 @@ const Asignaciones = ({
               if (originalIndex === -1) return "—";
               const name = (
                 !formik.values.asignaciones?.[originalIndex]?.IdSubFrente
-                  ? consultores
+                  ? (consultores || [])
                   : consultoresPorFila[originalIndex] || []
               ).find((c) => Number(c.id) === Number(asignacion.IdConsultor))?.nombre || "—";
               const initials = name !== "—" ? name.split(" ").filter(Boolean).slice(0, 2).map(n => n[0]).join("").toUpperCase() : "";
@@ -347,7 +347,11 @@ const Asignaciones = ({
               }
               const isZero = totalHrsStr === "0:00" || totalHrsStr === "0.00" || totalHrsStr === "0";
               const codRol = localStorage.getItem("codRol");
-              const showWorkedHoursAlert = codRol === "CONSULTOR" || codRol === "GESTORCONSULTORIA" || codRol === "ADMIN" || codRol === "SUPERADMIN";
+              const idUser = localStorage.getItem("idUser");
+              
+              const isOwnRow = Number(asignacion.IdConsultor) === Number(idUser);
+              const isPrivilegedRole = codRol === "GESTORCONSULTORIA" || codRol === "ADMIN" || codRol === "SUPERADMIN";
+              const showWorkedHoursAlert = (codRol === "CONSULTOR" && isOwnRow) || isPrivilegedRole;
 
               let badgeClass = "horas-blue";
               if (isZero) {
@@ -588,7 +592,7 @@ const Asignaciones = ({
                 value={formik.values.asignaciones[editingIndex].IdConsultor}
                 options={
                   !formik.values.asignaciones?.[editingIndex]?.IdSubFrente
-                    ? consultores
+                    ? (consultores || [])
                     : consultoresPorFila[editingIndex] || []
                 }
                 optionLabel="nombre"

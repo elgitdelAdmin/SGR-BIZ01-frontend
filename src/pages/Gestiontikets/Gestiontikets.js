@@ -116,8 +116,9 @@ const Gestiontikets = () => {
 
     useEffect(() => {
         if (tickets.length > 0 && !alertShownRef.current) {
-            const showWorkedHoursAlert = codRol === ROLES.Consultor || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
-            const showPlannedHoursAlert = codRol === ROLES.GestorCuenta || codRol === ROLES.GestorConsultoria || codRol === ROLES.Administrador;
+            const shouldShowAlerts = codRol === ROLES.Consultor || codRol === ROLES.GestorConsultoria || codRol === ROLES.GestorCuenta;
+            const showWorkedHoursAlert = shouldShowAlerts;
+            const showPlannedHoursAlert = shouldShowAlerts;
             const alerts = [];
 
             // 1. Horas Trabajadas (sin registrar)

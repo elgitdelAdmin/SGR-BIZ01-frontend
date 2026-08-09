@@ -159,7 +159,7 @@ const Especializaciones = ({
 
   const confirmarEliminacion = (rowData) => {
     confirmDialog({
-      message: "¿Está seguro de desactivar esta especialización?",
+      message: "¿Está seguro de eliminar esta especialización? Se eliminarán también la asignación enlazada.",
       header: "Confirmación",
       icon: "pi pi-exclamation-triangle",
       acceptClassName: "custom-confirm-accept",
@@ -172,11 +172,14 @@ const Especializaciones = ({
         );
         formik.setFieldValue("frenteSubFrentes", nuevas);
 
-        // Desactivar asignaciones vinculadas a esta especialización por _uid
+        // Desactivar asignaciones vinculadas a esta especialización por _uid o id
         const uid = rowData._uid;
-        const nuevasAsig = (formik.values.asignaciones || []).map((a) =>
-          a._frenteSubFrenteUid === uid ? { ...a, Activo: false } : a
-        );
+        const espId = rowData.id;
+        const nuevasAsig = (formik.values.asignaciones || []).map((a) => {
+          if (uid && a._frenteSubFrenteUid === uid) return { ...a, Activo: false };
+          if (espId && a.IdTicketFrenteSubFrente && Number(a.IdTicketFrenteSubFrente) === Number(espId)) return { ...a, Activo: false };
+          return a;
+        });
         formik.setFieldValue("asignaciones", nuevasAsig);
 
         // Quitar de subfrentes seleccionados para la lista de asignación
