@@ -1,4 +1,4 @@
-﻿@import "../../styles/variables";
+@import "../../styles/variables";
 
 
 
@@ -79,6 +79,30 @@
   to {
     opacity: 1;
     transform: translate(-50%, -100%) translateY(-8px) scale(1);
+  }
+}
+
+/* Estilo seguro para Tooltips de PrimeReact (Botones de Toolbar) sin romper las matemáticas de posicionamiento */
+.gt-action-tooltip {
+  .p-tooltip-text {
+    width: max-content;
+    max-width: 320px;
+    background: linear-gradient(135deg, #0e71ae 0%, #09507c 100%);
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    padding: 10px 16px;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(14, 113, 174, 0.35), 0 4px 10px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: normal;
+    word-break: break-word;
+    text-align: left;
+  }
+  &.p-tooltip-top .p-tooltip-arrow {
+    border-top-color: #09507c !important;
   }
 }
 

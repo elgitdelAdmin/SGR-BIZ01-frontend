@@ -12,6 +12,7 @@ const DropdownDefault = ({
     placeholder = 'Seleccione...',
     className = '',
     style,
+    pulse = false,
     ...props
 }) => {
     return (
@@ -23,7 +24,7 @@ const DropdownDefault = ({
             optionLabel={optionLabel}
             optionValue={optionValue}
             placeholder={placeholder}
-            className={`dropdown-default-custom ${className}`}
+            className={`dropdown-default-custom ${pulse ? 'pulse-combo' : ''} ${className}`}
             style={style}
             panelClassName="dropdown-default-panel-custom"
             {...props}

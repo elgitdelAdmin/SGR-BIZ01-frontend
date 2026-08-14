@@ -9,6 +9,7 @@ const InputTextDefault = ({
     placeholder = '',
     className = '',
     style,
+    pulse = false,
     ...props
 }) => {
     return (
@@ -17,7 +18,7 @@ const InputTextDefault = ({
             value={value}
             onChange={onChange}
             placeholder={placeholder}
-            className={`input-text-default-custom ${className}`}
+            className={`input-text-default-custom ${pulse ? 'pulse-combo' : ''} ${className}`}
             style={style}
             {...props}
         />

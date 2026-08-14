@@ -8,7 +8,8 @@ import Boton from "../../components/Boton/Boton";
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import useUsuario from "../../hooks/useUsuario";
-import { ListarTicketPaginado, EliminarTicket, ListarParametros, MigrarTicketSgr } from "../../service/TiketService";
+import { ListarTicketPaginado, EliminarTicket, ListarParametros, MigrarTicketSgr, ListarGestorCuenta } from "../../service/TiketService";
+import { ListarEmpresasporRol } from "../../service/EmpresaService";
 import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import AlertaTicketsSinHoras from "../../components/AlertaTicketsSinHoras/AlertaTicketsSinHoras";
 import Context from "../../context/usuarioContext";
@@ -18,6 +19,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { playNotificationSound } from '../../helpers/audioHelpers';
+import ModalCreacionRapida from "./Components/ModalCreacionRapida";
 
 
 const Gestiontikets = () => {
@@ -43,6 +45,7 @@ const Gestiontikets = () => {
     const [displayDialogSync, setDisplayDialogSync] = useState(false);
     const [codTicketInterno, setCodTicketInterno] = useState("");
     const [loadingSync, setLoadingSync] = useState(false);
+    const [visibleModalCreacionRapida, setVisibleModalCreacionRapida] = useState(false);
 
     // ── Estado Alerta Tickets Sin Horas / Planificación ───────────────
     const [activeAlerts, setActiveAlerts] = useState([]);
@@ -92,6 +95,62 @@ const Gestiontikets = () => {
         };
         getParametro();
     }, []);
+
+    // ── Verificar permiso para Creación Rápida de Mesa de Ayuda ──────
+    const PERMISO_KEY = `permiso_mda_${idUser}_${codRol}`;
+    const [tienePermisoMesaAyuda, setTienePermisoMesaAyuda] = useState(() => {
+        return sessionStorage.getItem(PERMISO_KEY) === 'true';
+    });
+    
+    useEffect(() => {
+        // Si ya validamos el permiso en esta sesión, no volver a consultar al servidor
+        if (sessionStorage.getItem(PERMISO_KEY) !== null) {
+            return;
+        }
+
+        const verifyPermiso = async () => {
+            if (codRol === "SUPERADMIN" || codRol === "ADMIN") {
+                setTienePermisoMesaAyuda(true);
+                sessionStorage.setItem(PERMISO_KEY, 'true');
+                return;
+            }
+            try {
+                const [dataParam, dataGestores, dataEmpresas] = await Promise.all([
+                    ListarParametros(),
+                    ListarGestorCuenta(),
+                    ListarEmpresasporRol({ idUser, codRol })
+                ]);
+
+                const mdaParam = dataParam.find(p => p.tipoParametro === "TipoTicket" && p.codigo === "MDA");
+                if (!mdaParam) {
+                    setTienePermisoMesaAyuda(false);
+                    sessionStorage.setItem(PERMISO_KEY, 'false');
+                    return;
+                }
+                const idMesa = Number(mdaParam.id);
+
+                const miGestor = dataGestores.find(g => Number(g.idUser) === Number(idUser));
+                if (!miGestor) {
+                    setTienePermisoMesaAyuda(false);
+                    sessionStorage.setItem(PERMISO_KEY, 'false');
+                    return;
+                }
+                const miIdGestor = Number(miGestor.id);
+
+                const hasPermiso = dataEmpresas.some(emp => {
+                    const g = (emp.gestores || []).find(x => Number(x.idGestor) === miIdGestor && x.activo !== false);
+                    return g && g.idsTiposTicketPermitidos && g.idsTiposTicketPermitidos.includes(idMesa);
+                });
+
+                setTienePermisoMesaAyuda(hasPermiso);
+                sessionStorage.setItem(PERMISO_KEY, hasPermiso.toString());
+            } catch (error) {
+                console.error("Error verificando permiso MDA", error);
+                setTienePermisoMesaAyuda(false);
+            }
+        };
+        verifyPermiso();
+    }, [idUser, codRol]);
 
     // ── Persistir filtros en sessionStorage ───────────────────────────
     useEffect(() => {
@@ -276,10 +335,34 @@ const Gestiontikets = () => {
 
 
 
+    const confirmCreacionRapida = () => {
+        confirmDialog({
+            message: 'Esa opción solo se usa para crear tickets de MESA DE AYUDA.',
+            header: 'Confirmación',
+            icon: 'pi pi-info-circle',
+            acceptClassName: 'custom-confirm-accept-primary',
+            acceptLabel: 'Aceptar',
+            rejectClassName: 'custom-confirm-reject',
+            rejectLabel: 'Cancelar',
+            accept: () => {
+                setVisibleModalCreacionRapida(true);
+            }
+        });
+    };
+
     return (
         <div className="zv-usuario" style={{ paddingTop: 16 }}>
             <ConfirmDialog />
             <Toast ref={toast} position="top-center"></Toast>
+            {visibleModalCreacionRapida && (
+                <ModalCreacionRapida
+                    visible={visibleModalCreacionRapida}
+                    onHide={() => setVisibleModalCreacionRapida(false)}
+                    onSaveSuccess={() => {
+                        loadTickets();
+                    }}
+                />
+            )}
             <div className="header-titulo">Gestión de Tickets</div>
             <div className="zv-usuario-body" style={{ marginTop: 16 }}>
 
@@ -308,7 +391,19 @@ const Gestiontikets = () => {
                                 style={{ fontSize: 15, borderRadius: 8 }}
                                 color="primary"
                                 onClick={() => navigate("Crear/")}
+                                tooltip="Crear Ticket"
+                                tooltipOptions={{ position: 'top', className: 'gt-action-tooltip' }}
                             />
+                            {tienePermisoMesaAyuda && (
+                                <Boton
+                                    icon="pi pi-bolt"
+                                    style={{ fontSize: 15, borderRadius: 8 }}
+                                    color="primary"
+                                    onClick={confirmCreacionRapida}
+                                    tooltip="Creación Rápida de Mesa de Ayuda"
+                                    tooltipOptions={{ position: 'top', className: 'gt-action-tooltip' }}
+                                />
+                            )}
                             {!permisosActual.controlesOcultos.includes("BtnMdlMigracionSgr") && (
                                 <Boton
                                     id="BtnMdlMigracionSgr"
@@ -317,6 +412,7 @@ const Gestiontikets = () => {
                                     color="primary"
                                     onClick={() => setDisplayDialogSync(true)}
                                     tooltip="Sincronizar Ticket desde SGR"
+                                    tooltipOptions={{ position: 'top', className: 'gt-action-tooltip' }}
                                 />
                             )}
                         </div>
@@ -390,7 +486,7 @@ const Gestiontikets = () => {
                                 className="centered-column-body"
                                 body={(rowData) => {
                                     const hrsT = rowData?.horasTrabajadas;
-                                    
+
                                     const formatDecimalToHHMM = (val) => {
                                         if (val === null || val === undefined || val === "") return "0:00";
                                         const num = Number(val);
@@ -423,7 +519,7 @@ const Gestiontikets = () => {
                                 className="centered-column-body"
                                 body={(rowData) => {
                                     const hrsP = rowData?.horasPlanificadas;
-                                    
+
                                     const formatDecimalToHHMM = (val) => {
                                         if (val === null || val === undefined || val === "") return "0:00";
                                         const num = Number(val);
@@ -487,9 +583,9 @@ const Gestiontikets = () => {
             {activeAlerts.map((alert, index) => {
                 // Posicionar en cascada desde el centro para que no se traslapen totalmente
                 const offset = index * 30; // 30px de desfase por alerta
-                
+
                 return (
-                    <AlertaTicketsSinHoras 
+                    <AlertaTicketsSinHoras
                         key={alert.id}
                         visible={true}
                         onHide={() => setActiveAlerts(prev => prev.filter(a => a.id !== alert.id))}
@@ -500,11 +596,11 @@ const Gestiontikets = () => {
                         modal={false}
                         draggable={true}
                         position="center"
-                        style={{ 
-                            width: '32vw', 
-                            minWidth: '420px', 
-                            marginTop: `${offset}px`, 
-                            marginLeft: `${offset}px` 
+                        style={{
+                            width: '32vw',
+                            minWidth: '420px',
+                            marginTop: `${offset}px`,
+                            marginLeft: `${offset}px`
                         }}
                     />
                 );

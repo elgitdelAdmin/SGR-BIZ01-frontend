@@ -63,8 +63,10 @@ const Empresas = () => {
             .then((data) => {
                 const dataConEstado = data.map(consultor => ({
                     ...consultor,
-                    estadoNombre:
-                        consultor.activo ? "Activo" : "Inactivo"
+                    estadoNombre: consultor.activo ? "Activo" : "Inactivo",
+                    gestoresAsignadosNombres: (!consultor.gestores || consultor.gestores.length === 0)
+                        ? 'Ninguno'
+                        : consultor.gestores.map(g => g.nombreGestor ? g.nombreGestor.trim() : "").filter(Boolean).join(' / ')
                 }));
                 // 🔹 ordenar
                 dataConEstado.sort((a, b) => new Date(a.fechaRegistro) - new Date(b.fechaRegistro)).reverse();
@@ -244,8 +246,7 @@ const Empresas = () => {
                               <Column field="razonSocial" header="Razon social" sortable style={{ width: '120px', minWidth: '120px' }}  />
                              <Column field="numDocContribuyente" header="RUC" sortable style={{ width: '120px', minWidth: '120px' }}  />
                              <Column field="telefono" header="Telefono"  sortable style={{ width: '120px', minWidth: '120px' }} />
-                             <Column field="direccion" header="Direccion"  sortable style={{ width: '120px', minWidth: '120px' }} />
-                             <Column field="email" header="Correo"  sortable style={{ width: '120px', minWidth: '120px' }} />
+                             <Column field="gestoresAsignadosNombres" header="Gestores Asignados" sortable style={{ width: '200px', minWidth: '200px' }} />
                              <Column field="nombreSocio" header="Socio" sortable style={{ width: '120px', minWidth: '120px' }}  />
                             </DatatableDinamic>
                          <Dialog

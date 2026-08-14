@@ -358,6 +358,24 @@ button{
   }
 }
 
+.custom-confirm-accept-primary {
+  background-color: $color-azul-vivo !important;
+  border-color: $color-azul-vivo !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  height: 40px !important;
+  padding: 0 1.5rem !important;
+  font-family: $font-family-display !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  
+  &:hover {
+    background-color: darken(#0e71ae, 5%) !important; // assuming $color-azul-vivo is around #0e71ae
+    border-color: darken(#0e71ae, 5%) !important;
+  }
+}
+
 .custom-confirm-reject {
   background-color: $color-azul-tonal !important;
   border-color: $color-azul-tonal !important;
@@ -394,8 +412,21 @@ button{
     box-shadow: 0 0 0 0.2rem rgba(14, 113, 174, 0.2) !important;
 }
 
+
 /* El input dentro de la tabla (buscador por columna) debe ser más pequeño según README */
 .p-datatable .p-inputtext {
     height: 32px !important;
 }
+
+@keyframes pulseBlue {
+  0% { box-shadow: 0 0 0 0 rgba(14, 113, 174, 0.7); }
+  50% { box-shadow: 0 0 0 8px rgba(14, 113, 174, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(14, 113, 174, 0); }
+}
+
+.pulse-combo {
+  animation: pulseBlue 1.5s infinite !important;
+  border-radius: 6px;
+}
+
 

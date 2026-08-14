@@ -64,6 +64,27 @@ export const RegistrarTiket = ({ ticketData }) => {
     });
 };
 
+export const RegistrarTiketRapido = ({ ticketData }) => {
+  return apiFetch(`${ENDPOINT}/api/Ticket/rapido`, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(ticketData),
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("No se recibió respuesta del servidor");
+      }
+      return res.json();
+    })
+    .then((ticket) => {
+      if (ticket.errors) throw new Error(ticket.errors[0]);
+      return ticket;
+    });
+};
+
 export const ActualizarTicket = ({ ticketData, idTicket }) => {
   return apiFetch(`${ENDPOINT}/api/Ticket/${idTicket}`, {
     method: "PUT",
