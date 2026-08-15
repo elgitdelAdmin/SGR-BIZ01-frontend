@@ -46,11 +46,20 @@ const TopBar = (props) => {
     const toggleNotifications = async () => {
         try {
           setupdateNotifications(!updateNotifications)
-          const ids = notificacionTicket.filter(n => !n.leido).map(n => n.id);
+          const unreadNotifs = notificacionTicket.filter(n => !n.leido);
+          const ids = unreadNotifs.map(n => n.id);
           if (ids.length > 0 && updateNotifications) {
             await MarcarNotificacionComoLeida(idUser, ids);
-            setupdateNotifications(!updateNotifications)
-            setlengthNotifications(false)
+            setupdateNotifications(!updateNotifications);
+            setlengthNotifications(false);
+
+            // Actualizar estado local
+            const updatedNotifs = notificacionTicket.map(n => 
+              ids.includes(n.id) ? { ...n, leido: true } : n
+            );
+            setNotificacionTicket(updatedNotifs);
+            // Actualizar localStorage
+            localStorage.setItem("notificacionTicket", JSON.stringify(updatedNotifs));
           }
           setShowNotifications(!showNotifications);
           setShowAlerts(false); // Cerrar menú de alertas al abrir notificaciones

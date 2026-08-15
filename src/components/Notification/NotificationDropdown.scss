@@ -163,8 +163,7 @@
   }
 
   &--read &__msg {
-    font-weight: 400;
-    color: #555;
+    /* Mantener el mismo color y peso que las no leídas para que "salgan igual" */
   }
 
   &__meta {

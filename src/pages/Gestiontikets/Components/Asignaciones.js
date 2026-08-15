@@ -176,6 +176,10 @@ const Asignaciones = ({
   const opcionesDisponibles = obtenerOpcionesSubfrente(null);
   const sePuedeAgregar = opcionesDisponibles.length > 0;
 
+  const codRol = localStorage.getItem("codRol");
+  const idUser = localStorage.getItem("idUser");
+  const idConsultorLogged = localStorage.getItem("idConsultor");
+
   return (
     <div className="field col-12 md:col-12">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", width: "100%" }}>
@@ -246,9 +250,9 @@ const Asignaciones = ({
             body={(asignacion) => {
               const originalIndex = formik.values.asignaciones.findIndex((a) => a.idUnico === asignacion.idUnico);
               if (originalIndex === -1) return "—";
-              
+
               const asig = formik.values.asignaciones[originalIndex];
-              
+
               const esp = (formik.values.frenteSubFrentes || []).find((e) => {
                 if (e.activo === false) return false;
                 if (asig._frenteSubFrenteUid && e._uid) {
@@ -346,10 +350,8 @@ const Asignaciones = ({
                 totalHrsStr = th ? String(th).replace(".", ":") : "0:00";
               }
               const isZero = totalHrsStr === "0:00" || totalHrsStr === "0.00" || totalHrsStr === "0";
-              const codRol = localStorage.getItem("codRol");
-              const idUser = localStorage.getItem("idUser");
               
-              const isOwnRow = Number(asignacion.IdConsultor) === Number(idUser);
+              const isOwnRow = Number(asignacion.IdConsultor) === Number(idConsultorLogged);
               const isPrivilegedRole = codRol === "GESTORCONSULTORIA" || codRol === "ADMIN" || codRol === "SUPERADMIN";
               const showWorkedHoursAlert = (codRol === "CONSULTOR" && isOwnRow) || isPrivilegedRole;
 
@@ -398,7 +400,7 @@ const Asignaciones = ({
             }}
           />
 
-          {!permisosActual.controlesOcultos.includes("btnEliminar") && (
+          {(!permisosActual.controlesOcultos.includes("btnEliminar") || codRol === "CONSULTOR") && (
             <Column
               header="Acciones"
               align="center"
@@ -408,24 +410,68 @@ const Asignaciones = ({
               body={(asignacion) => {
                 const originalIndex = formik.values.asignaciones.findIndex((a) => a.idUnico === asignacion.idUnico);
                 if (originalIndex === -1) return null;
+
+                const isOwnRow = Number(asignacion.IdConsultor) === Number(idConsultorLogged);
+                const canEditDelete = !permisosActual.controlesOcultos.includes("btnEliminar");
+
                 return (
                   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
-                    <Button
-                      type="button"
-                      icon="pi pi-pencil"
-                      className="accion-editar"
-                      onClick={() => handleEditar(originalIndex)}
-                      tooltip="Editar"
-                      style={{ width: "32px", height: "32px", padding: 0 }}
-                    />
-                    <Button
-                      type="button"
-                      icon="pi pi-trash"
-                      className="accion-eliminar"
-                      onClick={() => removeRow(asignacion.idUnico)}
-                      tooltip="Eliminar"
-                      style={{ width: "32px", height: "32px", padding: 0 }}
-                    />
+                    {canEditDelete && (
+                      <>
+                        <Button
+                          type="button"
+                          icon="pi pi-pencil"
+                          className="accion-editar"
+                          onClick={() => handleEditar(originalIndex)}
+                          tooltip="Editar"
+                          style={{ width: "32px", height: "32px", padding: 0 }}
+                        />
+                        <Button
+                          type="button"
+                          icon="pi pi-trash"
+                          className="accion-eliminar"
+                          onClick={() => removeRow(asignacion.idUnico)}
+                          tooltip="Eliminar"
+                          style={{ width: "32px", height: "32px", padding: 0 }}
+                        />
+                      </>
+                    )}
+
+                    {!canEditDelete && codRol === "CONSULTOR" && isOwnRow && (
+                      <Button
+                        type="button"
+                        icon="pi pi-times"
+                        className="accion-eliminar"
+                        onClick={() => {
+                          const tasks = formik.values.asignaciones[originalIndex]?.DetalleTareasConsultor || [];
+                          const tieneHorasEnFormik = tasks.some(t => t.Activo && hhmmToMinutes(t.Horas) > 0);
+                          let totalHrsStr = "0:00";
+                          if (tieneHorasEnFormik) {
+                            const totalMin = tasks.filter(t => t.Activo).reduce((sum, t) => sum + (hhmmToMinutes(t.Horas) || 0), 0);
+                            const hh = Math.floor(totalMin / 60);
+                            const mm = totalMin % 60;
+                            totalHrsStr = `${hh}:${String(mm).padStart(2, "0")}`;
+                          } else {
+                            const th = totalesFijos?.[originalIndex]?.totalHoras;
+                            totalHrsStr = th ? String(th).replace(".", ":") : "0:00";
+                          }
+                          const isZero = totalHrsStr === "0:00" || totalHrsStr === "0.00" || totalHrsStr === "0";
+
+                          if (!isZero) {
+                            toastRef?.current?.show?.({
+                              severity: "error",
+                              summary: "Acción Denegada",
+                              detail: "No puedes rechazar la asignación porque ya tienes horas registradas. Contacta a tu Gestor.",
+                              life: 5000,
+                            });
+                          } else {
+                            removeRow(asignacion.idUnico);
+                          }
+                        }}
+                        tooltip="Rechazar Asignación"
+                        style={{ width: "32px", height: "32px", padding: 0 }}
+                      />
+                    )}
                   </div>
                 );
               }}
