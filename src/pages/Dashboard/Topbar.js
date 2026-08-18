@@ -6,6 +6,9 @@ import useUsuario from "../../hooks/useUsuario";
 import * as Iconsax from "iconsax-react";
 import NotificationDropdown from "../../components/Notification/NotificationDropdown"
 import { MarcarNotificacionComoLeida } from "../../service/NotificationService";
+import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
+import * as constantes from "../../constants/constantes";
+import { startLoopingNotificationSound, stopLoopingNotificationSound } from "../../helpers/audioHelpers";
 import Context from "../../context/usuarioContext";
 import AlertaTicketsSinHoras from "../../components/AlertaTicketsSinHoras/AlertaTicketsSinHoras";
 import AlertsDropdown from "../../components/AlertsDropdown/AlertsDropdown";
@@ -126,6 +129,62 @@ const TopBar = (props) => {
     useEffect(() => {
         if (!isLogged) navigate("/Login")
     }, [isLogged]);
+
+    useEffect(() => {
+        const token = window.localStorage.getItem("jwt");
+        if (!token) return;
+
+        // 1. Configurar la conexión de SignalR
+        const connection = new HubConnectionBuilder()
+            .withUrl(`${constantes.URLAPICONECTA}/hubs/notificaciones`, {
+                accessTokenFactory: () => token
+            })
+            .configureLogging(LogLevel.Information)
+            .withAutomaticReconnect()
+            .build();
+
+        // 2. Iniciar la conexión
+        connection.start()
+            .then(() => console.log('Conectado a SignalR - Notificaciones'))
+            .catch(err => console.error('Error conectando a SignalR: ', err));
+
+        // 3. Escuchar el evento que el backend lanza ("RecibirNotificacion")
+        connection.on("RecibirNotificacion", (nuevaNotificacion) => {
+            console.log("Nueva notificación recibida por SignalR", nuevaNotificacion);
+            // Agregamos la nueva notificación al inicio del array
+            setNotificacionTicket(prev => {
+                // Evitamos duplicados si el backend por algún motivo mandara la misma
+                if (prev.some(n => n.id === nuevaNotificacion.id)) {
+                    return prev;
+                }
+                const actualizadas = [nuevaNotificacion, ...prev];
+                window.localStorage.setItem("notificacionTicket", JSON.stringify(actualizadas));
+                return actualizadas;
+            });
+        });
+
+        // 4. Limpieza al desmontar
+        return () => {
+            if (connection) {
+                connection.off("RecibirNotificacion");
+                connection.stop();
+            }
+        };
+    }, []);
+
+    // Control del sonido en bucle
+    useEffect(() => {
+        const noLeidas = notificacionTicket.filter(n => !n.leido).length;
+        if (noLeidas > 0) {
+            startLoopingNotificationSound();
+        } else {
+            stopLoopingNotificationSound();
+        }
+
+        return () => {
+            stopLoopingNotificationSound();
+        };
+    }, [notificacionTicket]);
 
     // Helpers
     const nombreCompleto = window.localStorage.getItem("nombreCompleto") || window.localStorage.getItem("username") || "U";
@@ -300,23 +359,28 @@ const TopBar = (props) => {
                 {/* Notification bell */}
                 <div style={{ position: "relative" }}>
                     <div
+                        className={unreadCount > 0 && lengthNotifications ? "bell-active-animation" : ""}
                         onClick={toggleNotifications}
                         style={{
                             width: "40px",
                             height: "40px",
                             borderRadius: "8px",
-                            backgroundColor: showNotifications ? "#b2d6ea" : "#d0e5f0",
+                            backgroundColor: unreadCount > 0 
+                                ? (showNotifications ? "#fcc8c8" : "#fde8e8") 
+                                : (showNotifications ? "#b2d6ea" : "#d0e5f0"),
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             transition: "background-color 0.2s",
                             cursor: "pointer"
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#b2d6ea"}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = showNotifications ? "#b2d6ea" : "#d0e5f0"}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = unreadCount > 0 ? "#fcc8c8" : "#b2d6ea"}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = unreadCount > 0 
+                            ? (showNotifications ? "#fcc8c8" : "#fde8e8") 
+                            : (showNotifications ? "#b2d6ea" : "#d0e5f0")}
                     >
-                        <div className={unreadCount > 0 && lengthNotifications ? "bell-active-animation" : ""} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <Iconsax.Notification size="20" color="#0e71ae" variant={showNotifications || unreadCount > 0 ? "Bold" : "Linear"} />
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Iconsax.Notification size="20" color={unreadCount > 0 ? "#dd4b39" : "#0e71ae"} variant={showNotifications || unreadCount > 0 ? "Bold" : "Linear"} />
                         </div>
                     </div>
                     {unreadCount > 0 && lengthNotifications && (

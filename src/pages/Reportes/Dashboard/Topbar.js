@@ -6,6 +6,9 @@ import useUsuario from "../../hooks/useUsuario";
 import * as Iconsax from "iconsax-react";
 import NotificationDropdown from "../../components/Notification/NotificationDropdown"
 import { MarcarNotificacionComoLeida } from "../../service/NotificationService";
+import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
+import * as constantes from "../../constants/constantes";
+import { startLoopingNotificationSound, stopLoopingNotificationSound } from "../../helpers/audioHelpers";
 
 
 const TopBar = (props) => {
@@ -93,6 +96,62 @@ const TopBar = (props) => {
     useEffect(() => {
         if (!isLogged) navigate("/Login")
     }, [isLogged]);
+
+    useEffect(() => {
+        const token = window.localStorage.getItem("jwt");
+        if (!token) return;
+
+        // 1. Configurar la conexión de SignalR
+        const connection = new HubConnectionBuilder()
+            .withUrl(`${constantes.URLAPICONECTA}/hubs/notificaciones`, {
+                accessTokenFactory: () => token
+            })
+            .configureLogging(LogLevel.Information)
+            .withAutomaticReconnect()
+            .build();
+
+        // 2. Iniciar la conexión
+        connection.start()
+            .then(() => console.log('Conectado a SignalR - Notificaciones'))
+            .catch(err => console.error('Error conectando a SignalR: ', err));
+
+        // 3. Escuchar el evento que el backend lanza ("RecibirNotificacion")
+        connection.on("RecibirNotificacion", (nuevaNotificacion) => {
+            console.log("Nueva notificación recibida por SignalR", nuevaNotificacion);
+            // Agregamos la nueva notificación al inicio del array
+            setNotificacionTicket(prev => {
+                // Evitamos duplicados si el backend por algún motivo mandara la misma
+                if (prev.some(n => n.id === nuevaNotificacion.id)) {
+                    return prev;
+                }
+                const actualizadas = [nuevaNotificacion, ...prev];
+                window.localStorage.setItem("notificacionTicket", JSON.stringify(actualizadas));
+                return actualizadas;
+            });
+        });
+
+        // 4. Limpieza al desmontar
+        return () => {
+            if (connection) {
+                connection.off("RecibirNotificacion");
+                connection.stop();
+            }
+        };
+    }, []);
+
+    // Control del sonido en bucle
+    useEffect(() => {
+        const noLeidas = notificacionTicket.filter(n => !n.leido).length;
+        if (noLeidas > 0) {
+            startLoopingNotificationSound();
+        } else {
+            stopLoopingNotificationSound();
+        }
+
+        return () => {
+            stopLoopingNotificationSound();
+        };
+    }, [notificacionTicket]);
 
     return ( 
         <div className="layout-topbar" style={{
@@ -191,12 +250,35 @@ const TopBar = (props) => {
                 style={{
                     display: "flex",
                     alignItems: "center",
-                    cursor: "pointer",
                     gap: "15px",
                 }}
             >
-                <div onClick={toggleNotifications} style={{ position: "relative" }}>
-                    <Iconsax.Notification size="24" />
+                <div style={{ position: "relative" }}>
+                    <div
+                        className={notificacionTicket.filter(n => !n.leido).length > 0 && lengthNotifications ? "bell-active-animation" : ""}
+                        onClick={toggleNotifications}
+                        style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "8px",
+                            backgroundColor: notificacionTicket.filter(n => !n.leido).length > 0 
+                                ? (showNotifications ? "#fcc8c8" : "#fde8e8") 
+                                : (showNotifications ? "#b2d6ea" : "#d0e5f0"),
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transition: "background-color 0.2s",
+                            cursor: "pointer"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = notificacionTicket.filter(n => !n.leido).length > 0 ? "#fcc8c8" : "#b2d6ea"}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = notificacionTicket.filter(n => !n.leido).length > 0 
+                            ? (showNotifications ? "#fcc8c8" : "#fde8e8") 
+                            : (showNotifications ? "#b2d6ea" : "#d0e5f0")}
+                    >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Iconsax.Notification size="20" color={notificacionTicket.filter(n => !n.leido).length > 0 ? "#dd4b39" : "#0e71ae"} variant={showNotifications || notificacionTicket.filter(n => !n.leido).length > 0 ? "Bold" : "Linear"} />
+                        </div>
+                    </div>
 
                     {notificacionTicket.filter(n => !n.leido).length > 0 && lengthNotifications && (
                         <span
