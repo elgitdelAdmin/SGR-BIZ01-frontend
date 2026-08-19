@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useContext } from "react";
+import ReactDOM from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import CalendarDefault from "../../../components/CalendarDefault/CalendarDefault";
 import DropdownDefault from "../../../components/DropdownDefault/DropdownDefault";
@@ -23,6 +24,7 @@ import { Dialog } from 'primereact/dialog';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import AsignacionesCreacionRapida from "./AsignacionesCreacionRapida";
 import Especializaciones from "./Especializaciones";
+import EspecializacionesCreacionRapida from "./EspecializacionesCreacionRapida";
 import { CODIGOS, TIPO_PARAMETRO } from "../../../constants/codigosBD";
 import Context from "../../../context/usuarioContext";
 
@@ -543,6 +545,44 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
     validationSchema: schema,
 
     onSubmit: (values) => {
+      // 🚨 VALIDACIONES PERSONALIZADAS DE CREACIÓN RÁPIDA 🚨
+      const activasAsignaciones = (values.asignaciones || []).filter(a => a.Activo !== false && !a.esPlaceholder);
+      const activasEspecializaciones = (values.frenteSubFrentes || []).filter(f => f.activo !== false);
+
+      if (activasAsignaciones.length === 0) {
+        toast.current.show({
+          severity: "warn",
+          summary: "Faltan datos",
+          detail: "Debe agregar al menos una asignación para crear el ticket.",
+        });
+        formik.setSubmitting(false);
+        return;
+      }
+
+      if (activasEspecializaciones.length === 0) {
+        toast.current.show({
+          severity: "warn",
+          summary: "Faltan datos",
+          detail: "Debe existir al menos una especialización vinculada.",
+        });
+        formik.setSubmitting(false);
+        return;
+      }
+
+      const especializacionSinPlan = activasEspecializaciones.find(f => {
+        const planesActivos = (f.DetallePlanificacionConsultor || []).filter(p => p.Activo !== false);
+        return planesActivos.length === 0;
+      });
+
+      if (especializacionSinPlan) {
+        toast.current.show({
+          severity: "warn",
+          summary: "Planificación faltante",
+          detail: "Todas las especializaciones deben tener al menos un registro de planificación de horas. Por favor, registre las horas.",
+        });
+        formik.setSubmitting(false);
+        return;
+      }
 
       const reposPayload = (values.reposLinks || []).map(r => ({
         Link: (r.Url ?? r.Link ?? "").trim(),
@@ -1228,7 +1268,11 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
   return (
     <Dialog visible={visible} onHide={onHide} header="Creación Rápida de Ticket" style={{ width: '85vw' }} modal className="zv-editarUsuario" contentStyle={{ paddingTop: 12 }}>
       <ConfirmDialog />
-      <Toast ref={toast} position="top-center"></Toast>
+
+      {ReactDOM.createPortal(
+        <Toast ref={toast} position="top-center" style={{ zIndex: 2147483647 }}></Toast>,
+        document.body
+      )}
 
       {/* 🔴 Popup de alerta: Horas sin registrar */}
       <Dialog
@@ -1630,6 +1674,23 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
               {/* ===================== FIN DATOS GENERALES ===================== */}
 
               <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
+              
+              {formik.values.asignaciones && formik.values.asignaciones.length > 0 && (
+                <div style={{ marginBottom: "20px" }}>
+                  <EspecializacionesCreacionRapida
+                    formik={formik}
+                    frentes={frentes}
+                    permisosActual={permisosActual}
+                    setSubfrentesSeleccionados={setSubfrentesSeleccionados}
+                    consultores={consultores}
+                    parametros={parametros}
+                    codFrentes={codFrentes}
+                    toastRef={toast}
+                  />
+                  <hr style={{ width: "100%", border: "1px solid #ccc", margin: "20px 0" }} />
+                </div>
+              )}
+
               <AsignacionesCreacionRapida
                 formik={formik}
                 permisosActual={permisosActual}

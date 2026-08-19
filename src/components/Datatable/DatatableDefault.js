@@ -63,11 +63,11 @@ const DatatableDefault = ({ export: exportProp, showSearch, paginator, ...restPr
         font-size: 11px !important;
       }
 
-      /* 🔹 Limitar altura y permitir solo scroll vertical */
+      /* 🔹 Limitar altura y permitir solo scroll vertical y horizontal */
       .p-datatable-scrollable-body {
         max-height: 500px !important; /* ajusta si quieres más alto */
         overflow-y: auto !important;
-        overflow-x: hidden !important;
+        overflow-x: auto !important;
       }
 
       /* 🔹 Fijar el paginador (parte inferior) en pantalla */

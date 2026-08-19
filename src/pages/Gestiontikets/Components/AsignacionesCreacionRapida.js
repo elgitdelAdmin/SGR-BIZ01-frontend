@@ -3,7 +3,7 @@ import React, { useState, useMemo } from "react";
 import { Dialog } from "primereact/dialog";
 import InputTextDefault from "../../../components/InputTextDefault/InputTextDefault";
 import DropdownDefault from "../../../components/DropdownDefault/DropdownDefault";
-import Horas from "./Horas";
+import HorasCreacionRapida from "./HorasCreacionRapida";
 import CalendarFormik from "../../../components/Calendar/CalendarFormik";
 import * as Iconsax from "iconsax-react";
 import Boton from "../../../components/Boton/Boton";
@@ -206,8 +206,8 @@ const AsignacionesCreacionRapida = ({
 
   return (
     <div className="field col-12 md:col-12">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", width: "100%" }}>
-        <label className="font-h3">
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", width: "100%", gap: "10px" }}>
+        <label className="font-h3" style={{ margin: 0 }}>
           Asignaciones
         </label>
 
@@ -264,7 +264,7 @@ const AsignacionesCreacionRapida = ({
           />
         )}
       </div>
-      <div className={`table-warning-wrapper ${highlightZero ? "table-warning-blink" : ""}`}>
+      <div className={`overflow-x-auto w-full table-warning-wrapper ${highlightZero ? "table-warning-blink" : ""}`}>
         <DatatableDefault
           showSearch={false}
           paginator={false}
@@ -510,9 +510,25 @@ const AsignacionesCreacionRapida = ({
                       }
                     } else {
                       // CREACION RAPIDA: Ensure Especializacion exists for this Subfrente
+                      const asigActual = formik.values.asignaciones[editingIndex];
+                      const oldIdSubFrente = asigActual ? asigActual.IdSubFrente : null;
+                      
+                      // Limpiar el UID obsoleto ya que estamos cambiando el subfrente manualmente
+                      formik.setFieldValue(`asignaciones[${editingIndex}]._frenteSubFrenteUid`, null);
+
                       const existeEsp = (formik.values.frenteSubFrentes || []).some(
                         (esp) => esp.activo !== false && Number(esp.idSubFrente) === idSubFrente
                       );
+                      
+                      let newFrenteSubFrentes = [...(formik.values.frenteSubFrentes || [])];
+                      
+                      if (oldIdSubFrente && Number(oldIdSubFrente) !== Number(idSubFrente)) {
+                         const isInUse = formik.values.asignaciones.some((a, idx) => idx !== editingIndex && a.Activo !== false && Number(a.IdSubFrente) === Number(oldIdSubFrente));
+                         if (!isInUse) {
+                            newFrenteSubFrentes = newFrenteSubFrentes.filter(esp => Number(esp.idSubFrente) !== Number(oldIdSubFrente) || esp.id > 0);
+                         }
+                      }
+
                       if (!existeEsp && idSubFrente && idFrente) {
                         const fechaReferencia = formik.values.fechaSolicitud ? new Date(formik.values.fechaSolicitud) : new Date();
                         const newEsp = {
@@ -520,13 +536,14 @@ const AsignacionesCreacionRapida = ({
                           idFrente: idFrente,
                           idSubFrente: idSubFrente,
                           cantidad: 1,
-                          fechaInicio: fechaReferencia,
-                          fechaFin: fechaReferencia,
+                          fechaInicio: asigActual && asigActual.FechaAsignacion ? new Date(asigActual.FechaAsignacion).toISOString() : fechaReferencia,
+                          fechaFin: asigActual && asigActual.FechaDesasignacion ? new Date(asigActual.FechaDesasignacion).toISOString() : fechaReferencia,
                           activo: true,
                           descripcion: ""
                         };
-                        formik.setFieldValue("frenteSubFrentes", [...(formik.values.frenteSubFrentes || []), newEsp]);
+                        newFrenteSubFrentes.push(newEsp);
                       }
+                      formik.setFieldValue("frenteSubFrentes", newFrenteSubFrentes);
                     }
 
                     if (idSubFrente) {
@@ -549,7 +566,23 @@ const AsignacionesCreacionRapida = ({
               <CalendarFormik
                 name={`asignaciones[${editingIndex}].FechaAsignacion`}
                 value={formik.values.asignaciones[editingIndex].FechaAsignacion}
-                setFieldValue={formik.setFieldValue}
+                setFieldValue={(name, val) => {
+                  formik.setFieldValue(name, val);
+                  if (esCreacionRapida) {
+                    const asig = formik.values.asignaciones[editingIndex];
+                    if (asig && (asig._frenteSubFrenteUid || asig.IdSubFrente)) {
+                      const espIndex = (formik.values.frenteSubFrentes || []).findIndex(e => 
+                        e.activo !== false && (
+                          (asig._frenteSubFrenteUid && e._uid === asig._frenteSubFrenteUid) || 
+                          (!asig._frenteSubFrenteUid && Number(e.idSubFrente) === Number(asig.IdSubFrente))
+                        )
+                      );
+                      if (espIndex !== -1) {
+                        formik.setFieldValue(`frenteSubFrentes[${espIndex}].fechaInicio`, val ? new Date(val).toISOString() : null);
+                      }
+                    }
+                  }
+                }}
                 minDate={formik.values.fechaSolicitud ? new Date(formik.values.fechaSolicitud) : null}
                 showSeconds={false}
                 showTime={false}
@@ -563,7 +596,23 @@ const AsignacionesCreacionRapida = ({
               <CalendarFormik
                 name={`asignaciones[${editingIndex}].FechaDesasignacion`}
                 value={formik.values.asignaciones[editingIndex].FechaDesasignacion}
-                setFieldValue={formik.setFieldValue}
+                setFieldValue={(name, val) => {
+                  formik.setFieldValue(name, val);
+                  if (esCreacionRapida) {
+                    const asig = formik.values.asignaciones[editingIndex];
+                    if (asig && (asig._frenteSubFrenteUid || asig.IdSubFrente)) {
+                      const espIndex = (formik.values.frenteSubFrentes || []).findIndex(e => 
+                        e.activo !== false && (
+                          (asig._frenteSubFrenteUid && e._uid === asig._frenteSubFrenteUid) || 
+                          (!asig._frenteSubFrenteUid && Number(e.idSubFrente) === Number(asig.IdSubFrente))
+                        )
+                      );
+                      if (espIndex !== -1) {
+                        formik.setFieldValue(`frenteSubFrentes[${espIndex}].fechaFin`, val ? new Date(val).toISOString() : null);
+                      }
+                    }
+                  }
+                }}
                 minDate={
                   formik.values.asignaciones[editingIndex].FechaAsignacion
                     ? new Date(formik.values.asignaciones[editingIndex].FechaAsignacion)
@@ -637,8 +686,8 @@ const AsignacionesCreacionRapida = ({
                           idFrente: idFrente,
                           idSubFrente: idSubFrente,
                           cantidad: 1,
-                          fechaInicio: fechaReferencia,
-                          fechaFin: fechaReferencia,
+                          fechaInicio: asig && asig.FechaAsignacion ? new Date(asig.FechaAsignacion).toISOString() : fechaReferencia,
+                          fechaFin: asig && asig.FechaDesasignacion ? new Date(asig.FechaDesasignacion).toISOString() : fechaReferencia,
                           activo: true,
                           descripcion: formik.values.descripcion || ""
                         };

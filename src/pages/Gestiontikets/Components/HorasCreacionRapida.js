@@ -12,8 +12,7 @@ import InputHorasDefault from "../../../components/InputHorasDefault/InputHorasD
 import CheckboxDefault from "../../../components/CheckboxDefault/CheckboxDefault";
 import CalendarRangeDefault from "../../../components/CalendarRangeDefault/CalendarRangeDefault";
 
-const getPermKey = (mode) =>
-  mode === "PLAN" ? "divHorasPlanificacion" : "divHorasTareo";
+
 
 /**
  * Normaliza entrada a "HH.MM" con 2 decimales
@@ -51,10 +50,10 @@ const normalizeHHMM = (raw) => {
 const isValidHHMM = (hhmm) => {
   let s = String(hhmm ?? "").trim();
   if (!s) return false;
-  
+
   // Convertir punto a dos puntos
   s = s.replace(".", ":");
-  
+
   // "10" o "10:5" o "10:50" o "10:"
   if (!/^\d+(:[0-5]?\d?)?$/.test(s)) return false;
 
@@ -103,8 +102,7 @@ const minutesToHHMM = (mins) => {
   return `${hh}:${String(mm).padStart(2, "0")}`;
 };
 
-const Horas = ({
-  mode, // "TAREO" | "PLAN"
+const HorasCreacionRapida = ({
   index,
   asignacion,
   frenteSubFrente,
@@ -115,14 +113,12 @@ const Horas = ({
   toastRef,
   readOnly = false,
 }) => {
-  const isPlan = mode === "PLAN";
-  const isTareo = mode === "TAREO";
+  const isPlan = true;
+  const isTareo = false;
 
-  const fieldKey = isPlan
-    ? "DetallePlanificacionConsultor"
-    : "DetalleTareasConsultor";
+  const fieldKey = "DetallePlanificacionConsultor";
 
-  const permKey = getPermKey(mode);
+  const permKey = "divHorasPlanificacion";
 
   const [visible, setVisible] = useState(false);
 
@@ -160,10 +156,10 @@ const Horas = ({
   // - PLAN: no exige owner
   const puedeEditar = useMemo(() => {
     if (readOnly) return false;
-    
+
     const codRol = window.localStorage.getItem("codRol");
     const isAdminOrSuperAdmin = codRol === "ADMIN" || codRol === "SUPERADMIN";
-    
+
     // Si es ADMIN o SUPERADMIN siempre puede editar (ignora bloqueos y dueños)
     if (isAdminOrSuperAdmin) return true;
 
@@ -180,17 +176,38 @@ const Horas = ({
     return isPlan ? "Planificar Horas" : "Registrar Horas";
   }, [puedeEditar, isPlan]);
 
+  const linkedAsig = useMemo(() => {
+    if (!formik?.values?.asignaciones) return null;
+    const fsId = frenteSubFrente?.idSubFrente ?? frenteSubFrente?.IdSubFrente;
+    return formik.values.asignaciones.find(
+      (a) => a.Activo !== false && (
+        (a._frenteSubFrenteUid && a._frenteSubFrenteUid === frenteSubFrente?._uid) ||
+        (frenteSubFrente?.id > 0 && Number(a.IdTicketFrenteSubFrente) === Number(frenteSubFrente.id)) ||
+        (fsId && Number(a.IdSubFrente) === Number(fsId))
+      )
+    );
+  }, [formik?.values?.asignaciones, frenteSubFrente]);
+
   const minFechaPlan = useMemo(() => {
-    return isPlan
-      ? (frenteSubFrente?.fechaInicio ? new Date(frenteSubFrente.fechaInicio) : null)
-      : (asignacion?.FechaAsignacion ? new Date(asignacion.FechaAsignacion) : null);
-  }, [isPlan, frenteSubFrente?.fechaInicio, asignacion?.FechaAsignacion]);
+    // En Creación Rápida, priorizamos las fechas de la asignación vinculada
+    if (linkedAsig?.FechaAsignacion) return new Date(linkedAsig.FechaAsignacion);
+    if (frenteSubFrente?.fechaInicio) return new Date(frenteSubFrente.fechaInicio);
+    if (asignacion?.FechaAsignacion) return new Date(asignacion.FechaAsignacion);
+    return null;
+  }, [linkedAsig?.FechaAsignacion, frenteSubFrente?.fechaInicio, asignacion?.FechaAsignacion]);
 
   const maxFechaPlan = useMemo(() => {
-    return isPlan
-      ? (frenteSubFrente?.fechaFin ? new Date(frenteSubFrente.fechaFin) : null)
-      : (asignacion?.FechaDesasignacion ? new Date(asignacion.FechaDesasignacion) : null);
-  }, [isPlan, frenteSubFrente?.fechaFin, asignacion?.FechaDesasignacion]);
+    // Si la asignación vinculada tiene fecha de fin, la usamos como límite máximo
+    if (linkedAsig?.FechaDesasignacion) return new Date(linkedAsig.FechaDesasignacion);
+    // fechaFin de la especialización solo si es diferente a su fechaInicio (para evitar el caso 18/8 -> 18/8)
+    if (frenteSubFrente?.fechaFin && frenteSubFrente?.fechaInicio &&
+      new Date(frenteSubFrente.fechaFin).getTime() !== new Date(frenteSubFrente.fechaInicio).getTime()) {
+      return new Date(frenteSubFrente.fechaFin);
+    }
+    if (asignacion?.FechaDesasignacion) return new Date(asignacion.FechaDesasignacion);
+    // Sin límite: el usuario puede seleccionar libremente
+    return null;
+  }, [linkedAsig?.FechaDesasignacion, frenteSubFrente?.fechaFin, frenteSubFrente?.fechaInicio, asignacion?.FechaDesasignacion]);
 
   // Memoizar new Date() para que PrimeReact Calendar no pierda el rango por renderizados
   const todayMaxDate = useMemo(() => new Date(), []);
@@ -212,13 +229,11 @@ const Horas = ({
     setEditingRow(null);
     setInitialDetailsSnapshot(current.map(d => ({ ...d })));
 
-    const linkedAsig = isPlan ? (formik.values.asignaciones || []).find(
-      (a) => a.Activo !== false && (a._frenteSubFrenteUid === frenteSubFrente?._uid || (frenteSubFrente?.id > 0 && Number(a.IdTicketFrenteSubFrente) === Number(frenteSubFrente.id)))
-    ) : null;
+
 
     setNuevo({
-      FechaInicio: isPlan ? minFechaPlan : null,
-      FechaFin: isPlan ? minFechaPlan : null,
+      FechaInicio: minFechaPlan,
+      FechaFin: maxFechaPlan,
       Horas: "",
       Descripcion: "",
       Activo: true,
@@ -229,7 +244,7 @@ const Horas = ({
     });
     setTipoIngreso(3);
     setDividirHoras(false);
-  }, [visible, asignacion?.Id, frenteSubFrente?.id, frenteSubFrente?.Id, frenteSubFrente?._uid, isPlan, isTareo, minFechaPlan]);
+  }, [visible, asignacion?.Id, frenteSubFrente?.id, frenteSubFrente?.Id, frenteSubFrente?._uid, isPlan, isTareo, minFechaPlan, maxFechaPlan]);
 
   const current = useMemo(() => {
     const arr = isPlan
@@ -594,7 +609,7 @@ const Horas = ({
 
     setNuevo({
       FechaInicio: isPlan ? minFechaPlan : null,
-      FechaFin: isPlan ? minFechaPlan : null,
+      FechaFin: isPlan ? maxFechaPlan : null,
       Horas: "",
       Descripcion: "",
       Activo: true,
@@ -759,7 +774,6 @@ const Horas = ({
   };
 
   const guardarCambiosConfirm = () => {
-    formik.handleSubmit();
     setVisible(false);
     setDisplayConfirmDialog(false);
   };
@@ -878,21 +892,27 @@ const Horas = ({
   };
 
   const footer = (
-    <div className="w-full flex justify-between items-center border-t pt-3 px-3">
+    <div className="w-full flex flex-wrap justify-between items-center border-t pt-3 px-3 gap-2">
       <div className="text-left font-semibold text-blue-700">
         Total de horas:&nbsp;{totalHorasHHMM}
       </div>
 
-      <Boton
-        label="Registrar"
-        color="secondary"
-        type="button"
-        disabled={addDisabledGate && delDisabledGate}
-        onClick={() => {
-          formik.handleSubmit();
-          setVisible(false);
-        }}
-      />
+      <div className="flex gap-2">
+        <Boton
+          actionType="guardar"
+          onClick={() => {
+            // Solo guardamos en memoria, no llamamos a formik.handleSubmit()
+            setVisible(false);
+          }}
+        />
+        <Boton
+          actionType="cerrar"
+          onClick={() => {
+            // Descartamos cambios no guardados
+            descartarCambios();
+          }}
+        />
+      </div>
     </div>
   );
 
@@ -908,6 +928,21 @@ const Horas = ({
           animation: pulseBlue 1.5s infinite;
           border-radius: 6px;
         }
+        .tabla-compacta .p-datatable-thead > tr > th {
+          padding: 0.5rem !important;
+          font-size: 0.85rem !important;
+        }
+        .tabla-compacta .p-datatable-tbody > tr > td {
+          padding: 0.3rem 0.5rem !important;
+          font-size: 0.85rem !important;
+        }
+        .tabla-compacta .p-button.p-button-icon-only {
+          width: 1.8rem !important;
+          height: 1.8rem !important;
+        }
+        .tabla-compacta .p-button-icon {
+          font-size: 0.9rem !important;
+        }
       `}</style>
       <Boton
         actionType={actionTypeBtn}
@@ -918,6 +953,7 @@ const Horas = ({
         header={dialogTitle}
         visible={visible}
         style={{ width: "60vw" }}
+        breakpoints={{ '960px': '80vw', '640px': '95vw' }}
         modal
         onHide={handleHideDialog}
         footer={footer}
@@ -974,11 +1010,11 @@ const Horas = ({
                   <label>Rango de Fechas</label>
                   <CalendarRangeDefault
                     value={
-                      nuevo.FechaInicio || nuevo.FechaFin 
+                      nuevo.FechaInicio || nuevo.FechaFin
                         ? [
-                            nuevo.FechaInicio ? new Date(nuevo.FechaInicio) : null,
-                            nuevo.FechaFin ? new Date(nuevo.FechaFin) : null
-                          ] 
+                          nuevo.FechaInicio ? new Date(nuevo.FechaInicio) : null,
+                          nuevo.FechaFin ? new Date(nuevo.FechaFin) : null
+                        ]
                         : null
                     }
                     onChange={(e) => {
@@ -999,17 +1035,19 @@ const Horas = ({
 
               <div className="field col-12 md:col-4">
                 <label>Tipo de Actividad</label>
-                <DropdownDefault
-                  value={nuevo.IdTipoActividad}
-                  options={optionsTipoActividad}
-                  onChange={(e) =>
-                    setNuevo((p) => ({ ...p, IdTipoActividad: e.value }))
-                  }
-                  optionLabel="nombre"
-                  optionValue="id"
-                  placeholder="Seleccione tipo"
-                  className="w-full"
-                />
+                <div className="pulse-combo">
+                  <DropdownDefault
+                    value={nuevo.IdTipoActividad}
+                    options={optionsTipoActividad}
+                    onChange={(e) =>
+                      setNuevo((p) => ({ ...p, IdTipoActividad: e.value }))
+                    }
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione tipo"
+                    className="w-full"
+                  />
+                </div>
               </div>
 
               {/* Fila 2: Horas y Checkbox (si aplica) */}
@@ -1079,7 +1117,14 @@ const Horas = ({
           </>
         )}
 
-        <DataTable value={currentActivos} responsiveLayout="scroll" className="w-full">
+        <DataTable
+          value={currentActivos}
+          responsiveLayout="scroll"
+          scrollable
+          scrollHeight="350px"
+          className="w-full tabla-compacta"
+          emptyMessage="No results found"
+        >
           <Column
             field="FechaInicio"
             header="Fecha Inicio"
@@ -1332,4 +1377,4 @@ const Horas = ({
   );
 };
 
-export default Horas;
+export default HorasCreacionRapida;
