@@ -60,6 +60,11 @@ const Editar = () => {
   // ✅ Modal Repositorios
   const [visibleRepos, setVisibleRepos] = useState(false);
 
+  // Modal de Rechazo de Asignación
+  const [visibleRechazo, setVisibleRechazo] = useState(false);
+  const [rechazoAsignacionId, setRechazoAsignacionId] = useState(null);
+  const [motivoRechazo, setMotivoRechazo] = useState('');
+
 
 
   const location = useLocation();
@@ -566,6 +571,9 @@ const Editar = () => {
           FechaAsignacion: a.fechaAsignacion || a.FechaAsignacion,
           FechaDesasignacion: a.fechaDesasignacion || a.FechaDesasignacion,
           Activo: (a.activo !== undefined ? a.activo : a.Activo) !== false,
+          Rechazado: (a.rechazado !== undefined ? a.rechazado : a.Rechazado) || false,
+          MotivoRechazo: a.motivoRechazo || a.MotivoRechazo || "",
+          FechaRechazo: a.fechaRechazo || a.FechaRechazo || null,
           DetalleTareasConsultor: detallesTareas.map((d) => {
             const hVal = d.horas ?? d.Horas;
             let hStr = "0:00";
@@ -719,6 +727,9 @@ const Editar = () => {
             fechaAsignacion: a.FechaAsignacion ? toLocalISOString(a.FechaAsignacion) : null,
             fechaDesasignacion: a.FechaDesasignacion ? toLocalISOString(a.FechaDesasignacion) : null,
             activo: a.Activo !== false,
+            rechazado: a.Rechazado || false,
+            motivoRechazo: a.MotivoRechazo || null,
+            fechaRechazo: a.FechaRechazo ? (typeof a.FechaRechazo === "string" ? a.FechaRechazo : toLocalISOString(a.FechaRechazo)) : null,
             detalleTareasConsultor: detalleTareas
           };
         });
@@ -797,6 +808,7 @@ const Editar = () => {
     );
 
     if (!asignacionConsultor) return false;
+    if (asignacionConsultor.Rechazado) return false;
 
     const tareasFormik = asignacionConsultor.DetalleTareasConsultor || [];
     const tieneHorasEnFormik = tareasFormik.some(t => t.Activo && parseFloat(t.Horas || 0) > 0);
@@ -1282,6 +1294,42 @@ const Editar = () => {
     });
   };
 
+  // Rechazar fila por idUnico (Consultor)
+  const iniciarRechazo = (idUnico) => {
+    setRechazoAsignacionId(idUnico);
+    setMotivoRechazo('');
+    setVisibleRechazo(true);
+  };
+
+  const confirmarRechazo = () => {
+    if (!motivoRechazo.trim()) {
+      toast.current.show({
+        severity: "warn",
+        summary: "Atención",
+        detail: "Debe ingresar un motivo de rechazo.",
+        life: 5000,
+      });
+      return;
+    }
+
+    let nuevasAsignaciones = formik.values.asignaciones.map((a) =>
+      a.idUnico === rechazoAsignacionId
+        ? {
+            ...a,
+            Rechazado: true,
+            MotivoRechazo: motivoRechazo,
+            FechaRechazo: new Date().toISOString()
+            // Se mantiene Activo = true
+          }
+        : a
+    );
+
+    formik.setFieldValue("asignaciones", nuevasAsignaciones).then(() => {
+      formik.handleSubmit();
+    });
+    setVisibleRechazo(false);
+  };
+
   useEffect(() => {
     // Cuando cambia modoEdicion, actualiza el acordeón
     setActiveIndex(modoEdicion ? null : 0);
@@ -1333,7 +1381,7 @@ const Editar = () => {
   };
   const contarAsignaciones = (idSubFrente) => {
     return formik.values.asignaciones.filter(
-      (a) => a.IdSubFrente === idSubFrente && a.Activo !== false && !a.esPlaceholder
+      (a) => a.IdSubFrente === idSubFrente && a.Activo !== false && !a.esPlaceholder && !a.Rechazado
     ).length;
   };
 
@@ -1873,6 +1921,7 @@ const Editar = () => {
                       consultores={consultores}
                       consultoresPorFila={consultoresPorFila}
                       setConsultoresPorFila={setConsultoresPorFila}
+                      iniciarRechazo={iniciarRechazo}
                       ObtenerConsultoresPorFrente={ObtenerConsultoresPorFrente}
                       obtenerCantidadPermitida={obtenerCantidadPermitida}
                       contarAsignaciones={contarAsignaciones}
@@ -1901,6 +1950,48 @@ const Editar = () => {
 
           </div>
         </form>
+
+        <Dialog
+          header="Confirmar Rechazo"
+          visible={visibleRechazo}
+          style={{ width: "min(500px, 90vw)" }}
+          onHide={() => setVisibleRechazo(false)}
+          footer={
+            <div className="flex justify-content-end gap-2">
+              <Button
+                label="Cancelar"
+                icon="pi pi-times"
+                className="p-button-text"
+                onClick={() => setVisibleRechazo(false)}
+              />
+              <Button
+                label="Rechazar"
+                icon="pi pi-check"
+                className="p-button-danger"
+                onClick={confirmarRechazo}
+              />
+            </div>
+          }
+        >
+          <div className="flex flex-column gap-3">
+            <p className="m-0">
+              ¿Está seguro de rechazar esta asignación? Por favor, ingrese el motivo del rechazo.
+            </p>
+            <div className="field">
+              <label htmlFor="motivoRechazo" className="font-bold">Motivo de Rechazo *</label>
+              <InputTextareaDefault
+                id="motivoRechazo"
+                value={motivoRechazo}
+                onChange={(e) => setMotivoRechazo(e.target.value)}
+                rows={4}
+                cols={30}
+                autoResize
+                className="w-full mt-2"
+                placeholder="Explique el motivo por el cual rechaza la asignación..."
+              />
+            </div>
+          </div>
+        </Dialog>
       </div>
     </div>
   );

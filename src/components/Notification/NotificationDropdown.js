@@ -55,7 +55,7 @@ const NotificationDropdown = ({ notifications, onClose }) => {
               <li
                 key={n.id}
                 className={`nd-item ${n.leido ? "nd-item--read" : "nd-item--unread"}`}
-                onClick={() => handleClick(n.idReferencia)}
+                onClick={() => handleClick(n.idReferencia || n.idTicket)}
               >
                 {/* Left icon pill */}
                 <div className={`nd-item__icon ${n.leido ? "" : "nd-item__icon--unread"}`}>

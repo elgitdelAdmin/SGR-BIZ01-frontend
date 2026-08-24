@@ -1,31 +1,33 @@
 .layout-topbar {
-    position: fixed;
-    height: 72px;
-    z-index: 997;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 0 2rem;
-    transition: left 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(46, 72, 120, 0.07);
+  position: fixed;
+  height: 72px;
+  z-index: 997;
+  left: 0;
+  top: 0;
+  width: 100%;
+  padding: 0 2rem;
+  transition: left 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(46, 72, 120, 0.07);
 }
 
 @keyframes fadeSlideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .blue-button {
-  background-color: #2D5B97; /* azul */
+  background-color: #2D5B97;
+  /* azul */
   color: white;
 }
 
@@ -50,15 +52,41 @@
 
 /* 🔔 Animación de Campanilla (Swing) */
 @keyframes bell-swing {
-  0% { transform: rotate(0); }
-  10% { transform: rotate(15deg); }
-  20% { transform: rotate(-10deg); }
-  30% { transform: rotate(8deg); }
-  40% { transform: rotate(-6deg); }
-  50% { transform: rotate(4deg); }
-  60% { transform: rotate(-2deg); }
-  70% { transform: rotate(0); }
-  100% { transform: rotate(0); }
+  0% {
+    transform: rotate(0);
+  }
+
+  10% {
+    transform: rotate(15deg);
+  }
+
+  20% {
+    transform: rotate(-10deg);
+  }
+
+  30% {
+    transform: rotate(8deg);
+  }
+
+  40% {
+    transform: rotate(-6deg);
+  }
+
+  50% {
+    transform: rotate(4deg);
+  }
+
+  60% {
+    transform: rotate(-2deg);
+  }
+
+  70% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(0);
+  }
 }
 
 /* 🔴 Animación de Pulso / Radar para el Badge */
@@ -66,9 +94,26 @@
   0% {
     box-shadow: 0 0 0 0 rgba(221, 75, 57, 0.7);
   }
+
   70% {
     box-shadow: 0 0 0 6px rgba(221, 75, 57, 0);
   }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(221, 75, 57, 0);
+  }
+}
+
+/* 🌊 Animación de Ondas Expansivas para la Campana (Square Ripple) */
+@keyframes bell-wave {
+  0% {
+    box-shadow: 0 0 0 0 rgba(221, 75, 57, 0.8);
+  }
+
+  70% {
+    box-shadow: 0 0 0 100px rgba(221, 75, 57, 0);
+  }
+
   100% {
     box-shadow: 0 0 0 0 rgba(221, 75, 57, 0);
   }
@@ -76,12 +121,17 @@
 
 /* Clases utilitarias de animación */
 .bell-active-animation {
-  animation: bell-swing 3s ease-in-out infinite;
+  animation: bell-swing 0.4s ease-in-out infinite, bell-wave 1s infinite;
+  transform-origin: top center;
+}
+
+.warning-active-animation {
+  animation: bell-swing 0.4s ease-in-out infinite;
   transform-origin: top center;
 }
 
 .badge-active-pulse {
-  animation: badge-pulse 2s infinite;
+  animation: badge-pulse 1s infinite;
 }
 
 /* 📱 Diseño Responsivo para Celulares */
@@ -89,12 +139,14 @@
   .layout-topbar {
     padding: 0 1rem !important;
   }
-  
+
   .topbar-saludo {
-    display: none !important; /* Ocultar saludo central en móviles */
+    display: none !important;
+    /* Ocultar saludo central en móviles */
   }
 
   .topbar-logo-text {
-    display: none !important; /* Ocultar texto secundario de marca en móviles */
+    display: none !important;
+    /* Ocultar texto secundario de marca en móviles */
   }
 }

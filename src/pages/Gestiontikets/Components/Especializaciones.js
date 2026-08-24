@@ -109,13 +109,13 @@ const Especializaciones = ({
 
   const getAsignacionVinculada = (rowData) => {
     return (formik.values.asignaciones || []).find(
-      (a) => a.Activo !== false && a._frenteSubFrenteUid === rowData._uid
+      (a) => a.Activo !== false && !a.Rechazado && a._frenteSubFrenteUid === rowData._uid
     );
   };
 
   const getIndexAsignacion = (rowData) => {
     return (formik.values.asignaciones || []).findIndex(
-      (a) => a.Activo !== false && a._frenteSubFrenteUid === rowData._uid
+      (a) => a.Activo !== false && !a.Rechazado && a._frenteSubFrenteUid === rowData._uid
     );
   };
 

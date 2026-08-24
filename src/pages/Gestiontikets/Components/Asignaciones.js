@@ -101,6 +101,7 @@ const Asignaciones = ({
   codFrentes,
   addRow,
   removeRow,
+  iniciarRechazo,
   highlightZero,
   frentes,
 }) => {
@@ -166,6 +167,7 @@ const Asignaciones = ({
         (a) =>
           a.Activo !== false &&
           !a.esPlaceholder &&
+          !a.Rechazado &&
           Number(a.IdSubFrente) === idSubFrente
       ).length;
 
@@ -197,7 +199,7 @@ const Asignaciones = ({
                 .reduce((sum, e) => sum + (e.cantidad ?? 0), 0);
 
               const asignacionesActivas = (formik.values.asignaciones || [])
-                .filter((a) => a.Activo !== false && !a.esPlaceholder)
+                .filter((a) => a.Activo !== false && !a.esPlaceholder && !a.Rechazado)
                 .length;
 
               if (asignacionesActivas >= limiteTotal) {
@@ -364,6 +366,19 @@ const Asignaciones = ({
                 }
               }
 
+              if (asignacion.Rechazado) {
+                const fr = asignacion.FechaRechazo ? new Date(asignacion.FechaRechazo) : null;
+                const fechaStr = fr ? `${fr.toLocaleDateString('es-ES')} ${fr.toLocaleTimeString('es-ES', { hour: '2-digit', minute:'2-digit' })}` : "";
+                return (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span className="rechazado-badge" style={{ display: "flex", flexDirection: "column", fontSize: "11px", padding: "4px 8px", lineHeight: "1.2", textAlign: "center" }}>
+                      <span>Rechazado</span>
+                      {fechaStr && <span style={{ fontWeight: "normal", fontSize: "10px", marginTop: "2px" }}>{fechaStr}</span>}
+                    </span>
+                  </div>
+                );
+              }
+
               return (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                   <span style={{ color: "#646e8c", fontSize: "13px" }}>{hrsPlan} h</span>
@@ -385,6 +400,27 @@ const Asignaciones = ({
             body={(asignacion) => {
               const originalIndex = formik.values.asignaciones.findIndex((a) => a.idUnico === asignacion.idUnico);
               if (originalIndex === -1) return null;
+              if (asignacion.Rechazado) {
+                return (
+                  <div 
+                    title={asignacion.MotivoRechazo || "Sin motivo"} 
+                    style={{ 
+                      width: "180px", // Expand into the next column conceptually
+                      textAlign: "left",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      color: "#646e8c",
+                      fontSize: "12px",
+                      position: "relative",
+                      zIndex: 1
+                    }}
+                  >
+                    <strong style={{ color: "#dc3545" }}>Motivo: </strong> 
+                    {asignacion.MotivoRechazo || "—"}
+                  </div>
+                );
+              }
               return (
                 <Horas
                   mode="TAREO"
@@ -410,6 +446,7 @@ const Asignaciones = ({
               body={(asignacion) => {
                 const originalIndex = formik.values.asignaciones.findIndex((a) => a.idUnico === asignacion.idUnico);
                 if (originalIndex === -1) return null;
+                if (asignacion.Rechazado) return null;
 
                 const isOwnRow = Number(asignacion.IdConsultor) === Number(idConsultorLogged);
                 const canEditDelete = !permisosActual.controlesOcultos.includes("btnEliminar");
@@ -437,7 +474,7 @@ const Asignaciones = ({
                       </>
                     )}
 
-                    {!canEditDelete && codRol === "CONSULTOR" && isOwnRow && (
+                    {!canEditDelete && codRol === "CONSULTOR" && isOwnRow && !asignacion.Rechazado && (
                       <Button
                         type="button"
                         icon="pi pi-times"
@@ -465,7 +502,11 @@ const Asignaciones = ({
                               life: 5000,
                             });
                           } else {
-                            removeRow(asignacion.idUnico);
+                            if (iniciarRechazo) {
+                              iniciarRechazo(asignacion.idUnico);
+                            } else {
+                              removeRow(asignacion.idUnico);
+                            }
                           }
                         }}
                         tooltip="Rechazar Asignación"

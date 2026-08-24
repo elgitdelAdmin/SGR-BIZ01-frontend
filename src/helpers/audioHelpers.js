@@ -1,89 +1,38 @@
-export const playNotificationSound = () => {
+export const playNotificationSound = (count = 1) => {
     try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if ('speechSynthesis' in window) {
+            // Cancelar si ya estaba hablando para que no se pongan en cola
+            window.speechSynthesis.cancel();
+            
+            const texto = count === 1 
+                ? "Usted tiene una nueva notificación" 
+                : `Usted tiene ${count} nuevas notificaciones`;
 
-        const startSound = () => {
-            // Primer tono (Do6 - 1046.50Hz)
-            const osc1 = audioCtx.createOscillator();
-            const gain1 = audioCtx.createGain();
-            osc1.connect(gain1);
-            gain1.connect(audioCtx.destination);
-
-            osc1.type = 'square';
-            osc1.frequency.setValueAtTime(1046.50, audioCtx.currentTime);
-            gain1.gain.setValueAtTime(0.15, audioCtx.currentTime);
-            gain1.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
-
-            osc1.start();
-            osc1.stop(audioCtx.currentTime + 0.15);
-
-            // Segundo tono (Mi6 - 1318.51Hz)
-            const osc2 = audioCtx.createOscillator();
-            const gain2 = audioCtx.createGain();
-            osc2.connect(gain2);
-            gain2.connect(audioCtx.destination);
-
-            osc2.type = 'square';
-            osc2.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.15);
-            gain2.gain.setValueAtTime(0.15, audioCtx.currentTime + 0.15);
-            gain2.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
-
-            osc2.start(audioCtx.currentTime + 0.15);
-            osc2.stop(audioCtx.currentTime + 0.3);
-
-            // Tercer tono (Sol6 - 1567.98Hz)
-            const osc3 = audioCtx.createOscillator();
-            const gain3 = audioCtx.createGain();
-            osc3.connect(gain3);
-            gain3.connect(audioCtx.destination);
-
-            osc3.type = 'square';
-            osc3.frequency.setValueAtTime(1567.98, audioCtx.currentTime + 0.3);
-            gain3.gain.setValueAtTime(0.15, audioCtx.currentTime + 0.3);
-            gain3.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.6);
-
-            osc3.start(audioCtx.currentTime + 0.3);
-            osc3.stop(audioCtx.currentTime + 0.6);
-        };
-
-        if (audioCtx.state === 'suspended') {
-            const resumeAndPlay = () => {
-                audioCtx.resume().then(() => {
-                    startSound();
-                }).catch(err => console.error("Error resuming AudioContext:", err))
-                    .finally(() => {
-                        window.removeEventListener('click', resumeAndPlay);
-                        window.removeEventListener('keydown', resumeAndPlay);
-                    });
-            };
-            window.addEventListener('click', resumeAndPlay);
-            window.addEventListener('keydown', resumeAndPlay);
-        } else {
-            startSound();
+            const utterance = new SpeechSynthesisUtterance(texto);
+            utterance.lang = 'es-ES'; // Idioma español
+            utterance.rate = 1.0;     // Velocidad normal
+            utterance.pitch = 1.0;    // Tono normal
+            
+            window.speechSynthesis.speak(utterance);
         }
     } catch (e) {
-        console.error("Audio Context error:", e);
+        console.error("Error con la síntesis de voz:", e);
     }
 };
 
 let loopingInterval = null;
 
-export const startLoopingNotificationSound = () => {
-    // Si ya está sonando, no hacemos nada
+export const startLoopingNotificationSound = (count = 1) => {
     if (loopingInterval) return;
-
-    // Reproducimos una vez inmediatamente
-    playNotificationSound();
-
-    // Y luego lo repetimos cada 3 segundos
-    loopingInterval = setInterval(() => {
-        playNotificationSound();
-    }, 3000);
+    playNotificationSound(count);
 };
 
 export const stopLoopingNotificationSound = () => {
     if (loopingInterval) {
         clearInterval(loopingInterval);
         loopingInterval = null;
+    }
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
     }
 };

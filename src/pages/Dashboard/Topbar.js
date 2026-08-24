@@ -159,6 +159,7 @@ const TopBar = (props) => {
                 }
                 const actualizadas = [nuevaNotificacion, ...prev];
                 window.localStorage.setItem("notificacionTicket", JSON.stringify(actualizadas));
+                setlengthNotifications(true);
                 return actualizadas;
             });
         });
@@ -176,7 +177,7 @@ const TopBar = (props) => {
     useEffect(() => {
         const noLeidas = notificacionTicket.filter(n => !n.leido).length;
         if (noLeidas > 0) {
-            startLoopingNotificationSound();
+            startLoopingNotificationSound(noLeidas);
         } else {
             stopLoopingNotificationSound();
         }
@@ -302,7 +303,7 @@ const TopBar = (props) => {
                                 width: "40px",
                                 height: "40px",
                                 borderRadius: "8px",
-                                backgroundColor: showAlerts ? "#fcc8c8" : "#fde8e8",
+                                backgroundColor: showAlerts ? "#ffeb99" : "#fff7cc",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyCenter: "center",
@@ -310,11 +311,11 @@ const TopBar = (props) => {
                                 transition: "background-color 0.2s",
                                 cursor: "pointer"
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#fcc8c8"}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = showAlerts ? "#fcc8c8" : "#fde8e8"}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#ffeb99"}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = showAlerts ? "#ffeb99" : "#fff7cc"}
                         >
-                            <div className="bell-active-animation" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <i className="pi pi-exclamation-triangle" style={{ fontSize: '18px', color: '#dd4b39' }} />
+                            <div className="warning-active-animation" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <i className="pi pi-exclamation-triangle" style={{ fontSize: '18px', color: '#d97706' }} />
                             </div>
                         </div>
 
@@ -325,7 +326,7 @@ const TopBar = (props) => {
                                     position: "absolute",
                                     top: "-4px",
                                     right: "-4px",
-                                    background: "linear-gradient(135deg, #ff8c00, #dd4b39)",
+                                    background: "linear-gradient(135deg, #f59e0b, #d97706)",
                                     color: "white",
                                     borderRadius: "50%",
                                     width: "18px",

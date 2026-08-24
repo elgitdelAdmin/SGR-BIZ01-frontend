@@ -236,7 +236,7 @@ const Gestiontikets = () => {
     // Reproducir sonido cuando aparece cualquiera de las alertas por primera vez
     useEffect(() => {
         if (activeAlerts.length > 0 && activeAlerts.length > prevAlertCount.current) {
-            playNotificationSound();
+            // playNotificationSound(activeAlerts.length);
         }
         prevAlertCount.current = activeAlerts.length;
     }, [activeAlerts]);

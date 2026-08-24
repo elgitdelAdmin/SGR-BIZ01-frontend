@@ -1260,8 +1260,8 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
       .reduce((sum, e) => sum + (e.cantidad ?? 0), 0);
   };
   const contarAsignaciones = (idSubFrente) => {
-    return formik.values.asignaciones.filter(
-      (a) => a.IdSubFrente === idSubFrente && a.Activo !== false && !a.esPlaceholder
+    return (formik.values.asignaciones || []).filter(
+      (a) => Number(a.IdSubFrente) === Number(idSubFrente) && a.Activo !== false && !a.esPlaceholder && !a.Rechazado
     ).length;
   };
 

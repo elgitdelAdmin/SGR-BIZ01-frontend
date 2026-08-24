@@ -15,7 +15,7 @@ const AlertsDropdown = ({ alerts = [], onClose }) => {
       {/* ── Header ── */}
       <div className="ad-header">
         <div className="ad-header__left">
-          <Iconsax.Warning2 size="18" color="#dd4b39" variant="Bold" />
+          <Iconsax.Warning2 size="18" color="#d97706" variant="Bold" />
           <span className="ad-header__title">Alertas</span>
           {alerts.length > 0 && (
             <span className="ad-header__badge">{alerts.length}</span>
@@ -43,7 +43,7 @@ const AlertsDropdown = ({ alerts = [], onClose }) => {
               >
                 {/* Left icon pill */}
                 <div className="ad-item__icon">
-                  <i className={a.icon || "pi pi-exclamation-triangle"} style={{ fontSize: '18px', color: '#dd4b39' }} />
+                  <i className={a.icon || "pi pi-exclamation-triangle"} style={{ fontSize: '18px', color: '#d97706' }} />
                 </div>
 
                 {/* Content */}

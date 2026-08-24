@@ -12,9 +12,9 @@
   right: 0;
   width: 360px;
   background: #fff;
-  border: 1px solid #fcc8c8; // Red border accent
+  border: 1px solid #fde68a; // Yellow border accent
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(221, 75, 57, 0.14);
+  box-shadow: 0 12px 32px rgba(217, 119, 6, 0.14);
   z-index: 1000;
   overflow: hidden;
   animation: ad-slide-in 0.18s ease;
@@ -27,8 +27,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px 12px;
-  border-bottom: 1px solid #fde8e8;
-  background: #fdf5f5; // Tonal light red background
+  border-bottom: 1px solid #fef3c7;
+  background: #fffbeb; // Tonal light yellow background
 
   &__left {
     display: flex;
@@ -39,12 +39,12 @@
   &__title {
     font-size: 14px;
     font-weight: 700;
-    color: #dd4b39; // $color-rojo-eliminar
+    color: #d97706; // Amber
     font-family: 'Poppins', sans-serif;
   }
 
   &__badge {
-    background: #dd4b39;
+    background: #d97706;
     color: #fff;
     font-size: 10px;
     font-weight: 700;
@@ -66,7 +66,7 @@
   transition: background 0.15s;
 
   &:hover {
-    background: #fde8e8;
+    background: #fef3c7;
   }
 }
 
@@ -78,9 +78,9 @@
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
-    background: #fde8e8;
+    background: #fef3c7;
     border-radius: 4px;
-    &:hover { background: #dd4b39; }
+    &:hover { background: #d97706; }
   }
 }
 
@@ -115,11 +115,11 @@
   cursor: pointer;
   position: relative;
   transition: background 0.15s;
-  border-bottom: 1px solid #fdf5f5;
+  border-bottom: 1px solid #fffbeb;
 
   &:last-child { border-bottom: none; }
 
-  &:hover { background: #fff5f5; }
+  &:hover { background: #fef3c7; }
 
   /* Icon pill */
   &__icon {
@@ -127,7 +127,7 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background: #fde8e8;
+    background: #fef3c7;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -144,7 +144,7 @@
     margin: 0 0 3px;
     font-size: 13px;
     font-weight: 700;
-    color: #dd4b39; // Red alert title
+    color: #d97706; // Amber alert title
     line-height: 1.4;
   }
 
@@ -160,10 +160,10 @@
 /* ── Footer ─────────────────────────────────────────── */
 .ad-footer {
   padding: 10px 16px;
-  border-top: 1px solid #fde8e8;
-  background: #fdf5f5;
+  border-top: 1px solid #fef3c7;
+  background: #fffbeb;
   text-align: center;
   font-size: 12px;
-  color: #dd4b39;
+  color: #d97706;
   font-weight: 600;
 }
