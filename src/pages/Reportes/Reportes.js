@@ -16,6 +16,7 @@ import { GenerarReporteExcel, ConsultarDetalleReporte } from "../../service/Repo
 // Componentes
 import ModalSeleccionTickets from "./Components/ModalSeleccionTickets";
 import ModalCargabilidad from "./Components/ModalCargabilidad";
+import ModalTicketsReporte from "./Components/ModalTicketsReporte";
 
 const Reportes = () => {
     const { parametros } = useContext(Context);
@@ -51,6 +52,10 @@ const Reportes = () => {
     const [modalCargaVisible, setModalCargaVisible] = useState(false);
     const [ticketDetalle, setTicketDetalle] = useState(null);
     const [loadingDetalle, setLoadingDetalle] = useState(false);
+    
+    // Estado para el modal de tickets interactivo
+    const [modalTicketsVisible, setModalTicketsVisible] = useState(false);
+    const [ticketsDataString, setTicketsDataString] = useState("");
     const [consultorNombreModal, setConsultorNombreModal] = useState("");
 
     // CARGA ÚNICA AL INGRESAR AL MÓDULO
@@ -227,6 +232,20 @@ const Reportes = () => {
                                 >
                                     <i className="pi pi-eye" style={{ fontSize: '12px' }} />
                                 </button>
+                            </div>
+                        );
+                    }
+
+                    if (k === 'Tickets' || k === 'tickets') {
+                        col.body = (rowData) => (
+                            <div 
+                                style={{ color: '#0e71ae', cursor: 'pointer', textDecoration: 'underline' }}
+                                onClick={() => {
+                                    setTicketsDataString(rowData[k] || '');
+                                    setModalTicketsVisible(true);
+                                }}
+                            >
+                                {rowData[k]}
                             </div>
                         );
                     }
@@ -551,6 +570,12 @@ const Reportes = () => {
                 consultorNombre={consultorNombreModal}
                 loading={loadingDetalle}
                 parametros={parametros}
+            />
+
+            <ModalTicketsReporte 
+                visible={modalTicketsVisible}
+                onHide={() => { setModalTicketsVisible(false); setTicketsDataString(""); }}
+                ticketsString={ticketsDataString}
             />
         </div>
     );

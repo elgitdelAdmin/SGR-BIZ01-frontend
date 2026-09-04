@@ -138,8 +138,9 @@ const Gestiontikets = () => {
                 const miIdGestor = Number(miGestor.id);
 
                 const hasPermiso = dataEmpresas.some(emp => {
+                    if (Number(emp.idGestor) === miIdGestor) return true; // El gestor principal tiene permiso total
                     const g = (emp.gestores || []).find(x => Number(x.idGestor) === miIdGestor && x.activo !== false);
-                    return g && g.idsTiposTicketPermitidos && g.idsTiposTicketPermitidos.includes(idMesa);
+                    return g && g.idsTiposTicketPermitidos && (g.idsTiposTicketPermitidos.includes(idMesa) || g.idsTiposTicketPermitidos.includes(String(idMesa)));
                 });
 
                 setTienePermisoMesaAyuda(hasPermiso);

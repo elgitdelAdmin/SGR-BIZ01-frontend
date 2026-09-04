@@ -188,11 +188,24 @@ export const ObtenerTicket = async ({ id }) => {
   return await apiFetch(`${ENDPOINT}/api/Ticket/${id}`, {
     method: "GET",
     headers: {
-      "accept": "text/plain"
+      "Accept": "application/json"
     },
   })
     .then(res => {
-      if (!res.ok) throw new Error("Error al obtener los ticket");
+      if (!res.ok) throw new Error("Error al obtener el ticket");
+      return res.json();
+    });
+};
+
+export const ObtenerTicketPorCodigo = async ({ codigo }) => {
+  return await apiFetch(`${ENDPOINT}/api/Ticket/codigo/${codigo}`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    },
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener el ticket por código");
       return res.json();
     });
 };
