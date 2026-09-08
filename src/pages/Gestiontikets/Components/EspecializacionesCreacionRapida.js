@@ -13,6 +13,7 @@ import DropdownDefault from "../../../components/DropdownDefault/DropdownDefault
 import DatatableDefault from "../../../components/Datatable/DatatableDefault";
 import Boton from "../../../components/Boton/Boton";
 import HorasCreacionRapida from "./HorasCreacionRapida";
+import { CODIGOS } from "../../../constants/codigosBD";
 
 const normalizeHHMM = (raw) => {
   let s = String(raw ?? "").trim();
@@ -73,6 +74,10 @@ const EspecializacionesCreacionRapida = ({
   const [isOpen, setIsOpen] = useState(false);
   const [frentesList, setFrentesList] = useState([]);
   const [consultoresList, setConsultoresList] = useState([]);
+
+  const idSubtipoTicket = formik.values?.idSubtipoTicket;
+  const paramSubtipo = parametros?.find(p => Number(p.id) === Number(idSubtipoTicket));
+  const esIncidencia = paramSubtipo?.codigo === CODIGOS.Subtipos.Incidencia_MDA;
 
   // Tooltip state
   const [customTooltip, setCustomTooltip] = useState({ text: "", x: 0, y: 0, visible: false });
@@ -531,6 +536,7 @@ const EspecializacionesCreacionRapida = ({
                 value={(formik.values.frenteSubFrentes || []).filter((item) => item.activo)}
               >
                 <Column
+                  hidden={esIncidencia}
                   header="Planificación"
                   body={(rowData) => {
                     const idx = (formik.values.frenteSubFrentes || []).findIndex(
@@ -556,6 +562,7 @@ const EspecializacionesCreacionRapida = ({
                 />
 
                 <Column
+                  hidden={esIncidencia}
                   header="H. Planificadas"
                   body={(rowData) => {
                     const hrsPlan = calcularTotalHorasPlan(rowData);

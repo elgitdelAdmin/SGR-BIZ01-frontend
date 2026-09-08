@@ -10,6 +10,7 @@ import Boton from "../../../components/Boton/Boton";
 import DatatableDefault from "../../../components/Datatable/DatatableDefault";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
+import { CODIGOS } from "../../../constants/codigosBD";
 
 const normalizeHHMM = (raw) => {
   let s = String(raw ?? "").trim();
@@ -112,6 +113,14 @@ const AsignacionesCreacionRapida = ({
   }, [frentes]);
   const [visibleModal, setVisibleModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
+
+  const esIncidencia = useMemo(() => {
+    if (!esCreacionRapida) return false;
+    const subtipoId = formik.values.idSubtipoTicket;
+    if (!subtipoId) return false;
+    const param = (parametros || []).find(p => Number(p.id) === Number(subtipoId));
+    return param && param.codigo === CODIGOS.Subtipos.Incidencia_MDA;
+  }, [esCreacionRapida, formik.values.idSubtipoTicket, parametros]);
 
   // Tooltip state
   const [customTooltip, setCustomTooltip] = useState({ text: "", x: 0, y: 0, visible: false });
@@ -383,6 +392,22 @@ const AsignacionesCreacionRapida = ({
                     });
                     return;
                   }
+                  if (esIncidencia) {
+                    formik.setFieldValue(`asignaciones[${editingIndex}].FechaDesasignacion`, null);
+                    const asig = formik.values.asignaciones[editingIndex];
+                    if (asig && (asig._frenteSubFrenteUid || asig.IdSubFrente)) {
+                      const espIndex = (formik.values.frenteSubFrentes || []).findIndex(e => 
+                        e.activo !== false && (
+                          (asig._frenteSubFrenteUid && e._uid === asig._frenteSubFrenteUid) || 
+                          (!asig._frenteSubFrenteUid && Number(e.idSubFrente) === Number(asig.IdSubFrente))
+                        )
+                      );
+                      if (espIndex !== -1) {
+                        formik.setFieldValue(`frenteSubFrentes[${espIndex}].fechaFin`, null);
+                      }
+                    }
+                  }
+
                   // formik.handleSubmit(); // No enviamos al servidor, solo guardamos en memoria
                 }
                 setVisibleModal(false);
@@ -591,7 +616,7 @@ const AsignacionesCreacionRapida = ({
             </div>
 
             {/* Fecha Fin */}
-            <div className="field col-12 md:col-6">
+            <div className="field col-12 md:col-6" style={{ display: esIncidencia ? 'none' : 'block' }}>
               <label className="label-form">Fecha Fin</label>
               <CalendarFormik
                 name={`asignaciones[${editingIndex}].FechaDesasignacion`}

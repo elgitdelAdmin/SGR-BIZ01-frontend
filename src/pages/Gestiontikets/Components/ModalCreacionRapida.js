@@ -419,7 +419,10 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
         const param = parametros?.find(p => p.tipoParametro === TIPO_PARAMETRO.TipoTicket && p.codigo === CODIGOS.TipoTicket.MesaDeAyuda);
         return param ? Number(param.id) : null;
       })(),
-      idSubtipoTicket: persona ? Number(persona.idSubTipoTicket ?? persona.idSubtipoTicket) : null,
+      idSubtipoTicket: persona ? Number(persona.idSubTipoTicket ?? persona.idSubtipoTicket) : (() => {
+        const param = parametros?.find(p => p.tipoParametro === TIPO_PARAMETRO.Subtipos && p.codigo === CODIGOS.Subtipos.Incidencia_MDA);
+        return param ? Number(param.id) : null;
+      })(),
       idEstadoTicket: (persona && persona.idEstadoTicket) ? persona.idEstadoTicket : 0,
       idEmpresa: persona ? persona.idEmpresa : null,
       idUsuarioResponsableCliente: persona ? persona.idUsuarioResponsableCliente : null,
@@ -569,20 +572,10 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
         return;
       }
 
-      const especializacionSinPlan = activasEspecializaciones.find(f => {
-        const planesActivos = (f.DetallePlanificacionConsultor || []).filter(p => p.Activo !== false);
-        return planesActivos.length === 0;
-      });
+      const paramSubtipo = parametros?.find(p => Number(p.id) === Number(values.idSubtipoTicket));
+      const esIncidencia = paramSubtipo?.codigo === CODIGOS.Subtipos.Incidencia_MDA;
 
-      if (especializacionSinPlan) {
-        toast.current.show({
-          severity: "warn",
-          summary: "Planificación faltante",
-          detail: "Todas las especializaciones deben tener al menos un registro de planificación de horas. Por favor, registre las horas.",
-        });
-        formik.setSubmitting(false);
-        return;
-      }
+
 
       const reposPayload = (values.reposLinks || []).map(r => ({
         Link: (r.Url ?? r.Link ?? "").trim(),
@@ -637,6 +630,13 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
             activo: t.Activo
           }));
 
+          let finalFechaDesasignacion = a.FechaDesasignacion ? toLocalISOString(a.FechaDesasignacion) : null;
+          if (esIncidencia) {
+            const startObj = new Date(a.FechaAsignacion || values.fechaSolicitud || new Date());
+            startObj.setDate(startObj.getDate() + 1);
+            finalFechaDesasignacion = toLocalISOString(startObj);
+          }
+
           return {
             id: a.Id,
             idConsultor: a.IdConsultor,
@@ -645,22 +645,30 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
             idSubFrente: a.IdSubFrente,
             idTicketFrenteSubFrente: resolvedFrenteSubFrenteId,
             fechaAsignacion: a.FechaAsignacion ? toLocalISOString(a.FechaAsignacion) : null,
-            fechaDesasignacion: a.FechaDesasignacion ? toLocalISOString(a.FechaDesasignacion) : null,
+            fechaDesasignacion: finalFechaDesasignacion,
             activo: a.Activo !== false,
             detalleTareasConsultor: detalleTareas
           };
         });
 
-      const frenteSubFrentesPayload = values.frenteSubFrentes.map(e => ({
-        id: Number(e.id),
-        idFrente: Number(e.idFrente),
-        idSubFrente: Number(e.idSubFrente),
-        cantidad: e.cantidad,
-        fechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
-        fechaFin: e.fechaFin ? toLocalISOString(e.fechaFin) : null,
-        activo: e.activo,
-        descripcion: e.descripcion,
-        usuarioActualizacion: window.localStorage.getItem("username"),
+      const frenteSubFrentesPayload = values.frenteSubFrentes.map(e => {
+        let finalFechaFin = e.fechaFin ? toLocalISOString(e.fechaFin) : null;
+        if (esIncidencia) {
+          const startObj = new Date(e.fechaInicio || values.fechaSolicitud || new Date());
+          startObj.setDate(startObj.getDate() + 1);
+          finalFechaFin = toLocalISOString(startObj);
+        }
+
+        return {
+          id: Number(e.id),
+          idFrente: Number(e.idFrente),
+          idSubFrente: Number(e.idSubFrente),
+          cantidad: e.cantidad,
+          fechaInicio: e.fechaInicio ? toLocalISOString(e.fechaInicio) : null,
+          fechaFin: finalFechaFin,
+          activo: e.activo,
+          descripcion: e.descripcion,
+          usuarioActualizacion: window.localStorage.getItem("username"),
         detallePlanificacionConsultor: (e.DetallePlanificacionConsultor || []).map(p => ({
           id: p.Id,
           idTicketConsultorAsignacion: p.IdTicketConsultorAsignacion || null,
@@ -672,7 +680,8 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
           descripcion: p.Descripcion,
           activo: p.Activo
         }))
-      }));
+        };
+      });
 
       const ticketData = {
         codTicketInterno: values.codTicketInterno,
@@ -747,6 +756,10 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
 
   const mostrarAlertaSinPlanificacion = useMemo(() => {
     if (!isGestorCuenta || !persona) return false;
+
+    const currentSubtipoId = formik.values.idSubtipoTicket || persona.idSubtipoTicket || persona.idSubTipoTicket;
+    const paramSubtipo = parametros?.find(p => Number(p.id) === Number(currentSubtipoId));
+    if (paramSubtipo?.codigo === CODIGOS.Subtipos.Incidencia_MDA) return false;
 
     const frentesList = formik.values.frenteSubFrentes && formik.values.frenteSubFrentes.length > 0
       ? formik.values.frenteSubFrentes
@@ -1548,7 +1561,11 @@ const ModalCreacionRapida = ({ visible, onHide, onSaveSuccess }) => {
                     options={subtiposFiltrados}
                     optionLabel="nombre"
                     optionValue="id"
-                    onChange={(e) => formik.setFieldValue("idSubtipoTicket", Number(e.value))}
+                    onChange={(e) => {
+                      formik.setFieldValue("idSubtipoTicket", Number(e.value));
+                      formik.setFieldValue("frenteSubFrentes", []);
+                      formik.setFieldValue("asignaciones", []);
+                    }}
                     onBlur={formik.handleBlur}
                     pulse={true}
                   />
