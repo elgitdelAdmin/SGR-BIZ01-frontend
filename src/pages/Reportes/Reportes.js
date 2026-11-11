@@ -43,7 +43,7 @@ const Reportes = () => {
     const { parametros } = useContext(Context);
     const codRol = localStorage.getItem("codRol");
     const idUser = localStorage.getItem("idUser");
-    const idSocio = localStorage.getItem("idSocio");
+    const idSocio = localStorage.getItem("idsocio") || localStorage.getItem("idSocio");
 
     // Estados para los filtros
     const [tipoReporteSeleccionado, setTipoReporteSeleccionado] = useState(null);
@@ -241,7 +241,7 @@ const Reportes = () => {
             fechaFin1: isComparacion ? (rangoFechas?.[1] || null) : null,
             fechaInicio2: isComparacion ? (rangoFechas2?.[0] || null) : null,
             fechaFin2: isComparacion ? (rangoFechas2?.[1] || null) : null,
-            idSocio: (idSocio && codRol !== "SUPERADMIN") ? parseInt(idSocio) : null
+            idSocio: (idSocio && codRol?.toUpperCase() !== "SUPERADMIN") ? parseInt(idSocio, 10) : null
         };
     };
 
