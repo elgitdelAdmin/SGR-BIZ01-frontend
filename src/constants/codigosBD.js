@@ -8,7 +8,11 @@ export const CODIGOS = {
         DashboardCargabilidadPorConsultor: "DBD_CARGA_CONSULTOR",
         PlanificacionConsultor: "PLAN_CONSULTOR",
         CapacidadConsultores: "CAPACIDAD_CONS",
+        CapacidadConsultoresComparacion: "CAPACIDAD_CONS_COMP",
+        CapacidadConsultoresComparacionEjecucion: "CAP_CONS_COMP_EJEC",
+        CapacidadConsultoresEjecucion: "CAPACIDAD_CONS_EJEC",
         AsignacionConsultores: "ASIGNACIONES_CONS",
+        AsignacionGestores: "ASIGNACIONES_GEST",
         DisponibilidadConsultores: "DISPONIBILIDAD_CONS",
         SobrecargaConsultores: "SOBRECARGA_CONS",
         BajaUtilizacionConsultores: "BAJA_UTIL_CONS"

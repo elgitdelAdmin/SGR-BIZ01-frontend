@@ -4,9 +4,11 @@ import { Dropdown } from "primereact/dropdown";
 import { MultiSelect } from "primereact/multiselect";
 import { Calendar } from "primereact/calendar";
 import { InputText } from "primereact/inputtext";
+import { addLocale, locale } from "primereact/api";
 import Boton from "../../components/Boton/Boton";
 import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
 import "./Reportes.scss";
+
 import { TIPO_PARAMETRO, CODIGOS } from "../../constants/codigosBD";
 import { ListarConsultores } from "../../service/ConsultorService";
 import { ListarEmpresas, ListarEmpresasPorSocio } from "../../service/EmpresaService";
@@ -17,6 +19,25 @@ import { GenerarReporteExcel, ConsultarDetalleReporte } from "../../service/Repo
 import ModalSeleccionTickets from "./Components/ModalSeleccionTickets";
 import ModalCargabilidad from "./Components/ModalCargabilidad";
 import ModalTicketsReporte from "./Components/ModalTicketsReporte";
+
+// Configuración de idioma español para PrimeReact Calendar
+addLocale('es', {
+    firstDayOfWeek: 1,
+    dayNames: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+    dayNamesShort: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'],
+    dayNamesMin: ['D', 'L', 'M', 'X', 'J', 'V', 'S'],
+    monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+    monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic'],
+    today: 'Hoy',
+    clear: 'Limpiar'
+});
+locale('es');
+
+const formatearMesCompleto = (d) => {
+    if (!d) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`;
+};
 
 const Reportes = () => {
     const { parametros } = useContext(Context);
@@ -33,6 +54,7 @@ const Reportes = () => {
     const [estadosSeleccionados, setEstadosSeleccionados] = useState([]);
     const [consultoresSeleccionados, setConsultoresSeleccionados] = useState([]);
     const [rangoFechas, setRangoFechas] = useState(null);
+    const [rangoFechas2, setRangoFechas2] = useState(null);
 
     // Estados de carga y resultados
     const [loadingExcel, setLoadingExcel] = useState(false);
@@ -129,9 +151,36 @@ const Reportes = () => {
         opcionesTipoReporte.find(r => r.id === tipoReporteSeleccionado)
         , [tipoReporteSeleccionado, opcionesTipoReporte]);
 
-    // Validación: ambas fechas obligatorias
-    const fechasValidas = useMemo(() =>
-        rangoFechas && rangoFechas[0] && rangoFechas[1], [rangoFechas]);
+    const isComparacion = useMemo(() => {
+        const cod = reporteActual?.codigo?.trim();
+        return (
+            cod === CODIGOS.TipoReporte.CapacidadConsultoresComparacion ||
+            cod === CODIGOS.TipoReporte.CapacidadConsultoresComparacionEjecucion
+        );
+    }, [reporteActual]);
+
+    const isComparacionEjecucion = useMemo(() =>
+        reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CapacidadConsultoresComparacionEjecucion
+        , [reporteActual]);
+
+    // Verificar si se seleccionó el mismo mes y año en ambos periodos
+    const mismoPeriodo = useMemo(() => {
+        if (!isComparacion || !rangoFechas?.[0] || !rangoFechas2?.[0]) return false;
+        return (
+            rangoFechas[0].getFullYear() === rangoFechas2[0].getFullYear() &&
+            rangoFechas[0].getMonth() === rangoFechas2[0].getMonth()
+        );
+    }, [isComparacion, rangoFechas, rangoFechas2]);
+
+    // Validación: fechas obligatorias (ambos meses seleccionados y distintos en comparación)
+    const fechasValidas = useMemo(() => {
+        const rango1Valido = !!(rangoFechas && rangoFechas[0] && rangoFechas[1]);
+        if (isComparacion) {
+            const rango2Valido = !!(rangoFechas2 && rangoFechas2[0] && rangoFechas2[1]);
+            return rango1Valido && rango2Valido && !mismoPeriodo;
+        }
+        return rango1Valido;
+    }, [rangoFechas, rangoFechas2, isComparacion, mismoPeriodo]);
 
     const mostrarFiltroConsultores = useMemo(() =>
         reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CargabilidadPorConsultor ||
@@ -188,6 +237,10 @@ const Reportes = () => {
             idConsultores: consultoresSeleccionados,
             fechaInicio: rangoFechas?.[0] || null,
             fechaFin: rangoFechas?.[1] || null,
+            fechaInicio1: isComparacion ? (rangoFechas?.[0] || null) : null,
+            fechaFin1: isComparacion ? (rangoFechas?.[1] || null) : null,
+            fechaInicio2: isComparacion ? (rangoFechas2?.[0] || null) : null,
+            fechaFin2: isComparacion ? (rangoFechas2?.[1] || null) : null,
             idSocio: (idSocio && codRol !== "SUPERADMIN") ? parseInt(idSocio) : null
         };
     };
@@ -361,6 +414,8 @@ const Reportes = () => {
                                 }
                                 setTipoReporteSeleccionado(e.value);
                                 setDataResultados([]); // Limpiar al cambiar tipo
+                                setRangoFechas(null);
+                                setRangoFechas2(null);
                             }}
                             optionLabel="nombre"
                             optionValue="id"
@@ -436,7 +491,7 @@ const Reportes = () => {
                         </div>
                     )}
 
-                    <div className="field col-12 md:col-3">
+                    <div className={`field col-12 ${isComparacion ? 'md:col-4' : 'md:col-3'}`}>
                         <label className="font-bold">Tipo Ticket</label>
                         <MultiSelect
                             value={tiposSeleccionados}
@@ -450,7 +505,7 @@ const Reportes = () => {
                         />
                     </div>
 
-                    <div className="field col-12 md:col-3">
+                    <div className={`field col-12 ${isComparacion ? 'md:col-4' : 'md:col-3'}`}>
                         <label className="font-bold">Subtipo Ticket</label>
                         <MultiSelect
                             value={subtiposSeleccionados}
@@ -465,7 +520,7 @@ const Reportes = () => {
                         />
                     </div>
 
-                    <div className="field col-12 md:col-3">
+                    <div className={`field col-12 ${isComparacion ? 'md:col-4' : 'md:col-3'}`}>
                         <label className="font-bold">Estados</label>
                         <MultiSelect
                             value={estadosSeleccionados}
@@ -479,34 +534,115 @@ const Reportes = () => {
                         />
                     </div>
 
-                    <div className="field col-12 md:col-3">
+                    <div className={`field col-12 ${isComparacion ? 'md:col-6' : 'md:col-3'}`}>
                         <label className="font-bold">
-                            {reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.PlanificacionConsultor
-                                ? "Rango Fecha Planificación"
-                                : [
-                                    CODIGOS.TipoReporte.CapacidadConsultores,
-                                    CODIGOS.TipoReporte.AsignacionConsultores,
-                                    CODIGOS.TipoReporte.DisponibilidadConsultores,
-                                    CODIGOS.TipoReporte.SobrecargaConsultores,
-                                    CODIGOS.TipoReporte.BajaUtilizacionConsultores
-                                  ].includes(reporteActual?.codigo?.trim())
-                                    ? "Rango Fecha Detalle Planificación"
-                                    : "Rango Fecha Solicitud"
-                            } <span style={{ color: 'red' }}>*</span>
+                            {isComparacion ? (
+                                isComparacionEjecucion ? "Mes Periodo 1 (Fecha Ejecución)" : "Mes Periodo 1 (Fecha Planificación)"
+                            ) : (
+                                reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CapacidadConsultoresEjecucion
+                                    ? "Rango Fecha Horas Ejecutadas"
+                                    : reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.PlanificacionConsultor
+                                        ? "Rango Fecha Planificación"
+                                        : [
+                                            CODIGOS.TipoReporte.CapacidadConsultores,
+                                            CODIGOS.TipoReporte.AsignacionConsultores,
+                                            CODIGOS.TipoReporte.DisponibilidadConsultores,
+                                            CODIGOS.TipoReporte.SobrecargaConsultores,
+                                            CODIGOS.TipoReporte.BajaUtilizacionConsultores
+                                          ].includes(reporteActual?.codigo?.trim())
+                                            ? "Rango Fecha Detalle Planificación"
+                                            : "Rango Fecha Solicitud"
+                            )} <span style={{ color: 'red' }}>*</span>
                         </label>
-                        <Calendar
-                            value={rangoFechas}
-                            onChange={(e) => setRangoFechas(e.value)}
-                            selectionMode="range"
-                            readOnlyInput
-                            placeholder="Seleccione fechas"
-                            showIcon
-                            className={!fechasValidas && tipoReporteSeleccionado ? 'p-invalid' : ''}
-                        />
-                        {!fechasValidas && tipoReporteSeleccionado && (
-                            <small className="p-error">Debe seleccionar fecha inicio y fin.</small>
+                        {isComparacion ? (
+                            <>
+                                <Calendar
+                                    value={rangoFechas?.[0] || null}
+                                    onChange={(e) => {
+                                        if (!e.value) {
+                                            setRangoFechas(null);
+                                            return;
+                                        }
+                                        const anio = e.value.getFullYear();
+                                        const mes = e.value.getMonth();
+                                        const inicio = new Date(anio, mes, 1);
+                                        const fin = new Date(anio, mes + 1, 0, 23, 59, 59, 999);
+                                        setRangoFechas([inicio, fin]);
+                                    }}
+                                    view="month"
+                                    dateFormat="MM yy"
+                                    placeholder="Seleccione mes (Periodo 1)"
+                                    showIcon
+                                    readOnlyInput
+                                    className={!(rangoFechas && rangoFechas[0] && rangoFechas[1]) && tipoReporteSeleccionado ? 'p-invalid' : ''}
+                                />
+                                {rangoFechas && rangoFechas[0] && rangoFechas[1] && (
+                                    <small className="font-bold mt-1 block" style={{ color: '#0e71ae' }}>
+                                        <i className="pi pi-calendar mr-1" />
+                                        Mes completo: {formatearMesCompleto(rangoFechas[0])} - {formatearMesCompleto(rangoFechas[1])}
+                                    </small>
+                                )}
+                                {!(rangoFechas && rangoFechas[0] && rangoFechas[1]) && tipoReporteSeleccionado && (
+                                    <small className="p-error">Debe seleccionar el mes para el Periodo 1.</small>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <Calendar
+                                    value={rangoFechas}
+                                    onChange={(e) => setRangoFechas(e.value)}
+                                    selectionMode="range"
+                                    readOnlyInput
+                                    placeholder="Seleccione fechas"
+                                    showIcon
+                                    className={!(rangoFechas && rangoFechas[0] && rangoFechas[1]) && tipoReporteSeleccionado ? 'p-invalid' : ''}
+                                />
+                                {!(rangoFechas && rangoFechas[0] && rangoFechas[1]) && tipoReporteSeleccionado && (
+                                    <small className="p-error">Debe seleccionar fecha inicio y fin.</small>
+                                )}
+                            </>
                         )}
                     </div>
+
+                    {isComparacion && (
+                        <div className="field col-12 md:col-6">
+                            <label className="font-bold">
+                                {isComparacionEjecucion ? "Mes Periodo 2 (Fecha Ejecución)" : "Mes Periodo 2 (Fecha Planificación)"} <span style={{ color: 'red' }}>*</span>
+                            </label>
+                            <Calendar
+                                value={rangoFechas2?.[0] || null}
+                                onChange={(e) => {
+                                    if (!e.value) {
+                                        setRangoFechas2(null);
+                                        return;
+                                    }
+                                    const anio = e.value.getFullYear();
+                                    const mes = e.value.getMonth();
+                                    const inicio = new Date(anio, mes, 1);
+                                    const fin = new Date(anio, mes + 1, 0, 23, 59, 59, 999);
+                                    setRangoFechas2([inicio, fin]);
+                                }}
+                                view="month"
+                                dateFormat="MM yy"
+                                placeholder="Seleccione mes (Periodo 2)"
+                                showIcon
+                                readOnlyInput
+                                className={(!(rangoFechas2 && rangoFechas2[0] && rangoFechas2[1]) || mismoPeriodo) && tipoReporteSeleccionado ? 'p-invalid' : ''}
+                            />
+                            {rangoFechas2 && rangoFechas2[0] && rangoFechas2[1] && (
+                                <small className="font-bold mt-1 block" style={{ color: '#0e71ae' }}>
+                                    <i className="pi pi-calendar mr-1" />
+                                    Mes completo: {formatearMesCompleto(rangoFechas2[0])} - {formatearMesCompleto(rangoFechas2[1])}
+                                </small>
+                            )}
+                            {!(rangoFechas2 && rangoFechas2[0] && rangoFechas2[1]) && tipoReporteSeleccionado && (
+                                <small className="p-error">Debe seleccionar el mes para el Periodo 2.</small>
+                            )}
+                            {mismoPeriodo && (
+                                <small className="p-error block font-bold">El Periodo 2 debe ser un mes o año diferente al Periodo 1.</small>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex justify-content-end" style={{ marginTop: 16, display: 'flex', gap: '12px' }}>
