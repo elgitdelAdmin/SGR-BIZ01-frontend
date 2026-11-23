@@ -4,6 +4,9 @@ import { Dropdown } from "primereact/dropdown";
 import { MultiSelect } from "primereact/multiselect";
 import { Calendar } from "primereact/calendar";
 import { InputText } from "primereact/inputtext";
+import { ColumnGroup } from "primereact/columngroup";
+import { Row } from "primereact/row";
+import { Column } from "primereact/column";
 import { addLocale, locale } from "primereact/api";
 import Boton from "../../components/Boton/Boton";
 import DatatableDinamic from "../../components/Datatable/DatatableDinamic";
@@ -163,6 +166,10 @@ const Reportes = () => {
         reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CapacidadConsultoresComparacionEjecucion
         , [reporteActual]);
 
+    const isCapacidadConsultores = useMemo(() =>
+        reporteActual?.codigo?.trim() === CODIGOS.TipoReporte.CapacidadConsultores
+        , [reporteActual]);
+
     // Verificar si se seleccionó el mismo mes y año en ambos periodos
     const mismoPeriodo = useMemo(() => {
         if (!isComparacion || !rangoFechas?.[0] || !rangoFechas2?.[0]) return false;
@@ -245,6 +252,64 @@ const Reportes = () => {
         };
     };
 
+    // Encabezado agrupado específico para Capacidad de Consultores (según constantes)
+    const headerGroupCapacidad = useMemo(() => {
+        if (!isCapacidadConsultores || dataResultados.length === 0) return null;
+
+        const llaves = Object.keys(dataResultados[0]);
+        const normalize = (s) => (s || '').toLowerCase().replace(/[\s_]+/g, '');
+        const findKey = (predicate, fallback) => llaves.find(predicate) || fallback;
+
+        const consultorKey = findKey(k => normalize(k) === 'consultor', 'Consultor');
+        const especialidadKey = findKey(k => normalize(k) === 'especialidad', 'Especialidad');
+        const ticketsKey = findKey(k => normalize(k) === 'tickets', 'Tickets');
+        const modalidadKey = findKey(k => normalize(k) === 'modalidad', 'Modalidad');
+
+        const planLibresKey = findKey(k => {
+            const kl = normalize(k);
+            return kl.includes('planifica') && kl.includes('libre');
+        }, 'Planificación Hrs. Libres');
+
+        const planAsigKey = findKey(k => {
+            const kl = normalize(k);
+            return kl.includes('planifica') && (kl.includes('asig') || kl.includes('asigna'));
+        }, 'Planificación Hrs. Asignadas');
+
+        const ejecLibresKey = findKey(k => {
+            const kl = normalize(k);
+            return kl.includes('ejecu') && kl.includes('libre');
+        }, 'Ejecución Hrs. Libres');
+
+        const ejecEjecKey = findKey(k => {
+            const kl = normalize(k);
+            return kl.includes('ejecu') && (kl.includes('ejecut') || kl.includes('ejec'));
+        }, 'Ejecución Hrs. Ejecutadas');
+
+        const utilizacionKey = findKey(k => k.includes('%') || normalize(k).includes('utiliza'), '% Utilización');
+        const cargaKey = findKey(k => normalize(k) === 'carga', 'Carga');
+
+        return (
+            <ColumnGroup>
+                <Row>
+                    <Column header="Consultor" field={consultorKey} sortable rowSpan={2} style={{ width: '220px', minWidth: '220px', textAlign: 'left' }} headerStyle={{ textAlign: 'left' }} />
+                    <Column header="Especialidad" field={especialidadKey} sortable rowSpan={2} style={{ width: '130px', minWidth: '130px', textAlign: 'left' }} headerStyle={{ textAlign: 'left' }} />
+                    <Column header="Tickets" field={ticketsKey} sortable rowSpan={2} style={{ width: '220px', minWidth: '220px', textAlign: 'left' }} headerStyle={{ textAlign: 'left' }} />
+                    <Column header="Modalidad" field={modalidadKey} sortable rowSpan={2} style={{ width: '95px', minWidth: '95px', textAlign: 'center' }} headerStyle={{ textAlign: 'center' }} />
+                    <Column header="Horas Planificación" colSpan={2} headerStyle={{ textAlign: 'center' }} style={{ textAlign: 'center' }} />
+                    <Column header="Horas Ejecución" colSpan={2} headerStyle={{ textAlign: 'center' }} style={{ textAlign: 'center' }} />
+                    <Column header="% Utilización" field={utilizacionKey} sortable rowSpan={2} style={{ width: '90px', minWidth: '90px', textAlign: 'center' }} headerStyle={{ textAlign: 'center' }} />
+                    <Column header="Carga" field={cargaKey} sortable rowSpan={2} style={{ width: '105px', minWidth: '105px', textAlign: 'center' }} headerStyle={{ textAlign: 'center' }} />
+                </Row>
+                <Row>
+                    <Column header="Libres" field={planLibresKey} sortable style={{ width: '75px', minWidth: '75px', textAlign: 'center' }} headerStyle={{ textAlign: 'center', width: '75px', minWidth: '75px' }} />
+                    <Column header="Asignadas" field={planAsigKey} sortable style={{ width: '80px', minWidth: '80px', textAlign: 'center' }} headerStyle={{ textAlign: 'center', width: '80px', minWidth: '80px' }} />
+                    <Column header="Libres" field={ejecLibresKey} sortable style={{ width: '75px', minWidth: '75px', textAlign: 'center' }} headerStyle={{ textAlign: 'center', width: '75px', minWidth: '75px' }} />
+                    <Column header="Ejecutadas" field={ejecEjecKey} sortable style={{ width: '80px', minWidth: '80px', textAlign: 'center' }} headerStyle={{ textAlign: 'center', width: '80px', minWidth: '80px' }} />
+                </Row>
+            </ColumnGroup>
+        );
+    }, [isCapacidadConsultores, dataResultados]);
+
     const handleBuscarReporte = async () => {
         if (!tipoReporteSeleccionado) return;
         setLoadingBusqueda(true);
@@ -259,13 +324,72 @@ const Reportes = () => {
 
                 // Definir las llaves que representan el ID del ticket para no mostrarlas en la tabla
                 const idKeys = ['IdTicket', 'idTicket', 'Id', 'id', 'Id Ticket', 'id_ticket'];
-                const llavesFiltradas = llaves.filter(k => !idKeys.includes(k));
+                let llavesFiltradas = llaves.filter(k => !idKeys.includes(k));
+                if (isCapacidadConsultores) {
+                    llavesFiltradas = llavesFiltradas.filter(k => k.toLowerCase().replace(/[\s_]+/g, '') !== 'idconsultor');
+                }
 
                 const cols = llavesFiltradas.map(k => {
                     const col = {
                         field: k,
                         header: k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1')
                     };
+
+                    // Optimización de anchos y encabezados compactos cuando sea Capacidad de Consultores
+                    if (isCapacidadConsultores) {
+                        const kNorm = k.toLowerCase().replace(/[\s_]+/g, '');
+                        const isPlanLibres = kNorm.includes('planifica') && kNorm.includes('libre');
+                        const isPlanAsignadas = kNorm.includes('planifica') && (kNorm.includes('asig') || kNorm.includes('asigna'));
+                        const isEjecLibres = kNorm.includes('ejecu') && kNorm.includes('libre');
+                        const isEjecEjecutadas = kNorm.includes('ejecu') && (kNorm.includes('ejecut') || kNorm.includes('ejec'));
+
+                        if (isPlanLibres) {
+                            col.header = 'Libres';
+                            col.width = '75px';
+                            col.bodyStyle = { textAlign: 'center', width: '75px', minWidth: '75px' };
+                            col.headerStyle = { textAlign: 'center', width: '75px', minWidth: '75px' };
+                        } else if (isPlanAsignadas) {
+                            col.header = 'Asignadas';
+                            col.width = '80px';
+                            col.bodyStyle = { textAlign: 'center', width: '80px', minWidth: '80px' };
+                            col.headerStyle = { textAlign: 'center', width: '80px', minWidth: '80px' };
+                        } else if (isEjecLibres) {
+                            col.header = 'Libres';
+                            col.width = '75px';
+                            col.bodyStyle = { textAlign: 'center', width: '75px', minWidth: '75px' };
+                            col.headerStyle = { textAlign: 'center', width: '75px', minWidth: '75px' };
+                        } else if (isEjecEjecutadas) {
+                            col.header = 'Ejecutadas';
+                            col.width = '80px';
+                            col.bodyStyle = { textAlign: 'center', width: '80px', minWidth: '80px' };
+                            col.headerStyle = { textAlign: 'center', width: '80px', minWidth: '80px' };
+                        } else if (kNorm.includes('utilizaci') || k.includes('%')) {
+                            col.header = '% Utilización';
+                            col.width = '90px';
+                            col.bodyStyle = { textAlign: 'center', width: '90px', minWidth: '90px' };
+                            col.headerStyle = { textAlign: 'center', width: '90px', minWidth: '90px' };
+                        } else if (kNorm === 'carga') {
+                            col.width = '105px';
+                            col.bodyStyle = { textAlign: 'center', width: '105px', minWidth: '105px' };
+                            col.headerStyle = { textAlign: 'center', width: '105px', minWidth: '105px' };
+                        } else if (kNorm === 'consultor') {
+                            col.width = '220px';
+                            col.bodyStyle = { textAlign: 'left', width: '220px', minWidth: '220px' };
+                            col.headerStyle = { textAlign: 'left', width: '220px', minWidth: '220px' };
+                        } else if (kNorm === 'especialidad') {
+                            col.width = '130px';
+                            col.bodyStyle = { textAlign: 'left', width: '130px', minWidth: '130px' };
+                            col.headerStyle = { textAlign: 'left', width: '130px', minWidth: '130px' };
+                        } else if (kNorm === 'tickets') {
+                            col.width = '220px';
+                            col.bodyStyle = { textAlign: 'left', width: '220px', minWidth: '220px' };
+                            col.headerStyle = { textAlign: 'left', width: '220px', minWidth: '220px' };
+                        } else if (kNorm === 'modalidad') {
+                            col.width = '95px';
+                            col.bodyStyle = { textAlign: 'center', width: '95px', minWidth: '95px' };
+                            col.headerStyle = { textAlign: 'center', width: '95px', minWidth: '95px' };
+                        }
+                    }
 
                     // Si es CARGA_CONSULTOR, inyectar botón dentro de la celda HorasTicketConsultor
                     if (isCargaConsultor && k === 'HorasTicketConsultor') {
@@ -290,17 +414,30 @@ const Reportes = () => {
                     }
 
                     if (k === 'Tickets' || k === 'tickets') {
-                        col.body = (rowData) => (
-                            <div 
-                                style={{ color: '#0e71ae', cursor: 'pointer', textDecoration: 'underline' }}
-                                onClick={() => {
-                                    setTicketsDataString(rowData[k] || '');
-                                    setModalTicketsVisible(true);
-                                }}
-                            >
-                                {rowData[k]}
-                            </div>
-                        );
+                        col.body = (rowData) => {
+                            const val = rowData[k] || rowData.Tickets || rowData.tickets || '';
+                            const tieneTickets = val && !val.toLowerCase().includes('sin tickets');
+
+                            if (!tieneTickets) {
+                                return (
+                                    <span style={{ color: '#6c757d', fontStyle: 'italic' }}>
+                                        {val || 'Sin tickets asignados'}
+                                    </span>
+                                );
+                            }
+
+                            return (
+                                <div 
+                                    style={{ color: '#0e71ae', cursor: 'pointer', textDecoration: 'underline' }}
+                                    onClick={() => {
+                                        setTicketsDataString(val);
+                                        setModalTicketsVisible(true);
+                                    }}
+                                >
+                                    {val}
+                                </div>
+                            );
+                        };
                     }
 
                     return col;
@@ -685,6 +822,8 @@ const Reportes = () => {
                             exportable={false}
                             serverSide={false}
                             emptyMessage="No se encontraron registros."
+                            headerColumnGroup={headerGroupCapacidad || undefined}
+                            scrollable={!headerGroupCapacidad}
                         />
                     ) : (
                         <div className="reportes-empty-state">

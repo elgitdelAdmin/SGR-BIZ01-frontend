@@ -16,6 +16,88 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
     }
+
+    /* Estilos para encabezados agrupados específicos de Reportes (Capacidad de Consultores) */
+    .p-datatable-grouped-header {
+        .p-datatable-wrapper {
+            overflow-x: auto !important;
+            overflow-y: auto !important;
+            max-height: 650px;
+        }
+
+        table {
+            table-layout: auto !important;
+            width: max-content !important;
+            min-width: 100% !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+        }
+
+        .p-datatable-thead {
+            display: table-header-group !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 5 !important;
+        }
+
+        .p-datatable-tbody {
+            display: table-row-group !important;
+        }
+
+        .p-datatable-thead > tr,
+        .p-datatable-tbody > tr {
+            display: table-row !important;
+        }
+
+        .p-datatable-thead > tr > th,
+        .p-datatable-tbody > tr > td {
+            display: table-cell !important;
+            box-sizing: border-box !important;
+        }
+
+        .p-datatable-thead > tr > th {
+            position: sticky !important;
+            top: 0 !important;
+            background-color: #f8f9fa !important;
+            color: #2e4878 !important;
+            font-weight: 600 !important;
+            border: 1px solid #dee2e6 !important;
+            vertical-align: middle !important;
+            font-size: 11px !important;
+            padding: 0.4rem 0.5rem !important;
+
+            .p-column-header-content {
+                display: flex !important;
+                align-items: center !important;
+            }
+
+            &[style*="text-align: center"] .p-column-header-content,
+            &[style*="text-align:center"] .p-column-header-content {
+                justify-content: center !important;
+            }
+
+            &[style*="text-align: left"] .p-column-header-content,
+            &[style*="text-align:left"] .p-column-header-content {
+                justify-content: flex-start !important;
+            }
+        }
+
+        /* La fila inferior del encabezado se posiciona debajo de la primera fila */
+        .p-datatable-thead > tr:nth-child(2) > th {
+            top: 32px !important;
+        }
+
+        .p-datatable-tbody > tr > td {
+            border: 1px solid #f1f3f5 !important;
+            font-size: 11px !important;
+            padding: 0.4rem 0.5rem !important;
+            vertical-align: middle !important;
+        }
+
+        .p-datatable-tbody > tr:hover > td {
+            background-color: #f1f7fc !important;
+        }
+    }
 }
 
 .reportes-empty-state {
