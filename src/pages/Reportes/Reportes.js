@@ -851,6 +851,7 @@ const Reportes = () => {
                 visible={modalTicketsVisible}
                 onHide={() => { setModalTicketsVisible(false); setTicketsDataString(""); }}
                 ticketsString={ticketsDataString}
+                parametros={parametros}
             />
         </div>
     );

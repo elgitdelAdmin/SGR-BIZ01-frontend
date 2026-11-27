@@ -56,8 +56,6 @@
         }
 
         .p-datatable-thead > tr > th {
-            position: sticky !important;
-            top: 0 !important;
             background-color: #f8f9fa !important;
             color: #2e4878 !important;
             font-weight: 600 !important;
@@ -80,11 +78,6 @@
             &[style*="text-align:left"] .p-column-header-content {
                 justify-content: flex-start !important;
             }
-        }
-
-        /* La fila inferior del encabezado se posiciona debajo de la primera fila */
-        .p-datatable-thead > tr:nth-child(2) > th {
-            top: 32px !important;
         }
 
         .p-datatable-tbody > tr > td {

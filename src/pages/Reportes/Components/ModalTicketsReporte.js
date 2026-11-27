@@ -4,9 +4,12 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { ObtenerTicketPorCodigo } from "../../../service/TiketService";
+import ModalPlanificacionTicket from "./ModalPlanificacionTicket";
 
-const ModalTicketsReporte = ({ visible, onHide, ticketsString }) => {
+const ModalTicketsReporte = ({ visible, onHide, ticketsString, parametros = [] }) => {
     const [loadingCode, setLoadingCode] = useState(null);
+    const [selectedTicketPlan, setSelectedTicketPlan] = useState(null);
+    const [modalPlanVisible, setModalPlanVisible] = useState(false);
 
     // Convertir el string de tickets separados por coma en un arreglo estructurado
     const ticketsData = React.useMemo(() => {
@@ -82,6 +85,31 @@ const ModalTicketsReporte = ({ visible, onHide, ticketsString }) => {
         );
     };
 
+    const planificacionBodyTemplate = (rowData) => {
+        return (
+            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+                <Button 
+                    type="button"
+                    icon="pi pi-calendar" 
+                    tooltip="Ver Planificación"
+                    style={{
+                        width: "32px",
+                        height: "32px",
+                        padding: 0,
+                        borderRadius: "8px",
+                        backgroundColor: "#e8f1f5",
+                        borderColor: "#e8f1f5",
+                        color: "#0e71ae"
+                    }}
+                    onClick={() => {
+                        setSelectedTicketPlan(rowData.codigo);
+                        setModalPlanVisible(true);
+                    }}
+                />
+            </div>
+        );
+    };
+
     const codigoBodyTemplate = (rowData) => {
         return (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -94,23 +122,37 @@ const ModalTicketsReporte = ({ visible, onHide, ticketsString }) => {
     };
 
     return (
-        <Dialog
-            header="Tickets Asociados"
-            visible={visible}
-            style={{ width: "520px" }}
-            modal
-            onHide={onHide}
-        >
-            <DataTable
-                value={ticketsData}
-                responsiveLayout="scroll"
-                className="w-full"
-                emptyMessage="No hay tickets asociados."
+        <>
+            <Dialog
+                header="Tickets Asociados"
+                visible={visible}
+                style={{ width: "620px", maxWidth: "95vw" }}
+                modal
+                onHide={onHide}
             >
-                <Column field="codigo" body={codigoBodyTemplate} header="Código de Ticket" />
-                <Column body={actionBodyTemplate} style={{ width: '100px', textAlign: 'center' }} header="Acciones" />
-            </DataTable>
-        </Dialog>
+                <DataTable
+                    value={ticketsData}
+                    responsiveLayout="scroll"
+                    className="w-full"
+                    emptyMessage="No hay tickets asociados."
+                >
+                    <Column field="codigo" body={codigoBodyTemplate} header="Código de Ticket" />
+                    <Column body={planificacionBodyTemplate} style={{ width: '120px', textAlign: 'center' }} header="Planificación" headerStyle={{ textAlign: 'center', justifyContent: 'center' }} />
+                    <Column body={actionBodyTemplate} style={{ width: '100px', textAlign: 'center' }} header="Acciones" headerStyle={{ textAlign: 'center', justifyContent: 'center' }} />
+                </DataTable>
+            </Dialog>
+
+            {/* Modal de Especializaciones y Planificación del Ticket seleccionado */}
+            <ModalPlanificacionTicket
+                visible={modalPlanVisible}
+                onHide={() => {
+                    setModalPlanVisible(false);
+                    setSelectedTicketPlan(null);
+                }}
+                codTicket={selectedTicketPlan}
+                parametros={parametros}
+            />
+        </>
     );
 };
 
